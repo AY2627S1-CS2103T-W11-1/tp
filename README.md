@@ -2,13 +2,9 @@
 
 ![Ui](docs/images/Ui.png)
 
-* This is **a sample project for Software Engineering (SE) students**.<br>
-  Example usages:
-  * as a starting point of a course project (as opposed to writing everything from scratch)
-  * as a case study
-* The project simulates an ongoing software project for a desktop application (called _AddressBook_) used for managing contact details.
-  * It is **written in an object-oriented programming (OOP) style** and provides a **reasonably well-written** codebase of about 6 KLoC. It is **larger** than what students typically write in beginner-level software-engineering modules, without being overwhelming.
-  * It comes with a **reasonable level of user and developer documentation**.
-* It is named `AddressBook Level 3` (`AB3` for short) because it was initially created as a part of a series of `AddressBook` projects (`Level 1`, `Level 2`, `Level 3` ...).
-* For the detailed documentation of this project, see the **[Address Book Product Website](https://se-education.org/addressbook-level3)**.
-* This project is a **part of the se-education.org** initiative. If you would like to contribute code to this project, see [se-education.org](https://se-education.org/#contributing-to-se-edu) for more info.
+
+* Cyclique is a **desktop app for organisers of recreational cycling groups in Singapore**, optimised for use through a Command Line Interface (CLI) while still giving you the benefits of a Graphical User Interface (GUI).
+* Organisers often have their riders' contact and information scattered across chats, spreadsheets, and memory, making it hard to tell who's actually suitable for a given ride. Cyclique keeps this information in one place and helps you quickly find which riders suit a ride, based on experience, location, availability, and preferences.
+  * It's built for organisers who need to manage a significant number of cyclists, quickly access cyclists' contact and emergency information, and identify available cyclists by factors such as preferred cycling location, FTP, and experience level.
+* If you're comfortable typing and using CLI apps, Cyclique can help you manage and match cyclists faster than a typical GUI app.
+* For the detailed documentation of this project, see the **[Cyclique Product Website](https://ay2627s1-cs2103t-w11-1.github.io/tp/)**.
