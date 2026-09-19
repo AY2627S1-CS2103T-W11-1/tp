@@ -13,30 +13,28 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 <img src="images/elsxyss.png" width="200px">
 
-[[homepage](http://www.comp.nus.edu.sg/~damithch)]
 [[github](https://github.com/elsxyss)]
-[[portfolio](team/johndoe.md)]
 
-* Role: Project Advisor
+* Role: Team Lead, Scheduling and Tracking
+* Responsibilities: Coordinates the project and tracks tasks.
 
 ### Sia Pathania
 
-<img src="images/github_sia-pathania.png" width="200px">
+<img src="images/sia-pathania.png" width="200px">
 
 [[github](https://github.com/Sia-Pathania)]
-[[portfolio](team/johndoe.md)]
 
-* Role: Team Lead
-* Responsibilities: UI
+* Role: Integration, Deliverables and Deadlines, Storage Lead
+* Responsibilities: Manages integration and Storage, and ensures correct, timely submissions.
 
 ### Tan Ji Xiang
 
 <img src="images/jixiang-t.png" width="200px">
 
-[[github](https://github.com/jixiang-t)] [[portfolio](team/jixiang-t.md)]
+[[github](https://github.com/jixiang-t)]
 
-* Role: Developer
-* Responsibilities: Data
+* Role: Testing, Logic Lead
+* Responsibilities: Oversees testing and Logic quality.
 
 ### Jayden Leung
 
@@ -44,8 +42,8 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 [[github](http://github.com/jaydenleungky)]
 
-* Role: Developer
-* Responsibilities: Dev Ops + Threading
+* Role: Documentation, UI Lead
+* Responsibilities: Maintains documentation and UI quality.
 
 ### Juin Ron
 
@@ -53,4 +51,5 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 [[github](https://github.com/juinron)]
 
-* Role: Developer
+* Role: Code Quality, Model Lead
+* Responsibilities: Enforces coding standards and maintains Model quality.
