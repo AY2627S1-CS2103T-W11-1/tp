@@ -261,71 +261,182 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Target user profile**:
 
-* has a need to manage a significant number of contacts
-* prefers desktop apps over other types of applications
-* can type fast
-* prefers typing to mouse interactions
-* is reasonably comfortable using CLI apps
+Cyclique is designed for organisers of recreational cycling groups in Singapore who:
+* have a need to manage a significant number of cyclists
+* have a need to quickly access cyclists’ contact and emergency information
+* organise group rides and needs to identify available cyclists based on factors such as preferred cycling location, FTP and experience level
+* are comfortable with typing and using CLI apps
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
+**Value proposition**:
+Organisers of cycling groups often have rider contact and information scattered across chats, spreadsheets, and memory, making it hard to identify suitable participants. Cyclique keeps this information in one place and helps organisers find which riders suit a given ride, based on experience, location, availability, and preferences.
 
 
 ### User stories
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
-| Priority | As a …​                                    | I want to …​                     | So that I can…​                                                        |
-| -------- | ------------------------------------------ | ------------------------------ | ---------------------------------------------------------------------- |
-| `* * *`  | new user                                   | see usage instructions         | refer to instructions when I forget how to use the App                 |
-| `* * *`  | user                                       | add a new person               |                                                                        |
-| `* * *`  | user                                       | delete a person                | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find a person by name          | locate details of persons without having to go through the entire list |
-| `* *`    | user                                       | hide private contact details   | minimize chance of someone else seeing them by accident                |
-| `*`      | user with many persons in the address book | sort persons by name           | locate a person easily                                                 |
-
-*{More to be added}*
+| Priority | As a …​                                 | I want to …​                                               | So that I can…​                                                                |
+| -------- | ------------------------------------------ | ------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `* * *`  | proactive cycling organiser                | add a new cyclist with their name, phone number, and email    | have their basic contact records stored in one centralised directory              |
+| `* * *`  | community-focused organiser                | view a complete list of all registered cyclists               | see an overview of my entire cycling community at a glance                        |
+| `* * *`  | attentive organiser                        | edit an existing cyclist's contact details                    | keep contact information up to date without re-creating profiles                  |
+| `* * *`  | meticulous organiser,                      | delete a cyclist’s profile                                    | keep my directory free of members who have permanently left the group             |
+| `* *`    | safety-conscious cycling organiser         | store an emergency contact for each cyclist                   | reach the appropriate person quickly when an emergency occurs                     |
+| `* *`    | logistics-minded cycling organiser         | record a cyclist's preferred cycling location                 | identify cyclists who prefer rides in different parts of Singapore                |
+| `* *`    | attentive cycling organiser                | record a cyclist's experience level                           | identify riding groups that are appropriate for the cyclist                       |
+| `* *`    | pace-conscious cycling organiser           | record a cyclist's FTP                                        | identify cyclists with a suitable fitness level for a planned ride                |
+| `*`      | cycling organiser planning a group ride    | create a record for a planned group ride                      | keep track of the important details of an upcoming ride                           |
+| `*`      | cycling organiser with existing records    | import cyclist records from a structured file                 | avoid entering every existing cyclist record manually                             |
 
 ### Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
+(For all use cases below, the **System** is `Cyclique` and the **Actor** is the `user`, unless specified otherwise)
 
-**Use case: Delete a person**
+**Use case: Add cyclist**
 
 **MSS**
 
-1.  User requests to list persons
-2.  AddressBook shows a list of persons
-3.  User requests to delete a specific person in the list
-4.  AddressBook deletes the person
+1.  User adds a new cyclist by providing the cyclist's name, phone number, email address, FTP, experience level, and preferred cycling location(s).
+2.  Cyclique adds the cyclist to the directory.
+3.  Cyclique displays the newly-added cyclist.
 
     Use case ends.
 
 **Extensions**
 
-* 2a. The list is empty.
+* 1a. User provides invalid cyclist details.
+    * 1a1. Cyclique informs the user that the provided details are invalid.
+    * 1a2. User provides valid cyclist details.
 
-  Use case ends.
+      Steps 1a1-1a2 are repeated until the details provided are valid.
 
-* 3a. The given index is invalid.
+      Use case resumes from step 2.
 
-    * 3a1. AddressBook shows an error message.
+**Use case: List cyclists**
 
-      Use case resumes at step 2.
+**MSS**
 
-*{More to be added}*
+1.  User requests to view all cyclists.
+2.  Cyclique displays all cyclists currently registered in the directory together with their details.
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. The cyclist directory is empty.
+    * 2a1. Cyclique informs the user that there are no cyclists in the directory.
+
+      Use case ends.
+
+**Use case: Edit cyclist**
+
+**MSS**
+
+1.  User requests to view all cyclists.
+2.  Cyclique displays all cyclists currently registered in the directory.
+3.  User identifies a cyclist whose details are to be edited.
+4.  User requests to edit one or more details of the cyclist.
+5.  Cyclique updates the specified details of the cyclist.
+6.  Cyclique displays the updated cyclist information.
+
+    Use case ends.
+
+**Extensions**
+
+* 3a. The specified cyclist does not exist.
+    * 3a1. Cyclique informs the user that the cyclist cannot be found.
+
+      Use case ends.
+
+* 4a. User provides invalid cyclist details.
+    * 4a1. Cyclique informs the user that the provided details are invalid.
+    * 4a2. User provides valid cyclist details.
+
+      Steps 4a1-4a2 are repeated until the details provided are valid.
+
+      Use case resumes from step 5.
+
+**Use case: Delete cyclist**
+
+**MSS**
+
+1.  User requests to view all cyclists.
+2.  Cyclique displays all cyclists currently registered in the directory.
+3.  User identifies a cyclist to be deleted.
+4.  User requests to delete the cyclist.
+5.  Cyclique requests confirmation from the user to delete the cyclist.
+6.  User confirms the deletion.
+7.  Cyclique permanently removes the cyclist from the directory.
+8.  Cyclique displays the updated cyclist directory.
+
+    Use case ends.
+
+**Extensions**
+
+* 3a. The specified cyclist does not exist.
+    * 3a1. Cyclique informs the user that the cyclist cannot be found.
+
+      Use case ends.
+
+* 6a. User declines the deletion.
+    * 6a1. Cyclique cancels the deletion.
+
+      Use case ends.
 
 ### Non-Functional Requirements
 
-1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
-3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
+**Performance**
 
-*{More to be added}*
+* Cyclique should display search or shortlist results within 2 seconds when storing up to 500 cyclists.
+* Cyclique should display the cyclist list within 2 seconds when storing up to 500 cyclists.
+
+**Usability**
+
+* Adding or editing a cyclist should be completable using a single command entered from the main screen.
+* Deleting a cyclist should require no more than one command and one confirmation entered from the main screen.
+* Error messages should identify the invalid field, explain the violated constraint, and state the expected input format.
+
+**Data requirements**
+
+* Cyclist contact and emergency information must persist reliably across sessions (no data loss on app close/reopen).
+* Cyclique should support storing records for at least 500 cyclists while meeting the stated performance requirements.
+* Emergency contact information should be accessible within 2 user actions and displayed within 2 seconds.
+
+**Environment/Compatibility**
+
+* Cyclique should run on mainstream operating systems with Java 25 installed, without requiring additional hardware.
+
+**Security/Privacy**
+
+* Cyclique should store cyclist data only on the user's local computer.
+* Cyclique should not transmit cyclist data to third parties.
+
+**Reliability/Availability**
+
+* Data saved by the last successfully executed command should remain available after Cyclique is unexpectedly terminated and restarted.
 
 ### Glossary
 
+* **Auto-save**: Automatic saving of changes to persistent storage without requiring a separate save command.
+* **CLI**: *Command-Line Interface*. An interface through which the user operates Cyclique primarily by typing text commands.
+* **Cyclist**: A person whose contact and cycling-related information is stored and managed in Cyclique. The terms *rider* and *member* refer to the same concept; this documentation uses *cyclist* consistently.
+* **Cyclist directory**: The collection of cyclist records stored in Cyclique.
+* **Cycling organiser**: The primary user of Cyclique who manages cyclist records and organises recreational group rides.
+* **Duplicate cyclist**: A cyclist entry considered to represent an existing cyclist according to Cyclique's duplicate-detection rules, currently based on matching phone number or email address.
+* **Experience level**: A categorical indication of a cyclist's riding experience. Cyclique uses three experience levels: **Beginner**, **Intermediate**, and **Advanced**.
+* **Functional Threshold Power (FTP)**: A cyclist's cycling performance metric, measured in watts (W), representing the highest power they can approximately sustain for an extended period. In Cyclique, FTP is recorded as a whole number from 1 to 600 W.
+* **Group ride**: An organised cycling session involving one or more cyclists. The term *ride meetup* refers to the same concept; this documentation uses *group ride* unless a feature specifically uses the term *ride meetup*.
+* **GUI**: *Graphical User Interface*. The visual interface through which Cyclique displays cyclist information and command results.
+* **JAR file**: A Java Archive file used to package and distribute the Cyclique application.
+* **Java 25**: The minimum Java platform version required to run Cyclique, based on the project constraints.
+* **Local storage**: Data stored on the user's own computer rather than on a remote server.
 * **Mainstream OS**: Windows, Linux, Unix, or macOS
+* **Parameter prefix**: A command prefix that identifies the type of value being supplied, such as `n/` for name, `p/` for phone number, or `f/` for FTP.
+* **Persistent data**: Data that remains available after Cyclique is closed and reopened.
+* **Preferred cycling location**: A location where a cyclist prefers to ride or participate in group rides. A cyclist may have more than one preferred cycling location. The special value `any`, supplied as `l/any`, indicates that the cyclist has no location restriction and is considered to match every ride location.
 * **Private contact detail**: A contact detail that is not meant to be shared with others
+* **Ride roster**: The list of cyclists registered or confirmed to participate in a particular group ride.
+* **Validation**: The process of checking whether user input satisfies Cyclique's specified input rules before accepting it.
 
 --------------------------------------------------------------------------------------------------------------------
 
