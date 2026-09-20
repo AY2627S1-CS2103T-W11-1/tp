@@ -433,7 +433,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 * **Mainstream OS**: Windows, Linux, Unix, or macOS
 * **Parameter prefix**: A command prefix that identifies the type of value being supplied, such as `n/` for name, `p/` for phone number, or `f/` for FTP.
 * **Persistent data**: Data that remains available after Cyclique is closed and reopened.
-* **Preferred cycling location**: A location where a cyclist prefers to ride or participate in group rides. A cyclist may have more than one preferred cycling location.
+* **Preferred cycling location**: A location where a cyclist prefers to ride or participate in group rides. A cyclist may have more than one preferred cycling location. The special value `any`, supplied as `l/any`, indicates that the cyclist has no location restriction and is considered to match every ride location.
 * **Private contact detail**: A contact detail that is not meant to be shared with others
 * **Ride roster**: The list of cyclists registered or confirmed to participate in a particular group ride.
 * **Validation**: The process of checking whether user input satisfies Cyclique's specified input rules before accepting it.
