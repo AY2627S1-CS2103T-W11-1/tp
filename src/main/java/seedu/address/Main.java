@@ -28,6 +28,7 @@ public class Main {
 
         logger.warning("The warnings about a 'restricted method in java.lang.System' "
             + "and 'enabling native access' appearing below (if any) can be ignored.");
+        System.setProperty("prism.order", "sw");
         Application.launch(MainApp.class, args);
     }
 }
