@@ -497,6 +497,24 @@ testers are expected to do more *exploratory* testing.
 
 1. _{ more test cases …​ }_
 
+### Finding people
+
+1. Finding by name and phone
+
+   1. Prerequisites: Add `Alex Tan` with phone `96320842` and `David Lim` with phone `91234567`.
+
+   1. Test case: `find n/alex n/david`<br>
+      Expected: Both people are shown.
+
+   1. Test case: `find n/alex p/96320842`<br>
+      Expected: Only Alex Tan is shown.
+
+   1. Test case: `find p/91234567`<br>
+      Expected: Only David Lim is shown.
+
+   1. Test case: `find alex david`<br>
+      Expected: The command is rejected with the `find` usage message.
+
 ### Deleting a person
 
 1. Deleting a person while all persons are being shown
