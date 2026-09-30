@@ -14,7 +14,7 @@
     <columnConstraints>
       <ColumnConstraints hgrow="SOMETIMES" minWidth="10" prefWidth="150" />
     </columnConstraints>
-    <VBox alignment="CENTER_LEFT" minHeight="105" GridPane.columnIndex="0">
+    <VBox alignment="CENTER_LEFT" spacing="3" minHeight="130" GridPane.columnIndex="0">
       <padding>
         <Insets top="5" right="5" bottom="5" left="15" />
       </padding>
@@ -28,9 +28,21 @@
         <Label fx:id="name" text="\$first" styleClass="cell_big_label" />
       </HBox>
       <FlowPane fx:id="tags" />
-      <Label fx:id="phone" styleClass="cell_small_label" text="\$phone" />
-      <Label fx:id="address" styleClass="cell_small_label" text="\$address" />
-      <Label fx:id="email" styleClass="cell_small_label" text="\$email" />
+      <GridPane hgap="8" vgap="3">
+        <columnConstraints>
+          <ColumnConstraints minWidth="75" prefWidth="75" />
+          <ColumnConstraints hgrow="ALWAYS" />
+        </columnConstraints>
+        <Label styleClass="person-field-label" text="PHONE" GridPane.rowIndex="0" />
+        <Label fx:id="phone" styleClass="person-field-value" text="\$phone"
+               GridPane.columnIndex="1" GridPane.rowIndex="0" />
+        <Label styleClass="person-field-label" text="ADDRESS" GridPane.rowIndex="1" />
+        <Label fx:id="address" styleClass="person-field-value" text="\$address"
+               GridPane.columnIndex="1" GridPane.rowIndex="1" />
+        <Label styleClass="person-field-label" text="EMAIL" GridPane.rowIndex="2" />
+        <Label fx:id="email" styleClass="person-field-value" text="\$email"
+               GridPane.columnIndex="1" GridPane.rowIndex="2" />
+      </GridPane>
     </VBox>
   </GridPane>
 </HBox>
