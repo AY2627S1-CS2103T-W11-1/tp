@@ -11,6 +11,7 @@ import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.ExperienceLevel;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
 import seedu.address.model.tag.Tag;
@@ -93,6 +94,21 @@ public class ParserUtil {
             throw new ParseException(Email.MESSAGE_CONSTRAINTS);
         }
         return new Email(trimmedEmail);
+    }
+
+    /**
+     * Parses a {@code String experienceLevel} into an {@code ExperienceLevel}.
+     * Leading and trailing whitespaces will be trimmed.
+     *
+     * @throws ParseException if the given {@code experienceLevel} is invalid.
+     */
+    public static ExperienceLevel parseExperienceLevel(String experienceLevel) throws ParseException {
+        requireNonNull(experienceLevel);
+        String trimmedExperienceLevel = experienceLevel.trim();
+        if (!ExperienceLevel.isValidExperienceLevel(trimmedExperienceLevel)) {
+            throw new ParseException(ExperienceLevel.MESSAGE_CONSTRAINTS);
+        }
+        return new ExperienceLevel(trimmedExperienceLevel);
     }
 
     /**
