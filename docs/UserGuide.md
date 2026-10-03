@@ -109,22 +109,23 @@ Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
 
-### Locating persons by name: `find`
+### Locating persons by name or phone: `find`
 
-Finds persons whose names contain any of the given keywords.
+Finds persons by name keywords and phone numbers.
 
-Format: `find KEYWORD [MORE_KEYWORDS]`
+Format: `find [n/NAME_KEYWORD]… [p/PHONE]…` (at least one field is required)
 
-* The search is case-insensitive; for example, `hans` matches `Hans`.
-* Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
-* The search considers only names.
-* Only full words match; for example, `Han` does not match `Hans`.
-* Persons matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
+* Each `n/` takes one name keyword. Name matching is case-insensitive and requires a full word; for example, `n/hans` matches `Hans` but `n/Han` does not.
+* Each `p/` takes one complete phone number. Phone matching is exact; `p/963` does not match `96320842`.
+* Multiple values for the same field use `OR`: `find n/Hans n/Bo` returns people named `Hans Gruber` or `Bo Yang`.
+* When both fields are supplied, a person must match a name keyword **and** a phone number. Prefix order does not matter.
+* Name keywords and phone numbers search only their respective fields.
 
 Examples:
-* `find John` returns `john` and `John Doe`
-* `find alex david` returns `Alex Yeoh`, `David Li`<br>
-  ![result for 'find alex david'](images/findAlexDavidResult.png)
+* `find n/John` returns `john` and `John Doe`
+* `find n/alex n/david` returns `Alex Yeoh`, `David Li`<br>
+  ![result for 'find n/alex n/david'](images/findAlexDavidResult.png)
+* `find n/alex p/96320842` returns only people whose name contains `alex` and whose phone number is `96320842`.
 
 ### Deleting a person: `delete`
 
@@ -193,6 +194,6 @@ Action | Format, Examples
 **Clear** | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
-**Find** | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
+**Find** | `find [n/NAME_KEYWORD]… [p/PHONE]…`<br> e.g., `find n/James n/Jake`, `find n/James p/96320842`
 **List** | `list`
 **Help** | `help`
