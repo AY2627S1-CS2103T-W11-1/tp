@@ -132,6 +132,18 @@
     -fx-text-fill: #010504;
 }
 
+.list-cell .person-field-label {
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-size: 11px;
+    -fx-text-fill: #83a8f0;
+}
+
+.list-cell .person-field-value {
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 13px;
+    -fx-text-fill: #d6e0f5;
+}
+
 .stack-pane {
      -fx-background-color: derive(#1d1d1d, 20%);
 }

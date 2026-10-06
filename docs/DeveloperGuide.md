@@ -487,6 +487,7 @@ testers are expected to do more *exploratory* testing.
 
    1. Double-click the JAR file.<br>
       Expected: The GUI opens with a set of sample contacts. The window size may not be optimal.
+      Each contact shows its phone number, address, and email with clear field labels.
 
 1. Saving window preferences
 
