@@ -268,7 +268,7 @@ Cyclique is designed for organisers of recreational cycling groups in Singapore 
 * are comfortable with typing and using CLI apps
 
 **Value proposition**:
-Organisers of cycling groups often have rider contact and information scattered across chats, spreadsheets, and memory, making it hard to identify suitable participants. Cyclique keeps this information in one place and helps organisers find which riders suit a given ride, based on experience, location, availability, and preferences.
+Organisers of cycling groups often have rider contact and information scattered across chats, spreadsheets, and memory, making it hard to identify suitable participants. Cyclique keeps this information in one place and helps organisers find which riders suit a given ride, based on preferred cycling location, FTP and experience level.
 
 
 ### User stories
@@ -294,7 +294,15 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 (For all use cases below, the **System** is `Cyclique` and the **Actor** is the `user`, unless specified otherwise)
 
+**Shared precondition for UC01 – UC04**: Cyclique is running and ready to accept user requests.
+
 **UC01 – Add Cyclist**
+
+**Guarantees**
+
+* On successful completion, exactly one new cyclist record containing the supplied details is added and displayed.
+* Existing cyclist records remain unchanged.
+* Invalid details are not added. If the supplied phone number or email address duplicates an existing record, the directory remains unchanged.
 
 **MSS**
 
@@ -323,6 +331,12 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 **UC02 – List Cyclists**
 
+**Guarantees**
+
+* All cyclist records in the directory are displayed with their details.
+* If the directory is empty, the user is informed that there are no cyclists.
+* No cyclist records are changed.
+
 **MSS**
 
 1.  User requests to view all cyclists.
@@ -339,71 +353,79 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 **UC03 – Edit Cyclist**
 
+**Guarantees**
+
+* On successful completion, only the specified fields of the selected cyclist are updated, and the updated record is displayed.
+* Unspecified fields and other cyclist records remain unchanged.
+* Requests referring to a nonexistent cyclist, containing invalid details, or creating a duplicate phone number or email address do not change the directory.
+
 **MSS**
 
-1.  User requests to view all cyclists.
-2.  Cyclique displays all cyclists currently registered in the directory.
-3.  User requests to edit a specified cyclist and provides the revised details.
-4.  Cyclique updates the specified details of the cyclist.
-5.  Cyclique displays the updated cyclist information.
+1.  User <u>views the cyclist list (UC02).</u>
+2.  User requests to edit a specified cyclist and provides the revised details.
+3.  Cyclique updates the specified details of the cyclist.
+4.  Cyclique displays the updated cyclist information.
 
     Use case ends.
 
 **Extensions**
 
-* 2a. The cyclist directory is empty.
-    * 2a1. Cyclique informs the user that there are no cyclists in the directory.
+* 1a. UC02 reports that the cyclist directory is empty.
+
+    Use case ends.
+
+* 2a. The specified cyclist does not exist.
+    * 2a1. Cyclique informs the user that the cyclist cannot be found.
 
       Use case ends.
 
-* 3a. The specified cyclist does not exist.
-    * 3a1. Cyclique informs the user that the cyclist cannot be found.
+* 2b. User provides invalid cyclist details.
+    * 2b1. Cyclique informs the user that the provided details are invalid.
+    * 2b2. User provides revised cyclist details.
 
-      Use case ends.
+      Steps 2b1-2b2 are repeated until the details provided are valid.
 
-* 3b. User provides invalid cyclist details.
-    * 3b1. Cyclique informs the user that the provided details are invalid.
-    * 3b2. User provides revised cyclist details.
+      If the revised details duplicate another cyclist, extension 2c applies.
 
-      Steps 3b1-3b2 are repeated until the details provided are valid.
+      Use case resumes from step 3.
 
-      If the revised details duplicate another cyclist, extension 3c applies.
-
-      Use case resumes from step 4.
-
-* 3c. Cyclique detects that the revised phone number or email address matches another cyclist's record.
-    * 3c1. Cyclique informs the user that the edit would create a duplicate cyclist record and leaves the directory unchanged.
+* 2c. Cyclique detects that the revised phone number or email address matches another cyclist's record.
+    * 2c1. Cyclique informs the user that the edit would create a duplicate cyclist record and leaves the directory unchanged.
 
       Use case ends.
 
 **UC04 – Delete Cyclist**
 
+**Guarantees**
+
+* A cyclist record is permanently removed only after the user confirms its deletion.
+* On successful completion, only the specified cyclist record is removed, and the updated cyclist directory is displayed.
+* If the specified cyclist does not exist or the user declines confirmation, the directory remains unchanged.
+
 **MSS**
 
-1.  User requests to view all cyclists.
-2.  Cyclique displays all cyclists currently registered in the directory.
-3.  User requests to delete a specified cyclist.
-4.  Cyclique requests confirmation from the user to delete the cyclist.
-5.  User confirms the deletion.
-6.  Cyclique permanently removes the cyclist from the directory.
-7.  Cyclique displays the updated cyclist directory.
+1.  User <u>views the cyclist list (UC02).</u>
+2.  User requests to delete a specified cyclist.
+3.  Cyclique requests confirmation from the user to delete the cyclist.
+4.  User confirms the deletion.
+5.  Cyclique permanently removes the cyclist from the directory.
+6.  Cyclique displays the updated cyclist directory.
 
     Use case ends.
 
 **Extensions**
 
-* 2a. The cyclist directory is empty.
-    * 2a1. Cyclique informs the user that there are no cyclists in the directory.
+* 1a. UC02 reports that the cyclist directory is empty.
+
+    Use case ends.
+
+* 2a. The specified cyclist does not exist.
+    * 2a1. Cyclique informs the user that the cyclist cannot be found.
 
       Use case ends.
 
-* 3a. The specified cyclist does not exist.
-    * 3a1. Cyclique informs the user that the cyclist cannot be found.
-
-      Use case ends.
-
-* 5a. User declines the deletion.
-    * 5a1. Cyclique cancels the deletion.
+* 4a. User declines the deletion.
+    * 4a1. Cyclique cancels the deletion.
 
       Use case ends.
 
