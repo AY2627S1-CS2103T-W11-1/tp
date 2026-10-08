@@ -11,8 +11,14 @@ public class Phone {
 
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Phone numbers should only contain digits, and should be at least 3 digits long";
-    public static final String VALIDATION_REGEX = "\\d{3,}";
+            "Phone numbers must use the format +<country code> <number>, with digits only after the space";
+    public static final String MESSAGE_MISSING_COUNTRY_CODE =
+            "Phone numbers must start with a '+' followed by the country code, for example '+65 91234567'.";
+    public static final String MESSAGE_MISSING_SEPARATOR =
+            "Phone numbers must contain one space between the country code and the number.";
+    public static final String MESSAGE_MULTIPLE_SEPARATORS =
+            "Phone numbers must contain exactly one space between the country code and the number.";
+    public static final String VALIDATION_REGEX = "\\+[0-9]{1,3} [0-9]{3,}";
     public final String value;
 
     /**

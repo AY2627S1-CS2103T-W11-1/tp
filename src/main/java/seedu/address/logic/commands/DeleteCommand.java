@@ -20,8 +20,8 @@ public class DeleteCommand extends Command {
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
             + ": Deletes the person identified by their phone number.\n"
-            + "Parameters: PHONE (must be at least 3 digits)\n"
-            + "Example: " + COMMAND_WORD + " 96742165";
+            + "Parameters: PHONE (in the format +<country code> <number>)\n"
+            + "Example: " + COMMAND_WORD + " +65 96742165";
 
     public static final String MESSAGE_DELETE_PERSON_SUCCESS = "Deleted person: %1$s";
     public static final String MESSAGE_PERSON_NOT_FOUND = "Cyclist with phone number %1$s cannot be found.";

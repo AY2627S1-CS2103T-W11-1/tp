@@ -18,7 +18,7 @@ public class FindCommand extends Command {
             + "Name keywords match full words, ignoring case. Repeated values within a field match any value; "
             + "when both fields are given, both must match.\n"
             + "Parameters: [n/NAME_KEYWORD]... [p/PHONE]... (at least one required)\n"
-            + "Example: " + COMMAND_WORD + " n/alice p/91234567";
+            + "Example: " + COMMAND_WORD + " n/alice p/+65 91234567";
 
     private final PersonMatchesFindCriteriaPredicate predicate;
 
