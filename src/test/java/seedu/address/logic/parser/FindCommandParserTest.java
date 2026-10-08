@@ -34,19 +34,19 @@ public class FindCommandParserTest {
         assertParseSuccess(parser, " n/Alice  n/Bob ", expectedFindCommand);
 
         FindCommand phoneCommand = new FindCommand(new PersonMatchesFindCriteriaPredicate(
-                List.of(), List.of(new Phone("96320842"))));
-        assertParseSuccess(parser, "p/96320842", phoneCommand);
+                List.of(), List.of(new Phone("+65 96320842"))));
+        assertParseSuccess(parser, "p/+65 96320842", phoneCommand);
 
         FindCommand combinedCommand = new FindCommand(new PersonMatchesFindCriteriaPredicate(
-                List.of("alex"), List.of(new Phone("96320842"))));
-        assertParseSuccess(parser, "n/alex p/96320842", combinedCommand);
-        assertParseSuccess(parser, "p/96320842 n/alex", combinedCommand);
+                List.of("alex"), List.of(new Phone("+65 96320842"))));
+        assertParseSuccess(parser, "n/alex p/+65 96320842", combinedCommand);
+        assertParseSuccess(parser, "p/+65 96320842 n/alex", combinedCommand);
     }
 
     @Test
     public void parse_invalidPhone_throwsParseException() {
-        assertParseFailure(parser, "p/abc", Phone.MESSAGE_CONSTRAINTS);
-        assertParseFailure(parser, "p/", Phone.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "p/+65 abc", Phone.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "p/", Phone.MESSAGE_MISSING_COUNTRY_CODE);
     }
 
 }

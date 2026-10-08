@@ -35,17 +35,17 @@ public class DeleteCommandTest {
 
     @Test
     public void execute_unknownPhone_throwsCommandException() {
-        DeleteCommand deleteCommand = new DeleteCommand(new Phone("99999999"));
+        DeleteCommand deleteCommand = new DeleteCommand(new Phone("+65 99999999"));
 
         assertCommandFailure(deleteCommand, model,
-                String.format(DeleteCommand.MESSAGE_PERSON_NOT_FOUND, "99999999"));
+                String.format(DeleteCommand.MESSAGE_PERSON_NOT_FOUND, "+65 99999999"));
     }
 
     @Test
     public void equals() {
-        DeleteCommand firstCommand = new DeleteCommand(new Phone("111"));
-        DeleteCommand sameCommand = new DeleteCommand(new Phone("111"));
-        DeleteCommand differentCommand = new DeleteCommand(new Phone("222"));
+        DeleteCommand firstCommand = new DeleteCommand(new Phone("+65 111"));
+        DeleteCommand sameCommand = new DeleteCommand(new Phone("+65 111"));
+        DeleteCommand differentCommand = new DeleteCommand(new Phone("+65 222"));
 
         assertTrue(firstCommand.equals(firstCommand));
         assertTrue(firstCommand.equals(sameCommand));
@@ -56,9 +56,9 @@ public class DeleteCommandTest {
 
     @Test
     public void toStringMethod() {
-        DeleteCommand deleteCommand = new DeleteCommand(new Phone("111"));
+        DeleteCommand deleteCommand = new DeleteCommand(new Phone("+65 111"));
 
-        String expected = DeleteCommand.class.getCanonicalName() + "{targetPhone=111}";
+        String expected = DeleteCommand.class.getCanonicalName() + "{targetPhone=+65 111}";
         assertEquals(expected, deleteCommand.toString());
     }
 }
