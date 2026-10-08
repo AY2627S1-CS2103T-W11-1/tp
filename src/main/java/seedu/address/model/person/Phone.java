@@ -11,7 +11,8 @@ public class Phone {
 
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Phone numbers must use the format +<country code> <number>, with digits only after the space";
+            "Invalid phone number. Example of an accepted format: +65 91234567. "
+                    + "Parentheses and hyphens are not allowed.";
     public static final String MESSAGE_MISSING_COUNTRY_CODE =
             "Phone numbers must start with a '+' followed by the country code, for example '+65 91234567'.";
     public static final String MESSAGE_MISSING_SEPARATOR =
