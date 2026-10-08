@@ -63,15 +63,6 @@ public class ParserUtil {
     public static Phone parsePhone(String phone) throws ParseException {
         requireNonNull(phone);
         String trimmedPhone = phone.trim();
-        if (!trimmedPhone.startsWith("+")) {
-            throw new ParseException(Phone.MESSAGE_MISSING_COUNTRY_CODE);
-        }
-        if (trimmedPhone.indexOf(' ') < 0) {
-            throw new ParseException(Phone.MESSAGE_MISSING_SEPARATOR);
-        }
-        if (trimmedPhone.indexOf(' ') != trimmedPhone.lastIndexOf(' ')) {
-            throw new ParseException(Phone.MESSAGE_MULTIPLE_SEPARATORS);
-        }
         if (!Phone.isValidPhone(trimmedPhone)) {
             throw new ParseException(Phone.MESSAGE_CONSTRAINTS);
         }
