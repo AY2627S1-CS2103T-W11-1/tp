@@ -66,6 +66,9 @@ public class ParserUtil {
         if (!trimmedPhone.startsWith("+")) {
             throw new ParseException(Phone.MESSAGE_MISSING_COUNTRY_CODE);
         }
+        if (!trimmedPhone.matches("[+0-9 ]+")) {
+            throw new ParseException(Phone.MESSAGE_CONSTRAINTS);
+        }
         if (trimmedPhone.indexOf(' ') < 0) {
             throw new ParseException(Phone.MESSAGE_MISSING_SEPARATOR);
         }
