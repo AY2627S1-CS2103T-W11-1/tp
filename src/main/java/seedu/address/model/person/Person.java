@@ -140,7 +140,6 @@ public class Person {
                 .add("phone", phone)
                 .add("email", email)
                 .add("ftp", ftp)
-                .add("address", address)
                 .add("experienceLevel", experienceLevel)
                 .add("locations", locations)
                 .add("tags", tags)
