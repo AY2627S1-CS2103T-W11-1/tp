@@ -45,6 +45,8 @@ public class Messages {
                 .append(person.getFtp())
                 .append("; Experience Level: ")
                 .append(person.getExperienceLevel())
+                .append("; Locations: ")
+                .append(person.getLocations())
                 .append("; Address: ")
                 .append(person.getAddress())
                 .append("; Tags: ");

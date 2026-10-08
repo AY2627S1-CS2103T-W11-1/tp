@@ -25,26 +25,33 @@ public class Person {
     // Data fields
     private final Address address;
     private final ExperienceLevel experienceLevel;
+    private final Set<Location> locations = new HashSet<>();
     private final Set<Tag> tags = new HashSet<>();
 
     /**
      * Every field must be present and not null.
      */
     public Person(Name name, Phone phone, Email email, Ftp ftp, Address address, ExperienceLevel experienceLevel,
-            Set<Tag> tags) {
-        requireAllNonNull(name, phone, email, ftp, address, experienceLevel, tags);
+            Set<Location> locations, Set<Tag> tags) {
+        requireAllNonNull(name, phone, email, ftp, address, experienceLevel, locations, tags);
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.ftp = ftp;
         this.address = address;
         this.experienceLevel = experienceLevel;
+        this.locations.addAll(locations);
         this.tags.addAll(tags);
     }
 
     public Person(Name name, Phone phone, Email email, Address address, ExperienceLevel experienceLevel,
             Set<Tag> tags) {
-        this(name, phone, email, new Ftp("1"), address, experienceLevel, tags);
+        this(name, phone, email, new Ftp("1"), address, experienceLevel, Set.of(new Location("any")), tags);
+    }
+
+    public Person(Name name, Phone phone, Email email, Ftp ftp, Address address, ExperienceLevel experienceLevel,
+            Set<Tag> tags) {
+        this(name, phone, email, ftp, address, experienceLevel, Set.of(new Location("any")), tags);
     }
 
     public Name getName() {
@@ -69,6 +76,10 @@ public class Person {
 
     public ExperienceLevel getExperienceLevel() {
         return experienceLevel;
+    }
+
+    public Set<Location> getLocations() {
+        return Collections.unmodifiableSet(locations);
     }
 
     /**
@@ -131,6 +142,7 @@ public class Person {
                 .add("ftp", ftp)
                 .add("address", address)
                 .add("experienceLevel", experienceLevel)
+                .add("locations", locations)
                 .add("tags", tags)
                 .toString();
     }

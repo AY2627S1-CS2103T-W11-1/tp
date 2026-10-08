@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import seedu.address.commons.core.index.Index;
@@ -13,6 +14,7 @@ import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.ExperienceLevel;
 import seedu.address.model.person.Ftp;
+import seedu.address.model.person.Location;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
 import seedu.address.model.tag.Tag;
@@ -109,6 +111,22 @@ public class ParserUtil {
             throw new ParseException(Ftp.MESSAGE_CONSTRAINTS);
         }
         return new Ftp(trimmedFtp);
+    }
+
+    /** Parses location values and removes case-insensitive duplicates. */
+    public static Set<Location> parseLocations(List<String> locations) throws ParseException {
+        Set<Location> parsedLocations = new HashSet<>();
+        for (String location : locations) {
+            String trimmedLocation = location.trim();
+            if (!Location.isValidLocation(trimmedLocation)) {
+                throw new ParseException(Location.MESSAGE_CONSTRAINTS);
+            }
+            parsedLocations.add(new Location(trimmedLocation));
+        }
+        if (parsedLocations.isEmpty()) {
+            parsedLocations.add(new Location("any"));
+        }
+        return parsedLocations;
     }
 
     /**
