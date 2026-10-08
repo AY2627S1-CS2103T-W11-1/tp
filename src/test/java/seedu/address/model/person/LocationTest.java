@@ -2,6 +2,7 @@ package seedu.address.model.person;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -33,8 +34,8 @@ public class LocationTest {
 
     @Test
     public void parseLocations_anyWithOtherLocation_throwsParseException() {
-        ParseException exception = org.junit.jupiter.api.Assertions.assertThrows(ParseException.class,
-                () -> ParserUtil.parseLocations(List.of("any", "Bishan")));
+        List<String> locations = List.of("any", "Bishan");
+        ParseException exception = assertThrows(ParseException.class, () -> ParserUtil.parseLocations(locations));
         assertEquals("Location 'any' cannot be combined with other locations.", exception.getMessage());
     }
 }

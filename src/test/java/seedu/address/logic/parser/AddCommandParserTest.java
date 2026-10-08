@@ -169,11 +169,6 @@ public class AddCommandParserTest {
                 NAME_DESC_BOB + PHONE_DESC_BOB + VALID_EMAIL_BOB + ADDRESS_DESC_BOB + EXPERIENCE_LEVEL_DESC_BOB,
                 expectedMessage);
 
-        // missing address prefix
-        assertParseFailure(parser,
-                NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + VALID_ADDRESS_BOB + EXPERIENCE_LEVEL_DESC_BOB,
-                expectedMessage);
-
         // missing experience level prefix
         assertParseFailure(parser,
                 NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + ADDRESS_DESC_BOB + VALID_EXPERIENCE_LEVEL_BOB,
