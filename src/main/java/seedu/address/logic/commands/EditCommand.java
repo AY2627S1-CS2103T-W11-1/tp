@@ -104,7 +104,8 @@ public class EditCommand extends Command {
         // Editing experience level is out of scope for this command (tracked separately in issue #49).
         ExperienceLevel experienceLevel = personToEdit.getExperienceLevel();
 
-        return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, experienceLevel, updatedTags);
+        return new Person(updatedName, updatedPhone, updatedEmail, personToEdit.getFtp(), updatedAddress,
+                experienceLevel, updatedTags);
     }
 
     @Override

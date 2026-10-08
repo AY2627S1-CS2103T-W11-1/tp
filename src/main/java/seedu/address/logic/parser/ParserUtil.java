@@ -12,6 +12,7 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.ExperienceLevel;
+import seedu.address.model.person.Ftp;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
 import seedu.address.model.tag.Tag;
@@ -94,6 +95,20 @@ public class ParserUtil {
             throw new ParseException(Email.MESSAGE_CONSTRAINTS);
         }
         return new Email(trimmedEmail);
+    }
+
+    /**
+     * Parses a {@code String} as an {@code Ftp}.
+     */
+    public static Ftp parseFtp(String ftp) throws ParseException {
+        String trimmedFtp = ftp.trim();
+        if (trimmedFtp.isEmpty()) {
+            throw new ParseException("Please include a number for FTP. " + Ftp.MESSAGE_CONSTRAINTS);
+        }
+        if (!Ftp.isValidFtp(trimmedFtp)) {
+            throw new ParseException(Ftp.MESSAGE_CONSTRAINTS);
+        }
+        return new Ftp(trimmedFtp);
     }
 
     /**

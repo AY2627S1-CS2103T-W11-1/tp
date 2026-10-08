@@ -13,6 +13,7 @@ import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.ExperienceLevel;
+import seedu.address.model.person.Ftp;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
@@ -28,6 +29,7 @@ class JsonAdaptedPerson {
     private final String name;
     private final String phone;
     private final String email;
+    private final String ftp;
     private final String address;
     private final String experienceLevel;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
@@ -35,14 +37,20 @@ class JsonAdaptedPerson {
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
      */
+    public JsonAdaptedPerson(String name, String phone, String email, String address,
+            String experienceLevel, List<JsonAdaptedTag> tags) {
+        this(name, phone, email, "1", address, experienceLevel, tags);
+    }
+
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
-            @JsonProperty("email") String email, @JsonProperty("address") String address,
-            @JsonProperty("experienceLevel") String experienceLevel,
+            @JsonProperty("email") String email, @JsonProperty("ftp") String ftp,
+            @JsonProperty("address") String address, @JsonProperty("experienceLevel") String experienceLevel,
             @JsonProperty("tags") List<JsonAdaptedTag> tags) {
         this.name = name;
         this.phone = phone;
         this.email = email;
+        this.ftp = ftp;
         this.address = address;
         this.experienceLevel = experienceLevel;
         if (tags != null) {
@@ -57,6 +65,7 @@ class JsonAdaptedPerson {
         name = source.getName().fullName;
         phone = source.getPhone().value;
         email = source.getEmail().value;
+        ftp = source.getFtp().value;
         address = source.getAddress().value;
         experienceLevel = source.getExperienceLevel().value;
         tags.addAll(source.getTags().stream()
@@ -99,6 +108,12 @@ class JsonAdaptedPerson {
         }
         final Email modelEmail = new Email(email);
 
+        String ftpValue = ftp == null ? "1" : ftp;
+        if (!Ftp.isValidFtp(ftpValue)) {
+            throw new IllegalValueException(Ftp.MESSAGE_CONSTRAINTS);
+        }
+        final Ftp modelFtp = new Ftp(ftpValue);
+
         if (address == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Address.class.getSimpleName()));
         }
@@ -117,7 +132,7 @@ class JsonAdaptedPerson {
         final ExperienceLevel modelExperienceLevel = new ExperienceLevel(experienceLevel);
 
         final Set<Tag> modelTags = new HashSet<>(personTags);
-        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelExperienceLevel, modelTags);
+        return new Person(modelName, modelPhone, modelEmail, modelFtp, modelAddress, modelExperienceLevel, modelTags);
     }
 
 }

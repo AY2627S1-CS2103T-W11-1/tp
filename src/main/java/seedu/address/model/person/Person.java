@@ -20,6 +20,7 @@ public class Person {
     private final Name name;
     private final Phone phone;
     private final Email email;
+    private final Ftp ftp;
 
     // Data fields
     private final Address address;
@@ -29,15 +30,21 @@ public class Person {
     /**
      * Every field must be present and not null.
      */
-    public Person(Name name, Phone phone, Email email, Address address, ExperienceLevel experienceLevel,
+    public Person(Name name, Phone phone, Email email, Ftp ftp, Address address, ExperienceLevel experienceLevel,
             Set<Tag> tags) {
-        requireAllNonNull(name, phone, email, address, experienceLevel, tags);
+        requireAllNonNull(name, phone, email, ftp, address, experienceLevel, tags);
         this.name = name;
         this.phone = phone;
         this.email = email;
+        this.ftp = ftp;
         this.address = address;
         this.experienceLevel = experienceLevel;
         this.tags.addAll(tags);
+    }
+
+    public Person(Name name, Phone phone, Email email, Address address, ExperienceLevel experienceLevel,
+            Set<Tag> tags) {
+        this(name, phone, email, new Ftp("1"), address, experienceLevel, tags);
     }
 
     public Name getName() {
@@ -50,6 +57,10 @@ public class Person {
 
     public Email getEmail() {
         return email;
+    }
+
+    public Ftp getFtp() {
+        return ftp;
     }
 
     public Address getAddress() {
@@ -99,6 +110,7 @@ public class Person {
         return name.equals(otherPerson.name)
                 && phone.equals(otherPerson.phone)
                 && email.equals(otherPerson.email)
+                && ftp.equals(otherPerson.ftp)
                 && address.equals(otherPerson.address)
                 && experienceLevel.equals(otherPerson.experienceLevel)
                 && tags.equals(otherPerson.tags);
@@ -107,7 +119,7 @@ public class Person {
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, address, experienceLevel, tags);
+        return Objects.hash(name, phone, email, ftp, address, experienceLevel, tags);
     }
 
     @Override
@@ -116,6 +128,7 @@ public class Person {
                 .add("name", name)
                 .add("phone", phone)
                 .add("email", email)
+                .add("ftp", ftp)
                 .add("address", address)
                 .add("experienceLevel", experienceLevel)
                 .add("tags", tags)
