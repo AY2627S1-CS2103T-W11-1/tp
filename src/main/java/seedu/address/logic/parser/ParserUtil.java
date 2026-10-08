@@ -116,12 +116,19 @@ public class ParserUtil {
     /** Parses location values and removes case-insensitive duplicates. */
     public static Set<Location> parseLocations(List<String> locations) throws ParseException {
         Set<Location> parsedLocations = new HashSet<>();
+        boolean hasAnyLocation = false;
         for (String location : locations) {
             String trimmedLocation = location.trim();
             if (!Location.isValidLocation(trimmedLocation)) {
                 throw new ParseException(Location.MESSAGE_CONSTRAINTS);
             }
+            if (trimmedLocation.equalsIgnoreCase("any")) {
+                hasAnyLocation = true;
+            }
             parsedLocations.add(new Location(trimmedLocation));
+        }
+        if (hasAnyLocation && parsedLocations.size() > 1) {
+            throw new ParseException("Location 'any' cannot be combined with other locations.");
         }
         if (parsedLocations.isEmpty()) {
             parsedLocations.add(new Location("any"));
