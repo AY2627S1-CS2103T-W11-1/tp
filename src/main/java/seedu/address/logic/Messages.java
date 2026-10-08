@@ -43,6 +43,8 @@ public class Messages {
                 .append(person.getEmail())
                 .append("; FTP: ")
                 .append(person.getFtp())
+                .append("; Experience Level: ")
+                .append(person.getExperienceLevel())
                 .append("; Address: ")
                 .append(person.getAddress())
                 .append("; Tags: ");
