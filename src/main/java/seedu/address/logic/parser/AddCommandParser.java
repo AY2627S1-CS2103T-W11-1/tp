@@ -39,6 +39,7 @@ public class AddCommandParser implements Parser<AddCommand> {
                         PREFIX_EXPERIENCE_LEVEL, PREFIX_TAG);
 
         if (!arePrefixesPresent(argMultimap, PREFIX_NAME, PREFIX_ADDRESS, PREFIX_PHONE, PREFIX_EMAIL,
+                PREFIX_FTP,
                 PREFIX_EXPERIENCE_LEVEL)
                 || !argMultimap.getPreamble().isEmpty()) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddCommand.MESSAGE_USAGE));
@@ -49,13 +50,7 @@ public class AddCommandParser implements Parser<AddCommand> {
         Name name = ParserUtil.parseName(argMultimap.getValue(PREFIX_NAME).get());
         Phone phone = ParserUtil.parsePhone(argMultimap.getValue(PREFIX_PHONE).get());
         Email email = ParserUtil.parseEmail(argMultimap.getValue(PREFIX_EMAIL).get());
-        Ftp ftp = argMultimap.getValue(PREFIX_FTP).map(value -> {
-            try {
-                return ParserUtil.parseFtp(value);
-            } catch (ParseException exception) {
-                throw new IllegalArgumentException(exception.getMessage(), exception);
-            }
-        }).orElse(new Ftp("1"));
+        Ftp ftp = ParserUtil.parseFtp(argMultimap.getValue(PREFIX_FTP).get());
         Address address = ParserUtil.parseAddress(argMultimap.getValue(PREFIX_ADDRESS).get());
         ExperienceLevel experienceLevel =
                 ParserUtil.parseExperienceLevel(argMultimap.getValue(PREFIX_EXPERIENCE_LEVEL).get());
