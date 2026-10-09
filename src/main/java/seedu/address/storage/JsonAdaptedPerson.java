@@ -14,6 +14,7 @@ import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.ExperienceLevel;
 import seedu.address.model.person.Ftp;
+import seedu.address.model.person.Location;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
@@ -32,6 +33,7 @@ class JsonAdaptedPerson {
     private final String ftp;
     private final String address;
     private final String experienceLevel;
+    private final List<String> locations = new ArrayList<>();
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
 
     /**
@@ -39,20 +41,23 @@ class JsonAdaptedPerson {
      */
     public JsonAdaptedPerson(String name, String phone, String email, String address,
             String experienceLevel, List<JsonAdaptedTag> tags) {
-        this(name, phone, email, "1", address, experienceLevel, tags);
+        this(name, phone, email, "1", address, experienceLevel, null, tags);
     }
 
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("ftp") String ftp,
             @JsonProperty("address") String address, @JsonProperty("experienceLevel") String experienceLevel,
-            @JsonProperty("tags") List<JsonAdaptedTag> tags) {
+            @JsonProperty("locations") List<String> locations, @JsonProperty("tags") List<JsonAdaptedTag> tags) {
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.ftp = ftp;
         this.address = address;
         this.experienceLevel = experienceLevel;
+        if (locations != null) {
+            this.locations.addAll(locations);
+        }
         if (tags != null) {
             this.tags.addAll(tags);
         }
@@ -68,6 +73,9 @@ class JsonAdaptedPerson {
         ftp = source.getFtp().value;
         address = source.getAddress().value;
         experienceLevel = source.getExperienceLevel().value;
+        locations.addAll(source.getLocations().stream()
+                .map(location -> location.value)
+                .collect(Collectors.toList()));
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
                 .collect(Collectors.toList()));
@@ -131,8 +139,20 @@ class JsonAdaptedPerson {
         }
         final ExperienceLevel modelExperienceLevel = new ExperienceLevel(experienceLevel);
 
+        final Set<Location> modelLocations = new HashSet<>();
+        for (String location : locations) {
+            if (!Location.isValidLocation(location)) {
+                throw new IllegalValueException(Location.MESSAGE_CONSTRAINTS);
+            }
+            modelLocations.add(new Location(location));
+        }
+        if (modelLocations.isEmpty()) {
+            modelLocations.add(new Location("any"));
+        }
+
         final Set<Tag> modelTags = new HashSet<>(personTags);
-        return new Person(modelName, modelPhone, modelEmail, modelFtp, modelAddress, modelExperienceLevel, modelTags);
+        return new Person(modelName, modelPhone, modelEmail, modelFtp, modelAddress, modelExperienceLevel,
+                modelLocations, modelTags);
     }
 
 }
