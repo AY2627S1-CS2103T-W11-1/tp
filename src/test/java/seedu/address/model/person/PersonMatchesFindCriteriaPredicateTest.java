@@ -11,7 +11,7 @@ import seedu.address.testutil.PersonBuilder;
 
 public class PersonMatchesFindCriteriaPredicateTest {
 
-    private final Person alice = new PersonBuilder().withName("Alice Bob").withPhone("96320842").build();
+    private final Person alice = new PersonBuilder().withName("Alice Bob").withPhone("+65 96320842").build();
 
     @Test
     public void test_nameKeywords_matchAnyFullWordIgnoringCase() {
@@ -22,18 +22,18 @@ public class PersonMatchesFindCriteriaPredicateTest {
     @Test
     public void test_phoneNumbers_matchAnyExactNumber() {
         assertTrue(new PersonMatchesFindCriteriaPredicate(List.of(),
-                List.of(new Phone("12345678"), new Phone("96320842"))).test(alice));
+                List.of(new Phone("+65 12345678"), new Phone("+65 96320842"))).test(alice));
         assertFalse(new PersonMatchesFindCriteriaPredicate(List.of(),
-                List.of(new Phone("963"))).test(alice));
+                List.of(new Phone("+65 963"))).test(alice));
     }
 
     @Test
     public void test_nameAndPhone_bothMustMatch() {
         assertTrue(new PersonMatchesFindCriteriaPredicate(List.of("bob"),
-                List.of(new Phone("96320842"))).test(alice));
+                List.of(new Phone("+65 96320842"))).test(alice));
         assertFalse(new PersonMatchesFindCriteriaPredicate(List.of("bob"),
-                List.of(new Phone("12345678"))).test(alice));
+                List.of(new Phone("+65 12345678"))).test(alice));
         assertFalse(new PersonMatchesFindCriteriaPredicate(List.of("carol"),
-                List.of(new Phone("96320842"))).test(alice));
+                List.of(new Phone("+65 96320842"))).test(alice));
     }
 }

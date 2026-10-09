@@ -68,7 +68,7 @@ public class FindCommandTest {
     @Test
     public void execute_nameAndPhone_onlyPersonsMatchingBothFound() {
         PersonMatchesFindCriteriaPredicate predicate = new PersonMatchesFindCriteriaPredicate(
-                List.of("Carl", "Elle"), List.of(CARL.getPhone(), new Phone("12345678")));
+                List.of("Carl", "Elle"), List.of(CARL.getPhone(), new Phone("+65 12345678")));
         FindCommand command = new FindCommand(predicate);
         expectedModel.updateFilteredPersonList(predicate);
         assertCommandSuccess(command, model, String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 1), expectedModel);

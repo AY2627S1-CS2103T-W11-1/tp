@@ -44,7 +44,7 @@ import seedu.address.testutil.EditPersonDescriptorBuilder;
 public class EditCommandParserTest {
 
     private static final String TAG_EMPTY = " " + PREFIX_TAG;
-    private static final Phone TARGET_PHONE = new Phone("91234567");
+    private static final Phone TARGET_PHONE = new Phone("+65 91234567");
 
     private static final String MESSAGE_INVALID_FORMAT =
             String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditCommand.MESSAGE_USAGE);
@@ -204,7 +204,7 @@ public class EditCommandParserTest {
 
     @Test
     public void parse_targetPhoneAndReplacementPhone_success() {
-        Phone targetPhone = new Phone("96742165");
+        Phone targetPhone = new Phone("+65 96742165");
         String userInput = targetPhone + PHONE_DESC_BOB;
 
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()

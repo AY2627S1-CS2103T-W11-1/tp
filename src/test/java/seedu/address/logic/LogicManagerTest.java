@@ -62,8 +62,8 @@ public class LogicManagerTest {
 
     @Test
     public void execute_commandExecutionError_throwsCommandException() {
-        String deleteCommand = "delete 99999999";
-        assertCommandException(deleteCommand, "Cyclist with phone number 99999999 cannot be found.");
+        String deleteCommand = "delete +65 99999999";
+        assertCommandException(deleteCommand, "Cyclist with phone number +65 99999999 cannot be found.");
     }
 
     @Test

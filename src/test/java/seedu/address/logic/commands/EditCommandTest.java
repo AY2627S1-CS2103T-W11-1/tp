@@ -126,7 +126,7 @@ public class EditCommandTest {
 
     @Test
     public void execute_phoneNotFoundUnfilteredList_failure() {
-        Phone unknownPhone = new Phone("00000000");
+        Phone unknownPhone = new Phone("+65 00000000");
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB).build();
         EditCommand editCommand = new EditCommand(unknownPhone, descriptor);
 
@@ -178,7 +178,7 @@ public class EditCommandTest {
 
     @Test
     public void toStringMethod() {
-        Phone targetPhone = new Phone("91234567");
+        Phone targetPhone = new Phone("+65 91234567");
         EditPersonDescriptor editPersonDescriptor = new EditPersonDescriptor();
         EditCommand editCommand = new EditCommand(targetPhone, editPersonDescriptor);
         String expected = EditCommand.class.getCanonicalName() + "{targetPhone=" + targetPhone
