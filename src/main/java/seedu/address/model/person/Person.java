@@ -124,13 +124,14 @@ public class Person {
                 && ftp.equals(otherPerson.ftp)
                 && address.equals(otherPerson.address)
                 && experienceLevel.equals(otherPerson.experienceLevel)
+                && locations.equals(otherPerson.locations)
                 && tags.equals(otherPerson.tags);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, ftp, address, experienceLevel, tags);
+        return Objects.hash(name, phone, email, ftp, address, experienceLevel, locations, tags);
     }
 
     @Override
@@ -140,6 +141,7 @@ public class Person {
                 .add("phone", phone)
                 .add("email", email)
                 .add("ftp", ftp)
+                .add("address", address)
                 .add("experienceLevel", experienceLevel)
                 .add("locations", locations)
                 .add("tags", tags)
