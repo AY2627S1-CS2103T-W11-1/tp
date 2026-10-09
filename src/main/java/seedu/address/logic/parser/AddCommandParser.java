@@ -40,31 +40,41 @@ public class AddCommandParser implements Parser<AddCommand> {
                 ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_FTP, PREFIX_ADDRESS,
                         PREFIX_EXPERIENCE_LEVEL, PREFIX_LOCATION, PREFIX_TAG);
 
+        if (!argMultimap.getValue(PREFIX_FTP).isPresent()
+                && arePrefixesPresent(argMultimap, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL,
+                PREFIX_EXPERIENCE_LEVEL, PREFIX_LOCATION)) {
+            throw new ParseException(AddCommand.MESSAGE_MISSING_FTP);
+        }
+
+        if (!argMultimap.getValue(PREFIX_LOCATION).isPresent()
+                && arePrefixesPresent(argMultimap, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL,
+                PREFIX_EXPERIENCE_LEVEL, PREFIX_FTP)) {
+            throw new ParseException(AddCommand.MESSAGE_MISSING_LOCATION);
+        }
+
         if (!arePrefixesPresent(argMultimap, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL,
-                PREFIX_EXPERIENCE_LEVEL)
+                PREFIX_FTP, PREFIX_EXPERIENCE_LEVEL, PREFIX_LOCATION)
                 || !argMultimap.getPreamble().isEmpty()) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddCommand.MESSAGE_USAGE));
         }
 
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_FTP, PREFIX_ADDRESS,
                 PREFIX_EXPERIENCE_LEVEL);
+
         Name name = ParserUtil.parseName(argMultimap.getValue(PREFIX_NAME).get());
         Phone phone = ParserUtil.parsePhone(argMultimap.getValue(PREFIX_PHONE).get());
         Email email = ParserUtil.parseEmail(argMultimap.getValue(PREFIX_EMAIL).get());
-        Ftp ftp = argMultimap.getValue(PREFIX_FTP).map(value -> {
-            try {
-                return ParserUtil.parseFtp(value);
-            } catch (ParseException exception) {
-                throw new IllegalArgumentException(exception.getMessage(), exception);
-            }
-        }).orElse(new Ftp("1"));
-        Set<Location> locations = ParserUtil.parseLocations(argMultimap.getAllValues(PREFIX_LOCATION));
+        Ftp ftp = ParserUtil.parseFtp(argMultimap.getValue(PREFIX_FTP).get());
+
         Address address = new Address("Not specified");
         if (argMultimap.getValue(PREFIX_ADDRESS).isPresent()) {
             address = ParserUtil.parseAddress(argMultimap.getValue(PREFIX_ADDRESS).get());
         }
+
         ExperienceLevel experienceLevel =
                 ParserUtil.parseExperienceLevel(argMultimap.getValue(PREFIX_EXPERIENCE_LEVEL).get());
+
+        Set<Location> locations = ParserUtil.parseLocations(argMultimap.getAllValues(PREFIX_LOCATION));
         Set<Tag> tagList = ParserUtil.parseTags(argMultimap.getAllValues(PREFIX_TAG));
 
         Person person = new Person(name, phone, email, ftp, address, experienceLevel, locations, tagList);
