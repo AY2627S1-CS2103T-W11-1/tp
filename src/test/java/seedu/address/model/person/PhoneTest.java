@@ -31,6 +31,12 @@ public class PhoneTest {
         assertFalse(Phone.isValidPhone("phone")); // non-numeric
         assertFalse(Phone.isValidPhone("9011p041")); // alphabets within digits
         assertFalse(Phone.isValidPhone("+65 9312 1534")); // multiple spaces
+        assertFalse(Phone.isValidPhone("91234567")); // missing country code
+        assertFalse(Phone.isValidPhone("+6591234567")); // missing separator
+        assertFalse(Phone.isValidPhone("+65  91234567")); // extra separator
+        assertFalse(Phone.isValidPhone("+65-91234567")); // hyphen
+        assertFalse(Phone.isValidPhone("+65 (91234567)")); // parentheses
+        assertFalse(Phone.isValidPhone("+65 9123a567")); // invalid character
 
         // valid phone numbers
         assertTrue(Phone.isValidPhone("+65 911")); // exactly 3 numbers
