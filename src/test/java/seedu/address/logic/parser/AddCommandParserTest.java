@@ -190,6 +190,10 @@ public class AddCommandParserTest {
         assertParseFailure(parser,
                 VALID_NAME_BOB + VALID_PHONE_BOB + VALID_EMAIL_BOB + VALID_ADDRESS_BOB + VALID_EXPERIENCE_LEVEL_BOB,
                 expectedMessage);
+
+        assertParseFailure(parser,
+                NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + ADDRESS_DESC_BOB + EXPERIENCE_LEVEL_DESC_BOB,
+                AddCommand.MESSAGE_MISSING_FTP);
     }
 
     @Test
@@ -205,7 +209,7 @@ public class AddCommandParserTest {
         assertParseFailure(parser, requiredFields + " f/abc", ftpConstraints);
         assertParseFailure(parser, requiredFields + " f/", "Please include a number for FTP. " + ftpConstraints);
         assertParseFailure(parser, requiredFields,
-                String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddCommand.MESSAGE_USAGE));
+                AddCommand.MESSAGE_MISSING_FTP);
     }
 
     @Test
@@ -246,7 +250,7 @@ public class AddCommandParserTest {
 
         // non-empty preamble
         assertParseFailure(parser, PREAMBLE_NON_EMPTY + NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB
-                + ADDRESS_DESC_BOB + EXPERIENCE_LEVEL_DESC_BOB + TAG_DESC_HUSBAND + TAG_DESC_FRIEND,
+                + ADDRESS_DESC_BOB + FTP_DESC_BOB + EXPERIENCE_LEVEL_DESC_BOB + TAG_DESC_HUSBAND + TAG_DESC_FRIEND,
                 String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddCommand.MESSAGE_USAGE));
     }
 }
