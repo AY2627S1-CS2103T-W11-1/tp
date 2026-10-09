@@ -12,6 +12,7 @@ import java.util.Set;
 
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
+import seedu.address.model.person.Location;
 import seedu.address.model.person.Person;
 import seedu.address.model.tag.Tag;
 
@@ -37,7 +38,11 @@ public class PersonUtil {
         sb.append(PREFIX_EMAIL + person.getEmail().value + " ");
         sb.append(PREFIX_ADDRESS + person.getAddress().value + " ");
         sb.append(PREFIX_EXPERIENCE_LEVEL + person.getExperienceLevel().value + " ");
-        sb.append(PREFIX_LOCATION + person.getLocations().iterator().next().value + " ");
+        for (Location location : person.getLocations()) {
+            sb.append(PREFIX_LOCATION)
+                    .append(location.value)
+                    .append(" ");
+        }
         person.getTags().stream().forEach(
             s -> sb.append(PREFIX_TAG + s.tagName + " ")
         );
