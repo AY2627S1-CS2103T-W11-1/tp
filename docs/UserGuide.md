@@ -28,7 +28,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
    * `list` : Lists all contacts.
 
-   * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 x/Beginner` : Adds a contact named `John Doe` to the Address Book.
+   * `add n/John Doe p/98765432 e/johnd@example.com x/Beginner` : Adds a contact named `John Doe` to the Address Book.
 
    * `delete 3` : Deletes the 3rd contact shown in the current list.
 
@@ -77,7 +77,7 @@ Format: `help`
 
 Adds a person to the address book.
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS x/EXPERIENCE_LEVEL [t/TAG]…​`
+Format: `add n/NAME p/PHONE_NUMBER e/EMAIL x/EXPERIENCE_LEVEL [t/TAG]…​`
 
 <div markdown="span" class="alert alert-primary">:bulb: **Tip:**
 A person can have any number of tags, including zero.
@@ -86,8 +86,8 @@ A person can have any number of tags, including zero.
 `EXPERIENCE_LEVEL` must be one of `Beginner`, `Intermediate` or `Advanced` (case-insensitive).
 
 Examples:
-* `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 x/Beginner`
-* `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 x/Advanced t/criminal`
+* `add n/John Doe p/98765432 e/johnd@example.com x/Beginner`
+* `add n/Betsy Crowe t/friend e/betsycrowe@example.com p/1234567 x/Advanced t/criminal`
 
 ### Listing all persons: `list`
 
@@ -190,7 +190,7 @@ _Details coming soon ..._
 
 Action | Format, Examples
 --------|------------------
-**Add** | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS x/EXPERIENCE_LEVEL [t/TAG]…​` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 x/Intermediate t/friend t/colleague`
+**Add** | `add n/NAME p/PHONE_NUMBER e/EMAIL x/EXPERIENCE_LEVEL [t/TAG]…​` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com x/Intermediate t/friend t/colleague`
 **Clear** | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
