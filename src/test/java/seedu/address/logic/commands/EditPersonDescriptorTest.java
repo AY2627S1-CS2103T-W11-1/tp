@@ -7,6 +7,7 @@ import static seedu.address.logic.commands.CommandTestUtil.DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.DESC_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_ADDRESS_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_BOB;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_EXPERIENCE_LEVEL_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
@@ -52,6 +53,19 @@ public class EditPersonDescriptorTest {
         editedAmy = new EditPersonDescriptorBuilder(DESC_AMY).withAddress(VALID_ADDRESS_BOB).build();
         assertFalse(DESC_AMY.equals(editedAmy));
 
+        // different FTP -> returns false
+        editedAmy = new EditPersonDescriptorBuilder(DESC_AMY).withFtp("600").build();
+        assertFalse(DESC_AMY.equals(editedAmy));
+
+        // different experience level -> returns false
+        editedAmy = new EditPersonDescriptorBuilder(DESC_AMY)
+                .withExperienceLevel(VALID_EXPERIENCE_LEVEL_BOB).build();
+        assertFalse(DESC_AMY.equals(editedAmy));
+
+        // different locations -> returns false
+        editedAmy = new EditPersonDescriptorBuilder(DESC_AMY).withLocations("East Coast Park").build();
+        assertFalse(DESC_AMY.equals(editedAmy));
+
         // different tags -> returns false
         editedAmy = new EditPersonDescriptorBuilder(DESC_AMY).withTags(VALID_TAG_HUSBAND).build();
         assertFalse(DESC_AMY.equals(editedAmy));
@@ -63,8 +77,11 @@ public class EditPersonDescriptorTest {
         String expected = EditPersonDescriptor.class.getCanonicalName() + "{name="
                 + editPersonDescriptor.getName().orElse(null) + ", phone="
                 + editPersonDescriptor.getPhone().orElse(null) + ", email="
-                + editPersonDescriptor.getEmail().orElse(null) + ", address="
-                + editPersonDescriptor.getAddress().orElse(null) + ", tags="
+                + editPersonDescriptor.getEmail().orElse(null) + ", ftp="
+                + editPersonDescriptor.getFtp().orElse(null) + ", address="
+                + editPersonDescriptor.getAddress().orElse(null) + ", experienceLevel="
+                + editPersonDescriptor.getExperienceLevel().orElse(null) + ", locations="
+                + editPersonDescriptor.getLocations().orElse(null) + ", tags="
                 + editPersonDescriptor.getTags().orElse(null) + "}";
         assertEquals(expected, editPersonDescriptor.toString());
     }

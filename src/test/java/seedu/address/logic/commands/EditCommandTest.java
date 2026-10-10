@@ -73,6 +73,22 @@ public class EditCommandTest {
     }
 
     @Test
+    public void execute_cyclingFieldsSpecifiedUnfilteredList_success() {
+        Person personToEdit = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Person editedPerson = new PersonBuilder(personToEdit).withFtp("300")
+                .withExperienceLevel("Advanced").withLocations("East Coast Park", "Marina Bay").build();
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withFtp("300")
+                .withExperienceLevel("Advanced").withLocations("East Coast Park", "Marina Bay").build();
+        EditCommand editCommand = new EditCommand(personToEdit.getPhone(), descriptor);
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(personToEdit, editedPerson);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
     public void execute_noFieldSpecifiedUnfilteredList_success() {
         Person editedPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         EditCommand editCommand = new EditCommand(editedPerson.getPhone(), new EditPersonDescriptor());
