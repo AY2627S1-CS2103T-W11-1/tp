@@ -1,16 +1,21 @@
 package seedu.address.ui;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.Logic;
@@ -25,6 +30,7 @@ import seedu.address.logic.parser.exceptions.ParseException;
 public class MainWindow extends UiPart<Stage> {
 
     private static final String FXML = "MainWindow.fxml";
+    private static final Duration CLOSING_SCREEN_DURATION = Duration.seconds(1.5);
 
     private final Logger logger = LogsCenter.getLogger(getClass());
 
@@ -39,6 +45,9 @@ public class MainWindow extends UiPart<Stage> {
 
     @FXML
     private StackPane commandBoxPlaceholder;
+
+    @FXML
+    private Menu helpMenu;
 
     @FXML
     private MenuItem helpMenuItem;
@@ -125,6 +134,26 @@ public class MainWindow extends UiPart<Stage> {
 
         CommandBox commandBox = new CommandBox(this::executeCommand);
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
+
+        addCommandsToHelpMenu(commandBox);
+    }
+
+    /**
+     * Adds one item per command to the top of the Help menu, followed by a separator, so that the
+     * list of commands appears as soon as the menu is opened. Clicking an item places that
+     * command's starter text in {@code commandBox}; the existing "Full help..." item stays at the bottom.
+     */
+    private void addCommandsToHelpMenu(CommandBox commandBox) {
+        List<MenuItem> commandItems = new ArrayList<>();
+        for (CommandTemplates.Template template : CommandTemplates.ALL) {
+            MenuItem commandItem = new MenuItem(template.display());
+            // Otherwise JavaFX hides the first underscore (e.g. in EXPERIENCE_LEVEL) as a shortcut marker.
+            commandItem.setMnemonicParsing(false);
+            commandItem.setOnAction(event -> commandBox.setCommandText(template.insertText()));
+            commandItems.add(commandItem);
+        }
+        commandItems.add(new SeparatorMenuItem());
+        helpMenu.getItems().addAll(0, commandItems);
     }
 
     /**
@@ -164,6 +193,8 @@ public class MainWindow extends UiPart<Stage> {
                 (int) primaryStage.getX(), (int) primaryStage.getY());
         logic.setGuiSettings(guiSettings);
         helpWindow.hide();
+        // Show the closing screen before hiding this window: the app exits when the last window closes.
+        ArtworkScreen.closing().showFor(CLOSING_SCREEN_DURATION, () -> { });
         primaryStage.hide();
     }
 

@@ -10,14 +10,11 @@
 <?import javafx.scene.layout.VBox?>
 
 <HBox id="cardPane" fx:id="cardPane" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
-  <GridPane HBox.hgrow="ALWAYS">
-    <columnConstraints>
-      <ColumnConstraints hgrow="SOMETIMES" minWidth="10" prefWidth="150" />
-    </columnConstraints>
-    <VBox alignment="CENTER_LEFT" spacing="3" minHeight="180" GridPane.columnIndex="0">
-      <padding>
-        <Insets top="5" right="5" bottom="5" left="15" />
-      </padding>
+  <VBox alignment="CENTER_LEFT" spacing="4" HBox.hgrow="ALWAYS">
+    <padding>
+      <Insets top="10" right="12" bottom="10" left="15" />
+    </padding>
+    <HBox spacing="10" alignment="CENTER_LEFT">
       <HBox spacing="0.5" alignment="CENTER_LEFT">
         <Label fx:id="id" styleClass="cell_big_label">
           <minWidth>
@@ -27,25 +24,26 @@
         </Label>
         <Label fx:id="name" text="\$first" styleClass="cell_big_label" />
       </HBox>
-      <FlowPane fx:id="tags" />
-      <GridPane hgap="8" vgap="3">
-        <columnConstraints>
-          <ColumnConstraints minWidth="75" prefWidth="75" />
-          <ColumnConstraints hgrow="ALWAYS" />
-        </columnConstraints>
-        <Label styleClass="person-field-label" text="PHONE" GridPane.rowIndex="0" />
-        <Label fx:id="phone" styleClass="person-field-value" text="\$phone"
-               GridPane.columnIndex="1" GridPane.rowIndex="0" />
-        <Label styleClass="person-field-label" text="EMAIL" GridPane.rowIndex="1" />
-        <Label fx:id="email" styleClass="person-field-value" text="\$email"
-               GridPane.columnIndex="1" GridPane.rowIndex="1" />
-        <Label styleClass="person-field-label" text="FTP" GridPane.rowIndex="2" />
-        <Label fx:id="ftp" styleClass="person-field-value" text="\$ftp"
-               GridPane.columnIndex="1" GridPane.rowIndex="2" />
-        <Label styleClass="person-field-label" text="LOCATIONS" GridPane.rowIndex="3" />
-        <Label fx:id="locations" styleClass="person-field-value" text="\$locations"
-               GridPane.columnIndex="1" GridPane.rowIndex="3" />
-      </GridPane>
-    </VBox>
-  </GridPane>
+      <Label fx:id="experienceLevel" styleClass="experience-chip" text="\$experienceLevel" />
+    </HBox>
+    <FlowPane fx:id="tags" />
+    <GridPane hgap="8" vgap="2">
+      <columnConstraints>
+        <ColumnConstraints minWidth="75" prefWidth="75" />
+        <ColumnConstraints hgrow="ALWAYS" />
+      </columnConstraints>
+      <Label styleClass="person-field-label" text="PHONE" GridPane.rowIndex="0" />
+      <Label fx:id="phone" styleClass="person-field-value" text="\$phone"
+             GridPane.columnIndex="1" GridPane.rowIndex="0" />
+      <Label styleClass="person-field-label" text="EMAIL" GridPane.rowIndex="1" />
+      <Label fx:id="email" styleClass="person-field-value" text="\$email"
+             GridPane.columnIndex="1" GridPane.rowIndex="1" />
+      <Label styleClass="person-field-label" text="FTP" GridPane.rowIndex="2" />
+      <Label fx:id="ftp" styleClass="person-field-value" text="\$ftp"
+             GridPane.columnIndex="1" GridPane.rowIndex="2" />
+      <Label styleClass="person-field-label" text="LOCATIONS" GridPane.rowIndex="3" />
+      <Label fx:id="locations" styleClass="person-field-value" text="\$locations"
+             GridPane.columnIndex="1" GridPane.rowIndex="3" />
+    </GridPane>
+  </VBox>
 </HBox>
