@@ -8,6 +8,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import seedu.address.MainApp;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.util.StringUtil;
@@ -22,6 +23,7 @@ public class UiManager implements Ui {
 
     private static final Logger logger = LogsCenter.getLogger(UiManager.class);
     private static final String ICON_APPLICATION = "/images/address_book_32.png";
+    private static final Duration OPENING_SCREEN_DURATION = Duration.seconds(2.5);
 
     private Logic logic;
     private Path dataFilePath;
@@ -45,12 +47,24 @@ public class UiManager implements Ui {
 
         try {
             mainWindow = new MainWindow(primaryStage, logic, dataFilePath);
-            mainWindow.show(); //This should be called before creating other UI parts
-            mainWindow.fillInnerParts();
-
+            ArtworkScreen.opening().showFor(OPENING_SCREEN_DURATION, this::showMainWindow);
         } catch (Throwable e) {
             logger.severe(StringUtil.getDetails(e));
             showFatalErrorDialogAndShutdown("Fatal error during initializing", e);
+        }
+    }
+
+    /**
+     * Shows the main window once the opening screen has finished.
+     */
+    private void showMainWindow() {
+        try {
+            mainWindow.show(); //This should be called before creating other UI parts
+            mainWindow.fillInnerParts();
+        } catch (Throwable e) {
+            logger.severe(StringUtil.getDetails(e));
+            // An alert cannot be shown and waited on while an animation is running, so defer it.
+            Platform.runLater(() -> showFatalErrorDialogAndShutdown("Fatal error during initializing", e));
         }
     }
 
