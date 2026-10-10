@@ -81,6 +81,12 @@ public class EditCommandParserTest {
         // phone that is too short
         assertParseFailure(parser, "12" + NAME_DESC_AMY, MESSAGE_INVALID_FORMAT);
 
+        // old phone format without a country code
+        assertParseFailure(parser, "91234567" + NAME_DESC_AMY, MESSAGE_INVALID_FORMAT);
+
+        // malformed international phone
+        assertParseFailure(parser, "+65 abc" + NAME_DESC_AMY, MESSAGE_INVALID_FORMAT);
+
         // invalid arguments being parsed as preamble
         assertParseFailure(parser, TARGET_PHONE + " some random string", MESSAGE_INVALID_FORMAT);
 
@@ -96,10 +102,13 @@ public class EditCommandParserTest {
         assertParseFailure(parser, TARGET_PHONE + " f/0", Ftp.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, TARGET_PHONE + " f/601", Ftp.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, TARGET_PHONE + " f/abc", Ftp.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, TARGET_PHONE + " f/-1", Ftp.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, TARGET_PHONE + " f/1.5", Ftp.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, TARGET_PHONE + " f/",
                 "Please include a number for FTP. " + Ftp.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, TARGET_PHONE + INVALID_EXPERIENCE_LEVEL_DESC,
                 ExperienceLevel.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, TARGET_PHONE + " x/", ExperienceLevel.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, TARGET_PHONE + " l/", Location.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, TARGET_PHONE + " l/East@Park", Location.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, TARGET_PHONE + " l/any l/Marina Bay",
@@ -123,6 +132,9 @@ public class EditCommandParserTest {
         assertParseFailure(parser,
                 TARGET_PHONE + INVALID_NAME_DESC + INVALID_EMAIL_DESC + VALID_ADDRESS_AMY + VALID_PHONE_AMY,
                 Name.MESSAGE_CONSTRAINTS);
+
+        // a valid field must not cause an invalid field to be partially accepted
+        assertParseFailure(parser, TARGET_PHONE + NAME_DESC_AMY + " f/601", Ftp.MESSAGE_CONSTRAINTS);
     }
 
     @Test
@@ -150,6 +162,14 @@ public class EditCommandParserTest {
         EditCommand expectedCommand = new EditCommand(TARGET_PHONE, descriptor);
 
         assertParseSuccess(parser, userInput, expectedCommand);
+    }
+
+    @Test
+    public void parse_validExperienceLevels_success() {
+        assertExperienceLevelParseSuccess("Beginner", "Beginner");
+        assertExperienceLevelParseSuccess("Intermediate", "Intermediate");
+        assertExperienceLevelParseSuccess("Advanced", "Advanced");
+        assertExperienceLevelParseSuccess("aDvAnCeD", "Advanced");
     }
 
     @Test
@@ -277,5 +297,13 @@ public class EditCommandParserTest {
         EditCommand expectedCommand = new EditCommand(targetPhone, descriptor);
 
         assertParseSuccess(parser, userInput, expectedCommand);
+    }
+
+    private void assertExperienceLevelParseSuccess(String input, String expectedExperienceLevel) {
+        String userInput = TARGET_PHONE + " x/" + input;
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()
+                .withExperienceLevel(expectedExperienceLevel).build();
+
+        assertParseSuccess(parser, userInput, new EditCommand(TARGET_PHONE, descriptor));
     }
 }

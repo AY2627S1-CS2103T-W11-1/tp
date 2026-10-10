@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.DESC_BOB;
@@ -12,12 +13,76 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
+import seedu.address.model.person.ExperienceLevel;
+import seedu.address.model.person.Ftp;
+import seedu.address.model.person.Location;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 
 public class EditPersonDescriptorTest {
+
+    @Test
+    public void newCyclingFields_gettersSettersAndEditState() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptor();
+        assertFalse(descriptor.isAnyFieldEdited());
+        assertTrue(descriptor.getFtp().isEmpty());
+        assertTrue(descriptor.getExperienceLevel().isEmpty());
+        assertTrue(descriptor.getLocations().isEmpty());
+
+        Ftp ftp = new Ftp("300");
+        descriptor.setFtp(ftp);
+        assertTrue(descriptor.isAnyFieldEdited());
+        assertEquals(ftp, descriptor.getFtp().orElseThrow());
+
+        descriptor = new EditPersonDescriptor();
+        ExperienceLevel experienceLevel = new ExperienceLevel("Intermediate");
+        descriptor.setExperienceLevel(experienceLevel);
+        assertTrue(descriptor.isAnyFieldEdited());
+        assertEquals(experienceLevel, descriptor.getExperienceLevel().orElseThrow());
+
+        descriptor = new EditPersonDescriptor();
+        Set<Location> locations = Set.of(new Location("East Coast Park"));
+        descriptor.setLocations(locations);
+        assertTrue(descriptor.isAnyFieldEdited());
+        assertEquals(locations, descriptor.getLocations().orElseThrow());
+    }
+
+    @Test
+    public void setLocations_externalSetModified_locationsUnchanged() {
+        Set<Location> externalLocations = new HashSet<>();
+        externalLocations.add(new Location("East Coast Park"));
+        EditPersonDescriptor descriptor = new EditPersonDescriptor();
+        descriptor.setLocations(externalLocations);
+
+        externalLocations.add(new Location("Marina Bay"));
+
+        assertEquals(Set.of(new Location("East Coast Park")), descriptor.getLocations().orElseThrow());
+    }
+
+    @Test
+    public void getLocations_modifySet_throwsUnsupportedOperationException() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()
+                .withLocations("East Coast Park").build();
+
+        Set<Location> locations = descriptor.getLocations().orElseThrow();
+        assertThrows(UnsupportedOperationException.class, () -> locations.add(new Location("Marina Bay")));
+    }
+
+    @Test
+    public void copyConstructor_sourceLocationsReplaced_copyUnchanged() {
+        EditPersonDescriptor source = new EditPersonDescriptorBuilder()
+                .withLocations("East Coast Park").build();
+        EditPersonDescriptor copy = new EditPersonDescriptor(source);
+
+        source.setLocations(Set.of(new Location("Marina Bay")));
+
+        assertEquals(Set.of(new Location("East Coast Park")), copy.getLocations().orElseThrow());
+    }
 
     @Test
     public void equals() {
