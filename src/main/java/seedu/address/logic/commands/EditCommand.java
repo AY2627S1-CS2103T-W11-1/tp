@@ -3,6 +3,9 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_EXPERIENCE_LEVEL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_FTP;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_LOCATION;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
@@ -23,6 +26,8 @@ import seedu.address.model.Model;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.ExperienceLevel;
+import seedu.address.model.person.Ftp;
+import seedu.address.model.person.Location;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
@@ -42,6 +47,9 @@ public class EditCommand extends Command {
             + "[" + PREFIX_NAME + "NAME] "
             + "[" + PREFIX_PHONE + "PHONE] "
             + "[" + PREFIX_EMAIL + "EMAIL] "
+            + "[" + PREFIX_FTP + "FTP] "
+            + "[" + PREFIX_EXPERIENCE_LEVEL + "EXPERIENCE] "
+            + "[" + PREFIX_LOCATION + "LOCATION]... "
             + "[" + PREFIX_ADDRESS + "ADDRESS] "
             + "[" + PREFIX_TAG + "TAG]...\n"
             + "Example: " + COMMAND_WORD + " +65 91234567 "
@@ -99,13 +107,15 @@ public class EditCommand extends Command {
         Name updatedName = editPersonDescriptor.getName().orElse(personToEdit.getName());
         Phone updatedPhone = editPersonDescriptor.getPhone().orElse(personToEdit.getPhone());
         Email updatedEmail = editPersonDescriptor.getEmail().orElse(personToEdit.getEmail());
+        Ftp updatedFtp = editPersonDescriptor.getFtp().orElse(personToEdit.getFtp());
         Address updatedAddress = editPersonDescriptor.getAddress().orElse(personToEdit.getAddress());
+        ExperienceLevel updatedExperienceLevel = editPersonDescriptor.getExperienceLevel()
+                .orElse(personToEdit.getExperienceLevel());
+        Set<Location> updatedLocations = editPersonDescriptor.getLocations().orElse(personToEdit.getLocations());
         Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
-        // Editing experience level is out of scope for this command (tracked separately in issue #49).
-        ExperienceLevel experienceLevel = personToEdit.getExperienceLevel();
 
-        return new Person(updatedName, updatedPhone, updatedEmail, personToEdit.getFtp(), updatedAddress,
-                experienceLevel, personToEdit.getLocations(), updatedTags);
+        return new Person(updatedName, updatedPhone, updatedEmail, updatedFtp, updatedAddress,
+                updatedExperienceLevel, updatedLocations, updatedTags);
     }
 
     @Override
@@ -139,20 +149,26 @@ public class EditCommand extends Command {
         private Name name;
         private Phone phone;
         private Email email;
+        private Ftp ftp;
         private Address address;
+        private ExperienceLevel experienceLevel;
+        private Set<Location> locations;
         private Set<Tag> tags;
 
         public EditPersonDescriptor() {}
 
         /**
          * Copy constructor.
-         * A defensive copy of {@code tags} is used internally.
+         * Defensive copies of {@code locations} and {@code tags} are used internally.
          */
         public EditPersonDescriptor(EditPersonDescriptor toCopy) {
             setName(toCopy.name);
             setPhone(toCopy.phone);
             setEmail(toCopy.email);
+            setFtp(toCopy.ftp);
             setAddress(toCopy.address);
+            setExperienceLevel(toCopy.experienceLevel);
+            setLocations(toCopy.locations);
             setTags(toCopy.tags);
         }
 
@@ -160,7 +176,7 @@ public class EditCommand extends Command {
          * Returns true if at least one field is edited.
          */
         public boolean isAnyFieldEdited() {
-            return CollectionUtil.isAnyNonNull(name, phone, email, address, tags);
+            return CollectionUtil.isAnyNonNull(name, phone, email, ftp, address, experienceLevel, locations, tags);
         }
 
         public void setName(Name name) {
@@ -187,12 +203,45 @@ public class EditCommand extends Command {
             return Optional.ofNullable(email);
         }
 
+        public void setFtp(Ftp ftp) {
+            this.ftp = ftp;
+        }
+
+        public Optional<Ftp> getFtp() {
+            return Optional.ofNullable(ftp);
+        }
+
         public void setAddress(Address address) {
             this.address = address;
         }
 
         public Optional<Address> getAddress() {
             return Optional.ofNullable(address);
+        }
+
+        public void setExperienceLevel(ExperienceLevel experienceLevel) {
+            this.experienceLevel = experienceLevel;
+        }
+
+        public Optional<ExperienceLevel> getExperienceLevel() {
+            return Optional.ofNullable(experienceLevel);
+        }
+
+        /**
+         * Sets {@code locations} to this object's {@code locations}.
+         * A defensive copy of {@code locations} is used internally.
+         */
+        public void setLocations(Set<Location> locations) {
+            this.locations = (locations != null) ? new HashSet<>(locations) : null;
+        }
+
+        /**
+         * Returns an unmodifiable location set, which throws {@code UnsupportedOperationException}
+         * if modification is attempted.
+         * Returns {@code Optional#empty()} if {@code locations} is null.
+         */
+        public Optional<Set<Location>> getLocations() {
+            return (locations != null) ? Optional.of(Collections.unmodifiableSet(locations)) : Optional.empty();
         }
 
         /**
@@ -226,7 +275,10 @@ public class EditCommand extends Command {
             return Objects.equals(name, otherEditPersonDescriptor.name)
                     && Objects.equals(phone, otherEditPersonDescriptor.phone)
                     && Objects.equals(email, otherEditPersonDescriptor.email)
+                    && Objects.equals(ftp, otherEditPersonDescriptor.ftp)
                     && Objects.equals(address, otherEditPersonDescriptor.address)
+                    && Objects.equals(experienceLevel, otherEditPersonDescriptor.experienceLevel)
+                    && Objects.equals(locations, otherEditPersonDescriptor.locations)
                     && Objects.equals(tags, otherEditPersonDescriptor.tags);
         }
 
@@ -236,7 +288,10 @@ public class EditCommand extends Command {
                     .add("name", name)
                     .add("phone", phone)
                     .add("email", email)
+                    .add("ftp", ftp)
                     .add("address", address)
+                    .add("experienceLevel", experienceLevel)
+                    .add("locations", locations)
                     .add("tags", tags)
                     .toString();
         }

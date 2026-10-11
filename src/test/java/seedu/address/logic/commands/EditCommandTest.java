@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.DESC_BOB;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_ADDRESS_BOB;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
@@ -15,6 +17,8 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
@@ -24,6 +28,7 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.Location;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
@@ -70,6 +75,115 @@ public class EditCommandTest {
         expectedModel.setPerson(lastPerson, editedPerson);
 
         assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_cyclingFieldsSpecifiedUnfilteredList_success() {
+        Person personToEdit = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Person editedPerson = new PersonBuilder(personToEdit).withFtp("300")
+                .withExperienceLevel("Advanced").withLocations("East Coast Park", "Marina Bay").build();
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withFtp("300")
+                .withExperienceLevel("Advanced").withLocations("East Coast Park", "Marina Bay").build();
+        EditCommand editCommand = new EditCommand(personToEdit.getPhone(), descriptor);
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(personToEdit, editedPerson);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_onlyFtpSpecified_success() {
+        Person personToEdit = addLocationRider("West Coast Park", "Marina Bay");
+        Person editedPerson = new PersonBuilder(personToEdit).withFtp("300").build();
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withFtp("300").build();
+
+        assertEditSuccess(personToEdit, descriptor, editedPerson);
+    }
+
+    @Test
+    public void execute_onlyExperienceLevelSpecified_success() {
+        Person personToEdit = addLocationRider("West Coast Park", "Marina Bay");
+        Person editedPerson = new PersonBuilder(personToEdit).withExperienceLevel("Advanced").build();
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()
+                .withExperienceLevel("Advanced").build();
+
+        assertEditSuccess(personToEdit, descriptor, editedPerson);
+    }
+
+    @Test
+    public void execute_replaceMultipleLocationsWithOne_success() {
+        Person personToEdit = addLocationRider("West Coast Park", "Marina Bay");
+        Person editedPerson = new PersonBuilder(personToEdit).withLocations("East Coast Park").build();
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()
+                .withLocations("East Coast Park").build();
+
+        assertEditSuccess(personToEdit, descriptor, editedPerson);
+        assertEquals(Set.of(new Location("East Coast Park")), editedPersonInModel(personToEdit).getLocations());
+        assertFalse(editedPersonInModel(personToEdit).getLocations().contains(new Location("West Coast Park")));
+        assertFalse(editedPersonInModel(personToEdit).getLocations().contains(new Location("Marina Bay")));
+    }
+
+    @Test
+    public void execute_replaceOneLocationWithMultiple_success() {
+        Person personToEdit = addLocationRider("West Coast Park");
+        Person editedPerson = new PersonBuilder(personToEdit)
+                .withLocations("East Coast Park", "Marina Bay").build();
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()
+                .withLocations("East Coast Park", "Marina Bay").build();
+
+        assertEditSuccess(personToEdit, descriptor, editedPerson);
+        assertEquals(Set.of(new Location("East Coast Park"), new Location("Marina Bay")),
+                editedPersonInModel(personToEdit).getLocations());
+        assertFalse(editedPersonInModel(personToEdit).getLocations().contains(new Location("West Coast Park")));
+    }
+
+    @Test
+    public void execute_replaceSpecificLocationsWithAny_success() {
+        Person personToEdit = addLocationRider("West Coast Park", "Marina Bay");
+        Person editedPerson = new PersonBuilder(personToEdit).withLocations("any").build();
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withLocations("any").build();
+
+        assertEditSuccess(personToEdit, descriptor, editedPerson);
+        assertEquals(Set.of(new Location("any")), editedPersonInModel(personToEdit).getLocations());
+        assertFalse(editedPersonInModel(personToEdit).getLocations().contains(new Location("West Coast Park")));
+    }
+
+    @Test
+    public void execute_replaceAnyWithSpecificLocations_success() {
+        Person personToEdit = addLocationRider("any");
+        Person editedPerson = new PersonBuilder(personToEdit)
+                .withLocations("East Coast Park", "Marina Bay").build();
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()
+                .withLocations("East Coast Park", "Marina Bay").build();
+
+        assertEditSuccess(personToEdit, descriptor, editedPerson);
+        assertEquals(Set.of(new Location("East Coast Park"), new Location("Marina Bay")),
+                editedPersonInModel(personToEdit).getLocations());
+        assertFalse(editedPersonInModel(personToEdit).getLocations().contains(new Location("any")));
+    }
+
+    @Test
+    public void execute_existingFieldsSpecified_preservesCyclingFields() {
+        Person personToEdit = addLocationRider("West Coast Park", "Marina Bay");
+        Person editedPerson = new PersonBuilder(personToEdit).withName(VALID_NAME_BOB)
+                .withPhone(VALID_PHONE_BOB).withEmail(VALID_EMAIL_BOB).withAddress(VALID_ADDRESS_BOB)
+                .withTags(VALID_TAG_HUSBAND).build();
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB)
+                .withPhone(VALID_PHONE_BOB).withEmail(VALID_EMAIL_BOB).withAddress(VALID_ADDRESS_BOB)
+                .withTags(VALID_TAG_HUSBAND).build();
+
+        assertEditSuccess(personToEdit, descriptor, editedPerson);
+    }
+
+    @Test
+    public void execute_fieldSetToExistingValue_success() {
+        Person personToEdit = addLocationRider("West Coast Park");
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()
+                .withFtp(personToEdit.getFtp().value).build();
+
+        assertEditSuccess(personToEdit, descriptor, personToEdit);
     }
 
     @Test
@@ -133,6 +247,15 @@ public class EditCommandTest {
         assertCommandFailure(editCommand, model, EditCommand.MESSAGE_PERSON_NOT_FOUND);
     }
 
+    @Test
+    public void execute_partialPhoneNumber_failure() {
+        Phone partialPhone = new Phone("+65 943");
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB).build();
+        EditCommand editCommand = new EditCommand(partialPhone, descriptor);
+
+        assertCommandFailure(editCommand, model, EditCommand.MESSAGE_PERSON_NOT_FOUND);
+    }
+
     /**
      * Attempts to edit a person who exists in the address book but is absent from the filtered list.
      */
@@ -184,6 +307,30 @@ public class EditCommandTest {
         String expected = EditCommand.class.getCanonicalName() + "{targetPhone=" + targetPhone
                 + ", editPersonDescriptor=" + editPersonDescriptor + "}";
         assertEquals(expected, editCommand.toString());
+    }
+
+    private Person addLocationRider(String... locations) {
+        Person person = new PersonBuilder().withName("Location Rider").withPhone("+65 80000000")
+                .withEmail("location@example.com").withFtp("250").withExperienceLevel("Intermediate")
+                .withLocations(locations).withTags("weekend").build();
+        model.addPerson(person);
+        return person;
+    }
+
+    private void assertEditSuccess(Person personToEdit, EditPersonDescriptor descriptor, Person editedPerson) {
+        EditCommand editCommand = new EditCommand(personToEdit.getPhone(), descriptor);
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(personToEdit, editedPerson);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    private Person editedPersonInModel(Person originalPerson) {
+        return model.getFilteredPersonList().stream()
+                .filter(person -> person.getPhone().equals(originalPerson.getPhone()))
+                .findFirst()
+                .orElseThrow();
     }
 
 }
