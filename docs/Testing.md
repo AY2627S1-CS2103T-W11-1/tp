@@ -45,9 +45,13 @@ The coverage report does not enforce the 50% target automatically; check the mea
 `ReleaseCommandIntegrationTest` covers command sequences through parsing, the model, filtering and JSON storage.
 It checks omitted addresses, repeated tags and locations, edit replacement and preservation of fields,
 find matching rules, filtered edit/delete behaviour, rejected commands without saved-data changes,
-clear persistence, and help/exit flags. It also verifies duplicate-phone rejection across filters,
-unchanged unique numbers, legacy collision loading, ambiguous-command rejection, and filtered repairs
-that preserve contacts across reload. `FtpTest` covers the FTP boundaries and invalid numeric values.
+clear persistence, and help/exit flags. It treats cyclists as duplicates when their phone numbers
+match or their email addresses match ignoring case. It verifies those conflicts across filters,
+unchanged unique identities, same-name cyclists with unique phone numbers and emails, and successful
+filtered edits that preserve contacts across reload.
+`JsonSerializableAddressBookTest` verifies that duplicate records in JSON are rejected during loading
+rather than silently discarded or loaded for interactive repair. `FtpTest` covers the FTP boundaries
+and invalid numeric values.
 These automated checks complement the full manual test plan in the Developer Guide; they do not verify
 window layout, keyboard focus, artwork, or operating-system integration.
 
