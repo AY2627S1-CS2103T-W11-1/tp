@@ -17,6 +17,7 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
+import java.util.Locale;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
@@ -38,6 +39,8 @@ import seedu.address.testutil.PersonBuilder;
  * Contains integration tests (interaction with the Model) and unit tests for EditCommand.
  */
 public class EditCommandTest {
+
+    private static final String DUPLICATE_MESSAGE = "Another cyclist already has this phone number or email.";
 
     private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
 
@@ -236,6 +239,146 @@ public class EditCommandTest {
                 new EditPersonDescriptorBuilder(personInList).build());
 
         assertCommandFailure(editCommand, model, EditCommand.MESSAGE_DUPLICATE_PERSON);
+    }
+
+    @Test
+    public void execute_filteredListPhoneConflictWithHiddenPerson_failure() {
+        showPersonAtIndex(model, INDEX_FIRST_PERSON);
+        Person visiblePerson = model.getFilteredPersonList().get(0);
+        Person hiddenPerson = model.getAddressBook().getPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
+        assertFalse(model.getFilteredPersonList().contains(hiddenPerson));
+        EditCommand editCommand = new EditCommand(visiblePerson.getPhone(),
+                new EditPersonDescriptorBuilder().withPhone(hiddenPerson.getPhone().value).build());
+
+        assertCommandFailure(editCommand, model, DUPLICATE_MESSAGE);
+    }
+
+    @Test
+    public void execute_phoneChangedToAnotherCyclistsPhone_failure() {
+        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Person secondPerson = model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
+        EditCommand editCommand = new EditCommand(firstPerson.getPhone(),
+                new EditPersonDescriptorBuilder().withPhone(secondPerson.getPhone().value).build());
+
+        assertCommandFailure(editCommand, model, EditCommand.MESSAGE_DUPLICATE_PERSON);
+    }
+
+    @Test
+    public void execute_emailChangedToAnotherCyclistsEmail_failure() {
+        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Person secondPerson = model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
+        EditCommand editCommand = new EditCommand(firstPerson.getPhone(),
+                new EditPersonDescriptorBuilder().withEmail(secondPerson.getEmail().value).build());
+
+        assertCommandFailure(editCommand, model, EditCommand.MESSAGE_DUPLICATE_PERSON);
+    }
+
+    @Test
+    public void execute_emailChangedToDifferentCaseOfAnotherCyclistsEmail_failure() {
+        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Person secondPerson = model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
+        EditCommand editCommand = new EditCommand(firstPerson.getPhone(),
+                new EditPersonDescriptorBuilder()
+                        .withEmail(secondPerson.getEmail().value.toUpperCase(Locale.ROOT)).build());
+
+        assertCommandFailure(editCommand, model, EditCommand.MESSAGE_DUPLICATE_PERSON);
+    }
+
+    @Test
+    public void execute_phoneAndEmailConflictWithDifferentCyclists_failure() {
+        Person firstPerson = model.getFilteredPersonList().get(0);
+        Person secondPerson = model.getFilteredPersonList().get(1);
+        Person thirdPerson = model.getFilteredPersonList().get(2);
+        EditCommand editCommand = new EditCommand(firstPerson.getPhone(), new EditPersonDescriptorBuilder()
+                .withPhone(secondPerson.getPhone().value).withEmail(thirdPerson.getEmail().value).build());
+
+        assertCommandFailure(editCommand, model, EditCommand.MESSAGE_DUPLICATE_PERSON);
+    }
+
+    @Test
+    public void execute_phoneConflictWithOtherValidEdits_failureWithoutPartialUpdate() {
+        Person firstPerson = model.getFilteredPersonList().get(0);
+        Person secondPerson = model.getFilteredPersonList().get(1);
+        EditCommand editCommand = new EditCommand(firstPerson.getPhone(), new EditPersonDescriptorBuilder()
+                .withPhone(secondPerson.getPhone().value).withName("Updated Name").withFtp("300")
+                .withLocations("Marina Bay").build());
+
+        assertCommandFailure(editCommand, model, EditCommand.MESSAGE_DUPLICATE_PERSON);
+    }
+
+    @Test
+    public void execute_emailConflictWithOtherValidEdits_failureWithoutPartialUpdate() {
+        Person firstPerson = model.getFilteredPersonList().get(0);
+        Person secondPerson = model.getFilteredPersonList().get(1);
+        EditCommand editCommand = new EditCommand(firstPerson.getPhone(), new EditPersonDescriptorBuilder()
+                .withEmail(secondPerson.getEmail().value).withExperienceLevel("Advanced")
+                .withAddress("Updated Address").withTags("updated").build());
+
+        assertCommandFailure(editCommand, model, EditCommand.MESSAGE_DUPLICATE_PERSON);
+    }
+
+    @Test
+    public void execute_phoneChangedToUniqueValue_success() {
+        Person personToEdit = model.getFilteredPersonList().get(0);
+        Person editedPerson = new PersonBuilder(personToEdit).withPhone("+65 80000001").build();
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withPhone("+65 80000001").build();
+
+        assertEditSuccess(personToEdit, descriptor, editedPerson);
+    }
+
+    @Test
+    public void execute_emailChangedToUniqueValue_success() {
+        Person personToEdit = model.getFilteredPersonList().get(0);
+        Person editedPerson = new PersonBuilder(personToEdit).withEmail("unique@example.com").build();
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withEmail("unique@example.com").build();
+
+        assertEditSuccess(personToEdit, descriptor, editedPerson);
+    }
+
+    @Test
+    public void execute_phoneSetToExistingValue_success() {
+        Person personToEdit = model.getFilteredPersonList().get(0);
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()
+                .withPhone(personToEdit.getPhone().value).build();
+
+        assertEditSuccess(personToEdit, descriptor, personToEdit);
+    }
+
+    @Test
+    public void execute_emailSetToExistingValue_success() {
+        Person personToEdit = model.getFilteredPersonList().get(0);
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()
+                .withEmail(personToEdit.getEmail().value).build();
+
+        assertEditSuccess(personToEdit, descriptor, personToEdit);
+    }
+
+    @Test
+    public void execute_ownEmailCaseChanged_successAndPreservesCasing() {
+        Person personToEdit = model.getFilteredPersonList().get(0);
+        String uppercaseEmail = personToEdit.getEmail().value.toUpperCase(Locale.ROOT);
+        Person editedPerson = new PersonBuilder(personToEdit).withEmail(uppercaseEmail).build();
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withEmail(uppercaseEmail).build();
+
+        assertEditSuccess(personToEdit, descriptor, editedPerson);
+        assertEquals(uppercaseEmail, model.getAddressBook().getPersonList().get(0).getEmail().value);
+    }
+
+    @Test
+    public void execute_nameChangedToAnotherCyclistsName_success() {
+        Person personToEdit = model.getFilteredPersonList().get(0);
+        Person anotherPerson = model.getFilteredPersonList().get(1);
+        Person editedPerson = new PersonBuilder(personToEdit)
+                .withName(anotherPerson.getName().fullName).build();
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()
+                .withName(anotherPerson.getName().fullName).build();
+
+        assertEditSuccess(personToEdit, descriptor, editedPerson);
+    }
+
+    @Test
+    public void messageDuplicatePerson_matchesRequiredMessage() {
+        assertEquals(DUPLICATE_MESSAGE, EditCommand.MESSAGE_DUPLICATE_PERSON);
     }
 
     @Test

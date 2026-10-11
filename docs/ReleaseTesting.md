@@ -3,12 +3,12 @@
 Date: 11 October 2026 (Singapore). Tested locally on macOS ARM64 using
 Eclipse Temurin JDK 25.0.4.1. Application version reported at startup: V0.5.1.
 
-The duplicate-phone ambiguity is **resolved** with regression coverage.
+Duplicate cyclist identity conflicts are **resolved** with regression coverage.
 Release recommendation: **complete the outstanding manual UI checks** before release.
 
 ## Automated checks
 
-`./gradlew check coverage shadowJar` passes. JUnit reports **299 tests**,
+`./gradlew check coverage shadowJar` passes. JUnit reports **341 tests**,
 **0 failures**, **0 errors** and **0 skipped tests**. Both production and test
 Checkstyle tasks pass, and the release JAR builds successfully.
 The repository-wide `./.github/run-checks.sh` passes. Its cached Git checks were
@@ -21,9 +21,9 @@ The command tests exercise real parsing, model changes, filtering and JSON read-
 They cover the help-guide add example, omitted address, repeated tags and locations,
 edit replacement and preservation of unspecified fields, tag clearing, name/phone
 find rules, filtered edit/delete behaviour, clear persistence, rejected commands
-without data changes, and help/exit flags. Six additional command tests cover duplicate
-phone rejection across filters, unchanged unique numbers, legacy collision loading,
-ambiguous commands without data changes, occupied repair numbers, and repairs across reload.
+without data changes, and help/exit flags. Additional duplicate-handling tests cover phone
+and case-insensitive email conflicts across filters, unchanged unique identities, same-name
+cyclists with unique phone numbers and emails, and successful unique edits across reload.
 FTP tests cover valid boundaries,
 invalid input, equality and hashing.
 
@@ -63,26 +63,20 @@ find n/Jane
 delete +65 98765432
 ```
 
-Both adds succeed. Only Jane is displayed after find, but delete reports
-`Deleted person: John Doe` and leaves Jane in the book.
-Adding John again with a different number and editing his number to Jane's
-also succeeds, confirming that edit can introduce the collision.
+Before the fix, both adds succeeded. Only Jane was displayed after find, but delete
+reported Deleted person: John Doe and left Jane in the book. Adding John again with a
+different number and editing his number to Jane's also succeeded, demonstrating how
+duplicate phone numbers could be introduced.
 
-The agreed fix rejects duplicate phone numbers on add and edit, including collisions
-with hidden contacts. Retaining a contact's own unique number is accepted. Name uniqueness
-continues to apply as before. Checks run before model mutation or saving.
+The agreed fix treats two cyclists as duplicates if they share the same phone number or
+email address, with email comparison ignoring letter case. Add and edit reject conflicts,
+including those involving hidden contacts. Retaining a cyclist's own identity is accepted.
+Cyclists may share a name when both their phone numbers and emails are unique. Checks run
+before model mutation or saving.
 
-Existing saved books remain loadable with every contact preserved. The storage/model
-layer deliberately retains this compatibility; command validation prevents new collisions.
-Edit rejects multiple displayed matches, and delete rejects multiple stored matches even
-if only one is displayed. A filtered edit can assign a unique number to one legacy contact;
-an edit leaving the number shared is rejected. No automatic deduplication or renumbering occurs.
-
-For a legacy John/Jane collision, enter `find n/Jane`, confirm only Jane matches the target
-number, then `edit +65 98765432 p/+65 91111111` with Jane's correct unique number.
-The repair preserves John's details and survives a saved-book reload. If name keywords cannot
-isolate a contact, close the application, back up the JSON and correct the number directly.
-The User Guide documents these steps and the manual test appendix now tests the fixed behaviour.
+Saved JSON containing duplicate identities is rejected during loading through the existing
+invalid-data handling path. Conflicting records are neither silently discarded nor loaded
+for interactive repair. Back up and correct the JSON data before attempting to load it again.
 
 ## Manual UI checks and limitations
 
@@ -96,17 +90,18 @@ or operated. The temporary process was stopped after the launch attempt.
 Still required before release:
 
 - Visual confirmation of opening/closing artwork and labelled contact cards.
-- Commands entered through the command box, including duplicate-phone and ambiguity
-  errors, the filtered repair workflow, and focus behaviour.
+- Commands entered through the command box, including duplicate phone or email errors,
+  same-name cyclists with unique identities, filtered conflicts, and focus behaviour.
 - Help window readability and F1, window close, resize/move and preference restoration.
 - Application restart after add, edit, delete and clear.
 - Missing/corrupt data and preferences recovery through application startup.
 - The complete manual plan on the supported operating systems; Windows and Linux
   were not exercised locally.
 
-The Developer Guide manual appendix now uses country-code phone numbers, replaces
-the obsolete `delete 1` instructions, supplies concrete command and recovery
-scenarios, and verifies duplicate-phone rejection and legacy repair.
+For Issue #62 release testing, use country-code phone numbers and verify duplicate
+phone or email rejection, same-name cyclists with unique identities, and duplicate
+JSON load rejection. Do not use legacy interactive repair scenarios because such
+JSON data is rejected during loading.
 
 JavaFX emits native-access, unnamed-module and deprecated Unsafe warnings on JDK 25.
 They did not fail the automated checks or prevent logged UI startup.

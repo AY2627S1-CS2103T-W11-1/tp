@@ -8,13 +8,13 @@ import static seedu.address.testutil.Assert.assertThrows;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.AddCommand;
-import seedu.address.logic.commands.DeleteCommand;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -173,7 +173,7 @@ public class ReleaseCommandIntegrationTest {
         logic.execute(ADD_JOHN);
         logic.execute("find n/nobody");
         assertRejectedWithoutChanges("add n/Jane Doe p/+65 98765432 e/jane@example.com"
-                + " f/300 x/Beginner l/any", AddCommand.MESSAGE_DUPLICATE_PHONE);
+                + " f/300 x/Beginner l/any", AddCommand.MESSAGE_DUPLICATE_PERSON);
     }
 
     @Test
@@ -181,9 +181,9 @@ public class ReleaseCommandIntegrationTest {
         logic.execute(ADD_JOHN);
         logic.execute(ADD_ALICE);
         logic.execute("find n/alice");
-        assertRejectedWithoutChanges("edit +65 91234567 p/+65 98765432", EditCommand.MESSAGE_DUPLICATE_PHONE);
+        assertRejectedWithoutChanges("edit +65 91234567 p/+65 98765432", EditCommand.MESSAGE_DUPLICATE_PERSON);
         assertRejectedWithoutChanges("edit +65 91234567 n/Alice Updated p/+65 98765432",
-                EditCommand.MESSAGE_DUPLICATE_PHONE);
+                EditCommand.MESSAGE_DUPLICATE_PERSON);
     }
 
     @Test
@@ -197,53 +197,40 @@ public class ReleaseCommandIntegrationTest {
     }
 
     @Test
-    public void execute_legacyCollisions_rejectsAmbiguousTargetsWithoutChanges() throws Exception {
-        loadLegacyPhoneCollision();
-        assertRejectedWithoutChanges("edit +65 98765432 p/+65 91111111", EditCommand.MESSAGE_AMBIGUOUS_PHONE);
-        assertRejectedWithoutChanges("delete +65 98765432", DeleteCommand.MESSAGE_AMBIGUOUS_PHONE);
-
-        logic.execute("find n/alice");
-        assertRejectedWithoutChanges("delete +65 98765432", DeleteCommand.MESSAGE_AMBIGUOUS_PHONE);
-        assertRejectedWithoutChanges("edit +65 98765432 e/updated@example.com", EditCommand.MESSAGE_DUPLICATE_PHONE);
+    public void execute_addDuplicateEmailOutsideFilteredList_rejectsWithoutChanges() throws Exception {
+        logic.execute(ADD_JOHN);
+        logic.execute("find n/nobody");
+        assertRejectedWithoutChanges("add n/Jane Doe p/+65 91111111 e/"
+                + JOHN.getEmail().value.toUpperCase(Locale.ROOT)
+                + " f/300 x/Beginner l/any", AddCommand.MESSAGE_DUPLICATE_PERSON);
     }
 
     @Test
-    public void execute_filteredLegacyRepair_preservesContactsAcrossReload() throws Exception {
-        Person legacyAlice = loadLegacyPhoneCollision();
+    public void execute_filteredUniquePhoneEdit_preservesContactsAcrossReload() throws Exception {
+        logic.execute(ADD_JOHN);
+        logic.execute(ADD_ALICE);
         logic.execute("find n/alice");
-        logic.execute("edit +65 98765432 p/+65 91111111");
-        Person repairedAlice = new PersonBuilder(legacyAlice).withPhone("+65 91111111").build();
-        assertEquals(List.of(JOHN, repairedAlice), logic.getFilteredPersonList());
+        logic.execute("edit +65 91234567 p/+65 91111111");
+        Person editedAlice = new PersonBuilder(ALICE).withPhone("+65 91111111").build();
+        assertEquals(List.of(JOHN, editedAlice), logic.getFilteredPersonList());
         assertSavedState();
 
         model = new ModelManager(storage.readAddressBook().orElseThrow(), new UserPrefs());
         logic = new LogicManager(model, storage);
-        assertEquals(List.of(JOHN, repairedAlice), model.getAddressBook().getPersonList());
+        assertEquals(List.of(JOHN, editedAlice), model.getAddressBook().getPersonList());
         logic.execute("delete +65 98765432");
-        assertEquals(List.of(repairedAlice), model.getAddressBook().getPersonList());
+        assertEquals(List.of(editedAlice), model.getAddressBook().getPersonList());
         assertSavedState();
     }
 
     @Test
-    public void execute_filteredLegacyRepairToOccupiedNumber_rejectsWithoutChanges() throws Exception {
-        loadLegacyPhoneCollision();
-        logic.execute("add n/Carol Tan p/+65 91111111 e/carol@example.com f/300 x/Beginner l/any");
+    public void execute_editDuplicateEmailOutsideFilteredList_rejectsWithoutChanges() throws Exception {
+        logic.execute(ADD_JOHN);
+        logic.execute(ADD_ALICE);
         logic.execute("find n/alice");
-        assertRejectedWithoutChanges("edit +65 98765432 p/+65 91111111", EditCommand.MESSAGE_DUPLICATE_PHONE);
-    }
-
-    /** Loads a saved legacy book without losing contacts that share a phone number. */
-    private Person loadLegacyPhoneCollision() throws Exception {
-        Person legacyAlice = new PersonBuilder(ALICE).withPhone(JOHN.getPhone().value).build();
-        model.addPerson(JOHN);
-        model.addPerson(legacyAlice);
-        storage.saveAddressBook(model.getAddressBook());
-        String savedData = Files.readString(storage.getAddressBookFilePath());
-        model = new ModelManager(storage.readAddressBook().orElseThrow(), new UserPrefs());
-        logic = new LogicManager(model, storage);
-        assertEquals(List.of(JOHN, legacyAlice), model.getAddressBook().getPersonList());
-        assertEquals(savedData, Files.readString(storage.getAddressBookFilePath()));
-        return legacyAlice;
+        assertRejectedWithoutChanges("edit +65 91234567 e/"
+                + JOHN.getEmail().value.toUpperCase(Locale.ROOT),
+                EditCommand.MESSAGE_DUPLICATE_PERSON);
     }
 
     /** Checks that a rejected command leaves contacts, filtering, and saved data unchanged. */

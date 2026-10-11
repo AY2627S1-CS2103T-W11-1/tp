@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_PERSONS_LISTED_OVERVIEW;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
+import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.CARL;
 import static seedu.address.testutil.TypicalPersons.ELLE;
 import static seedu.address.testutil.TypicalPersons.FIONA;
@@ -17,8 +18,10 @@ import org.junit.jupiter.api.Test;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.Person;
 import seedu.address.model.person.PersonMatchesFindCriteriaPredicate;
 import seedu.address.model.person.Phone;
+import seedu.address.testutil.PersonBuilder;
 
 /**
  * Contains integration tests (interaction with the Model) for {@code FindCommand}.
@@ -73,6 +76,36 @@ public class FindCommandTest {
         expectedModel.updateFilteredPersonList(predicate);
         assertCommandSuccess(command, model, String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 1), expectedModel);
         assertEquals(List.of(CARL), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_sharedName_returnsAllMatchingCyclists() {
+        Person personWithSameName = new PersonBuilder(ALICE).withPhone("+65 80000000")
+                .withEmail("other.alice@example.com").build();
+        model.addPerson(personWithSameName);
+        expectedModel.addPerson(personWithSameName);
+        PersonMatchesFindCriteriaPredicate predicate =
+                new PersonMatchesFindCriteriaPredicate(List.of("Alice"), List.of());
+        FindCommand command = new FindCommand(predicate);
+        expectedModel.updateFilteredPersonList(predicate);
+
+        assertCommandSuccess(command, model, String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 2), expectedModel);
+        assertEquals(List.of(ALICE, personWithSameName), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_exactPhone_returnsOnlyMatchingCyclist() {
+        Person personWithSameName = new PersonBuilder(ALICE).withPhone("+65 80000000")
+                .withEmail("other.alice@example.com").build();
+        model.addPerson(personWithSameName);
+        expectedModel.addPerson(personWithSameName);
+        PersonMatchesFindCriteriaPredicate predicate =
+                new PersonMatchesFindCriteriaPredicate(List.of(), List.of(personWithSameName.getPhone()));
+        FindCommand command = new FindCommand(predicate);
+        expectedModel.updateFilteredPersonList(predicate);
+
+        assertCommandSuccess(command, model, String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 1), expectedModel);
+        assertEquals(List.of(personWithSameName), model.getFilteredPersonList());
     }
 
     @Test
