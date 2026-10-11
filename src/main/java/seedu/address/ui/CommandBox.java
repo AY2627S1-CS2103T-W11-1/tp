@@ -32,6 +32,16 @@ public class CommandBox extends UiPart<Region> {
     }
 
     /**
+     * Replaces the text in the command box with {@code text}, focuses the box and moves the caret
+     * to the end so the user can carry on typing.
+     */
+    public void setCommandText(String text) {
+        commandTextField.setText(text);
+        commandTextField.requestFocus();
+        commandTextField.positionCaret(text.length());
+    }
+
+    /**
      * Handles the Enter button pressed event.
      */
     @FXML

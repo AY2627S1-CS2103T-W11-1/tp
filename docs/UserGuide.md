@@ -28,9 +28,9 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
    * `list` : Lists all contacts.
 
-   * `add n/John Doe p/98765432 e/johnd@example.com x/Beginner` : Adds a contact named `John Doe` to the Address Book.
+   * `add n/John Doe p/+65 98765432 e/johnd@example.com f/300 x/Beginner l/any` : Adds a contact named `John Doe` to the Address Book.
 
-   * `delete 3` : Deletes the 3rd contact shown in the current list.
+   * `delete +65 98765432` : Deletes the contact with this phone number.
 
    * `clear` : Deletes all contacts.
 
@@ -77,17 +77,21 @@ Format: `help`
 
 Adds a person to the address book.
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL x/EXPERIENCE_LEVEL [t/TAG]…​`
+Format: `add n/NAME p/PHONE e/EMAIL [a/ADDRESS] f/FTP_LEVEL x/EXPERIENCE_LEVEL l/LOCATION [t/TAG]…`
 
 <div markdown="span" class="alert alert-primary">:bulb: **Tip:**
 A person can have any number of tags, including zero.
 </div>
 
+The phone number must include a country code and one separating space, for example `+65 98765432`.
+It must not belong to another contact, including contacts hidden by a filter.
+FTP must be a whole number from 1 to 600; address is optional and defaults to `Not specified`.
+
 `EXPERIENCE_LEVEL` must be one of `Beginner`, `Intermediate` or `Advanced` (case-insensitive).
 
 Examples:
-* `add n/John Doe p/98765432 e/johnd@example.com x/Beginner`
-* `add n/Betsy Crowe t/friend e/betsycrowe@example.com p/1234567 x/Advanced t/criminal`
+* `add n/John Doe p/+65 98765432 e/johnd@example.com f/300 x/Beginner l/any`
+* `add n/Betsy Crowe t/friend e/betsycrowe@example.com p/+65 91234567 f/250 x/Advanced l/Punggol`
 
 ### Listing all persons: `list`
 
@@ -99,17 +103,18 @@ Format: `list`
 
 Edits an existing person in the address book.
 
-Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`
+Format: `edit PHONE [n/NAME] [p/PHONE] [e/EMAIL] [f/FTP] [x/EXPERIENCE] [l/LOCATION]… [a/ADDRESS] [t/TAG]…`
 
-* Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, …​
+* Edits the person with the specified phone number in the displayed list. Exactly one displayed contact must match.
+* The resulting phone number must not belong to another contact anywhere in the book. An unchanged phone number is allowed when it is already unique.
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
 * When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
 * To remove all of a person's tags, enter `t/` without a tag after it.
 
 Examples:
-*  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
-*  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
+* `edit +65 98765432 p/+65 91111111 e/johndoe@example.com` updates the identified contact's phone and email.
+* `edit +65 91234567 n/Betsy Crower t/` updates Betsy's name and clears her tags.
 
 ### Locating persons by name or phone: `find`
 
@@ -118,7 +123,7 @@ Finds persons by name keywords and phone numbers.
 Format: `find [n/NAME_KEYWORD]… [p/PHONE]…` (at least one field is required)
 
 * Each `n/` takes one name keyword. Name matching is case-insensitive and requires a full word; for example, `n/hans` matches `Hans` but `n/Han` does not.
-* Each `p/` takes one complete phone number. Phone matching is exact; `p/963` does not match `96320842`.
+* Each `p/` takes one complete phone number. Phone matching is exact; `p/+65 963` does not match `+65 96320842`.
 * Multiple values for the same field use `OR`: `find n/Hans n/Bo` returns people named `Hans Gruber` or `Bo Yang`.
 * When both fields are supplied, a person must match a name keyword **and** a phone number. Prefix order does not matter.
 * Name keywords and phone numbers search only their respective fields.
@@ -127,7 +132,7 @@ Examples:
 * `find n/John` returns `john` and `John Doe`
 * `find n/alex n/david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find n/alex n/david'](images/findAlexDavidResult.png)
-* `find n/alex p/96320842` returns only people whose name contains `alex` and whose phone number is `96320842`.
+* `find n/alex p/+65 96320842` returns only people whose name contains `alex` and whose phone number is `+65 96320842`.
 
 ### Deleting a person: `delete`
 
@@ -135,11 +140,13 @@ Deletes the specified person from the address book.
 
 Format: `delete PHONE`
 
-* Deletes the person with the specified `PHONE` number.
-* The phone number **must contain at least 3 digits**.
+* Deletes the person with the specified `PHONE` number, including a contact outside the displayed list.
+* If more than one stored contact has that number, deletion is rejected until the collision is repaired.
+* Use a complete number with country code and one space, for example `+65 96742165`;
+  the number after the space must contain at least three digits.
 
 Examples:
-* `delete 96742165` deletes the person with phone number `96742165`.
+* `delete +65 96742165` deletes the contact with that phone number.
 
 ### Clearing all entries: `clear`
 
@@ -156,6 +163,26 @@ Format: `exit`
 ### Saving the data
 
 AddressBook automatically saves data after every command. You do not need to save manually.
+
+### Repairing duplicate phone numbers in an existing book
+
+Older saved books may contain contacts with different names but the same phone number.
+Cyclique loads and preserves all such contacts. It does not automatically remove contacts
+or change their numbers. New adds and edits cannot introduce a duplicate phone number.
+
+If John Doe and Jane Doe both have `+65 98765432`:
+
+1. Enter `find n/Jane` and check that only the intended contact with that number is displayed.
+1. Enter `edit +65 98765432 p/+65 91111111`, using Jane's correct, unique phone number.
+1. The edit shows all contacts again and saves the repair. John retains his original number.
+
+If the filter still shows several contacts with the same number, choose a full name word
+that distinguishes the intended contact. Repeated name keywords match any keyword, so adding
+more keywords does not narrow the results. If no name word can distinguish the contacts, close
+the application, back up the JSON file, and correct one phone number directly in that file. An ambiguous edit is rejected, and
+an edit that leaves the number shared is also rejected. Delete always checks the entire
+book, so filtering alone does not make an ambiguous deletion safe; repair the numbers first.
+Back up `data/addressbook.json` before repairing a legacy book.
 
 ### Editing the data file
 
@@ -190,10 +217,10 @@ _Details coming soon ..._
 
 Action | Format, Examples
 --------|------------------
-**Add** | `add n/NAME p/PHONE_NUMBER e/EMAIL x/EXPERIENCE_LEVEL [t/TAG]…​` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com x/Intermediate t/friend t/colleague`
+**Add** | `add n/NAME p/PHONE e/EMAIL [a/ADDRESS] f/FTP_LEVEL x/EXPERIENCE_LEVEL l/LOCATION [t/TAG]…` <br> e.g., `add n/James Ho p/+65 22224444 e/jamesho@example.com f/300 x/Intermediate l/any t/friend`
 **Clear** | `clear`
-**Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
-**Find** | `find [n/NAME_KEYWORD]… [p/PHONE]…`<br> e.g., `find n/James n/Jake`, `find n/James p/96320842`
+**Delete** | `delete PHONE`<br> e.g., `delete +65 22224444`
+**Edit** | `edit PHONE [n/NAME] [p/PHONE] [e/EMAIL] [f/FTP] [x/EXPERIENCE] [l/LOCATION]… [a/ADDRESS] [t/TAG]…`<br> e.g., `edit +65 22224444 n/James Lee e/jameslee@example.com`
+**Find** | `find [n/NAME_KEYWORD]… [p/PHONE]…`<br> e.g., `find n/James n/Jake`, `find n/James p/+65 96320842`
 **List** | `list`
 **Help** | `help`
