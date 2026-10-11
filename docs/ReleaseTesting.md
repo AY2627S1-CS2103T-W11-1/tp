@@ -1,5 +1,29 @@
 # Release testing results
 
+## Alphabetical display checks (11 October 2026)
+
+The alphabetical display change passes `./gradlew check coverage shadowJar` with
+Eclipse Temurin JDK 25.0.4.1 on macOS ARM64: **308 tests**, no failures, errors or
+skips, and both Checkstyle tasks pass. JaCoCo line coverage is **75.33%**
+(1,139 of 1,512 lines), exceeding the 50% target. Instruction coverage is 77.60%
+and branch coverage is 88.44%. `./.github/run-checks.sh` and `git diff --check` pass.
+
+Nine new tests cover full-name and case-insensitive ordering, stable ties, additions,
+name edits in both directions, filtering, deletion, book replacement, phone-number
+targeting and JSON reload. Existing command expectations now reflect alphabetical
+display while saved records retain their original order.
+
+The rebuilt JAR was launched with JDK 25 in `/private/tmp/cyclique-alphabetical-ui`.
+Logs confirm sample-data loading and entry into UI startup. The computer-use app
+inventory does not expose the standalone JavaFX process, and selecting `java` returns
+`Invalid app: java`. Consequently, the Developer Guide's **Alphabetical display
+regression** scenario could not be performed visually. Consecutive card indexes,
+command-box interactions and restart display still require manual confirmation;
+the automated tests verify the underlying displayed order and reload behaviour.
+Windows and Linux UI checks remain outstanding.
+
+The results below describe the earlier duplicate-phone change.
+
 Date: 11 October 2026 (Singapore). Tested locally on macOS ARM64 using
 Eclipse Temurin JDK 25.0.4.1. Application version reported at startup: V0.5.1.
 

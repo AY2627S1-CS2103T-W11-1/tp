@@ -42,6 +42,12 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
 ## Features
 
+Cyclists are displayed alphabetically by their full name, ignoring letter case, on startup
+and after `list` or `find`. Adding a cyclist places them in the correct alphabetical position;
+editing their name updates their position. Names that are identical ignoring case retain
+their relative stored order. The visible indexes run consecutively from 1 within the current
+display, including filtered results. Use phone numbers to target `edit` and `delete` as usual.
+
 <div markdown="block" class="alert alert-info">
 
 **:information_source: Notes about the command format:**<br>

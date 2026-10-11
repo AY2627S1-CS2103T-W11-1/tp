@@ -52,3 +52,10 @@ These automated checks complement the full manual test plan in the Developer Gui
 window layout, keyboard focus, artwork, or operating-system integration.
 
 Record release results, unresolved defects and incomplete manual checks in [Release testing](ReleaseTesting.md).
+
+`ModelManagerTest` checks alphabetical ordering by full name, case-insensitive ties,
+live updates after additions and name edits, filtered membership, deletion and book replacement.
+`ReleaseCommandIntegrationTest` checks sorted add/find/list/edit workflows, stable equal-name
+ordering across JSON reload and phone-number targeting when the display order changes.
+Run the Developer Guide's **Alphabetical display regression** manual scenario to verify
+visible card indexes after reordering and filtering, and startup ordering after a restart.

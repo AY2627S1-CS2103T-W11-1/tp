@@ -50,6 +50,51 @@ public class ReleaseCommandIntegrationTest {
     private Logic logic;
     private Storage storage;
 
+    @Test
+    public void execute_alphabeticalDisplay_preservesPhoneTargetsAndReloadOrder() throws Exception {
+        logic.execute(ADD_JOHN);
+        logic.execute(ADD_ALICE);
+        logic.execute("add n/Bernice p/+65 91111111 e/bernice@example.com f/300 x/Beginner l/any");
+        Person bernice = new PersonBuilder().withName("Bernice").withPhone("+65 91111111")
+                .withEmail("bernice@example.com").withAddress("Not specified").withFtp("300").build();
+        assertEquals(List.of(ALICE, bernice, JOHN), logic.getFilteredPersonList());
+
+        logic.execute("find n/jOHn n/alice");
+        assertEquals(List.of(ALICE, JOHN), logic.getFilteredPersonList());
+        logic.execute("edit +65 98765432 n/aaron Doe");
+        Person aaron = new PersonBuilder(JOHN).withName("aaron Doe").build();
+        assertEquals(List.of(aaron, ALICE, bernice), logic.getFilteredPersonList());
+        assertSavedState();
+
+        model = new ModelManager(storage.readAddressBook().orElseThrow(), new UserPrefs());
+        logic = new LogicManager(model, storage);
+        assertEquals(List.of(aaron, ALICE, bernice), logic.getFilteredPersonList());
+        logic.execute("find n/Bernice");
+        logic.execute("delete +65 98765432");
+        assertEquals(List.of(bernice), logic.getFilteredPersonList());
+        logic.execute("list");
+        assertEquals(List.of(ALICE, bernice), logic.getFilteredPersonList());
+        assertSavedState();
+    }
+
+    @Test
+    public void execute_equalNames_preservesRelativeOrderAfterEditAndReload() throws Exception {
+        logic.execute("add n/aLEX p/+65 91111111 e/first@example.com f/300 x/Beginner l/any");
+        logic.execute("add n/Alex p/+65 92222222 e/second@example.com f/300 x/Beginner l/any");
+        logic.execute("add n/ALEX p/+65 93333333 e/third@example.com f/300 x/Beginner l/any");
+        logic.execute("find n/alex");
+        logic.execute("edit +65 91111111 n/alex");
+        List<String> expectedPhones = List.of("+65 91111111", "+65 92222222", "+65 93333333");
+        assertEquals(expectedPhones,
+                logic.getFilteredPersonList().stream().map(person -> person.getPhone().value).toList());
+        assertSavedState();
+
+        model = new ModelManager(storage.readAddressBook().orElseThrow(), new UserPrefs());
+        logic = new LogicManager(model, storage);
+        assertEquals(expectedPhones,
+                logic.getFilteredPersonList().stream().map(person -> person.getPhone().value).toList());
+    }
+
     @BeforeEach
     public void setUp() {
         model = new ModelManager();
@@ -83,7 +128,7 @@ public class ReleaseCommandIntegrationTest {
         logic.execute(ADD_JOHN);
         logic.execute(ADD_ALICE);
         logic.execute("find n/jOHn n/alice p/+65 98765432 p/+65 91234567");
-        assertEquals(List.of(JOHN, ALICE), logic.getFilteredPersonList());
+        assertEquals(List.of(ALICE, JOHN), logic.getFilteredPersonList());
 
         logic.execute("find n/john p/+65 91234567");
         assertTrue(logic.getFilteredPersonList().isEmpty());
@@ -92,7 +137,7 @@ public class ReleaseCommandIntegrationTest {
         logic.execute("find p/+65 987");
         assertTrue(logic.getFilteredPersonList().isEmpty());
         logic.execute("list");
-        assertEquals(List.of(JOHN, ALICE), logic.getFilteredPersonList());
+        assertEquals(List.of(ALICE, JOHN), logic.getFilteredPersonList());
         assertSavedState();
     }
 
@@ -118,7 +163,7 @@ public class ReleaseCommandIntegrationTest {
         logic.execute("edit +65 98765432 n/John Updated");
 
         Person editedJohn = new PersonBuilder(JOHN).withName("John Updated").build();
-        assertEquals(List.of(editedJohn, ALICE), logic.getFilteredPersonList());
+        assertEquals(List.of(ALICE, editedJohn), logic.getFilteredPersonList());
         assertSavedState();
     }
 
@@ -213,7 +258,7 @@ public class ReleaseCommandIntegrationTest {
         logic.execute("find n/alice");
         logic.execute("edit +65 98765432 p/+65 91111111");
         Person repairedAlice = new PersonBuilder(legacyAlice).withPhone("+65 91111111").build();
-        assertEquals(List.of(JOHN, repairedAlice), logic.getFilteredPersonList());
+        assertEquals(List.of(repairedAlice, JOHN), logic.getFilteredPersonList());
         assertSavedState();
 
         model = new ModelManager(storage.readAddressBook().orElseThrow(), new UserPrefs());
