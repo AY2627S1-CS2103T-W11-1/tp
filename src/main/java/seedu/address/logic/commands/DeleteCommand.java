@@ -25,6 +25,8 @@ public class DeleteCommand extends Command {
 
     public static final String MESSAGE_DELETE_PERSON_SUCCESS = "Deleted person: %1$s";
     public static final String MESSAGE_PERSON_NOT_FOUND = "Cyclist with phone number %1$s cannot be found.";
+    public static final String MESSAGE_AMBIGUOUS_PHONE = "More than one person has this phone number. "
+            + "Use find to display one person and edit their phone number to a unique number before deleting.";
 
     private final Phone targetPhone;
 
@@ -36,11 +38,16 @@ public class DeleteCommand extends Command {
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
         List<Person> persons = model.getAddressBook().getPersonList();
-        Person personToDelete = persons.stream()
+        List<Person> matchingPersons = persons.stream()
                 .filter(person -> person.getPhone().equals(targetPhone))
-                .findFirst()
-                .orElseThrow(() -> new CommandException(
-                        String.format(MESSAGE_PERSON_NOT_FOUND, targetPhone)));
+                .toList();
+        if (matchingPersons.isEmpty()) {
+            throw new CommandException(String.format(MESSAGE_PERSON_NOT_FOUND, targetPhone));
+        }
+        if (matchingPersons.size() > 1) {
+            throw new CommandException(MESSAGE_AMBIGUOUS_PHONE);
+        }
+        Person personToDelete = matchingPersons.get(0);
         model.deletePerson(personToDelete);
         return new CommandResult(String.format(MESSAGE_DELETE_PERSON_SUCCESS, Messages.format(personToDelete)));
     }

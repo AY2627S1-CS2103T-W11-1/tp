@@ -494,71 +494,102 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ## **Appendix: Instructions for manual testing**
 
-Given below are instructions to test the app manually.
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** These instructions only provide a starting point for testers to work on;
-testers are expected to do more *exploratory* testing.
-
-</div>
+Use JDK 25 and a disposable folder containing the release JAR. Run
+`java -version` to confirm the selected JDK, then `java -jar addressbook.jar`
+from that folder. All commands below operate on test contacts; do not use real contact data.
+Repeat the checks on each operating system supported by the release.
 
 ### Launch and shutdown
 
-1. Initial launch
+1. Launch in a folder without `preferences.json` or `data/addressbook.json`.
+   Expected: The opening artwork is followed by the main window and sample contacts.
+   Contact cards show labelled phone, email, address, FTP, experience and location fields.
+1. Resize and move the window, then enter `exit`.
+   Expected: The closing artwork appears and the application closes.
+1. Launch again. Expected: The window size and position are retained.
+1. Enter `help`, close its window, then press F1. Expected: Both actions open readable
+   usage instructions for all eight commands. Closing help leaves the main window usable.
+1. Close the main window using its close button. Expected: The application shuts down.
 
-   1. Download the JAR file and copy it into an empty folder.
+### Adding and editing people
 
-   1. Double-click the JAR file.<br>
-      Expected: The GUI opens with a set of sample contacts. The window size may not be optimal.
-      Each contact shows its phone number, address, and email with clear field labels.
+1. Enter `clear`, then
+   `add n/John Doe p/+65 98765432 e/johnd@example.com f/300 x/Beginner l/any t/friends t/owesMoney`.
+   Expected: One contact appears with both tags and address `Not specified`.
+1. Enter `add n/Alice Tan p/+65 91234567 e/alice@example.com f/1 x/Beginner l/East Coast l/Punggol`.
+   Expected: A second contact appears with both locations and no tags.
+1. Repeat John's add command. Expected: A duplicate-person error and no changes.
+1. Enter `edit +65 98765432 p/+65 96742165 e/johndoe@example.com f/600 x/Advanced l/Punggol a/10 Test Road`.
+   Expected: John's supplied fields change; his name and tags remain unchanged. His location
+   set is replaced with Punggol. Both contacts are displayed.
+1. Enter `edit +65 96742165 t/`. Expected: John's tags are cleared and other fields are retained.
+1. Try `edit +65 96742165`, `edit +65 96742165 n/John Updated f/601`,
+   `edit +65 96742165 l/`, and `edit +65 96742165 p/+65 111 p/+65 222`.
+   Expected: Each command shows an error and leaves every contact field unchanged.
+1. Try add commands with missing required fields, `f/0`, `f/601`, `f/abc`, blank `l/`,
+   invalid email, invalid experience and phone numbers without a country code.
+   Expected: Each command shows an error and adds no contact. FTP values 1 and 600 are accepted.
 
-1. Saving window preferences
+### Finding and listing people
 
-   1. Resize the window to an optimal size. Move the window to a different location. Close the window.
+Use John and Alice from the previous section.
 
-   1. Relaunch the app by double-clicking the JAR file.<br>
-       Expected: The most recent window size and location are retained.
+1. Enter `find n/jOHn n/alice`. Expected: Both contacts appear, ignoring name keyword case.
+1. Enter `find p/+65 96742165 p/+65 91234567`. Expected: Both contacts appear.
+1. Enter `find n/john p/+65 96742165`. Expected: Only John appears.
+1. Enter `find n/john p/+65 91234567`. Expected: No contacts appear; both fields must match.
+1. Enter `find n/Jo` and `find p/+65 967`. Expected: No contacts appear; matches are exact
+   phone numbers or full name words, rather than substrings.
+1. Try `find`, `find john alice`, `find n/John Doe`, and `find p/`.
+   Expected: Each shows an error without changing the current displayed list.
+1. Enter `find n/john`, then `edit +65 91234567 n/Alice Updated`.
+   Expected: The edit is rejected because Alice is outside the displayed list.
+1. Enter `edit +65 96742165 n/John Updated`. Expected: John's name changes and both contacts appear.
+1. Enter `list`. Expected: All stored contacts appear.
 
-1. _{ more test cases …​ }_
+### Deleting and clearing people
 
-### Finding people
+1. Enter `find n/john`, then `delete +65 91234567`.
+   Expected: Alice is deleted even though she is outside the displayed list; John remains.
+   The success message identifies Alice.
+1. Enter `delete +65 96742165`. Expected: John is deleted and the list is empty.
+1. Try `delete +65 99999999`, `delete`, `delete 1`, `delete +65 12`, and `delete x`.
+   Expected: An error appears and no contact is deleted.
+1. Enter `clear` twice. Expected: The list remains empty and each command succeeds.
 
-1. Finding by name and phone
+### Saving data and recovering from invalid files
 
-   1. Prerequisites: Add `Alex Tan` with phone `96320842` and `David Lim` with phone `91234567`.
+1. Add John again, edit a field, and exit. Launch again.
+   Expected: All saved fields, tags and locations match the last successful command.
+1. Delete John, exit, and relaunch. Expected: John stays deleted.
+1. Add John, enter `clear`, exit, and relaunch. Expected: The book stays empty.
+1. With the application closed, back up the disposable `data/addressbook.json`, then remove it.
+   Launch again. Expected: Sample contacts are loaded.
+1. Close the application and replace the disposable data file contents with `{invalid json`.
+   Launch again. Expected: An empty book is loaded without crashing; the log records the loading error.
+   A successful add creates valid saved data. Restore the backup after the check if needed.
+1. With the application closed, replace disposable `preferences.json` with `{invalid json`.
+   Launch again. Expected: Default window preferences are used without crashing.
 
-   1. Test case: `find n/alex n/david`<br>
-      Expected: Both people are shown.
+### Release regression: duplicate phone numbers
 
-   1. Test case: `find n/alex p/96320842`<br>
-      Expected: Only Alex Tan is shown.
-
-   1. Test case: `find p/91234567`<br>
-      Expected: Only David Lim is shown.
-
-   1. Test case: `find alex david`<br>
-      Expected: The command is rejected with the `find` usage message.
-
-### Deleting a person
-
-1. Deleting a person while all persons are being shown
-
-   1. Prerequisites: List all persons using the `list` command, with multiple persons in the list.
-
-   1. Test case: `delete 1`<br>
-      Expected: The first contact is deleted from the list. The status message shows the deleted contact's details.
-
-   1. Test case: `delete 0`<br>
-      Expected: No person is deleted. The status message shows error details.
-
-   1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
-      Expected: Similar to previous.
-
-1. _{ more test cases …​ }_
-
-### Saving data
-
-1. Dealing with missing/corrupted data files
-
-   1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
-
-1. _{ more test cases …​ }_
+1. Add John with `+65 98765432`, then try adding Jane with the same number and a different name.
+   Expected: The second add is rejected and John remains unchanged, even if hidden by a filter.
+1. Add Jane with `+65 91111111`, enter `find n/Jane`, then
+   `edit +65 91111111 p/+65 98765432`.
+   Expected: The edit is rejected; contacts, filtering and saved data are unchanged.
+1. Enter `edit +65 91111111 p/+65 91111111 e/jane.updated@example.com`.
+   Expected: Updating a contact while retaining its own unique number succeeds.
+1. Close the application and back up the disposable JSON file. Change Jane's stored phone
+   to John's number, then relaunch.
+   Expected: Both contacts are preserved. No number is automatically changed.
+1. With both displayed, enter `edit +65 98765432 p/+65 92222222` and `delete +65 98765432`.
+   Expected: Both are rejected with instructions for repairing the ambiguity; no contact changes.
+1. Enter `find n/Jane`, then `delete +65 98765432`.
+   Expected: Deletion is still rejected because it searches the entire book.
+1. Enter `edit +65 98765432 e/jane.updated@example.com`.
+   Expected: The edit is rejected because the resulting number is still shared.
+1. Enter `edit +65 98765432 p/+65 92222222`, using an otherwise unused number.
+   Expected: Only Jane's number changes, all contacts are displayed, and the repair is saved.
+1. Exit and relaunch, then delete John using his original number.
+   Expected: Both contacts had been preserved on reload, and only John is now deleted.

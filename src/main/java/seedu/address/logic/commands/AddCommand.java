@@ -23,7 +23,8 @@ public class AddCommand extends Command {
 
     public static final String COMMAND_WORD = "add";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Adds a person to the address book.\n"
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Adds a person to the address book. "
+            + "The phone number must not belong to another person.\n"
             + "Parameters: "
             + PREFIX_NAME + "NAME "
             + PREFIX_PHONE + "PHONE "
@@ -49,6 +50,7 @@ public class AddCommand extends Command {
     public static final String MESSAGE_MISSING_LOCATION =
             "Location is required. Please include l/LOCATION.";
     public static final String MESSAGE_DUPLICATE_PERSON = "This person already exists in the address book.";
+    public static final String MESSAGE_DUPLICATE_PHONE = "This phone number already belongs to another person.";
 
     private final Person toAdd;
 
@@ -66,6 +68,10 @@ public class AddCommand extends Command {
 
         if (model.hasPerson(toAdd)) {
             throw new CommandException(MESSAGE_DUPLICATE_PERSON);
+        }
+        if (model.getAddressBook().getPersonList().stream()
+                .anyMatch(person -> person.getPhone().equals(toAdd.getPhone()))) {
+            throw new CommandException(MESSAGE_DUPLICATE_PHONE);
         }
 
         model.addPerson(toAdd);

@@ -42,7 +42,8 @@ public class EditCommand extends Command {
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Edits the details of the person identified "
             + "by their phone number in the displayed person list. "
-            + "Existing values will be overwritten by the input values.\n"
+            + "Existing values will be overwritten by the input values. "
+            + "The resulting phone number must not belong to another person.\n"
             + "Parameters: PHONE "
             + "[" + PREFIX_NAME + "NAME] "
             + "[" + PREFIX_PHONE + "PHONE] "
@@ -59,6 +60,10 @@ public class EditCommand extends Command {
     public static final String MESSAGE_EDIT_PERSON_SUCCESS = "Edited person: %1$s";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
     public static final String MESSAGE_DUPLICATE_PERSON = "This person already exists in the address book.";
+    public static final String MESSAGE_DUPLICATE_PHONE = "This phone number already belongs to another person. "
+            + "Choose a unique phone number.";
+    public static final String MESSAGE_AMBIGUOUS_PHONE = "More than one displayed person has this phone number. "
+            + "Use find to display only the person you want to edit, then assign a unique phone number.";
     public static final String MESSAGE_PERSON_NOT_FOUND =
             "No person with the specified phone number exists in the displayed person list.";
 
@@ -82,14 +87,25 @@ public class EditCommand extends Command {
         requireNonNull(model);
         List<Person> lastShownList = model.getFilteredPersonList();
 
-        Person personToEdit = lastShownList.stream()
+        List<Person> matchingPersons = lastShownList.stream()
                 .filter(person -> person.getPhone().equals(targetPhone))
-                .findFirst()
-                .orElseThrow(() -> new CommandException(MESSAGE_PERSON_NOT_FOUND));
+                .toList();
+        if (matchingPersons.isEmpty()) {
+            throw new CommandException(MESSAGE_PERSON_NOT_FOUND);
+        }
+        if (matchingPersons.size() > 1) {
+            throw new CommandException(MESSAGE_AMBIGUOUS_PHONE);
+        }
+        Person personToEdit = matchingPersons.get(0);
         Person editedPerson = createEditedPerson(personToEdit, editPersonDescriptor);
 
         if (!personToEdit.isSamePerson(editedPerson) && model.hasPerson(editedPerson)) {
             throw new CommandException(MESSAGE_DUPLICATE_PERSON);
+        }
+        if (model.getAddressBook().getPersonList().stream()
+                .anyMatch(person -> !person.equals(personToEdit)
+                        && person.getPhone().equals(editedPerson.getPhone()))) {
+            throw new CommandException(MESSAGE_DUPLICATE_PHONE);
         }
 
         model.setPerson(personToEdit, editedPerson);
