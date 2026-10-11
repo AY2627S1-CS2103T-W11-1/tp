@@ -1,0 +1,112 @@
+# Release testing results
+
+Date: 11 October 2026 (Singapore). Tested locally on macOS ARM64 using
+Eclipse Temurin JDK 25.0.4.1. Application version reported at startup: V0.5.1.
+
+The duplicate-phone ambiguity is **resolved** with regression coverage.
+Release recommendation: **complete the outstanding manual UI checks** before release.
+
+## Automated checks
+
+`./gradlew check coverage shadowJar` passes. JUnit reports **299 tests**,
+**0 failures**, **0 errors** and **0 skipped tests**. Both production and test
+Checkstyle tasks pass, and the release JAR builds successfully.
+The repository-wide `./.github/run-checks.sh` passes. Its cached Git checks were
+supplemented with checks of all working-tree text files, including new files;
+there were no prohibited line endings, missing final newlines or trailing whitespace.
+`git diff --check` also passes.
+
+Sixteen regression tests were added: thirteen command workflow tests and three FTP tests.
+The command tests exercise real parsing, model changes, filtering and JSON read-back.
+They cover the help-guide add example, omitted address, repeated tags and locations,
+edit replacement and preservation of unspecified fields, tag clearing, name/phone
+find rules, filtered edit/delete behaviour, clear persistence, rejected commands
+without data changes, and help/exit flags. Six additional command tests cover duplicate
+phone rejection across filters, unchanged unique numbers, legacy collision loading,
+ambiguous commands without data changes, occupied repair numbers, and repairs across reload.
+FTP tests cover valid boundaries,
+invalid input, equality and hashing.
+
+| JaCoCo metric | Before | After |
+| --- | ---: | ---: |
+| Lines | 74.85% | 75.28% |
+| Instructions | 77.00% | 77.53% |
+| Branches | 86.92% | 88.44% |
+
+Line coverage is 1,136 of 1,509 lines, above the required 50% target.
+The report includes the UI and application entry points; no classes were excluded
+to raise the result. Coverage generation does not automatically enforce the target.
+Command classes have 100% line coverage, parsers 97.98%, storage 97.20%,
+and person model classes 92.63%. UI line coverage remains 11.94%, so the aggregate
+result cannot establish visual correctness.
+
+Generated reports:
+
+- JUnit: `build/reports/tests/test/index.html`
+- JaCoCo: `build/reports/jacoco/coverage/html/index.html`
+- Coverage XML: `build/reports/jacoco/coverage/coverage.xml`
+- Release JAR: `build/libs/addressbook.jar`
+
+## Resolved release issue: ambiguous phone identity
+
+The original issue allowed different names to share a phone number, and edit/delete
+selected the first matching phone number. The target depended on list order and filtering.
+The following reproduction describes the behaviour before the fix.
+
+Reproduced through `LogicManager` and real JSON storage using the release JAR
+with JDK 25 and disposable temporary data:
+
+```text
+add n/John Doe p/+65 98765432 e/john@example.com f/300 x/Beginner l/any
+add n/Jane Doe p/+65 98765432 e/jane@example.com f/300 x/Beginner l/any
+find n/Jane
+delete +65 98765432
+```
+
+Both adds succeed. Only Jane is displayed after find, but delete reports
+`Deleted person: John Doe` and leaves Jane in the book.
+Adding John again with a different number and editing his number to Jane's
+also succeeds, confirming that edit can introduce the collision.
+
+The agreed fix rejects duplicate phone numbers on add and edit, including collisions
+with hidden contacts. Retaining a contact's own unique number is accepted. Name uniqueness
+continues to apply as before. Checks run before model mutation or saving.
+
+Existing saved books remain loadable with every contact preserved. The storage/model
+layer deliberately retains this compatibility; command validation prevents new collisions.
+Edit rejects multiple displayed matches, and delete rejects multiple stored matches even
+if only one is displayed. A filtered edit can assign a unique number to one legacy contact;
+an edit leaving the number shared is rejected. No automatic deduplication or renumbering occurs.
+
+For a legacy John/Jane collision, enter `find n/Jane`, confirm only Jane matches the target
+number, then `edit +65 98765432 p/+65 91111111` with Jane's correct unique number.
+The repair preserves John's details and survives a saved-book reload. If name keywords cannot
+isolate a contact, close the application, back up the JSON and correct the number directly.
+The User Guide documents these steps and the manual test appendix now tests the fixed behaviour.
+
+## Manual UI checks and limitations
+
+Before the fix, the release JAR was launched in `/private/tmp/cyclique-release-smoke` with JDK 25.
+Startup logs confirm initialisation with missing preferences and data files,
+selection of sample data, and entry into UI startup. This is startup evidence,
+not a visual pass. The available UI automation tool does not expose the standalone
+Java process as an accessible application, so its window could not be inspected
+or operated. The temporary process was stopped after the launch attempt.
+
+Still required before release:
+
+- Visual confirmation of opening/closing artwork and labelled contact cards.
+- Commands entered through the command box, including duplicate-phone and ambiguity
+  errors, the filtered repair workflow, and focus behaviour.
+- Help window readability and F1, window close, resize/move and preference restoration.
+- Application restart after add, edit, delete and clear.
+- Missing/corrupt data and preferences recovery through application startup.
+- The complete manual plan on the supported operating systems; Windows and Linux
+  were not exercised locally.
+
+The Developer Guide manual appendix now uses country-code phone numbers, replaces
+the obsolete `delete 1` instructions, supplies concrete command and recovery
+scenarios, and verifies duplicate-phone rejection and legacy repair.
+
+JavaFX emits native-access, unnamed-module and deprecated Unsafe warnings on JDK 25.
+They did not fail the automated checks or prevent logged UI startup.
