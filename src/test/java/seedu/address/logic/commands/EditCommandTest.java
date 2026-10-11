@@ -239,6 +239,26 @@ public class EditCommandTest {
     }
 
     @Test
+    public void execute_phoneChangedToAnotherCyclistsPhone_failure() {
+        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Person secondPerson = model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
+        EditCommand editCommand = new EditCommand(firstPerson.getPhone(),
+                new EditPersonDescriptorBuilder().withPhone(secondPerson.getPhone().value).build());
+
+        assertCommandFailure(editCommand, model, EditCommand.MESSAGE_DUPLICATE_PERSON);
+    }
+
+    @Test
+    public void execute_emailChangedToAnotherCyclistsEmail_failure() {
+        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Person secondPerson = model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
+        EditCommand editCommand = new EditCommand(firstPerson.getPhone(),
+                new EditPersonDescriptorBuilder().withEmail(secondPerson.getEmail().value).build());
+
+        assertCommandFailure(editCommand, model, EditCommand.MESSAGE_DUPLICATE_PERSON);
+    }
+
+    @Test
     public void execute_phoneNotFoundUnfilteredList_failure() {
         Phone unknownPhone = new Phone("+65 00000000");
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB).build();

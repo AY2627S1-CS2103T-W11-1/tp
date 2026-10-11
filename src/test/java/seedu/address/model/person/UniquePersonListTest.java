@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_ADDRESS_BOB;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_BOB;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
@@ -57,6 +59,17 @@ public class UniquePersonListTest {
     }
 
     @Test
+    public void add_sameNameWithDifferentPhoneAndEmail_success() {
+        Person personWithSameName = new PersonBuilder(ALICE).withPhone(VALID_PHONE_BOB)
+                .withEmail(VALID_EMAIL_BOB).build();
+
+        uniquePersonList.add(ALICE);
+        uniquePersonList.add(personWithSameName);
+
+        assertEquals(List.of(ALICE, personWithSameName), uniquePersonList.asUnmodifiableObservableList());
+    }
+
+    @Test
     public void setPerson_nullTargetPerson_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> uniquePersonList.setPerson(null, ALICE));
     }
@@ -105,6 +118,15 @@ public class UniquePersonListTest {
         uniquePersonList.add(ALICE);
         uniquePersonList.add(BOB);
         assertThrows(DuplicatePersonException.class, () -> uniquePersonList.setPerson(ALICE, BOB));
+    }
+
+    @Test
+    public void setPerson_editedPersonRetainsEmailAndDuplicatesPhone_throwsDuplicatePersonException() {
+        uniquePersonList.add(ALICE);
+        uniquePersonList.add(BOB);
+        Person editedAlice = new PersonBuilder(ALICE).withPhone(BOB.getPhone().value).build();
+
+        assertThrows(DuplicatePersonException.class, () -> uniquePersonList.setPerson(ALICE, editedAlice));
     }
 
     @Test

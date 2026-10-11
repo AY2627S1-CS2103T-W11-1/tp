@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
+import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +44,36 @@ public class AddCommandIntegrationTest {
         Person personInList = model.getAddressBook().getPersonList().get(0);
         assertCommandFailure(new AddCommand(personInList), model,
                 AddCommand.MESSAGE_DUPLICATE_PERSON);
+    }
+
+    @Test
+    public void execute_samePhoneDifferentEmail_throwsCommandException() {
+        Person personWithSamePhone = new PersonBuilder().withName("Different Name")
+                .withPhone(ALICE.getPhone().value).withEmail("different@example.com").build();
+
+        assertCommandFailure(new AddCommand(personWithSamePhone), model,
+                AddCommand.MESSAGE_DUPLICATE_PERSON);
+    }
+
+    @Test
+    public void execute_differentPhoneSameEmail_throwsCommandException() {
+        Person personWithSameEmail = new PersonBuilder().withName("Different Name")
+                .withPhone("+65 80000000").withEmail(ALICE.getEmail().value).build();
+
+        assertCommandFailure(new AddCommand(personWithSameEmail), model,
+                AddCommand.MESSAGE_DUPLICATE_PERSON);
+    }
+
+    @Test
+    public void execute_sameNameDifferentPhoneAndEmail_success() {
+        Person personWithSameName = new PersonBuilder().withName(ALICE.getName().fullName)
+                .withPhone("+65 80000000").withEmail("different@example.com").build();
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.addPerson(personWithSameName);
+
+        assertCommandSuccess(new AddCommand(personWithSameName), model,
+                String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(personWithSameName)),
+                expectedModel);
     }
 
 }

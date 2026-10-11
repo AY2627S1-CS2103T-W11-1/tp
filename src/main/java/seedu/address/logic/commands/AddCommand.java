@@ -48,7 +48,7 @@ public class AddCommand extends Command {
             "FTP is required. Please include f/FTP_LEVEL.";
     public static final String MESSAGE_MISSING_LOCATION =
             "Location is required. Please include l/LOCATION.";
-    public static final String MESSAGE_DUPLICATE_PERSON = "This person already exists in the address book.";
+    public static final String MESSAGE_DUPLICATE_PERSON = "Another cyclist already has this phone number or email.";
 
     private final Person toAdd;
 
