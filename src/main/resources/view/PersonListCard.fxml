@@ -14,17 +14,23 @@
     <padding>
       <Insets top="10" right="12" bottom="10" left="15" />
     </padding>
-    <HBox spacing="10" alignment="CENTER_LEFT">
-      <HBox spacing="0.5" alignment="CENTER_LEFT">
+    <HBox spacing="10" alignment="TOP_LEFT">
+      <HBox spacing="0.5" alignment="TOP_LEFT">
         <Label fx:id="id" styleClass="cell_big_label">
           <minWidth>
             <!-- Ensures that the label text is never truncated -->
             <Region fx:constant="USE_PREF_SIZE" />
           </minWidth>
         </Label>
-        <Label fx:id="name" text="\$first" styleClass="cell_big_label" />
+        <!-- A long name wraps onto further lines instead of pushing the chip out of the card -->
+        <Label fx:id="name" text="\$first" styleClass="cell_big_label" wrapText="true" />
       </HBox>
-      <Label fx:id="experienceLevel" styleClass="experience-chip" text="\$experienceLevel" />
+      <Label fx:id="experienceLevel" styleClass="experience-chip" text="\$experienceLevel">
+        <minWidth>
+          <!-- Keeps the chip fully visible, however long the name is -->
+          <Region fx:constant="USE_PREF_SIZE" />
+        </minWidth>
+      </Label>
     </HBox>
     <FlowPane fx:id="tags" />
     <GridPane hgap="8" vgap="2">

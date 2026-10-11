@@ -1,5 +1,7 @@
 package seedu.address.ui;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import javafx.animation.PauseTransition;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -68,6 +70,8 @@ public class ArtworkScreen {
      * Shows this screen in its own window for {@code duration}. Once the time is up,
      * {@code onFinished} runs first and then the window closes. Running it first matters: JavaFX
      * exits the app when the last window closes, so the next window must already be showing.
+     * If the user closes the window before the time is up, the same happens straight away, so the
+     * app moves on to the next window instead of quitting.
      */
     public void showFor(Duration duration, Runnable onFinished) {
         Stage stage = new Stage(StageStyle.UNDECORATED);
@@ -77,11 +81,32 @@ public class ArtworkScreen {
         stage.show();
 
         PauseTransition pause = new PauseTransition(duration);
-        pause.setOnFinished(event -> {
+        // The timer and a close request can both end the screen, but the next step must only run once.
+        Runnable finish = runOnce(() -> {
+            pause.stop();
             onFinished.run();
             stage.close();
         });
+        pause.setOnFinished(event -> finish.run());
+        stage.setOnCloseRequest(event -> {
+            // Keep the window open until onFinished has run, otherwise the app would exit.
+            event.consume();
+            finish.run();
+        });
         pause.play();
+    }
+
+    /**
+     * Returns a {@code Runnable} that runs {@code action} the first time it is called and does
+     * nothing on later calls.
+     */
+    static Runnable runOnce(Runnable action) {
+        AtomicBoolean hasRun = new AtomicBoolean(false);
+        return () -> {
+            if (hasRun.compareAndSet(false, true)) {
+                action.run();
+            }
+        };
     }
 
     /**
