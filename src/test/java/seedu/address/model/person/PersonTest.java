@@ -13,6 +13,8 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BOB;
 
+import java.util.Locale;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.testutil.PersonBuilder;
@@ -29,6 +31,10 @@ public class PersonTest {
     public void isSamePerson() {
         // same object -> returns true
         assertTrue(ALICE.isSamePerson(ALICE));
+
+        // same phone and email -> returns true
+        Person aliceCopy = new PersonBuilder(ALICE).build();
+        assertTrue(ALICE.isSamePerson(aliceCopy));
 
         // null -> returns false
         assertFalse(ALICE.isSamePerson(null));
@@ -51,6 +57,25 @@ public class PersonTest {
         editedAlice = new PersonBuilder(ALICE).withName(VALID_NAME_BOB).withPhone(VALID_PHONE_BOB)
                 .withEmail(VALID_EMAIL_BOB).build();
         assertFalse(ALICE.isSamePerson(editedAlice));
+
+        // email differs only in case -> returns true
+        String uppercaseEmail = ALICE.getEmail().value.toUpperCase(Locale.ROOT);
+        editedAlice = new PersonBuilder(ALICE).withPhone(VALID_PHONE_BOB)
+                .withEmail(uppercaseEmail).build();
+        assertTrue(ALICE.isSamePerson(editedAlice));
+
+        // email has mixed case -> returns true
+        String mixedCaseEmail = ALICE.getEmail().value.substring(0, 1).toUpperCase(Locale.ROOT)
+                + ALICE.getEmail().value.substring(1);
+        editedAlice = new PersonBuilder(ALICE).withPhone(VALID_PHONE_BOB)
+                .withEmail(mixedCaseEmail).build();
+        assertTrue(ALICE.isSamePerson(editedAlice));
+
+        // non-identity fields differ -> returns true
+        editedAlice = new PersonBuilder(ALICE).withFtp("300").withExperienceLevel(VALID_EXPERIENCE_LEVEL_BOB)
+                .withLocations("East Coast Park").withAddress(VALID_ADDRESS_BOB)
+                .withTags(VALID_TAG_HUSBAND).build();
+        assertTrue(ALICE.isSamePerson(editedAlice));
     }
 
     @Test
@@ -58,6 +83,7 @@ public class PersonTest {
         // same values -> returns true
         Person aliceCopy = new PersonBuilder(ALICE).build();
         assertTrue(ALICE.equals(aliceCopy));
+        assertEquals(ALICE.hashCode(), aliceCopy.hashCode());
 
         // same object -> returns true
         assertTrue(ALICE.equals(ALICE));
@@ -81,6 +107,15 @@ public class PersonTest {
 
         // different email -> returns false
         editedAlice = new PersonBuilder(ALICE).withEmail(VALID_EMAIL_BOB).build();
+        assertFalse(ALICE.equals(editedAlice));
+
+        // email differs only in case -> returns false
+        editedAlice = new PersonBuilder(ALICE)
+                .withEmail(ALICE.getEmail().value.toUpperCase(Locale.ROOT)).build();
+        assertFalse(ALICE.equals(editedAlice));
+
+        // different FTP -> returns false
+        editedAlice = new PersonBuilder(ALICE).withFtp("300").build();
         assertFalse(ALICE.equals(editedAlice));
 
         // different address -> returns false

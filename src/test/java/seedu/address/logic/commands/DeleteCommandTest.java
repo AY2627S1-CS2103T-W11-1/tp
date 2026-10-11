@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
+import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,7 @@ import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.testutil.PersonBuilder;
 
 public class DeleteCommandTest {
 
@@ -39,6 +41,21 @@ public class DeleteCommandTest {
 
         assertCommandFailure(deleteCommand, model,
                 String.format(DeleteCommand.MESSAGE_PERSON_NOT_FOUND, "+65 99999999"));
+    }
+
+    @Test
+    public void execute_sameNameCyclists_deletesOnlyExactPhoneMatch() {
+        Person personWithSameName = new PersonBuilder(ALICE).withPhone("+65 80000000")
+                .withEmail("other.alice@example.com").build();
+        model.addPerson(personWithSameName);
+        DeleteCommand deleteCommand = new DeleteCommand(ALICE.getPhone());
+        String expectedMessage = String.format(DeleteCommand.MESSAGE_DELETE_PERSON_SUCCESS, Messages.format(ALICE));
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.deletePerson(ALICE);
+
+        assertCommandSuccess(deleteCommand, model, expectedMessage, expectedModel);
+        assertFalse(model.getAddressBook().getPersonList().contains(ALICE));
+        assertTrue(model.getAddressBook().getPersonList().contains(personWithSameName));
     }
 
     @Test
