@@ -5,6 +5,8 @@ import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
+import java.util.Locale;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -59,6 +61,15 @@ public class AddCommandIntegrationTest {
     public void execute_differentPhoneSameEmail_throwsCommandException() {
         Person personWithSameEmail = new PersonBuilder().withName("Different Name")
                 .withPhone("+65 80000000").withEmail(ALICE.getEmail().value).build();
+
+        assertCommandFailure(new AddCommand(personWithSameEmail), model,
+                AddCommand.MESSAGE_DUPLICATE_PERSON);
+    }
+
+    @Test
+    public void execute_emailDiffersOnlyInCase_throwsCommandException() {
+        Person personWithSameEmail = new PersonBuilder().withName("Different Name")
+                .withPhone("+65 80000000").withEmail(ALICE.getEmail().value.toUpperCase(Locale.ROOT)).build();
 
         assertCommandFailure(new AddCommand(personWithSameEmail), model,
                 AddCommand.MESSAGE_DUPLICATE_PERSON);
