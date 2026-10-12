@@ -61,12 +61,10 @@ public class EditCommand extends Command {
     public static final String MESSAGE_EDIT_PERSON_SUCCESS = "Edited person: %1$s";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
     public static final String MESSAGE_DUPLICATE_PERSON = "Another cyclist already has this phone number or email.";
-    public static final String MESSAGE_DUPLICATE_PHONE = "This phone number already belongs to another person. "
+    public static final String MESSAGE_DUPLICATE_PHONE = "This phone number already belongs to another cyclist. "
             + "Choose a unique phone number.";
-    public static final String MESSAGE_AMBIGUOUS_PHONE = "More than one displayed person has this phone number. "
-            + "Use find to display only the person you want to edit, then assign a unique phone number.";
-    public static final String MESSAGE_PERSON_NOT_FOUND =
-            "No person with the specified phone number exists in the displayed person list.";
+    public static final String MESSAGE_AMBIGUOUS_PHONE = Messages.MESSAGE_AMBIGUOUS_PHONE;
+    public static final String MESSAGE_PERSON_NOT_FOUND = Messages.MESSAGE_CYCLIST_NOT_FOUND;
 
     private final Phone targetPhone;
     private final EditPersonDescriptor editPersonDescriptor;
@@ -93,7 +91,7 @@ public class EditCommand extends Command {
                 .toList();
 
         if (matchingPersons.isEmpty()) {
-            throw new CommandException(MESSAGE_PERSON_NOT_FOUND);
+            throw new CommandException(String.format(MESSAGE_PERSON_NOT_FOUND, targetPhone));
         }
 
         if (matchingPersons.size() > 1) {

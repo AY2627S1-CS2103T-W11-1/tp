@@ -12,21 +12,20 @@ import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 
 /**
- * Deletes a person identified using its phone number from the address book.
+ * Deletes a displayed person identified using its phone number from the address book.
  */
 public class DeleteCommand extends Command {
 
     public static final String COMMAND_WORD = "delete";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Deletes the person identified by their phone number.\n"
+            + ": Deletes a person in the displayed list identified by their phone number.\n"
             + "Parameters: PHONE (must be at least 3 digits)\n"
             + "Example: " + COMMAND_WORD + " +65 96742165";
 
     public static final String MESSAGE_DELETE_PERSON_SUCCESS = "Deleted person: %1$s";
-    public static final String MESSAGE_PERSON_NOT_FOUND = "Cyclist with phone number %1$s cannot be found.";
-    public static final String MESSAGE_AMBIGUOUS_PHONE = "More than one person has this phone number. "
-            + "Use find to display one person and edit their phone number to a unique number before deleting.";
+    public static final String MESSAGE_PERSON_NOT_FOUND = Messages.MESSAGE_CYCLIST_NOT_FOUND;
+    public static final String MESSAGE_AMBIGUOUS_PHONE = Messages.MESSAGE_AMBIGUOUS_PHONE;
 
     private final Phone targetPhone;
 
@@ -37,7 +36,7 @@ public class DeleteCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        List<Person> persons = model.getAddressBook().getPersonList();
+        List<Person> persons = model.getFilteredPersonList();
         List<Person> matchingPersons = persons.stream()
                 .filter(person -> person.getPhone().equals(targetPhone))
                 .toList();

@@ -387,7 +387,7 @@ public class EditCommandTest {
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB).build();
         EditCommand editCommand = new EditCommand(unknownPhone, descriptor);
 
-        assertCommandFailure(editCommand, model, EditCommand.MESSAGE_PERSON_NOT_FOUND);
+        assertCommandFailure(editCommand, model, String.format(EditCommand.MESSAGE_PERSON_NOT_FOUND, unknownPhone));
     }
 
     @Test
@@ -396,7 +396,7 @@ public class EditCommandTest {
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB).build();
         EditCommand editCommand = new EditCommand(partialPhone, descriptor);
 
-        assertCommandFailure(editCommand, model, EditCommand.MESSAGE_PERSON_NOT_FOUND);
+        assertCommandFailure(editCommand, model, String.format(EditCommand.MESSAGE_PERSON_NOT_FOUND, partialPhone));
     }
 
     /**
@@ -412,7 +412,8 @@ public class EditCommandTest {
         EditCommand editCommand = new EditCommand(personOutsideFilteredList.getPhone(),
                 new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB).build());
 
-        assertCommandFailure(editCommand, model, EditCommand.MESSAGE_PERSON_NOT_FOUND);
+        assertCommandFailure(editCommand, model,
+                String.format(EditCommand.MESSAGE_PERSON_NOT_FOUND, personOutsideFilteredList.getPhone()));
     }
 
     @Test

@@ -78,8 +78,10 @@ public class ModelManagerTest {
     @Test
     public void getFilteredPersonList_initialData_sortsByFullNameIgnoringCase() {
         Person alexZ = new PersonBuilder().withName("Alex Zane").build();
-        Person alexA = new PersonBuilder().withName("alex Adams").build();
-        Person david = new PersonBuilder().withName("David").build();
+        Person alexA = new PersonBuilder().withName("alex Adams").withPhone("+65 91111111")
+                .withEmail("alexa@example.com").build();
+        Person david = new PersonBuilder().withName("David").withPhone("+65 92222222")
+                .withEmail("david@example.com").build();
         AddressBook book = new AddressBookBuilder().withPerson(david).withPerson(alexZ).withPerson(alexA).build();
         modelManager = new ModelManager(book, new UserPrefs());
 
@@ -91,8 +93,10 @@ public class ModelManagerTest {
     public void addPerson_unsortedAdditions_updatesExistingDisplayedView() {
         var displayedPersons = modelManager.getFilteredPersonList();
         Person alex = new PersonBuilder().withName("Alex").build();
-        Person bernice = new PersonBuilder().withName("Bernice").build();
-        Person david = new PersonBuilder().withName("David").build();
+        Person bernice = new PersonBuilder().withName("Bernice").withPhone("+65 91111111")
+                .withEmail("bernice@example.com").build();
+        Person david = new PersonBuilder().withName("David").withPhone("+65 92222222")
+                .withEmail("david@example.com").build();
         modelManager.addPerson(david);
         modelManager.addPerson(alex);
         modelManager.updateFilteredPersonList(person -> false);
@@ -132,8 +136,10 @@ public class ModelManagerTest {
     @Test
     public void getFilteredPersonList_equalNames_preservesStoredOrderAcrossChanges() {
         Person first = new PersonBuilder().withName("aLEX").build();
-        Person second = new PersonBuilder().withName("Alex").withPhone("+65 91111111").build();
-        Person third = new PersonBuilder().withName("ALEX").withPhone("+65 92222222").build();
+        Person second = new PersonBuilder().withName("Alex").withPhone("+65 91111111")
+                .withEmail("second@example.com").build();
+        Person third = new PersonBuilder().withName("ALEX").withPhone("+65 92222222")
+                .withEmail("third@example.com").build();
         modelManager = new ModelManager(new AddressBookBuilder().withPerson(first).withPerson(second).build(),
                 new UserPrefs());
         modelManager.addPerson(third);
@@ -164,6 +170,28 @@ public class ModelManagerTest {
         Person zara = new PersonBuilder(aaron).withName("Zara").build();
         modelManager.setPerson(aaron, zara);
         assertEquals(List.of(ALICE), modelManager.getFilteredPersonList());
+    }
+
+    @Test
+    public void setPerson_identicalNames_preservesStoredOrderWhenJoiningAndLeavingTie() {
+        Person first = new PersonBuilder().withName("Zara").build();
+        Person second = new PersonBuilder().withName("Alex").withPhone("+65 91111111")
+                .withEmail("second@example.com").build();
+        Person third = new PersonBuilder().withName("Alex").withPhone("+65 92222222")
+                .withEmail("third@example.com").build();
+        modelManager.addPerson(first);
+        modelManager.addPerson(second);
+        modelManager.addPerson(third);
+        assertEquals(List.of(second, third, first), modelManager.getFilteredPersonList());
+
+        Person editedFirst = new PersonBuilder(first).withName("Alex").build();
+        modelManager.setPerson(first, editedFirst);
+        assertEquals(List.of(editedFirst, second, third), modelManager.getFilteredPersonList());
+        modelManager.updateFilteredPersonList(person -> !person.equals(second));
+        assertEquals(List.of(editedFirst, third), modelManager.getFilteredPersonList());
+        modelManager.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+        modelManager.setPerson(editedFirst, first);
+        assertEquals(List.of(second, third, first), modelManager.getFilteredPersonList());
     }
 
     @Test

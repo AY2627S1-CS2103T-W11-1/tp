@@ -61,5 +61,12 @@ Record release results, unresolved defects and incomplete manual checks in [Rele
 live updates after additions and name edits, filtered membership, deletion and book replacement.
 `ReleaseCommandIntegrationTest` checks sorted add/find/list/edit workflows, stable equal-name
 ordering across JSON reload and phone-number targeting when the display order changes.
+Deletion tests reject hidden cyclists and targets in an empty display without changing
+stored records, the active filter or saved JSON. A displayed cyclist can still be deleted
+by their exact phone number, including when another cyclist has an identical name.
+Error-message regressions check identical edit/delete errors for hidden and unknown
+phone targets, full stops in invalid-field and duplicate-prefix errors, and the
+`Invalid command format.` heading. The Developer Guide's **Error message consistency**
+scenario covers the corresponding command-box checks.
 Run the Developer Guide's **Alphabetical display regression** manual scenario to verify
 visible card indexes after reordering and filtering, and startup ordering after a restart.

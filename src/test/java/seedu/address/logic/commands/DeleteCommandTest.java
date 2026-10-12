@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.testutil.TypicalPersons.ALICE;
+import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import org.junit.jupiter.api.Test;
@@ -41,6 +42,38 @@ public class DeleteCommandTest {
 
         assertCommandFailure(deleteCommand, model,
                 String.format(DeleteCommand.MESSAGE_PERSON_NOT_FOUND, "+65 99999999"));
+    }
+
+    @Test
+    public void execute_hiddenPhone_rejectsWithoutChangingDisplayedList() {
+        model.updateFilteredPersonList(person -> person.equals(BENSON));
+        assertCommandFailure(new DeleteCommand(ALICE.getPhone()), model,
+                String.format(DeleteCommand.MESSAGE_PERSON_NOT_FOUND, ALICE.getPhone()));
+    }
+
+    @Test
+    public void execute_emptyDisplayedList_rejectsExistingPhone() {
+        model.updateFilteredPersonList(person -> false);
+        assertCommandFailure(new DeleteCommand(ALICE.getPhone()), model,
+                String.format(DeleteCommand.MESSAGE_PERSON_NOT_FOUND, ALICE.getPhone()));
+    }
+
+    @Test
+    public void execute_filteredSameNameCyclists_deletesOnlyDisplayedPhoneMatch() {
+        Person otherAlice = new PersonBuilder(ALICE).withPhone("+65 80000000")
+                .withEmail("other.alice@example.com").build();
+        model.addPerson(otherAlice);
+        model.updateFilteredPersonList(person -> person.getPhone().equals(otherAlice.getPhone()));
+        assertCommandFailure(new DeleteCommand(ALICE.getPhone()), model,
+                String.format(DeleteCommand.MESSAGE_PERSON_NOT_FOUND, ALICE.getPhone()));
+
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.updateFilteredPersonList(person -> person.getPhone().equals(otherAlice.getPhone()));
+        expectedModel.deletePerson(otherAlice);
+        assertCommandSuccess(new DeleteCommand(otherAlice.getPhone()), model,
+                String.format(DeleteCommand.MESSAGE_DELETE_PERSON_SUCCESS, Messages.format(otherAlice)), expectedModel);
+        assertTrue(model.getAddressBook().getPersonList().contains(ALICE));
+        assertTrue(model.getFilteredPersonList().isEmpty());
     }
 
     @Test
