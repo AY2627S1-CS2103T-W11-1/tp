@@ -135,7 +135,13 @@
 .list-cell .person-field-label {
     -fx-font-family: "Segoe UI Semibold";
     -fx-font-size: 11px;
-    -fx-text-fill: #9a9a9a;
+    -fx-text-fill: #b8b8b8;
+}
+
+.list-cell .person-section-heading {
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-size: 10px;
+    -fx-text-fill: #929292;
 }
 
 .list-cell .person-field-value {
@@ -145,11 +151,11 @@
 }
 
 .list-cell .experience-chip {
-    -fx-background-color: #ffd23f;
+    -fx-background-color: #454127;
     -fx-background-radius: 4;
-    -fx-padding: 1 7 1 7;
+    -fx-padding: 1 6 1 6;
     -fx-font-size: 12px;
-    -fx-text-fill: #1a1a1a;
+    -fx-text-fill: #ffe580;
 }
 
 .stack-pane {

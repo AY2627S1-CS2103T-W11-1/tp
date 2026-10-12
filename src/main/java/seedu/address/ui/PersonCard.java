@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import seedu.address.model.person.Person;
 
@@ -27,8 +26,6 @@ public class PersonCard extends UiPart<Region> {
 
     public final Person person;
 
-    @FXML
-    private HBox cardPane;
     @FXML
     private Label name;
     @FXML
@@ -57,13 +54,23 @@ public class PersonCard extends UiPart<Region> {
         phone.setText(person.getPhone().value);
         email.setText(person.getEmail().value);
         experienceLevel.setText(person.getExperienceLevel().value);
-        ftp.setText(person.getFtp().value);
-        locations.setText(person.getLocations().stream()
-                .map(location -> location.value)
-                .sorted()
-                .collect(Collectors.joining(", ")));
+        ftp.setText(person.getFtp().value + " W");
+        locations.setText(formatLocations(person));
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
+        tags.setManaged(!tags.getChildren().isEmpty());
+        tags.setVisible(!tags.getChildren().isEmpty());
+    }
+
+    /**
+     * Returns the person's preferred locations as display text.
+     * The special {@code any} value is humanized without changing its stored representation.
+     */
+    static String formatLocations(Person person) {
+        return person.getLocations().stream()
+                .map(location -> location.value.equalsIgnoreCase("any") ? "Any" : location.value)
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .collect(Collectors.joining(", "));
     }
 }
