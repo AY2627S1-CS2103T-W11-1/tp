@@ -503,7 +503,7 @@ Repeat the checks on each operating system supported by the release.
 
 1. Launch in a folder without `preferences.json` or `data/addressbook.json`.
    Expected: The opening artwork is followed by the main window and sample contacts.
-   Contact cards show labelled phone, email, address, FTP, experience and location fields.
+   Contact cards show labelled phone, email, FTP, experience and location fields.
 1. Resize and move the window, then enter `exit`.
    Expected: The closing artwork appears and the application closes.
 1. Launch again. Expected: The window size and position are retained.
@@ -515,13 +515,16 @@ Repeat the checks on each operating system supported by the release.
 
 1. Enter `clear`, then
    `add n/John Doe p/+65 98765432 e/johnd@example.com f/300 x/Beginner l/any t/friends t/owesMoney`.
-   Expected: One contact appears with both tags and address `Not specified`.
+   Expected: One contact appears with both tags. The success message contains no residential address.
+1. Try adding Alice with `a/10 Test Road` appended and `edit +65 98765432 a/10 Test Road`.
+   Expected: Both commands are rejected and cyclist details remain unchanged.
 1. Enter `add n/Alice Tan p/+65 91234567 e/alice@example.com f/1 x/Beginner l/East Coast l/Punggol`.
    Expected: A second contact appears with both locations and no tags.
 1. Repeat John's add command. Expected: A duplicate-person error and no changes.
-1. Enter `edit +65 98765432 p/+65 96742165 e/johndoe@example.com f/600 x/Advanced l/Punggol a/10 Test Road`.
-   Expected: John's supplied fields change; his name and tags remain unchanged. His location
-   set is replaced with Punggol. Both contacts are displayed.
+1. Enter `edit +65 98765432 p/+65 96742165 e/johndoe@example.com f/600 x/Advanced l/Punggol`.
+   Expected: The success message contains no residential address. John's supplied fields change;
+   his name and tags remain unchanged. His location set is replaced with Punggol.
+   Both contacts are displayed.
 1. Enter `edit +65 96742165 t/`. Expected: John's tags are cleared and other fields are retained.
 1. Try `edit +65 96742165`, `edit +65 96742165 n/John Updated f/601`,
    `edit +65 96742165 l/`, and `edit +65 96742165 p/+65 111 p/+65 222`.
@@ -605,7 +608,7 @@ Use the contacts from the alphabetical display scenario before deleting Zara.
    Expected: Both use the same wording with `+65 99999999`.
 1. Enter `delete` or `edit`. Expected: The error begins `Invalid command format.`
    followed by usage instructions. Examples remain copyable command text.
-1. Enter `list`, then try `edit +65 94444444 n/!`, `edit +65 94444444 a/`,
+1. Enter `list`, then try `edit +65 94444444 n/!`,
    `edit +65 94444444 t/!`, and `edit +65 94444444 x/Expert`.
    Expected: Each validation error ends with a full stop and no details change.
 1. Enter `edit +65 94444444 n/Ben n/Zara`.

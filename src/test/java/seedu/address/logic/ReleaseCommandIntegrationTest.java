@@ -38,10 +38,10 @@ public class ReleaseCommandIntegrationTest {
     private static final String ADD_ALICE = "add n/Alice Tan p/+65 91234567 e/alice@example.com"
             + " f/1 x/Beginner l/East Coast l/Punggol";
     private static final Person JOHN = new PersonBuilder().withName("John Doe").withPhone("+65 98765432")
-            .withEmail("johnd@example.com").withAddress("Not specified").withFtp("300")
+            .withEmail("johnd@example.com").withFtp("300")
             .withLocations("any").withTags("friends", "owesMoney").build();
     private static final Person ALICE = new PersonBuilder().withName("Alice Tan").withPhone("+65 91234567")
-            .withEmail("alice@example.com").withAddress("Not specified").withFtp("1")
+            .withEmail("alice@example.com").withFtp("1")
             .withLocations("East Coast", "Punggol").build();
 
     @TempDir
@@ -52,12 +52,33 @@ public class ReleaseCommandIntegrationTest {
     private Storage storage;
 
     @Test
+    public void execute_addAndEdit_omitAddressFromFeedbackAndStorage() throws Exception {
+        assertFalse(logic.execute(ADD_JOHN).getFeedbackToUser().contains("Address:"));
+        assertFalse(logic.execute("edit +65 98765432 f/400").getFeedbackToUser().contains("Address:"));
+        assertFalse(Files.readString(storage.getAddressBookFilePath()).contains("\"address\""));
+        assertSavedState();
+    }
+
+    @Test
+    public void execute_retiredAddressPrefix_rejectedWithoutChangingData() throws Exception {
+        logic.execute(ADD_JOHN);
+        String savedData = Files.readString(storage.getAddressBookFilePath());
+        for (String command : List.of(ADD_ALICE + " a/10 Test Road",
+                "add a/10 Test Road n/Alice Tan p/+65 91234567 e/alice@example.com f/1 x/Beginner l/any",
+                "edit +65 98765432 a/10 Test Road", "edit +65 98765432 n/John Updated a/10 Test Road")) {
+            assertThrows(ParseException.class, () -> logic.execute(command));
+            assertEquals(List.of(JOHN), model.getAddressBook().getPersonList());
+            assertEquals(savedData, Files.readString(storage.getAddressBookFilePath()));
+        }
+    }
+
+    @Test
     public void execute_alphabeticalDisplay_preservesPhoneTargetsAndReloadOrder() throws Exception {
         logic.execute(ADD_JOHN);
         logic.execute(ADD_ALICE);
         logic.execute("add n/Bernice p/+65 91111111 e/bernice@example.com f/300 x/Beginner l/any");
         Person bernice = new PersonBuilder().withName("Bernice").withPhone("+65 91111111")
-                .withEmail("bernice@example.com").withAddress("Not specified").withFtp("300").build();
+                .withEmail("bernice@example.com").withFtp("300").build();
         assertEquals(List.of(ALICE, bernice, JOHN), logic.getFilteredPersonList());
 
         logic.execute("find n/jOHn n/alice");
@@ -113,10 +134,10 @@ public class ReleaseCommandIntegrationTest {
         assertSavedState();
 
         logic.execute("edit +65 98765432 p/+65 96742165 e/johndoe@example.com f/600"
-                + " x/Advanced l/East Coast l/Punggol a/10 Test Road t/cyclists");
+                + " x/Advanced l/East Coast l/Punggol t/cyclists");
         Person editedJohn = new PersonBuilder(JOHN).withPhone("+65 96742165")
                 .withEmail("johndoe@example.com").withFtp("600").withExperienceLevel("Advanced")
-                .withLocations("East Coast", "Punggol").withAddress("10 Test Road").withTags("cyclists").build();
+                .withLocations("East Coast", "Punggol").withTags("cyclists").build();
         assertEquals(List.of(editedJohn), model.getAddressBook().getPersonList());
         assertSavedState();
 
@@ -177,7 +198,6 @@ public class ReleaseCommandIntegrationTest {
         String savedData = Files.readString(storage.getAddressBookFilePath());
         String[][] invalidEdits = {
             {"n/!", "Names should only contain alphanumeric characters and spaces, and should not be blank."},
-            {"a/", "Addresses can take any values, and should not be blank."},
             {"t/!", "Tag names should be alphanumeric."},
             {"x/Expert", "Experience level should be one of: Beginner, Intermediate, Advanced (case-insensitive)."},
             {"n/John n/Ben", "Multiple values specified for the following single-valued field(s): n/."}

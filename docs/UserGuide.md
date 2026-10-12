@@ -83,7 +83,7 @@ Format: `help`
 
 Adds a person to the address book.
 
-Format: `add n/NAME p/PHONE e/EMAIL [a/ADDRESS] f/FTP_LEVEL x/EXPERIENCE_LEVEL l/LOCATION [t/TAG]…`
+Format: `add n/NAME p/PHONE e/EMAIL f/FTP_LEVEL x/EXPERIENCE_LEVEL l/LOCATION [t/TAG]…`
 
 <div markdown="span" class="alert alert-primary">:bulb: **Tip:**
 A person can have any number of tags, including zero.
@@ -91,7 +91,7 @@ A person can have any number of tags, including zero.
 
 The phone number must include a country code and one separating space, for example `+65 98765432`.
 It must not belong to another contact, including contacts hidden by a filter.
-FTP must be a whole number from 1 to 600; address is optional and defaults to `Not specified`.
+FTP must be a whole number from 1 to 600.
 
 `EXPERIENCE_LEVEL` must be one of `Beginner`, `Intermediate` or `Advanced` (case-insensitive).
 
@@ -109,7 +109,7 @@ Format: `list`
 
 Edits an existing person in the address book.
 
-Format: `edit PHONE [n/NAME] [p/PHONE] [e/EMAIL] [f/FTP] [x/EXPERIENCE] [l/LOCATION]… [a/ADDRESS] [t/TAG]…`
+Format: `edit PHONE [n/NAME] [p/PHONE] [e/EMAIL] [f/FTP] [x/EXPERIENCE] [l/LOCATION]… [t/TAG]…`
 
 * Edits the person with the specified phone number in the displayed list. Exactly one displayed contact must match.
 * The resulting phone number must not belong to another contact anywhere in the book. An unchanged phone number is allowed when it is already unique.
@@ -187,7 +187,7 @@ email addresses are unique.
 
 ### Editing the data file
 
-AddressBook data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+AddressBook data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Older data files may contain an `address` field; Cyclique ignores it and omits it when saving. Advanced users are welcome to update data directly by editing that data file.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
 If your changes make the data file invalid, AddressBook starts with an empty address book at the next run. The invalid file remains on disk until you run a command (AddressBook saves after every command). Still, we recommend backing up the file before editing it.<br>
@@ -218,10 +218,10 @@ _Details coming soon ..._
 
 Action | Format, Examples
 --------|------------------
-**Add** | `add n/NAME p/PHONE e/EMAIL [a/ADDRESS] f/FTP_LEVEL x/EXPERIENCE_LEVEL l/LOCATION [t/TAG]…` <br> e.g., `add n/James Ho p/+65 22224444 e/jamesho@example.com f/300 x/Intermediate l/any t/friend`
+**Add** | `add n/NAME p/PHONE e/EMAIL f/FTP_LEVEL x/EXPERIENCE_LEVEL l/LOCATION [t/TAG]…` <br> e.g., `add n/James Ho p/+65 22224444 e/jamesho@example.com f/300 x/Intermediate l/any t/friend`
 **Clear** | `clear`
 **Delete** | `delete PHONE`<br> e.g., `delete +65 22224444`
-**Edit** | `edit PHONE [n/NAME] [p/PHONE] [e/EMAIL] [f/FTP] [x/EXPERIENCE] [l/LOCATION]… [a/ADDRESS] [t/TAG]…`<br> e.g., `edit +65 22224444 n/James Lee e/jameslee@example.com`
+**Edit** | `edit PHONE [n/NAME] [p/PHONE] [e/EMAIL] [f/FTP] [x/EXPERIENCE] [l/LOCATION]… [t/TAG]…`<br> e.g., `edit +65 22224444 n/James Lee e/jameslee@example.com`
 **Find** | `find [n/NAME_KEYWORD]… [p/PHONE]…`<br> e.g., `find n/James n/Jake`, `find n/James p/+65 96320842`
 **List** | `list`
 **Help** | `help`
