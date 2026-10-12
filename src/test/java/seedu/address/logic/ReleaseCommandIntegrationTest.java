@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.AddCommand;
+import seedu.address.logic.commands.DeleteCommand;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -50,6 +51,53 @@ public class ReleaseCommandIntegrationTest {
     private Logic logic;
     private Storage storage;
 
+    @Test
+    public void execute_alphabeticalDisplay_preservesPhoneTargetsAndReloadOrder() throws Exception {
+        logic.execute(ADD_JOHN);
+        logic.execute(ADD_ALICE);
+        logic.execute("add n/Bernice p/+65 91111111 e/bernice@example.com f/300 x/Beginner l/any");
+        Person bernice = new PersonBuilder().withName("Bernice").withPhone("+65 91111111")
+                .withEmail("bernice@example.com").withAddress("Not specified").withFtp("300").build();
+        assertEquals(List.of(ALICE, bernice, JOHN), logic.getFilteredPersonList());
+
+        logic.execute("find n/jOHn n/alice");
+        assertEquals(List.of(ALICE, JOHN), logic.getFilteredPersonList());
+        logic.execute("edit +65 98765432 n/aaron Doe");
+        Person aaron = new PersonBuilder(JOHN).withName("aaron Doe").build();
+        assertEquals(List.of(aaron, ALICE, bernice), logic.getFilteredPersonList());
+        assertSavedState();
+
+        model = new ModelManager(storage.readAddressBook().orElseThrow(), new UserPrefs());
+        logic = new LogicManager(model, storage);
+        assertEquals(List.of(aaron, ALICE, bernice), logic.getFilteredPersonList());
+        logic.execute("find n/Bernice");
+        assertRejectedWithoutChanges("delete +65 98765432",
+                String.format(DeleteCommand.MESSAGE_PERSON_NOT_FOUND, "+65 98765432"));
+        assertEquals(List.of(bernice), logic.getFilteredPersonList());
+        logic.execute("list");
+        logic.execute("delete +65 98765432");
+        assertEquals(List.of(ALICE, bernice), logic.getFilteredPersonList());
+        assertSavedState();
+    }
+
+    @Test
+    public void execute_equalNames_preservesRelativeOrderAfterEditAndReload() throws Exception {
+        logic.execute("add n/aLEX p/+65 91111111 e/first@example.com f/300 x/Beginner l/any");
+        logic.execute("add n/Alex p/+65 92222222 e/second@example.com f/300 x/Beginner l/any");
+        logic.execute("add n/ALEX p/+65 93333333 e/third@example.com f/300 x/Beginner l/any");
+        logic.execute("find n/alex");
+        logic.execute("edit +65 91111111 n/alex");
+        List<String> expectedPhones = List.of("+65 91111111", "+65 92222222", "+65 93333333");
+        assertEquals(expectedPhones,
+                logic.getFilteredPersonList().stream().map(person -> person.getPhone().value).toList());
+        assertSavedState();
+
+        model = new ModelManager(storage.readAddressBook().orElseThrow(), new UserPrefs());
+        logic = new LogicManager(model, storage);
+        assertEquals(expectedPhones,
+                logic.getFilteredPersonList().stream().map(person -> person.getPhone().value).toList());
+    }
+
     @BeforeEach
     public void setUp() {
         model = new ModelManager();
@@ -83,7 +131,7 @@ public class ReleaseCommandIntegrationTest {
         logic.execute(ADD_JOHN);
         logic.execute(ADD_ALICE);
         logic.execute("find n/jOHn n/alice p/+65 98765432 p/+65 91234567");
-        assertEquals(List.of(JOHN, ALICE), logic.getFilteredPersonList());
+        assertEquals(List.of(ALICE, JOHN), logic.getFilteredPersonList());
 
         logic.execute("find n/john p/+65 91234567");
         assertTrue(logic.getFilteredPersonList().isEmpty());
@@ -92,7 +140,7 @@ public class ReleaseCommandIntegrationTest {
         logic.execute("find p/+65 987");
         assertTrue(logic.getFilteredPersonList().isEmpty());
         logic.execute("list");
-        assertEquals(List.of(JOHN, ALICE), logic.getFilteredPersonList());
+        assertEquals(List.of(ALICE, JOHN), logic.getFilteredPersonList());
         assertSavedState();
     }
 
@@ -103,11 +151,45 @@ public class ReleaseCommandIntegrationTest {
         logic.execute("find n/john");
         String savedData = Files.readString(storage.getAddressBookFilePath());
 
-        assertThrows(CommandException.class, EditCommand.MESSAGE_PERSON_NOT_FOUND, () ->
+        assertThrows(CommandException.class, String.format(EditCommand.MESSAGE_PERSON_NOT_FOUND, "+65 91234567"), () ->
                 logic.execute("edit +65 91234567 n/Alice Updated"));
         assertEquals(List.of(JOHN), logic.getFilteredPersonList());
         assertEquals(List.of(JOHN, ALICE), model.getAddressBook().getPersonList());
         assertEquals(savedData, Files.readString(storage.getAddressBookFilePath()));
+    }
+
+    @Test
+    public void execute_hiddenAndUnknownTargets_reportsSameEditAndDeleteError() throws Exception {
+        logic.execute(ADD_JOHN);
+        logic.execute(ADD_ALICE);
+        logic.execute("find n/john");
+        for (String phone : List.of("+65 91234567", "+65 99999999")) {
+            String expectedMessage = "Cyclist with phone number " + phone
+                    + " cannot be found in the displayed list. Use list to show all cyclists.";
+            assertRejectedWithoutChanges("delete " + phone, expectedMessage);
+            assertRejectedWithoutChanges("edit " + phone + " n/Ben", expectedMessage);
+        }
+    }
+
+    @Test
+    public void execute_invalidFields_reportsPunctuatedErrorsWithoutChangingSavedData() throws Exception {
+        logic.execute(ADD_JOHN);
+        String savedData = Files.readString(storage.getAddressBookFilePath());
+        String[][] invalidEdits = {
+            {"n/!", "Names should only contain alphanumeric characters and spaces, and should not be blank."},
+            {"a/", "Addresses can take any values, and should not be blank."},
+            {"t/!", "Tag names should be alphanumeric."},
+            {"x/Expert", "Experience level should be one of: Beginner, Intermediate, Advanced (case-insensitive)."},
+            {"n/John n/Ben", "Multiple values specified for the following single-valued field(s): n/."}
+        };
+        assertThrows(ParseException.class, "Invalid command format.\n" + DeleteCommand.MESSAGE_USAGE, () ->
+                logic.execute("delete"));
+        for (String[] invalidEdit : invalidEdits) {
+            assertThrows(ParseException.class, invalidEdit[1], () ->
+                    logic.execute("edit +65 98765432 " + invalidEdit[0]));
+            assertEquals(List.of(JOHN), logic.getFilteredPersonList());
+            assertEquals(savedData, Files.readString(storage.getAddressBookFilePath()));
+        }
     }
 
     @Test
@@ -118,16 +200,23 @@ public class ReleaseCommandIntegrationTest {
         logic.execute("edit +65 98765432 n/John Updated");
 
         Person editedJohn = new PersonBuilder(JOHN).withName("John Updated").build();
-        assertEquals(List.of(editedJohn, ALICE), logic.getFilteredPersonList());
+        assertEquals(List.of(ALICE, editedJohn), logic.getFilteredPersonList());
         assertSavedState();
     }
 
     @Test
-    public void execute_deleteHiddenPersonAndClear_persistsRemovals() throws Exception {
+    public void execute_deleteHiddenPerson_rejectsUntilDisplayedAndPersistsRemovals() throws Exception {
         logic.execute(ADD_JOHN);
         logic.execute(ADD_ALICE);
         logic.execute("find n/john");
+        assertRejectedWithoutChanges("delete +65 91234567",
+                String.format(DeleteCommand.MESSAGE_PERSON_NOT_FOUND, "+65 91234567"));
+        logic.execute("find n/nobody");
+        assertRejectedWithoutChanges("delete +65 98765432",
+                String.format(DeleteCommand.MESSAGE_PERSON_NOT_FOUND, "+65 98765432"));
+        logic.execute("find n/alice");
         logic.execute("delete +65 91234567");
+        assertTrue(logic.getFilteredPersonList().isEmpty());
         assertEquals(List.of(JOHN), model.getAddressBook().getPersonList());
         assertSavedState();
 
@@ -212,12 +301,15 @@ public class ReleaseCommandIntegrationTest {
         logic.execute("find n/alice");
         logic.execute("edit +65 91234567 p/+65 91111111");
         Person editedAlice = new PersonBuilder(ALICE).withPhone("+65 91111111").build();
-        assertEquals(List.of(JOHN, editedAlice), logic.getFilteredPersonList());
+        assertEquals(List.of(editedAlice, JOHN), logic.getFilteredPersonList());
+        assertRejectedWithoutChanges("edit +65 98765432 p/+65 91111111",
+                EditCommand.MESSAGE_DUPLICATE_PERSON);
         assertSavedState();
 
         model = new ModelManager(storage.readAddressBook().orElseThrow(), new UserPrefs());
         logic = new LogicManager(model, storage);
         assertEquals(List.of(JOHN, editedAlice), model.getAddressBook().getPersonList());
+        assertEquals(List.of(editedAlice, JOHN), logic.getFilteredPersonList());
         logic.execute("delete +65 98765432");
         assertEquals(List.of(editedAlice), model.getAddressBook().getPersonList());
         assertSavedState();

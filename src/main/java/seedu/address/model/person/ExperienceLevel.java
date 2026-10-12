@@ -13,7 +13,7 @@ import java.util.List;
 public class ExperienceLevel {
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Experience level should be one of: Beginner, Intermediate, Advanced (case-insensitive)";
+            "Experience level should be one of: Beginner, Intermediate, Advanced (case-insensitive).";
 
     /** The experience levels Cyclique accepts, in their canonical (correctly-capitalised) form. */
     private static final List<String> VALID_LEVELS = Arrays.asList("Beginner", "Intermediate", "Advanced");

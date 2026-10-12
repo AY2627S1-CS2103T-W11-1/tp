@@ -123,7 +123,7 @@ How the parsing works:
 The `Model` component,
 
 * stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
-* stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
+* selects matching `Person` objects using a `FilteredList`, then exposes a live, unmodifiable `SortedList` through `getFilteredPersonList()`. It sorts by the full displayed name with `String.CASE_INSENSITIVE_ORDER`, using each person's stored position as the tie-breaker. This preserves the relative order of names that are identical ignoring case, including after additions, edits and filtering. The stored list and JSON order remain unchanged. The UI observes this view and numbers cards from 1 using their current displayed index. Phone-number targeting retains its existing rules.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
@@ -374,7 +374,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
     Use case ends.
 
-* 2a. The specified cyclist does not exist.
+* 2a. The specified cyclist does not exist in the displayed list.
     * 2a1. Cyclique informs the user that the cyclist cannot be found.
 
       Use case ends.
@@ -550,12 +550,67 @@ Use John and Alice from the previous section.
 ### Deleting and clearing people
 
 1. Enter `find n/john`, then `delete +65 91234567`.
-   Expected: Alice is deleted even though she is outside the displayed list; John remains.
-   The success message identifies Alice.
-1. Enter `delete +65 96742165`. Expected: John is deleted and the list is empty.
+   Expected: The command reports that Alice cannot be found in the displayed list;
+   both stored contacts and the filter remain unchanged.
+1. Enter `find n/nobody`, then `delete +65 96742165`.
+   Expected: Deletion is rejected; both contacts remain stored and the display stays empty.
+1. Enter `find n/alice`, then `delete +65 91234567`.
+   Expected: Alice is deleted, the success message identifies Alice, and the display becomes empty.
+1. Enter `list`, then `delete +65 96742165`. Expected: John is deleted and the list is empty.
 1. Try `delete +65 99999999`, `delete`, `delete 1`, `delete +65 12`, and `delete x`.
    Expected: An error appears and no contact is deleted.
 1. Enter `clear` twice. Expected: The list remains empty and each command succeeds.
+
+### Alphabetical display regression
+
+Use a disposable test book. Check both cyclist names and card indexes after every step.
+
+1. Enter `clear`, then add these contacts in the stated order:
+   `add n/David p/+65 94444444 e/david@example.com f/300 x/Beginner l/any`,
+   `add n/alex Zane p/+65 91111111 e/alexz@example.com f/300 x/Beginner l/any`,
+   `add n/Alex Adams p/+65 92222222 e/alexa@example.com f/300 x/Beginner l/any`.
+   Expected: `1. Alex Adams`, `2. alex Zane`, `3. David` (full names, ignoring case).
+1. Enter `add n/Bernice p/+65 93333333 e/bernice@example.com f/300 x/Beginner l/any`.
+   Expected: Bernice appears at index 3, between alex Zane and David; David becomes index 4.
+1. Enter `find n/david n/bernice`. Expected: `1. Bernice`, `2. David`.
+   Enter `list`. Expected: All four contacts return in alphabetical order, numbered 1 to 4.
+1. Enter `edit +65 94444444 n/aaron`. Expected: aaron moves to index 1.
+   Enter `edit +65 94444444 n/Zara`. Expected: Zara moves to index 4;
+   the remaining fields and phone number are retained.
+1. Enter `find n/bernice`, then
+   `add n/BERNICE p/+65 95555555 e/bernice2@example.com f/300 x/Beginner l/any`.
+   Expected: All contacts appear. Bernice is followed by BERNICE, in their stored order.
+1. Enter `find n/bernice`. Expected: `1. Bernice` (`+65 93333333`),
+   `2. BERNICE` (`+65 95555555`). Enter `edit +65 93333333 n/bernice`.
+   Expected: All contacts appear, with bernice still before BERNICE. Enter `list`;
+   the relative order is retained. Identical names are allowed with unique phone numbers and emails.
+1. Enter `exit`, then relaunch. Expected: The initial display is alphabetical and
+   the two case-equivalent names retain their relative order; indexes run from 1 to 5.
+1. Enter `find n/bernice`, then `delete +65 94444444`.
+   Expected: Deletion is rejected because Zara is hidden; all five contacts remain stored
+   and the two matching cyclists stay numbered 1 and 2.
+   Enter `delete +65 93333333`. Expected: BERNICE remains at index 1.
+   Enter `list`. Expected: Alex Adams, alex Zane, BERNICE and Zara are numbered 1 to 4.
+   Enter `delete +65 94444444`. Expected: Zara is deleted; the remaining cyclists are numbered 1 to 3.
+
+### Error message consistency
+
+Use the contacts from the alphabetical display scenario before deleting Zara.
+
+1. Enter `find n/bernice`, then `delete +65 94444444` and `edit +65 94444444 n/Ben`.
+   Expected: Both show exactly
+   `Cyclist with phone number +65 94444444 cannot be found in the displayed list. Use list to show all cyclists.`
+   The filter, cyclist details and saved data remain unchanged.
+1. Try `delete +65 99999999` and `edit +65 99999999 n/Ben`.
+   Expected: Both use the same wording with `+65 99999999`.
+1. Enter `delete` or `edit`. Expected: The error begins `Invalid command format.`
+   followed by usage instructions. Examples remain copyable command text.
+1. Enter `list`, then try `edit +65 94444444 n/!`, `edit +65 94444444 a/`,
+   `edit +65 94444444 t/!`, and `edit +65 94444444 x/Expert`.
+   Expected: Each validation error ends with a full stop and no details change.
+1. Enter `edit +65 94444444 n/Ben n/Zara`.
+   Expected: `Multiple values specified for the following single-valued field(s): n/.`
+   No details change.
 
 ### Saving data and recovering from invalid files
 

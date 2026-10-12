@@ -60,7 +60,10 @@ public interface Model {
      */
     void setPerson(Person target, Person editedPerson);
 
-    /** Returns an unmodifiable view of the filtered person list */
+    /**
+     * Returns an unmodifiable, live view of the filtered person list sorted by full name, ignoring case.
+     * Persons with equal names retain their relative order in the address book.
+     */
     ObservableList<Person> getFilteredPersonList();
 
     /**

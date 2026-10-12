@@ -42,6 +42,12 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
 ## Features
 
+Cyclists are displayed alphabetically by their full name, ignoring letter case, on startup
+and after `list` or `find`. Adding a cyclist places them in the correct alphabetical position;
+editing their name updates their position. Names that are identical ignoring case retain
+their relative stored order. The visible indexes run consecutively from 1 within the current
+display, including filtered results. Use phone numbers to target `edit` and `delete` as usual.
+
 <div markdown="block" class="alert alert-info">
 
 **:information_source: Notes about the command format:**<br>
@@ -140,13 +146,19 @@ Deletes the specified person from the address book.
 
 Format: `delete PHONE`
 
-* Deletes the person with the specified `PHONE` number, including a contact outside the displayed list.
-* If more than one stored contact has that number, deletion is rejected until the collision is repaired.
+* Deletes the person with the specified `PHONE` number in the displayed list.
+* A cyclist hidden by a filter cannot be deleted. Use `list` or change the `find` criteria to display the intended cyclist first.
+* If more than one displayed contact has that number, deletion is rejected.
 * Use a complete number with country code and one space, for example `+65 96742165`;
   the number after the space must contain at least three digits.
 
 Examples:
 * `delete +65 96742165` deletes the contact with that phone number.
+
+Both `edit` and `delete` report the same error when the target is absent from the displayed list:
+`Cyclist with phone number PHONE cannot be found in the displayed list. Use list to show all cyclists.`
+Here, `PHONE` is replaced with the number you entered. Error sentences end with full stops;
+command syntax and usage examples retain their original format so you can copy them directly.
 
 ### Clearing all entries: `clear`
 
@@ -166,23 +178,12 @@ AddressBook automatically saves data after every command. You do not need to sav
 
 ### Repairing duplicate phone numbers in an existing book
 
-Older saved books may contain contacts with different names but the same phone number.
-Cyclique loads and preserves all such contacts. It does not automatically remove contacts
-or change their numbers. New adds and edits cannot introduce a duplicate phone number.
-
-If John Doe and Jane Doe both have `+65 98765432`:
-
-1. Enter `find n/Jane` and check that only the intended contact with that number is displayed.
-1. Enter `edit +65 98765432 p/+65 91111111`, using Jane's correct, unique phone number.
-1. The edit shows all contacts again and saves the repair. John retains his original number.
-
-If the filter still shows several contacts with the same number, choose a full name word
-that distinguishes the intended contact. Repeated name keywords match any keyword, so adding
-more keywords does not narrow the results. If no name word can distinguish the contacts, close
-the application, back up the JSON file, and correct one phone number directly in that file. An ambiguous edit is rejected, and
-an edit that leaves the number shared is also rejected. Delete always checks the entire
-book, so filtering alone does not make an ambiguous deletion safe; repair the numbers first.
-Back up `data/addressbook.json` before repairing a legacy book.
+Saved books containing duplicate phone numbers or email addresses (ignoring email case)
+are rejected during loading. Cyclique starts with an empty directory and logs the error.
+Before entering commands that could overwrite the file, close the application and back up
+`data/addressbook.json`. Correct conflicting phone numbers and email addresses in a copy
+of the file, then relaunch. Identical cyclist names are allowed when phone numbers and
+email addresses are unique.
 
 ### Editing the data file
 

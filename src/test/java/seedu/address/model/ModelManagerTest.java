@@ -14,7 +14,9 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.person.Person;
 import seedu.address.testutil.AddressBookBuilder;
+import seedu.address.testutil.PersonBuilder;
 
 public class ModelManagerTest {
 
@@ -71,6 +73,136 @@ public class ModelManagerTest {
     @Test
     public void getFilteredPersonList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> modelManager.getFilteredPersonList().remove(0));
+    }
+
+    @Test
+    public void getFilteredPersonList_initialData_sortsByFullNameIgnoringCase() {
+        Person alexZ = new PersonBuilder().withName("Alex Zane").build();
+        Person alexA = new PersonBuilder().withName("alex Adams").withPhone("+65 91111111")
+                .withEmail("alexa@example.com").build();
+        Person david = new PersonBuilder().withName("David").withPhone("+65 92222222")
+                .withEmail("david@example.com").build();
+        AddressBook book = new AddressBookBuilder().withPerson(david).withPerson(alexZ).withPerson(alexA).build();
+        modelManager = new ModelManager(book, new UserPrefs());
+
+        assertEquals(List.of(alexA, alexZ, david), modelManager.getFilteredPersonList());
+        assertEquals(List.of(david, alexZ, alexA), modelManager.getAddressBook().getPersonList());
+    }
+
+    @Test
+    public void addPerson_unsortedAdditions_updatesExistingDisplayedView() {
+        var displayedPersons = modelManager.getFilteredPersonList();
+        Person alex = new PersonBuilder().withName("Alex").build();
+        Person bernice = new PersonBuilder().withName("Bernice").withPhone("+65 91111111")
+                .withEmail("bernice@example.com").build();
+        Person david = new PersonBuilder().withName("David").withPhone("+65 92222222")
+                .withEmail("david@example.com").build();
+        modelManager.addPerson(david);
+        modelManager.addPerson(alex);
+        modelManager.updateFilteredPersonList(person -> false);
+        modelManager.addPerson(bernice);
+
+        assertEquals(List.of(alex, bernice, david), displayedPersons);
+    }
+
+    @Test
+    public void updateFilteredPersonList_matchingPersons_remainsSortedAndResets() {
+        modelManager.addPerson(BENSON);
+        modelManager.addPerson(ALICE);
+        Person zara = new PersonBuilder().withName("Zara").build();
+        modelManager.addPerson(zara);
+        modelManager.updateFilteredPersonList(person -> !person.equals(zara));
+        assertEquals(List.of(ALICE, BENSON), modelManager.getFilteredPersonList());
+
+        modelManager.updateFilteredPersonList(person -> false);
+        assertTrue(modelManager.getFilteredPersonList().isEmpty());
+        modelManager.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+        assertEquals(List.of(ALICE, BENSON, zara), modelManager.getFilteredPersonList());
+    }
+
+    @Test
+    public void setPerson_nameChanges_movesInBothDirections() {
+        modelManager.addPerson(ALICE);
+        modelManager.addPerson(BENSON);
+        Person zara = new PersonBuilder(ALICE).withName("Zara").build();
+        modelManager.setPerson(ALICE, zara);
+        assertEquals(List.of(BENSON, zara), modelManager.getFilteredPersonList());
+
+        Person aaron = new PersonBuilder(zara).withName("Aaron").build();
+        modelManager.setPerson(zara, aaron);
+        assertEquals(List.of(aaron, BENSON), modelManager.getFilteredPersonList());
+    }
+
+    @Test
+    public void getFilteredPersonList_equalNames_preservesStoredOrderAcrossChanges() {
+        Person first = new PersonBuilder().withName("aLEX").build();
+        Person second = new PersonBuilder().withName("Alex").withPhone("+65 91111111")
+                .withEmail("second@example.com").build();
+        Person third = new PersonBuilder().withName("ALEX").withPhone("+65 92222222")
+                .withEmail("third@example.com").build();
+        modelManager = new ModelManager(new AddressBookBuilder().withPerson(first).withPerson(second).build(),
+                new UserPrefs());
+        modelManager.addPerson(third);
+        assertEquals(List.of(first, second, third), modelManager.getFilteredPersonList());
+
+        modelManager.updateFilteredPersonList(person -> !person.equals(second));
+        assertEquals(List.of(first, third), modelManager.getFilteredPersonList());
+        modelManager.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+        Person editedFirst = new PersonBuilder(first).withName("alex").build();
+        modelManager.setPerson(first, editedFirst);
+        Person editedSecond = new PersonBuilder(second).withEmail("updated@example.com").build();
+        modelManager.setPerson(second, editedSecond);
+        assertEquals(List.of(editedFirst, editedSecond, third), modelManager.getFilteredPersonList());
+
+        modelManager.deletePerson(editedFirst);
+        assertEquals(List.of(editedSecond, third), modelManager.getFilteredPersonList());
+    }
+
+    @Test
+    public void setPerson_filteredList_updatesOrderingAndMembership() {
+        modelManager.addPerson(BENSON);
+        modelManager.addPerson(ALICE);
+        modelManager.updateFilteredPersonList(person -> person.getName().fullName.startsWith("A"));
+        Person aaron = new PersonBuilder(BENSON).withName("Aaron").build();
+        modelManager.setPerson(BENSON, aaron);
+        assertEquals(List.of(aaron, ALICE), modelManager.getFilteredPersonList());
+
+        Person zara = new PersonBuilder(aaron).withName("Zara").build();
+        modelManager.setPerson(aaron, zara);
+        assertEquals(List.of(ALICE), modelManager.getFilteredPersonList());
+    }
+
+    @Test
+    public void setPerson_identicalNames_preservesStoredOrderWhenJoiningAndLeavingTie() {
+        Person first = new PersonBuilder().withName("Zara").build();
+        Person second = new PersonBuilder().withName("Alex").withPhone("+65 91111111")
+                .withEmail("second@example.com").build();
+        Person third = new PersonBuilder().withName("Alex").withPhone("+65 92222222")
+                .withEmail("third@example.com").build();
+        modelManager.addPerson(first);
+        modelManager.addPerson(second);
+        modelManager.addPerson(third);
+        assertEquals(List.of(second, third, first), modelManager.getFilteredPersonList());
+
+        Person editedFirst = new PersonBuilder(first).withName("Alex").build();
+        modelManager.setPerson(first, editedFirst);
+        assertEquals(List.of(editedFirst, second, third), modelManager.getFilteredPersonList());
+        modelManager.updateFilteredPersonList(person -> !person.equals(second));
+        assertEquals(List.of(editedFirst, third), modelManager.getFilteredPersonList());
+        modelManager.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+        modelManager.setPerson(editedFirst, first);
+        assertEquals(List.of(second, third, first), modelManager.getFilteredPersonList());
+    }
+
+    @Test
+    public void setAddressBook_replacement_updatesExistingSortedView() {
+        var displayedPersons = modelManager.getFilteredPersonList();
+        modelManager.addPerson(new PersonBuilder().withName("Zara").build());
+        modelManager.setAddressBook(new AddressBookBuilder().withPerson(BENSON).withPerson(ALICE).build());
+        assertEquals(List.of(ALICE, BENSON), displayedPersons);
+
+        modelManager.setAddressBook(new AddressBook());
+        assertTrue(displayedPersons.isEmpty());
     }
 
     @Test

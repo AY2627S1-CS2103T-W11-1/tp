@@ -13,8 +13,13 @@ import seedu.address.model.person.Person;
 public class Messages {
 
     public static final String MESSAGE_UNKNOWN_COMMAND = "Unknown command.";
-    public static final String MESSAGE_INVALID_COMMAND_FORMAT = "Invalid command format!\n%1$s";
-    public static final String MESSAGE_INVALID_PERSON_DISPLAYED_INDEX = "The person index provided is invalid.";
+    public static final String MESSAGE_INVALID_COMMAND_FORMAT = "Invalid command format.\n%1$s";
+    public static final String MESSAGE_INVALID_PERSON_DISPLAYED_INDEX = "The cyclist index provided is invalid.";
+    public static final String MESSAGE_CYCLIST_NOT_FOUND =
+            "Cyclist with phone number %1$s cannot be found in the displayed list. Use list to show all cyclists.";
+    public static final String MESSAGE_AMBIGUOUS_PHONE =
+            "More than one cyclist in the displayed list has this phone number. "
+            + "Use find to display only the intended cyclist.";
     public static final String MESSAGE_PERSONS_LISTED_OVERVIEW = "%1$d person(s) listed!";
     public static final String MESSAGE_DUPLICATE_FIELDS =
                 "Multiple values specified for the following single-valued field(s): ";
@@ -28,7 +33,7 @@ public class Messages {
         Set<String> duplicateFields =
                 Stream.of(duplicatePrefixes).map(Prefix::toString).collect(Collectors.toSet());
 
-        return MESSAGE_DUPLICATE_FIELDS + String.join(" ", duplicateFields);
+        return MESSAGE_DUPLICATE_FIELDS + String.join(" ", duplicateFields) + ".";
     }
 
     /**

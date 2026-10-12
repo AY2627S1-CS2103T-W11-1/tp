@@ -1,5 +1,87 @@
 # Release testing results
 
+## Error-message consistency (12 October 2026)
+
+Edit and delete now share the same missing-target and ambiguous-phone messages.
+Both missing-target errors include the entered phone number and advise using `list`
+to show all cyclists. Error wording uses cyclist terminology, and error sentences
+end with full stops. This includes name, address, tag and experience validation,
+email constraint bullets, duplicate-prefix errors, saving errors and storage errors.
+The invalid-format heading is `Invalid command format.` Command syntax and usage
+examples remain unchanged so their text can be copied directly.
+
+`./gradlew check coverage shadowJar` passes with JDK 25: **356 tests**, no failures,
+errors or skips; Checkstyle passes. Line coverage remains **75.58%**
+(1,142 of 1,511 lines). Repository checks and `git diff --check` pass.
+New command integration regressions verify matching errors for hidden and unknown
+targets, punctuation in invalid-field and duplicate-prefix errors, and preservation
+of saved JSON after rejected commands.
+
+The rebuilt JAR was launched in `/private/tmp/cyclique-error-messages-ui` for manual
+checks, but the computer-use tool again returned `Invalid app: java`. The command-box
+checks in the Developer Guide's **Error message consistency** scenario therefore
+remain outstanding; automated tests verify the error text through real parsing
+and command execution. The temporary application was stopped after this attempt.
+
+## Merged sorting and displayed-only deletion (12 October 2026)
+
+After merging duplicate-identity prevention, three sorting fixtures reused phone
+numbers or email addresses and were rejected by the new identity rules. The filtered
+phone-edit integration test also expected insertion order and attempted a duplicate
+phone edit. Correct the fixtures to use unique identities, expect alphabetical
+display, and verify that the duplicate edit is rejected without changing saved data.
+
+The existing live sorted view passes tests for startup, additions, filtering,
+name edits, stable case-equivalent and identical names, book replacement and JSON
+reload. An additional regression covers renaming a cyclist into and out of an
+identical-name group without disturbing stored relative order.
+
+Deletion now targets only displayed cyclists by phone number. Tests cover hidden
+targets, an empty display, same-name cyclists with distinct identities, successful
+filtered deletion and deletion after `list`. Rejections preserve the filter,
+stored contacts and saved JSON. User instructions and manual scenarios reflect
+this restriction and the merged duplicate-identity rules.
+
+`./gradlew check coverage shadowJar` passes using Eclipse Temurin JDK 25.0.4.1
+on macOS ARM64: **354 tests**, no failures, errors or skips; both Checkstyle
+tasks pass. JaCoCo line coverage is **75.58%** (1,142 of 1,511 lines), instruction
+coverage is 78.27% and branch coverage is 88.07%. The repository checks and
+`git diff --check` pass. No merge-conflict markers remain in source or documentation.
+
+The rebuilt JAR reaches UI startup in `/private/tmp/cyclique-merged-sorting-ui`.
+The computer-use tool still does not expose the standalone JavaFX app, and
+selecting `java` returns `Invalid app: java`. Therefore the updated alphabetical
+display and deletion manual scenarios could not be completed visually. Card
+indexes, command-box interactions and restart display require manual confirmation.
+Windows and Linux UI checks remain outstanding. JavaFX native-access and existing
+test deprecation warnings do not fail the build.
+
+The following sections record earlier checks.
+
+## Alphabetical display checks (11 October 2026)
+
+The alphabetical display change passes `./gradlew check coverage shadowJar` with
+Eclipse Temurin JDK 25.0.4.1 on macOS ARM64: **308 tests**, no failures, errors or
+skips, and both Checkstyle tasks pass. JaCoCo line coverage is **75.33%**
+(1,139 of 1,512 lines), exceeding the 50% target. Instruction coverage is 77.60%
+and branch coverage is 88.44%. `./.github/run-checks.sh` and `git diff --check` pass.
+
+Nine new tests cover full-name and case-insensitive ordering, stable ties, additions,
+name edits in both directions, filtering, deletion, book replacement, phone-number
+targeting and JSON reload. Existing command expectations now reflect alphabetical
+display while saved records retain their original order.
+
+The rebuilt JAR was launched with JDK 25 in `/private/tmp/cyclique-alphabetical-ui`.
+Logs confirm sample-data loading and entry into UI startup. The computer-use app
+inventory does not expose the standalone JavaFX process, and selecting `java` returns
+`Invalid app: java`. Consequently, the Developer Guide's **Alphabetical display
+regression** scenario could not be performed visually. Consecutive card indexes,
+command-box interactions and restart display still require manual confirmation;
+the automated tests verify the underlying displayed order and reload behaviour.
+Windows and Linux UI checks remain outstanding.
+
+The results below describe the earlier duplicate-phone change.
+
 Date: 11 October 2026 (Singapore). Tested locally on macOS ARM64 using
 Eclipse Temurin JDK 25.0.4.1. Application version reported at startup: V0.5.1.
 
