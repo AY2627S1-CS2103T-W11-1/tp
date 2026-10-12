@@ -43,7 +43,7 @@ Review `build/reports/tests/test/index.html` and `build/reports/jacoco/coverage/
 The coverage report does not enforce the 50% target automatically; check the measured coverage explicitly.
 
 `ReleaseCommandIntegrationTest` covers command sequences through parsing, the model, filtering and JSON storage.
-It checks omitted addresses, repeated tags and locations, edit replacement and preservation of fields,
+It checks address-free cyclist data, repeated tags and locations, edit replacement and preservation of fields,
 find matching rules, filtered edit/delete behaviour, rejected commands without saved-data changes,
 clear persistence, and help/exit flags. It treats cyclists as duplicates when their phone numbers
 match or their email addresses match ignoring case. It verifies those conflicts across filters,

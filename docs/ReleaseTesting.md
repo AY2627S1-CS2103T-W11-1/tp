@@ -1,5 +1,24 @@
 # Release testing results
 
+## Residential address removal (12 October 2026)
+
+Remove residential address from cyclist fields, add/edit commands, success messages,
+JSON output, sample data and Help templates. Older JSON records containing `address`
+remain loadable; the retired field is ignored and omitted on subsequent saves.
+Update the user guide, model diagrams and affected manual scenarios accordingly.
+
+`./gradlew check coverage shadowJar` passes with JDK 25: **350 tests**, no failures,
+errors or skips; production and test Checkstyle pass. Line coverage is **74.85%**
+(1,098 of 1,467 lines), above the 50% target. Regression tests verify address-free
+feedback and persistence, legacy JSON with populated, blank or null addresses,
+and rejection of commands containing the retired `a/` prefix without data changes.
+
+The rebuilt JAR launched in `/private/tmp/cyclique-address-removal-ui`, but the
+computer-use tool could not bind to its JavaFX window (`Invalid app: java`).
+Manual add/edit, card display, Help and restart checks remain outstanding.
+The temporary application was stopped after the attempt. Automated command and
+storage checks pass; they do not establish visual correctness.
+
 ## Error-message consistency (12 October 2026)
 
 Edit and delete now share the same missing-target and ambiguous-phone messages.

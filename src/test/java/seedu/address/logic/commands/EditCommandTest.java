@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.DESC_BOB;
-import static seedu.address.logic.commands.CommandTestUtil.VALID_ADDRESS_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
@@ -171,10 +170,10 @@ public class EditCommandTest {
     public void execute_existingFieldsSpecified_preservesCyclingFields() {
         Person personToEdit = addLocationRider("West Coast Park", "Marina Bay");
         Person editedPerson = new PersonBuilder(personToEdit).withName(VALID_NAME_BOB)
-                .withPhone(VALID_PHONE_BOB).withEmail(VALID_EMAIL_BOB).withAddress(VALID_ADDRESS_BOB)
+                .withPhone(VALID_PHONE_BOB).withEmail(VALID_EMAIL_BOB)
                 .withTags(VALID_TAG_HUSBAND).build();
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB)
-                .withPhone(VALID_PHONE_BOB).withEmail(VALID_EMAIL_BOB).withAddress(VALID_ADDRESS_BOB)
+                .withPhone(VALID_PHONE_BOB).withEmail(VALID_EMAIL_BOB)
                 .withTags(VALID_TAG_HUSBAND).build();
 
         assertEditSuccess(personToEdit, descriptor, editedPerson);
@@ -312,7 +311,7 @@ public class EditCommandTest {
         Person secondPerson = model.getFilteredPersonList().get(1);
         EditCommand editCommand = new EditCommand(firstPerson.getPhone(), new EditPersonDescriptorBuilder()
                 .withEmail(secondPerson.getEmail().value).withExperienceLevel("Advanced")
-                .withAddress("Updated Address").withTags("updated").build());
+                .withTags("updated").build());
 
         assertCommandFailure(editCommand, model, EditCommand.MESSAGE_DUPLICATE_PERSON);
     }

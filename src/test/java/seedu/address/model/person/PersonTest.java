@@ -3,7 +3,6 @@ package seedu.address.model.person;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static seedu.address.logic.commands.CommandTestUtil.VALID_ADDRESS_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_EXPERIENCE_LEVEL_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
@@ -41,12 +40,12 @@ public class PersonTest {
 
         // same phone, different name and email -> returns true
         Person editedAlice = new PersonBuilder(ALICE).withName(VALID_NAME_BOB).withEmail(VALID_EMAIL_BOB)
-                .withAddress(VALID_ADDRESS_BOB).withTags(VALID_TAG_HUSBAND).build();
+                .withTags(VALID_TAG_HUSBAND).build();
         assertTrue(ALICE.isSamePerson(editedAlice));
 
         // same email, different name and phone -> returns true
         editedAlice = new PersonBuilder(ALICE).withName(VALID_NAME_BOB).withPhone(VALID_PHONE_BOB)
-                .withAddress(VALID_ADDRESS_BOB).withTags(VALID_TAG_HUSBAND).build();
+                .withTags(VALID_TAG_HUSBAND).build();
         assertTrue(ALICE.isSamePerson(editedAlice));
 
         // same name, different phone and email -> returns false
@@ -73,7 +72,7 @@ public class PersonTest {
 
         // non-identity fields differ -> returns true
         editedAlice = new PersonBuilder(ALICE).withFtp("300").withExperienceLevel(VALID_EXPERIENCE_LEVEL_BOB)
-                .withLocations("East Coast Park").withAddress(VALID_ADDRESS_BOB)
+                .withLocations("East Coast Park")
                 .withTags(VALID_TAG_HUSBAND).build();
         assertTrue(ALICE.isSamePerson(editedAlice));
     }
@@ -118,10 +117,6 @@ public class PersonTest {
         editedAlice = new PersonBuilder(ALICE).withFtp("300").build();
         assertFalse(ALICE.equals(editedAlice));
 
-        // different address -> returns false
-        editedAlice = new PersonBuilder(ALICE).withAddress(VALID_ADDRESS_BOB).build();
-        assertFalse(ALICE.equals(editedAlice));
-
         // different experience level -> returns false
         editedAlice = new PersonBuilder(ALICE).withExperienceLevel(VALID_EXPERIENCE_LEVEL_BOB).build();
         assertFalse(ALICE.equals(editedAlice));
@@ -138,7 +133,7 @@ public class PersonTest {
     @Test
     public void toStringMethod() {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
-                + ", email=" + ALICE.getEmail() + ", ftp=" + ALICE.getFtp() + ", address=" + ALICE.getAddress()
+                + ", email=" + ALICE.getEmail() + ", ftp=" + ALICE.getFtp()
                 + ", experienceLevel=" + ALICE.getExperienceLevel() + ", locations=" + ALICE.getLocations()
                 + ", tags=" + ALICE.getTags() + "}";
         assertEquals(expected, ALICE.toString());

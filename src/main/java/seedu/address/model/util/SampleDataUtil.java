@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 
 import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
-import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.ExperienceLevel;
 import seedu.address.model.person.Ftp;
@@ -26,42 +25,36 @@ public class SampleDataUtil {
         return new Person[] {
             new Person(new Name("Alex Yeoh"), new Phone("+65 87438807"),
                     new Email("alexyeoh@example.com"), new Ftp("120"),
-                    new Address("Blk 30 Geylang Street 29, #06-40"),
                     new ExperienceLevel("Beginner"),
                     getLocationSet("East Coast Park", "Marina Bay"),
                     getTagSet("friends")),
 
             new Person(new Name("Bernice Yu"), new Phone("+65 99272758"),
                     new Email("berniceyu@example.com"), new Ftp("185"),
-                    new Address("Blk 30 Lorong 3 Serangoon Gardens, #07-18"),
                     new ExperienceLevel("Intermediate"),
                     getLocationSet("Punggol", "Seletar"),
                     getTagSet("colleagues", "friends")),
 
             new Person(new Name("Charlotte Oliveiro"), new Phone("+65 93210283"),
                     new Email("charlotte@example.com"), new Ftp("280"),
-                    new Address("Blk 11 Ang Mo Kio Street 74, #11-04"),
                     new ExperienceLevel("Advanced"),
                     getLocationSet("Mandai", "Lim Chu Kang"),
                     getTagSet("neighbours")),
 
             new Person(new Name("David Li"), new Phone("+65 91031282"),
                     new Email("lidavid@example.com"), new Ftp("145"),
-                    new Address("Blk 436 Serangoon Gardens Street 26, #16-43"),
                     new ExperienceLevel("Beginner"),
                     getLocationSet("Bishan Park"),
                     getTagSet("family")),
 
             new Person(new Name("Irfan Ibrahim"), new Phone("+65 92492021"),
                     new Email("irfan@example.com"), new Ftp("210"),
-                    new Address("Blk 47 Tampines Street 20, #17-35"),
                     new ExperienceLevel("Intermediate"),
                     getLocationSet("East Coast Park", "Changi"),
                     getTagSet("classmates")),
 
             new Person(new Name("Roy Balakrishnan"), new Phone("+65 92624417"),
                     new Email("royb@example.com"), new Ftp("320"),
-                    new Address("Blk 45 Aljunied Street 85, #11-31"),
                     new ExperienceLevel("Advanced"),
                     getLocationSet("any"),
                     getTagSet("colleagues"))

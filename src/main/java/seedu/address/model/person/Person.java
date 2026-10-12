@@ -22,7 +22,6 @@ public class Person {
     private final Email email;
 
     // Data fields
-    private final Address address;
     private final ExperienceLevel experienceLevel;
     private final Ftp ftp;
     private final Set<Location> locations = new HashSet<>();
@@ -31,27 +30,32 @@ public class Person {
     /**
      * Every field must be present and not null.
      */
-    public Person(Name name, Phone phone, Email email, Ftp ftp, Address address, ExperienceLevel experienceLevel,
+    public Person(Name name, Phone phone, Email email, Ftp ftp, ExperienceLevel experienceLevel,
             Set<Location> locations, Set<Tag> tags) {
-        requireAllNonNull(name, phone, email, ftp, address, experienceLevel, locations, tags);
+        requireAllNonNull(name, phone, email, ftp, experienceLevel, locations, tags);
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.ftp = ftp;
-        this.address = address;
         this.experienceLevel = experienceLevel;
         this.locations.addAll(locations);
         this.tags.addAll(tags);
     }
 
-    public Person(Name name, Phone phone, Email email, Address address, ExperienceLevel experienceLevel,
+    /**
+     * Constructs a person with default FTP and unrestricted cycling locations.
+     */
+    public Person(Name name, Phone phone, Email email, ExperienceLevel experienceLevel,
             Set<Tag> tags) {
-        this(name, phone, email, new Ftp("1"), address, experienceLevel, Set.of(new Location("any")), tags);
+        this(name, phone, email, new Ftp("1"), experienceLevel, Set.of(new Location("any")), tags);
     }
 
-    public Person(Name name, Phone phone, Email email, Ftp ftp, Address address, ExperienceLevel experienceLevel,
+    /**
+     * Constructs a person with unrestricted cycling locations.
+     */
+    public Person(Name name, Phone phone, Email email, Ftp ftp, ExperienceLevel experienceLevel,
             Set<Tag> tags) {
-        this(name, phone, email, ftp, address, experienceLevel, Set.of(new Location("any")), tags);
+        this(name, phone, email, ftp, experienceLevel, Set.of(new Location("any")), tags);
     }
 
     public Name getName() {
@@ -68,10 +72,6 @@ public class Person {
 
     public Ftp getFtp() {
         return ftp;
-    }
-
-    public Address getAddress() {
-        return address;
     }
 
     public ExperienceLevel getExperienceLevel() {
@@ -123,7 +123,6 @@ public class Person {
                 && phone.equals(otherPerson.phone)
                 && email.equals(otherPerson.email)
                 && ftp.equals(otherPerson.ftp)
-                && address.equals(otherPerson.address)
                 && experienceLevel.equals(otherPerson.experienceLevel)
                 && locations.equals(otherPerson.locations)
                 && tags.equals(otherPerson.tags);
@@ -132,7 +131,7 @@ public class Person {
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, ftp, address, experienceLevel, locations, tags);
+        return Objects.hash(name, phone, email, ftp, experienceLevel, locations, tags);
     }
 
     @Override
@@ -142,7 +141,6 @@ public class Person {
                 .add("phone", phone)
                 .add("email", email)
                 .add("ftp", ftp)
-                .add("address", address)
                 .add("experienceLevel", experienceLevel)
                 .add("locations", locations)
                 .add("tags", tags)
