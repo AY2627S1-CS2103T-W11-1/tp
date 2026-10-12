@@ -14,42 +14,45 @@
     <padding>
       <Insets top="10" right="12" bottom="10" left="15" />
     </padding>
-    <HBox spacing="10" alignment="TOP_LEFT">
-      <HBox spacing="0.5" alignment="TOP_LEFT">
-        <Label fx:id="id" styleClass="cell_big_label">
-          <minWidth>
-            <!-- Ensures that the label text is never truncated -->
-            <Region fx:constant="USE_PREF_SIZE" />
-          </minWidth>
-        </Label>
-        <!-- A long name wraps onto further lines instead of pushing the chip out of the card -->
-        <Label fx:id="name" text="\$first" styleClass="cell_big_label" wrapText="true" />
-      </HBox>
-      <Label fx:id="experienceLevel" styleClass="experience-chip" text="\$experienceLevel">
+    <HBox spacing="0.5" alignment="TOP_LEFT">
+      <Label fx:id="id" styleClass="cell_big_label">
         <minWidth>
-          <!-- Keeps the chip fully visible, however long the name is -->
+          <!-- Ensures that the label text is never truncated -->
           <Region fx:constant="USE_PREF_SIZE" />
         </minWidth>
       </Label>
+      <Label fx:id="name" maxWidth="1.7976931348623157E308" text="\$first"
+             styleClass="cell_big_label" wrapText="true" HBox.hgrow="ALWAYS" />
     </HBox>
-    <FlowPane fx:id="tags" />
-    <GridPane hgap="8" vgap="2">
+    <FlowPane hgap="18" vgap="2">
+      <HBox alignment="CENTER_LEFT" spacing="6">
+        <Label styleClass="person-field-label" text="Phone" />
+        <Label fx:id="phone" styleClass="person-field-value" text="\$phone" />
+      </HBox>
+      <HBox alignment="CENTER_LEFT" spacing="6">
+        <Label styleClass="person-field-label" text="FTP" />
+        <Label fx:id="ftp" styleClass="person-field-value" text="\$ftp" />
+      </HBox>
+      <HBox alignment="CENTER_LEFT" spacing="6">
+        <Label styleClass="person-field-label" text="Experience" />
+        <Label fx:id="experienceLevel" styleClass="experience-chip" text="\$experienceLevel" />
+      </HBox>
+    </FlowPane>
+    <GridPane hgap="8" vgap="2" maxWidth="1.7976931348623157E308">
       <columnConstraints>
-        <ColumnConstraints minWidth="75" prefWidth="75" />
+        <ColumnConstraints minWidth="68" prefWidth="68" />
         <ColumnConstraints hgrow="ALWAYS" />
       </columnConstraints>
-      <Label styleClass="person-field-label" text="PHONE" GridPane.rowIndex="0" />
-      <Label fx:id="phone" styleClass="person-field-value" text="\$phone"
-             GridPane.columnIndex="1" GridPane.rowIndex="0" />
-      <Label styleClass="person-field-label" text="EMAIL" GridPane.rowIndex="1" />
-      <Label fx:id="email" styleClass="person-field-value" text="\$email"
-             GridPane.columnIndex="1" GridPane.rowIndex="1" />
-      <Label styleClass="person-field-label" text="FTP" GridPane.rowIndex="2" />
-      <Label fx:id="ftp" styleClass="person-field-value" text="\$ftp"
-             GridPane.columnIndex="1" GridPane.rowIndex="2" />
-      <Label styleClass="person-field-label" text="LOCATIONS" GridPane.rowIndex="3" />
-      <Label fx:id="locations" styleClass="person-field-value" text="\$locations"
-             GridPane.columnIndex="1" GridPane.rowIndex="3" />
+      <Label styleClass="person-field-label" text="Email" GridPane.rowIndex="0" />
+      <Label fx:id="email" maxWidth="1.7976931348623157E308" styleClass="person-field-value"
+             text="\$email" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+      <Label styleClass="person-field-label" text="Locations" GridPane.rowIndex="1" />
+      <Label fx:id="locations" maxWidth="1.7976931348623157E308" styleClass="person-field-value"
+             text="\$locations" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+      <Label styleClass="person-field-label" text="Address" GridPane.rowIndex="2" />
+      <Label fx:id="address" maxWidth="1.7976931348623157E308" styleClass="person-field-value"
+             text="\$address" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="2" />
     </GridPane>
+    <FlowPane fx:id="tags" />
   </VBox>
 </HBox>
