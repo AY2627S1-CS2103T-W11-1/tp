@@ -1,7 +1,6 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EXPERIENCE_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_FTP;
@@ -23,7 +22,6 @@ import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
-import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.ExperienceLevel;
 import seedu.address.model.person.Ftp;
@@ -52,7 +50,6 @@ public class EditCommand extends Command {
             + "[" + PREFIX_FTP + "FTP] "
             + "[" + PREFIX_EXPERIENCE_LEVEL + "EXPERIENCE] "
             + "[" + PREFIX_LOCATION + "LOCATION]... "
-            + "[" + PREFIX_ADDRESS + "ADDRESS] "
             + "[" + PREFIX_TAG + "TAG]...\n"
             + "Example: " + COMMAND_WORD + " +65 91234567 "
             + PREFIX_PHONE + "+65 98765432 "
@@ -122,13 +119,12 @@ public class EditCommand extends Command {
         Phone updatedPhone = editPersonDescriptor.getPhone().orElse(personToEdit.getPhone());
         Email updatedEmail = editPersonDescriptor.getEmail().orElse(personToEdit.getEmail());
         Ftp updatedFtp = editPersonDescriptor.getFtp().orElse(personToEdit.getFtp());
-        Address updatedAddress = editPersonDescriptor.getAddress().orElse(personToEdit.getAddress());
         ExperienceLevel updatedExperienceLevel = editPersonDescriptor.getExperienceLevel()
                 .orElse(personToEdit.getExperienceLevel());
         Set<Location> updatedLocations = editPersonDescriptor.getLocations().orElse(personToEdit.getLocations());
         Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
 
-        return new Person(updatedName, updatedPhone, updatedEmail, updatedFtp, updatedAddress,
+        return new Person(updatedName, updatedPhone, updatedEmail, updatedFtp,
                 updatedExperienceLevel, updatedLocations, updatedTags);
     }
 
@@ -164,7 +160,6 @@ public class EditCommand extends Command {
         private Phone phone;
         private Email email;
         private Ftp ftp;
-        private Address address;
         private ExperienceLevel experienceLevel;
         private Set<Location> locations;
         private Set<Tag> tags;
@@ -180,7 +175,6 @@ public class EditCommand extends Command {
             setPhone(toCopy.phone);
             setEmail(toCopy.email);
             setFtp(toCopy.ftp);
-            setAddress(toCopy.address);
             setExperienceLevel(toCopy.experienceLevel);
             setLocations(toCopy.locations);
             setTags(toCopy.tags);
@@ -190,7 +184,7 @@ public class EditCommand extends Command {
          * Returns true if at least one field is edited.
          */
         public boolean isAnyFieldEdited() {
-            return CollectionUtil.isAnyNonNull(name, phone, email, ftp, address, experienceLevel, locations, tags);
+            return CollectionUtil.isAnyNonNull(name, phone, email, ftp, experienceLevel, locations, tags);
         }
 
         public void setName(Name name) {
@@ -223,14 +217,6 @@ public class EditCommand extends Command {
 
         public Optional<Ftp> getFtp() {
             return Optional.ofNullable(ftp);
-        }
-
-        public void setAddress(Address address) {
-            this.address = address;
-        }
-
-        public Optional<Address> getAddress() {
-            return Optional.ofNullable(address);
         }
 
         public void setExperienceLevel(ExperienceLevel experienceLevel) {
@@ -290,7 +276,6 @@ public class EditCommand extends Command {
                     && Objects.equals(phone, otherEditPersonDescriptor.phone)
                     && Objects.equals(email, otherEditPersonDescriptor.email)
                     && Objects.equals(ftp, otherEditPersonDescriptor.ftp)
-                    && Objects.equals(address, otherEditPersonDescriptor.address)
                     && Objects.equals(experienceLevel, otherEditPersonDescriptor.experienceLevel)
                     && Objects.equals(locations, otherEditPersonDescriptor.locations)
                     && Objects.equals(tags, otherEditPersonDescriptor.tags);
@@ -303,7 +288,6 @@ public class EditCommand extends Command {
                     .add("phone", phone)
                     .add("email", email)
                     .add("ftp", ftp)
-                    .add("address", address)
                     .add("experienceLevel", experienceLevel)
                     .add("locations", locations)
                     .add("tags", tags)
