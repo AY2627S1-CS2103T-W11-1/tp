@@ -24,31 +24,51 @@
       <Label fx:id="name" maxWidth="1.7976931348623157E308" text="\$first"
              styleClass="cell_big_label" wrapText="true" HBox.hgrow="ALWAYS" />
     </HBox>
-    <FlowPane hgap="18" vgap="2">
-      <HBox alignment="CENTER_LEFT" spacing="6">
-        <Label styleClass="person-field-label" text="Phone" />
-        <Label fx:id="phone" styleClass="person-field-value" text="\$phone" />
-      </HBox>
-      <HBox alignment="CENTER_LEFT" spacing="6">
-        <Label styleClass="person-field-label" text="FTP" />
-        <Label fx:id="ftp" styleClass="person-field-value" text="\$ftp" />
-      </HBox>
-      <HBox alignment="CENTER_LEFT" spacing="6">
-        <Label styleClass="person-field-label" text="Experience" />
-        <Label fx:id="experienceLevel" styleClass="experience-chip" text="\$experienceLevel" />
-      </HBox>
-    </FlowPane>
-    <GridPane hgap="8" vgap="2" maxWidth="1.7976931348623157E308">
+    <GridPane hgap="10" maxWidth="1.7976931348623157E308">
+      <columnConstraints>
+        <ColumnConstraints percentWidth="40" hgrow="ALWAYS" />
+        <ColumnConstraints percentWidth="60" hgrow="ALWAYS" />
+      </columnConstraints>
+      <VBox maxWidth="1.7976931348623157E308" spacing="2" GridPane.hgrow="ALWAYS">
+        <Label styleClass="person-section-heading" text="Contact" />
+        <GridPane hgap="8" vgap="2" maxWidth="1.7976931348623157E308">
+          <columnConstraints>
+            <ColumnConstraints minWidth="48" prefWidth="48" />
+            <ColumnConstraints hgrow="ALWAYS" />
+          </columnConstraints>
+          <Label styleClass="person-field-label" text="Phone" GridPane.rowIndex="0" />
+          <Label fx:id="phone" maxWidth="1.7976931348623157E308" styleClass="person-field-value"
+                 text="\$phone" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+          <Label styleClass="person-field-label" text="Email" GridPane.rowIndex="1" />
+          <Label fx:id="email" maxWidth="1.7976931348623157E308" styleClass="person-field-value"
+                 text="\$email" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+        </GridPane>
+      </VBox>
+      <VBox maxWidth="1.7976931348623157E308" spacing="2"
+            GridPane.columnIndex="1" GridPane.hgrow="ALWAYS">
+        <Label styleClass="person-section-heading" text="Cycling Profile" />
+        <GridPane hgap="8" vgap="2" maxWidth="1.7976931348623157E308">
+          <columnConstraints>
+            <ColumnConstraints minWidth="68" prefWidth="68" />
+            <ColumnConstraints hgrow="ALWAYS" />
+          </columnConstraints>
+          <Label styleClass="person-field-label" text="FTP" GridPane.rowIndex="0" />
+          <Label fx:id="ftp" styleClass="person-field-value" text="\$ftp"
+                 GridPane.columnIndex="1" GridPane.rowIndex="0" />
+          <Label styleClass="person-field-label" text="Experience" GridPane.rowIndex="1" />
+          <Label fx:id="experienceLevel" styleClass="experience-chip" text="\$experienceLevel"
+                 GridPane.columnIndex="1" GridPane.rowIndex="1" />
+        </GridPane>
+      </VBox>
+    </GridPane>
+    <GridPane hgap="8" maxWidth="1.7976931348623157E308">
       <columnConstraints>
         <ColumnConstraints minWidth="68" prefWidth="68" />
         <ColumnConstraints hgrow="ALWAYS" />
       </columnConstraints>
-      <Label styleClass="person-field-label" text="Email" GridPane.rowIndex="0" />
-      <Label fx:id="email" maxWidth="1.7976931348623157E308" styleClass="person-field-value"
-             text="\$email" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="0" />
-      <Label styleClass="person-field-label" text="Locations" GridPane.rowIndex="1" />
+      <Label styleClass="person-field-label" text="Locations" />
       <Label fx:id="locations" maxWidth="1.7976931348623157E308" styleClass="person-field-value"
-             text="\$locations" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+             text="\$locations" wrapText="true" GridPane.columnIndex="1" />
     </GridPane>
     <FlowPane fx:id="tags" />
   </VBox>

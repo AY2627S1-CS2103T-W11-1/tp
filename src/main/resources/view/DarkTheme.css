@@ -138,6 +138,12 @@
     -fx-text-fill: #b8b8b8;
 }
 
+.list-cell .person-section-heading {
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-size: 10px;
+    -fx-text-fill: #929292;
+}
+
 .list-cell .person-field-value {
     -fx-font-family: "Segoe UI";
     -fx-font-size: 13px;
