@@ -3,6 +3,7 @@ package seedu.address.ui;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -30,22 +31,33 @@ import seedu.address.testutil.PersonBuilder;
 public class PersonCardTest {
 
     private static final int JAVAFX_TIMEOUT_SECONDS = 5;
+    private static Thread javaFxApplicationThread;
 
     @BeforeAll
     public static void startJavaFxToolkit() throws InterruptedException {
-        CountDownLatch startupLatch = new CountDownLatch(1);
-        try {
-            Platform.startup(startupLatch::countDown);
-        } catch (IllegalStateException exception) {
-            startupLatch.countDown();
+        if (System.getProperty("os.name").startsWith("Linux")) {
+            String display = System.getenv("DISPLAY");
+            assertNotNull(display, "JavaFX tests on Linux require an X display");
+            assertFalse(display.isBlank(), "JavaFX tests on Linux require an X display");
         }
-        assertTrue(startupLatch.await(JAVAFX_TIMEOUT_SECONDS, TimeUnit.SECONDS));
-        Platform.setImplicitExit(false);
+
+        CountDownLatch startupLatch = new CountDownLatch(1);
+        Platform.startup(() -> {
+            javaFxApplicationThread = Thread.currentThread();
+            startupLatch.countDown();
+        });
+        assertTrue(startupLatch.await(JAVAFX_TIMEOUT_SECONDS, TimeUnit.SECONDS),
+                "JavaFX toolkit did not start");
     }
 
     @AfterAll
-    public static void stopJavaFxToolkit() {
+    public static void stopJavaFxToolkit() throws InterruptedException {
+        if (javaFxApplicationThread == null) {
+            return;
+        }
         Platform.exit();
+        javaFxApplicationThread.join(TimeUnit.SECONDS.toMillis(JAVAFX_TIMEOUT_SECONDS));
+        assertFalse(javaFxApplicationThread.isAlive(), "JavaFX application thread did not stop");
     }
 
     @Test
