@@ -302,7 +302,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * On successful completion, exactly one new cyclist record containing the supplied details is added and displayed.
 * Existing cyclist records remain unchanged.
-* Invalid details are not added. If the supplied phone number or email address duplicates an existing record, the directory remains unchanged.
+* Invalid details are not added. If the supplied phone number matches an existing record, or the supplied email address matches one ignoring letter case, the directory remains unchanged. An identical name alone is allowed.
 
 **MSS**
 
@@ -324,8 +324,8 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case resumes from step 2.
 
-* 1b. Cyclique detects that the provided phone number or email address matches an existing cyclist's record.
-    * 1b1. Cyclique informs the user that the cyclist record would be a duplicate and leaves the directory unchanged.
+* 1b. Cyclique detects that the provided phone number matches an existing cyclist's record, or that the email address matches one ignoring letter case.
+    * 1b1. Cyclique displays `Another cyclist already has this phone number or email.` and leaves the directory unchanged.
 
       Use case ends.
 
@@ -357,7 +357,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * On successful completion, only the specified fields of the selected cyclist are updated, and the updated record is displayed.
 * Unspecified fields and other cyclist records remain unchanged.
-* Requests referring to a nonexistent cyclist, containing invalid details, or creating a duplicate phone number or email address do not change the directory.
+* Requests referring to a nonexistent cyclist, containing invalid details, or creating a phone match or case-insensitive email match with another cyclist do not change the directory. An identical name alone is allowed.
 
 **MSS**
 
@@ -389,8 +389,8 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case resumes from step 3.
 
-* 2c. Cyclique detects that the revised phone number or email address matches another cyclist's record.
-    * 2c1. Cyclique informs the user that the edit would create a duplicate cyclist record and leaves the directory unchanged.
+* 2c. Cyclique detects that the revised phone number matches another cyclist's record, or that the revised email address matches one ignoring letter case.
+    * 2c1. Cyclique displays `Another cyclist already has this phone number or email.` and leaves the directory unchanged.
 
       Use case ends.
 
@@ -474,7 +474,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 * **Cyclist**: A person whose contact and cycling-related information is stored and managed in Cyclique. The terms *rider* and *member* refer to the same concept; this documentation uses *cyclist* consistently.
 * **Cyclist directory**: The collection of cyclist records stored in Cyclique.
 * **Cycling organiser**: The primary user of Cyclique who manages cyclist records and organises recreational group rides.
-* **Duplicate cyclist**: A cyclist entry considered to represent an existing cyclist according to Cyclique's duplicate-detection rules, currently based on matching phone number or email address.
+* **Duplicate cyclist**: A cyclist entry with the same phone number or email address as an existing cyclist. Email comparison ignores letter case. Identical names alone do not make cyclists duplicates.
 * **Experience level**: A categorical indication of a cyclist's riding experience. Cyclique uses three experience levels: **Beginner**, **Intermediate**, and **Advanced**.
 * **Functional Threshold Power (FTP)**: A cyclist's cycling performance metric, measured in watts (W), representing the highest power they can approximately sustain for an extended period. In Cyclique, FTP is recorded as a whole number from 1 to 600 W.
 * **Group ride**: An organised cycling session involving one or more cyclists. The term *ride meetup* refers to the same concept; this documentation uses *group ride* unless a feature specifically uses the term *ride meetup*.
@@ -601,25 +601,48 @@ Use a disposable test book. Check both cyclist names and card indexes after ever
 1. With the application closed, replace disposable `preferences.json` with `{invalid json`.
    Launch again. Expected: Default window preferences are used without crashing.
 
-### Release regression: duplicate phone numbers
+### Release regression: duplicate cyclist identities
 
-1. Add John with `+65 98765432`, then try adding Jane with the same number and a different name.
-   Expected: The second add is rejected and John remains unchanged, even if hidden by a filter.
-1. Add Jane with `+65 91111111`, enter `find n/Jane`, then
-   `edit +65 91111111 p/+65 98765432`.
-   Expected: The edit is rejected; contacts, filtering and saved data are unchanged.
-1. Enter `edit +65 91111111 p/+65 91111111 e/jane.updated@example.com`.
-   Expected: Updating a contact while retaining its own unique number succeeds.
-1. Close the application and back up the disposable JSON file. Change Jane's stored phone
-   to John's number, then relaunch.
-   Expected: Both contacts are preserved. No number is automatically changed.
-1. With both displayed, enter `edit +65 98765432 p/+65 92222222` and `delete +65 98765432`.
-   Expected: Both are rejected with instructions for repairing the ambiguity; no contact changes.
-1. Enter `find n/Jane`, then `delete +65 98765432`.
-   Expected: Deletion is still rejected because it searches the entire book.
-1. Enter `edit +65 98765432 e/jane.updated@example.com`.
-   Expected: The edit is rejected because the resulting number is still shared.
-1. Enter `edit +65 98765432 p/+65 92222222`, using an otherwise unused number.
-   Expected: Only Jane's number changes, all contacts are displayed, and the repair is saved.
-1. Exit and relaunch, then delete John using his original number.
-   Expected: Both contacts had been preserved on reload, and only John is now deleted.
+1. Enter `clear`, then
+   `add n/John Doe p/+65 98765432 e/john@example.com f/300 x/Beginner l/any`.
+   Expected: John is added successfully.
+1. Enter `add n/Jane Tan p/+65 98765432 e/jane@example.com f/250 x/Intermediate l/Punggol`.
+   Expected: The add is rejected with `Another cyclist already has this phone number or email.`
+   John remains unchanged and Jane is not added.
+1. Enter `add n/Jane Tan p/+65 91234567 e/JOHN@EXAMPLE.COM f/250 x/Intermediate l/Punggol`.
+   Expected: The add is rejected with the same message because email matching ignores letter case.
+   John remains unchanged and Jane is not added.
+1. Enter `add n/John Doe p/+65 91234567 e/jane@example.com f/250 x/Intermediate l/Punggol`.
+   Expected: The second John Doe is added because both the phone number and email are unique.
+1. Enter `edit +65 91234567 p/+65 98765432`.
+   Expected: The edit is rejected with `Another cyclist already has this phone number or email.`
+   Both cyclist records remain unchanged.
+1. Enter `edit +65 91234567 e/JOHN@EXAMPLE.COM`.
+   Expected: The edit is rejected with the same message. Email comparison ignores letter case,
+   and both cyclist records remain unchanged.
+1. Enter `find p/+65 91234567`, then `edit +65 91234567 p/+65 98765432`.
+   Expected: Only the second John Doe (`+65 91234567`) is displayed, while the first
+   John Doe (`+65 98765432`) is hidden. The edit is rejected with
+   `Another cyclist already has this phone number or email.` because duplicate detection
+   checks the entire directory, including filtered-out cyclists. The filtered list,
+   both cyclist records and saved data remain unchanged.
+1. Enter `edit +65 91234567 p/+65 91234567 e/jane@example.com`.
+   Expected: Retaining the cyclist's own phone and email succeeds and both cyclists are displayed.
+1. Enter `edit +65 91234567 p/+65 92345678 e/jane.updated@example.com`.
+   Expected: Both unique values are applied, with all other cyclist fields unchanged.
+1. Exit and relaunch the application.
+
+   **Important:** Perform the following JSON tests using disposable test data only.
+   After an invalid-data startup, close Cyclique without executing any commands,
+   then restore the valid JSON backup before continuing. A successful command may
+   overwrite the invalid data file.
+   Expected: John at `+65 98765432` and John at `+65 92345678` retain all saved details.
+1. Close the application and back up the disposable `data/addressbook.json`. In the working copy,
+   change the second cyclist's phone to `+65 98765432`, then relaunch.
+   Expected: The duplicate JSON is rejected through the invalid-data handling path. Cyclique starts
+   with an empty directory and logs the loading error; neither duplicate record is silently discarded
+   or made available for interactive repair. Close Cyclique and restore the backup.
+1. In another working copy of the backup, keep the phone numbers unique but change the second cyclist's
+   email to `JOHN@EXAMPLE.COM`, then relaunch.
+   Expected: The case-insensitive duplicate email causes the JSON to be rejected in the same way.
+   Close Cyclique, restore the valid backup and relaunch. Expected: Both valid records are loaded.
