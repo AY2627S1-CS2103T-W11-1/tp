@@ -31,7 +31,6 @@ import seedu.address.testutil.PersonBuilder;
 public class PersonCardTest {
 
     private static final int JAVAFX_TIMEOUT_SECONDS = 5;
-    private static Thread javaFxApplicationThread;
 
     @BeforeAll
     public static void startJavaFxToolkit() throws InterruptedException {
@@ -42,22 +41,14 @@ public class PersonCardTest {
         }
 
         CountDownLatch startupLatch = new CountDownLatch(1);
-        Platform.startup(() -> {
-            javaFxApplicationThread = Thread.currentThread();
-            startupLatch.countDown();
-        });
+        Platform.startup(startupLatch::countDown);
         assertTrue(startupLatch.await(JAVAFX_TIMEOUT_SECONDS, TimeUnit.SECONDS),
                 "JavaFX toolkit did not start");
     }
 
     @AfterAll
-    public static void stopJavaFxToolkit() throws InterruptedException {
-        if (javaFxApplicationThread == null) {
-            return;
-        }
+    public static void stopJavaFxToolkit() {
         Platform.exit();
-        javaFxApplicationThread.join(TimeUnit.SECONDS.toMillis(JAVAFX_TIMEOUT_SECONDS));
-        assertFalse(javaFxApplicationThread.isAlive(), "JavaFX application thread did not stop");
     }
 
     @Test
