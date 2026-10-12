@@ -49,9 +49,6 @@
       <Label styleClass="person-field-label" text="Locations" GridPane.rowIndex="1" />
       <Label fx:id="locations" maxWidth="1.7976931348623157E308" styleClass="person-field-value"
              text="\$locations" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-      <Label styleClass="person-field-label" text="Address" GridPane.rowIndex="2" />
-      <Label fx:id="address" maxWidth="1.7976931348623157E308" styleClass="person-field-value"
-             text="\$address" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="2" />
     </GridPane>
     <FlowPane fx:id="tags" />
   </VBox>

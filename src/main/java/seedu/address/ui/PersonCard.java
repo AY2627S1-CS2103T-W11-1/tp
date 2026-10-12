@@ -41,8 +41,6 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label experienceLevel;
     @FXML
-    private Label address;
-    @FXML
     private FlowPane tags;
 
     /**
@@ -58,7 +56,6 @@ public class PersonCard extends UiPart<Region> {
         experienceLevel.setText(person.getExperienceLevel().value);
         ftp.setText(person.getFtp().value + " W");
         locations.setText(formatLocations(person));
-        address.setText(person.getAddress().value);
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
