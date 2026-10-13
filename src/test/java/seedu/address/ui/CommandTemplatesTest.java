@@ -8,6 +8,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_FTP;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LOCATION;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
 import java.util.List;
 
@@ -40,6 +41,16 @@ public class CommandTemplatesTest {
         for (CommandTemplates.Template template : CommandTemplates.ALL) {
             String commandWord = template.insertText().trim().split(" ")[0];
             assertTrue(template.display().startsWith(commandWord));
+        }
+    }
+
+    @Test
+    public void editTemplate_displayListsEveryEditableFieldAsOptional() {
+        String display = CommandTemplates.ALL.get(1).display();
+
+        for (Object prefix : new Object[] {PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_FTP,
+            PREFIX_EXPERIENCE_LEVEL, PREFIX_LOCATION, PREFIX_TAG}) {
+            assertTrue(display.contains("[" + prefix), "Edit format should list optional " + prefix);
         }
     }
 

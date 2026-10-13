@@ -43,7 +43,9 @@ public class CommandTemplates {
                             + PREFIX_FTP + " " + PREFIX_EXPERIENCE_LEVEL + " " + PREFIX_LOCATION),
             new Template(
                     EditCommand.COMMAND_WORD + " PHONE [" + PREFIX_NAME + "NAME] [" + PREFIX_PHONE + "PHONE] ["
-                            + PREFIX_EMAIL + "EMAIL] [" + PREFIX_TAG + "TAG]...",
+                            + PREFIX_EMAIL + "EMAIL] [" + PREFIX_FTP + "FTP] [" + PREFIX_EXPERIENCE_LEVEL
+                            + "EXPERIENCE_LEVEL] [" + PREFIX_LOCATION + "LOCATION]... [" + PREFIX_TAG
+                            + "TAG]...",
                     EditCommand.COMMAND_WORD + " "),
             new Template(
                     DeleteCommand.COMMAND_WORD + " PHONE",
