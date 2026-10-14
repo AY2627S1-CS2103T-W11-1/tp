@@ -22,7 +22,6 @@ import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import seedu.address.model.person.Person;
@@ -83,7 +82,6 @@ public class PersonCardTest {
                 .withFtp("450")
                 .withExperienceLevel("Advanced")
                 .withLocations("Marina Bay", "East Coast Park")
-                .withTags("weekend", "pace")
                 .build();
 
         runOnJavaFxThread(() -> {
@@ -94,7 +92,6 @@ public class PersonCardTest {
             Label ftp = getLabel(root, "ftp");
             Label experienceLevel = getLabel(root, "experienceLevel");
             Label locations = getLabel(root, "locations");
-            FlowPane tags = getFlowPane(root, "tags");
 
             assertEquals("7. ", getLabel(root, "id").getText());
             assertEquals("Zelda Longname Cyclist", name.getText());
@@ -103,12 +100,11 @@ public class PersonCardTest {
             assertEquals("450 W", ftp.getText());
             assertEquals("Advanced", experienceLevel.getText());
             assertEquals("East Coast Park, Marina Bay", locations.getText());
-            assertEquals(List.of("pace", "weekend"), getTagTexts(tags));
             assertTrue(name.isWrapText());
             assertTrue(email.isWrapText());
             assertTrue(locations.isWrapText());
 
-            for (Node node : List.of(name, phone, email, ftp, experienceLevel, locations, tags)) {
+            for (Node node : List.of(name, phone, email, ftp, experienceLevel, locations)) {
                 assertTrue(node.isVisible());
                 assertTrue(node.isManaged());
             }
@@ -127,21 +123,8 @@ public class PersonCardTest {
     }
 
     @Test
-    public void constructor_emptyTags_hidesAndUnmanagesTagContainer() throws Exception {
-        Person person = new PersonBuilder().withTags().build();
-
-        runOnJavaFxThread(() -> {
-            FlowPane tags = getFlowPane(new PersonCard(person, 1).getRoot(), "tags");
-
-            assertTrue(tags.getChildren().isEmpty());
-            assertFalse(tags.isVisible());
-            assertFalse(tags.isManaged());
-        });
-    }
-
-    @Test
     public void layout_supportedFields_usesTwoColumnsAndFullWidthBottomRows() throws Exception {
-        Person person = new PersonBuilder().withTags("weekend").build();
+        Person person = new PersonBuilder().build();
 
         runOnJavaFxThread(() -> {
             Parent root = new PersonCard(person, 1).getRoot();
@@ -150,7 +133,6 @@ public class PersonCardTest {
             Label ftp = getLabel(root, "ftp");
             Label experienceLevel = getLabel(root, "experienceLevel");
             Label locations = getLabel(root, "locations");
-            FlowPane tags = getFlowPane(root, "tags");
 
             GridPane contactFields = assertInstanceOf(GridPane.class, phone.getParent());
             GridPane cyclingFields = assertInstanceOf(GridPane.class, ftp.getParent());
@@ -170,12 +152,10 @@ public class PersonCardTest {
             GridPane locationsRow = assertInstanceOf(GridPane.class, locations.getParent());
             VBox cardContent = assertInstanceOf(VBox.class, columns.getParent());
             assertSame(cardContent, locationsRow.getParent());
-            assertSame(cardContent, tags.getParent());
             assertTrue(cardContent.getChildren().indexOf(columns)
                     < cardContent.getChildren().indexOf(locationsRow));
-            assertTrue(cardContent.getChildren().indexOf(locationsRow)
-                    < cardContent.getChildren().indexOf(tags));
 
+            assertNull(root.lookup("#tags"));
             assertNull(root.lookup("#address"));
             assertFalse(getAllLabelTexts(root).contains("Address"));
         });
@@ -183,17 +163,6 @@ public class PersonCardTest {
 
     private static Label getLabel(Parent root, String id) {
         return assertInstanceOf(Label.class, root.lookup("#" + id));
-    }
-
-    private static FlowPane getFlowPane(Parent root, String id) {
-        return assertInstanceOf(FlowPane.class, root.lookup("#" + id));
-    }
-
-    private static List<String> getTagTexts(FlowPane tags) {
-        return tags.getChildren().stream()
-                .map(Label.class::cast)
-                .map(Label::getText)
-                .toList();
     }
 
     private static Label getSectionHeading(VBox section) {

@@ -8,7 +8,6 @@ import java.util.Objects;
 import java.util.Set;
 
 import seedu.address.commons.util.ToStringBuilder;
-import seedu.address.model.tag.Tag;
 
 /**
  * Represents a Person in the address book.
@@ -25,37 +24,33 @@ public class Person {
     private final ExperienceLevel experienceLevel;
     private final Ftp ftp;
     private final Set<Location> locations = new HashSet<>();
-    private final Set<Tag> tags = new HashSet<>();
 
     /**
      * Every field must be present and not null.
      */
     public Person(Name name, Phone phone, Email email, Ftp ftp, ExperienceLevel experienceLevel,
-            Set<Location> locations, Set<Tag> tags) {
-        requireAllNonNull(name, phone, email, ftp, experienceLevel, locations, tags);
+            Set<Location> locations) {
+        requireAllNonNull(name, phone, email, ftp, experienceLevel, locations);
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.ftp = ftp;
         this.experienceLevel = experienceLevel;
         this.locations.addAll(locations);
-        this.tags.addAll(tags);
     }
 
     /**
      * Constructs a person with default FTP and unrestricted cycling locations.
      */
-    public Person(Name name, Phone phone, Email email, ExperienceLevel experienceLevel,
-            Set<Tag> tags) {
-        this(name, phone, email, new Ftp("1"), experienceLevel, Set.of(new Location("any")), tags);
+    public Person(Name name, Phone phone, Email email, ExperienceLevel experienceLevel) {
+        this(name, phone, email, new Ftp("1"), experienceLevel, Set.of(new Location("any")));
     }
 
     /**
      * Constructs a person with unrestricted cycling locations.
      */
-    public Person(Name name, Phone phone, Email email, Ftp ftp, ExperienceLevel experienceLevel,
-            Set<Tag> tags) {
-        this(name, phone, email, ftp, experienceLevel, Set.of(new Location("any")), tags);
+    public Person(Name name, Phone phone, Email email, Ftp ftp, ExperienceLevel experienceLevel) {
+        this(name, phone, email, ftp, experienceLevel, Set.of(new Location("any")));
     }
 
     public Name getName() {
@@ -80,14 +75,6 @@ public class Person {
 
     public Set<Location> getLocations() {
         return Collections.unmodifiableSet(locations);
-    }
-
-    /**
-     * Returns an immutable tag set, which throws {@code UnsupportedOperationException}
-     * if modification is attempted.
-     */
-    public Set<Tag> getTags() {
-        return Collections.unmodifiableSet(tags);
     }
 
     /**
@@ -124,14 +111,13 @@ public class Person {
                 && email.equals(otherPerson.email)
                 && ftp.equals(otherPerson.ftp)
                 && experienceLevel.equals(otherPerson.experienceLevel)
-                && locations.equals(otherPerson.locations)
-                && tags.equals(otherPerson.tags);
+                && locations.equals(otherPerson.locations);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, ftp, experienceLevel, locations, tags);
+        return Objects.hash(name, phone, email, ftp, experienceLevel, locations);
     }
 
     @Override
@@ -143,7 +129,6 @@ public class Person {
                 .add("ftp", ftp)
                 .add("experienceLevel", experienceLevel)
                 .add("locations", locations)
-                .add("tags", tags)
                 .toString();
     }
 

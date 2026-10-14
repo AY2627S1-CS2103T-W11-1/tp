@@ -7,7 +7,6 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_FTP;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LOCATION;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
@@ -30,17 +29,14 @@ public class AddCommand extends Command {
             + PREFIX_EMAIL + "EMAIL "
             + PREFIX_FTP + "FTP_LEVEL "
             + PREFIX_EXPERIENCE_LEVEL + "EXPERIENCE_LEVEL "
-            + PREFIX_LOCATION + "LOCATION "
-            + "[" + PREFIX_TAG + "TAG]...\n"
+            + PREFIX_LOCATION + "LOCATION [" + PREFIX_LOCATION + "LOCATION]...\n"
             + "Example: " + COMMAND_WORD + " "
             + PREFIX_NAME + "John Doe "
             + PREFIX_PHONE + "+65 98765432 "
             + PREFIX_EMAIL + "johnd@example.com "
             + PREFIX_FTP + "300 "
             + PREFIX_EXPERIENCE_LEVEL + "Beginner "
-            + PREFIX_LOCATION + "any "
-            + PREFIX_TAG + "friends "
-            + PREFIX_TAG + "owesMoney";
+            + PREFIX_LOCATION + "any";
 
     public static final String MESSAGE_SUCCESS = "New person added: %1$s";
     public static final String MESSAGE_MISSING_FTP =

@@ -56,7 +56,7 @@ public class AddCommandIntegrationTest {
         Person personWithSamePhone = new PersonBuilder().withName("Different Name")
                 .withPhone(ALICE.getPhone().value).withEmail("different@example.com").withFtp("300")
                 .withExperienceLevel("Advanced").withLocations("Marina Bay")
-                .withTags("other").build();
+                .build();
 
         assertCommandFailure(new AddCommand(personWithSamePhone), model,
                 AddCommand.MESSAGE_DUPLICATE_PERSON);

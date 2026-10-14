@@ -1,11 +1,9 @@
 package seedu.address.ui;
 
-import java.util.Comparator;
 import java.util.stream.Collectors;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
 import seedu.address.model.person.Person;
 
@@ -40,8 +38,6 @@ public class PersonCard extends UiPart<Region> {
     private Label locations;
     @FXML
     private Label experienceLevel;
-    @FXML
-    private FlowPane tags;
 
     /**
      * Creates a {@code PersonCard} with the given {@code Person} and index to display.
@@ -56,11 +52,6 @@ public class PersonCard extends UiPart<Region> {
         experienceLevel.setText(person.getExperienceLevel().value);
         ftp.setText(person.getFtp().value + " W");
         locations.setText(formatLocations(person));
-        person.getTags().stream()
-                .sorted(Comparator.comparing(tag -> tag.tagName))
-                .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
-        tags.setManaged(!tags.getChildren().isEmpty());
-        tags.setVisible(!tags.getChildren().isEmpty());
     }
 
     /**

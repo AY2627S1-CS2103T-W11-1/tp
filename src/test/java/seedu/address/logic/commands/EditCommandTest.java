@@ -8,7 +8,6 @@ import static seedu.address.logic.commands.CommandTestUtil.DESC_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
-import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
@@ -65,10 +64,10 @@ public class EditCommandTest {
 
         PersonBuilder personInList = new PersonBuilder(lastPerson);
         Person editedPerson = personInList.withName(VALID_NAME_BOB).withPhone(VALID_PHONE_BOB)
-                .withTags(VALID_TAG_HUSBAND).build();
+                .build();
 
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB)
-                .withPhone(VALID_PHONE_BOB).withTags(VALID_TAG_HUSBAND).build();
+                .withPhone(VALID_PHONE_BOB).build();
         EditCommand editCommand = new EditCommand(lastPerson.getPhone(), descriptor);
 
         String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
@@ -171,10 +170,10 @@ public class EditCommandTest {
         Person personToEdit = addLocationRider("West Coast Park", "Marina Bay");
         Person editedPerson = new PersonBuilder(personToEdit).withName(VALID_NAME_BOB)
                 .withPhone(VALID_PHONE_BOB).withEmail(VALID_EMAIL_BOB)
-                .withTags(VALID_TAG_HUSBAND).build();
+                .build();
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB)
                 .withPhone(VALID_PHONE_BOB).withEmail(VALID_EMAIL_BOB)
-                .withTags(VALID_TAG_HUSBAND).build();
+                .build();
 
         assertEditSuccess(personToEdit, descriptor, editedPerson);
     }
@@ -311,7 +310,7 @@ public class EditCommandTest {
         Person secondPerson = model.getFilteredPersonList().get(1);
         EditCommand editCommand = new EditCommand(firstPerson.getPhone(), new EditPersonDescriptorBuilder()
                 .withEmail(secondPerson.getEmail().value).withExperienceLevel("Advanced")
-                .withTags("updated").build());
+                .build());
 
         assertCommandFailure(editCommand, model, EditCommand.MESSAGE_DUPLICATE_PERSON);
     }
@@ -455,7 +454,7 @@ public class EditCommandTest {
     private Person addLocationRider(String... locations) {
         Person person = new PersonBuilder().withName("Location Rider").withPhone("+65 80000000")
                 .withEmail("location@example.com").withFtp("250").withExperienceLevel("Intermediate")
-                .withLocations(locations).withTags("weekend").build();
+                .withLocations(locations).build();
         model.addPerson(person);
         return person;
     }

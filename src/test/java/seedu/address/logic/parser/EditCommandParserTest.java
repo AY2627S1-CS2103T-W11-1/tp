@@ -9,27 +9,23 @@ import static seedu.address.logic.commands.CommandTestUtil.INVALID_EMAIL_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.INVALID_EXPERIENCE_LEVEL_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.INVALID_NAME_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.INVALID_PHONE_DESC;
-import static seedu.address.logic.commands.CommandTestUtil.INVALID_TAG_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.LOCATION_DESC_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_BOB;
-import static seedu.address.logic.commands.CommandTestUtil.TAG_DESC_FRIEND;
-import static seedu.address.logic.commands.CommandTestUtil.TAG_DESC_HUSBAND;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_EXPERIENCE_LEVEL_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
-import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_FRIEND;
-import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EXPERIENCE_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_FTP;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
+
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -42,18 +38,26 @@ import seedu.address.model.person.Ftp;
 import seedu.address.model.person.Location;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
-import seedu.address.model.tag.Tag;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 
 public class EditCommandParserTest {
 
-    private static final String TAG_EMPTY = " " + PREFIX_TAG;
     private static final Phone TARGET_PHONE = new Phone("+65 91234567");
 
     private static final String MESSAGE_INVALID_FORMAT =
             String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditCommand.MESSAGE_USAGE);
 
     private EditCommandParser parser = new EditCommandParser();
+
+    @Test
+    public void parse_removedPrefix_failure() {
+        String validInput = TARGET_PHONE + " n/Bob";
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditCommand.MESSAGE_USAGE);
+        for (String removedPrefix : List.of(" t/friend", " t/", " t/!", "\n t/friend")) {
+            assertParseFailure(parser, validInput + removedPrefix, expectedMessage);
+            assertParseFailure(parser, removedPrefix + validInput, expectedMessage);
+        }
+    }
 
     @Test
     public void parse_missingParts_failure() {
@@ -107,19 +111,9 @@ public class EditCommandParserTest {
         assertParseFailure(parser, TARGET_PHONE + " l/East@Park", Location.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, TARGET_PHONE + " l/any l/Marina Bay",
                 "Location 'any' cannot be combined with other locations.");
-        assertParseFailure(parser, TARGET_PHONE + INVALID_TAG_DESC, Tag.MESSAGE_CONSTRAINTS); // invalid tag
 
         // invalid phone followed by valid email
         assertParseFailure(parser, TARGET_PHONE + INVALID_PHONE_DESC + EMAIL_DESC_AMY, Phone.MESSAGE_CONSTRAINTS);
-
-        // while parsing {@code PREFIX_TAG} alone will reset the tags of the {@code Person} being edited,
-        // parsing it together with a valid tag results in error
-        assertParseFailure(parser, TARGET_PHONE + TAG_DESC_FRIEND + TAG_DESC_HUSBAND + TAG_EMPTY,
-                Tag.MESSAGE_CONSTRAINTS);
-        assertParseFailure(parser, TARGET_PHONE + TAG_DESC_FRIEND + TAG_EMPTY + TAG_DESC_HUSBAND,
-                Tag.MESSAGE_CONSTRAINTS);
-        assertParseFailure(parser, TARGET_PHONE + TAG_EMPTY + TAG_DESC_FRIEND + TAG_DESC_HUSBAND,
-                Tag.MESSAGE_CONSTRAINTS);
 
         // multiple invalid values, but only the first invalid value is captured
         assertParseFailure(parser,
@@ -132,15 +126,15 @@ public class EditCommandParserTest {
 
     @Test
     public void parse_allFieldsSpecified_success() {
-        String userInput = TARGET_PHONE + PHONE_DESC_BOB + TAG_DESC_HUSBAND + FTP_DESC_BOB
+        String userInput = TARGET_PHONE + PHONE_DESC_BOB + FTP_DESC_BOB
                 + EMAIL_DESC_AMY + NAME_DESC_AMY + EXPERIENCE_LEVEL_DESC_BOB
-                + " l/East Coast Park l/Marina Bay" + TAG_DESC_FRIEND;
+                + " l/East Coast Park l/Marina Bay";
 
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName(VALID_NAME_AMY)
                 .withPhone(VALID_PHONE_BOB).withEmail(VALID_EMAIL_AMY)
                 .withFtp("1").withExperienceLevel(VALID_EXPERIENCE_LEVEL_BOB)
                 .withLocations("East Coast Park", "Marina Bay")
-                .withTags(VALID_TAG_HUSBAND, VALID_TAG_FRIEND).build();
+                .build();
         EditCommand expectedCommand = new EditCommand(TARGET_PHONE, descriptor);
 
         assertParseSuccess(parser, userInput, expectedCommand);
@@ -219,18 +213,12 @@ public class EditCommandParserTest {
         descriptor = new EditPersonDescriptorBuilder().withLocations("any").build();
         expectedCommand = new EditCommand(TARGET_PHONE, descriptor);
         assertParseSuccess(parser, userInput, expectedCommand);
-
-        // tags
-        userInput = TARGET_PHONE + TAG_DESC_FRIEND;
-        descriptor = new EditPersonDescriptorBuilder().withTags(VALID_TAG_FRIEND).build();
-        expectedCommand = new EditCommand(TARGET_PHONE, descriptor);
-        assertParseSuccess(parser, userInput, expectedCommand);
     }
 
     @Test
     public void parse_multipleRepeatedFields_failure() {
         // More extensive testing of duplicate parameter detections is done in
-        // AddCommandParserTest#parse_repeatedNonTagValue_failure()
+        // AddCommandParserTest#parse_repeatedSingleValue_failure()
 
         // valid followed by invalid
         String userInput = TARGET_PHONE + INVALID_PHONE_DESC + PHONE_DESC_BOB;
@@ -244,8 +232,8 @@ public class EditCommandParserTest {
 
         // multiple valid fields repeated
         userInput = TARGET_PHONE + PHONE_DESC_AMY + EMAIL_DESC_AMY
-                + TAG_DESC_FRIEND + PHONE_DESC_AMY + EMAIL_DESC_AMY + TAG_DESC_FRIEND
-                + PHONE_DESC_BOB + EMAIL_DESC_BOB + TAG_DESC_HUSBAND;
+                + PHONE_DESC_AMY + EMAIL_DESC_AMY
+                + PHONE_DESC_BOB + EMAIL_DESC_BOB;
 
         assertParseFailure(parser, userInput,
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_PHONE, PREFIX_EMAIL));
@@ -260,16 +248,6 @@ public class EditCommandParserTest {
 
         assertParseFailure(parser, userInput,
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_PHONE, PREFIX_EMAIL));
-    }
-
-    @Test
-    public void parse_resetTags_success() {
-        String userInput = TARGET_PHONE + TAG_EMPTY;
-
-        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withTags().build();
-        EditCommand expectedCommand = new EditCommand(TARGET_PHONE, descriptor);
-
-        assertParseSuccess(parser, userInput, expectedCommand);
     }
 
     @Test

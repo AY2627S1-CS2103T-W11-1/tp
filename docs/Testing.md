@@ -43,7 +43,7 @@ Review `build/reports/tests/test/index.html` and `build/reports/jacoco/coverage/
 The coverage report does not enforce the 50% target automatically; check the measured coverage explicitly.
 
 `ReleaseCommandIntegrationTest` covers command sequences through parsing, the model, filtering and JSON storage.
-It checks address-free cyclist data, repeated tags and locations, edit replacement and preservation of fields,
+It checks cyclist data without retired fields, repeated locations, edit replacement and preservation of fields,
 find matching rules, filtered edit/delete behaviour, rejected commands without saved-data changes,
 clear persistence, and help/exit flags. It treats cyclists as duplicates when their phone numbers
 match or their email addresses match ignoring case. It verifies those conflicts across filters,
@@ -70,3 +70,7 @@ phone targets, full stops in invalid-field and duplicate-prefix errors, and the
 scenario covers the corresponding command-box checks.
 Run the Developer Guide's **Alphabetical display regression** manual scenario to verify
 visible card indexes after reordering and filtering, and startup ordering after a restart.
+
+Run the Developer Guide's **Tag removal compatibility regression** after tag-related changes.
+`JsonAdaptedPersonTest` checks legacy tags (including empty, null and obsolete invalid values)
+are ignored and omitted on serialisation; parser tests reject removed tag input.
