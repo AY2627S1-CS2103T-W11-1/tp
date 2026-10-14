@@ -38,12 +38,11 @@ class JsonAdaptedPerson {
     private final List<String> locations = new ArrayList<>();
 
     /**
-     * Constructs an adapted person from the stored cyclist fields.
+     * Constructs an adapted person without an emergency number for direct Java callers.
+     * Only the full constructor is annotated for JSON deserialization to avoid ambiguous creator properties.
      */
-    public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
-            @JsonProperty("email") String email, @JsonProperty("ftp") String ftp,
-            @JsonProperty("experienceLevel") String experienceLevel,
-            @JsonProperty("locations") List<String> locations) {
+    public JsonAdaptedPerson(String name, String phone, String email, String ftp,
+            String experienceLevel, List<String> locations) {
         this(name, phone, email, ftp, experienceLevel, locations, null);
     }
 

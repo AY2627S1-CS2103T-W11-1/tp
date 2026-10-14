@@ -257,3 +257,26 @@ Verified using Eclipse Temurin JDK 25.0.4.1 on macOS ARM64:
 
 Run the Developer Guide's **Emergency contact regression** manually before release.
 Developer Guide UML diagrams are unchanged.
+
+## Emergency contact CI loading fix — 15 October 2026
+
+The emergency-contact PR's Ubuntu CI run failed 23 JSON loading and round-trip
+checks. The convenience constructor retained `@JsonProperty` annotations alongside
+the full `@JsonCreator` constructor. Reversing their declarations locally reproduced
+`Could not find creator property with name 'emergencyPhone'`, including the same
+four failing `JsonAdaptedPersonTest` methods.
+
+Remove JSON annotations from the convenience constructor so only the full
+constructor supplies creator properties. Keep the existing saved-data format and
+legacy missing/null emergency-number handling unchanged. No UML diagrams change.
+
+A new regression test controls Jackson's constructor discovery order and checks
+current records, null emergency numbers and older records without that property.
+The test fails before the fix and passes afterwards on the same JDK.
+
+`./gradlew check coverage` passes with Eclipse Temurin JDK 25.0.4.1 on macOS ARM64:
+**366 tests**, no failures, errors or skips; both Checkstyle tasks pass. Line
+coverage remains **75.72%** (1,085 of 1,433 lines), above the 50% target.
+Linux CI still needs to run against the updated branch; local verification does
+not claim that the remote run has passed. The existing emergency-contact manual
+UI checks remain outstanding because the UI tool cannot access the JavaFX window.
