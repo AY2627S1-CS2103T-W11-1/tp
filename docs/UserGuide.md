@@ -72,7 +72,7 @@ display, including filtered results. Use phone numbers to target `edit` and `del
 
 ### Viewing help: `help`
 
-Shows the available commands and a link to the help page.
+Shows a message explaining how to access the help page.
 
 ![help message](images/helpMessage.png)
 

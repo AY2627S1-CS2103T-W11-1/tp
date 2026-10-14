@@ -15,8 +15,6 @@ Class PersonListPanel
 Class PersonCard
 Class StatusBarFooter
 Class CommandBox
-Class CommandTemplates
-Class ArtworkScreen
 }
 
 package Model <<Rectangle>> {
@@ -37,9 +35,6 @@ MainWindow *-down-> "1" ResultDisplay
 MainWindow *-down-> "1" PersonListPanel
 MainWindow *-down-> "1" StatusBarFooter
 MainWindow --> "0..1" HelpWindow
-MainWindow ..> CommandTemplates
-MainWindow ..> ArtworkScreen : closing screen
-UiManager ..> ArtworkScreen : opening screen
 
 PersonListPanel -down-> "*" PersonCard
 

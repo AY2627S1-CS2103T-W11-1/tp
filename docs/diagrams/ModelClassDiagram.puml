@@ -17,9 +17,6 @@ Class Person
 Class Email
 Class Name
 Class Phone
-Class Ftp
-Class ExperienceLevel
-Class Location
 Class Tag
 
 Class I #FFFFFF
@@ -42,9 +39,6 @@ UniquePersonList --> Person : ~* all
 Person *--> Name
 Person *--> Phone
 Person *--> Email
-Person *--> Ftp
-Person *--> ExperienceLevel
-Person *--> "*" Location
 Person *--> "*" Tag
 
 Person -[hidden]up--> I
