@@ -75,7 +75,7 @@ dependencies {
 }
 
 shadowJar {
-    archiveFileName = 'addressbook.jar'
+    archiveFileName = 'cyclique.jar'
 }
 
 defaultTasks 'clean', 'test'
