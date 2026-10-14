@@ -63,7 +63,7 @@ live updates after additions and name edits, filtered membership, deletion and b
 ordering across JSON reload and phone-number targeting when the display order changes.
 Deletion tests reject hidden cyclists and targets in an empty display without changing
 stored records, the active filter or saved JSON. A displayed cyclist can still be deleted
-by their exact phone number, including when another cyclist has an identical name.
+by their exact phone number after confirmation, including when another cyclist has an identical name.
 Error-message regressions check identical edit/delete errors for hidden and unknown
 phone targets, full stops in invalid-field and duplicate-prefix errors, and the
 `Invalid command format.` heading. The Developer Guide's **Error message consistency**
@@ -74,3 +74,11 @@ visible card indexes after reordering and filtering, and startup ordering after 
 Run the Developer Guide's **Tag removal compatibility regression** after tag-related changes.
 `JsonAdaptedPersonTest` checks legacy tags (including empty, null and obsolete invalid values)
 are ignored and omitted on serialisation; parser tests reject removed tag input.
+
+`DeletionConfirmationTest` verifies the two-step delete workflow through the real
+logic and JSON storage. It checks accepted reply capitalisations, invalid replies,
+explicit cancellation, unchanged records/filter/file and zero writes before
+confirmation, cancellation notices with subsequent outputs/errors, replacement
+requests, Help/Exit flags, stale targets, restart behaviour and storage failures.
+Run the Developer Guide's **Deletion confirmation regression** for command-box,
+result-panel, Help, resize and restart checks after changes to this flow.

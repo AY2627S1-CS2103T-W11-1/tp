@@ -156,6 +156,31 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Cyclist deletion confirmation
+
+`LogicManager` resolves `delete PHONE` against the displayed list using
+`DeleteCommand.getPersonToDelete`. This preserves the existing invalid-phone,
+missing/hidden-target and ambiguous-target errors before a prompt is shown.
+It stores the pending command and an immutable snapshot of that cyclist in memory,
+then returns a confirmation request to the existing result panel without executing
+or saving the deletion. The command box accepts the next reply through the same
+`Logic.execute` entry point.
+
+Replies are trimmed and compared ignoring case. `y`/`yes` executes the pending
+`DeleteCommand` and saves the book; `n`/`no` clears the request without changing the
+model, filter or file. Before execution, the target must still be displayed and
+have the same details as the snapshot. Confirmation state is consumed before
+execution, so errors or failed saves cannot replay the deletion. Storage failures
+retain the existing behaviour and error messages.
+
+An unrecognised reply reports an error and retains the request. A supported command
+word, including one with invalid arguments, cancels the request before normal
+parsing/execution. Cancellation feedback is prepended to the new output or error;
+Help and Exit flags are preserved. `AddressBookParser.isRecognisedCommand` makes
+this distinction using the same case-sensitive command words. Another delete
+replaces the pending request after validating its own phone target. Pending requests
+are never serialised and disappear when the application closes or restarts.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
@@ -406,9 +431,9 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 **MSS**
 
 1.  User <u>views the cyclist list (UC02).</u>
-2.  User requests to delete a specified cyclist.
-3.  Cyclique requests confirmation from the user to delete the cyclist.
-4.  User confirms the deletion.
+2.  User enters `delete PHONE` for a cyclist in the displayed list.
+3.  Cyclique shows the target cyclist’s details and requests confirmation in the result panel.
+4.  User enters `y` or `yes` in the command box, ignoring letter case.
 5.  Cyclique permanently removes the cyclist from the directory.
 6.  Cyclique displays the updated cyclist directory.
 
@@ -425,10 +450,21 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case ends.
 
-* 4a. User declines the deletion.
-    * 4a1. Cyclique cancels the deletion.
+* 4a. User enters `n` or `no`, ignoring letter case.
+    * 4a1. Cyclique displays `Deletion cancelled.` and leaves records, the filter and saved data unchanged.
 
       Use case ends.
+
+* 4b. User enters an unrecognised reply.
+    * 4b1. Cyclique displays an error and keeps waiting for confirmation or cancellation.
+
+      Use case resumes at step 4.
+
+* 4c. User enters another supported command.
+    * 4c1. Cyclique cancels the pending deletion and executes the new command.
+    * 4c2. Cyclique shows `Deletion cancelled.` followed by the command’s normal output or error.
+
+      Use case ends. A new delete request starts this use case again.
 
 ### Non-Functional Requirements
 
@@ -551,6 +587,37 @@ Use John and Alice from the previous section.
 1. Enter `edit +65 96742165 n/John Updated`. Expected: John's name changes and both contacts appear.
 1. Enter `list`. Expected: All stored contacts appear.
 
+### Deletion confirmation regression
+
+Use a disposable book with John and Alice from the adding/editing scenario.
+
+1. Enter `delete +65 96742165`. Expected: The result panel shows John’s full details
+   and requests `y`/`yes` or `n`/`no`; John remains on his card and in the saved file.
+1. Enter `maybe`, then `yes please`. Expected: Each reply shows an error identifying
+   the pending cyclist; no data changes. Enter `nO`. Expected: `Deletion cancelled.`;
+   the records, active filter and saved JSON remain unchanged.
+1. Repeat the request with `n`, `N`, `no`, `No` and `NO`, starting a new request each time.
+   Expected: Every reply cancels without changes.
+1. Start a new request and enter `list`. Expected: `Deletion cancelled.` followed by
+   `Listed all persons.` Enter `yes`. Expected: `Unknown command.`; no cyclist is removed.
+1. Start a new request and enter `edit +65 99999999 n/Unknown`. Expected: Cancellation
+   followed by the usual missing-target error. Repeat with malformed `delete`.
+   Expected: Cancellation followed by the usual invalid-format usage error.
+1. Request John’s deletion, then enter `delete +65 91234567`. Expected: Cancellation
+   of the first request followed by Alice’s details and a new prompt. Enter `NO`.
+   Expected: Both cyclists remain.
+1. Start a new request, enter `help` and close Help. Expected: The result panel reports
+   cancellation and the normal Help output. Help usage explains confirmation replies.
+1. Start a request, close Cyclique without confirming, and relaunch.
+   Expected: Both cyclists remain; entering `yes` reports `Unknown command.`
+1. Enter `find n/john`, request John’s deletion, check the details, then enter `YeS`.
+   Expected: Only John is removed, the filtered display becomes empty, and the saved
+   book omits John after restarting. Repeat with disposable added cyclists for `y`,
+   `Y`, `yes`, `Yes`, `YES` and other capitalisations, including surrounding spaces.
+1. Resize the window with a prompt visible. Expected: The target details and reply
+   instructions remain readable. The command box accepts replies and clears after
+   successful confirmation/cancellation; invalid replies retain the usual error styling.
+
 ### Deleting and clearing people
 
 1. Enter `find n/john`, then `delete +65 91234567`.
@@ -559,8 +626,10 @@ Use John and Alice from the previous section.
 1. Enter `find n/nobody`, then `delete +65 96742165`.
    Expected: Deletion is rejected; both contacts remain stored and the display stays empty.
 1. Enter `find n/alice`, then `delete +65 91234567`.
-   Expected: Alice is deleted, the success message identifies Alice, and the display becomes empty.
-1. Enter `list`, then `delete +65 96742165`. Expected: John is deleted and the list is empty.
+   Expected: Alice’s details and a yes/no request appear; Alice remains displayed and stored.
+   Enter `yes`. Expected: Alice is deleted, the success message identifies Alice, and the display becomes empty.
+1. Enter `list`, then `delete +65 96742165`. Check the target details, then enter `y`.
+   Expected: John is deleted and the list is empty.
 1. Try `delete +65 99999999`, `delete`, `delete 1`, `delete +65 12`, and `delete x`.
    Expected: An error appears and no contact is deleted.
 1. Enter `clear` twice. Expected: The list remains empty and each command succeeds.
@@ -593,9 +662,9 @@ Use a disposable test book. Check both cyclist names and card indexes after ever
 1. Enter `find n/bernice`, then `delete +65 94444444`.
    Expected: Deletion is rejected because Zara is hidden; all five contacts remain stored
    and the two matching cyclists stay numbered 1 and 2.
-   Enter `delete +65 93333333`. Expected: BERNICE remains at index 1.
+   Enter `delete +65 93333333`, then `yes`. Expected: BERNICE remains at index 1.
    Enter `list`. Expected: Alex Adams, alex Zane, BERNICE and Zara are numbered 1 to 4.
-   Enter `delete +65 94444444`. Expected: Zara is deleted; the remaining cyclists are numbered 1 to 3.
+   Enter `delete +65 94444444`, then `yes`. Expected: Zara is deleted; the remaining cyclists are numbered 1 to 3.
 
 ### Error message consistency
 
@@ -620,7 +689,7 @@ Use the contacts from the alphabetical display scenario before deleting Zara.
 
 1. Add John again, edit a field, and exit. Launch again.
    Expected: All saved fields and locations match the last successful command.
-1. Delete John, exit, and relaunch. Expected: John stays deleted.
+1. Request John’s deletion, confirm with `yes`, exit, and relaunch. Expected: John stays deleted.
 1. Add John, enter `clear`, exit, and relaunch. Expected: The book stays empty.
 1. With the application closed, back up the disposable `data/addressbook.json`, then remove it.
    Launch again. Expected: Sample contacts are loaded.

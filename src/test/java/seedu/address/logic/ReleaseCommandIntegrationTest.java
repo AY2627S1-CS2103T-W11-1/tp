@@ -129,6 +129,7 @@ public class ReleaseCommandIntegrationTest {
         assertEquals(List.of(bernice), logic.getFilteredPersonList());
         logic.execute("list");
         logic.execute("delete +65 98765432");
+        logic.execute("yes");
         assertEquals(List.of(ALICE, bernice), logic.getFilteredPersonList());
         assertSavedState();
     }
@@ -263,6 +264,7 @@ public class ReleaseCommandIntegrationTest {
                 String.format(DeleteCommand.MESSAGE_PERSON_NOT_FOUND, "+65 98765432"));
         logic.execute("find n/alice");
         logic.execute("delete +65 91234567");
+        logic.execute("yes");
         assertTrue(logic.getFilteredPersonList().isEmpty());
         assertEquals(List.of(JOHN), model.getAddressBook().getPersonList());
         assertSavedState();
@@ -358,6 +360,7 @@ public class ReleaseCommandIntegrationTest {
         assertEquals(List.of(JOHN, editedAlice), model.getAddressBook().getPersonList());
         assertEquals(List.of(editedAlice, JOHN), logic.getFilteredPersonList());
         logic.execute("delete +65 98765432");
+        logic.execute("yes");
         assertEquals(List.of(editedAlice), model.getAddressBook().getPersonList());
         assertSavedState();
     }

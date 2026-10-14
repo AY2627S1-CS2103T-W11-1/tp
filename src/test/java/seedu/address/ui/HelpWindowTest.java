@@ -16,6 +16,11 @@ import seedu.address.logic.commands.ListCommand;
 public class HelpWindowTest {
 
     @Test
+    public void commandList_deleteUsage_explainsConfirmationAndCancellation() {
+        assertTrue(HelpWindow.COMMAND_LIST.contains("Enter y/yes to confirm or n/no to cancel"));
+    }
+
+    @Test
     public void commandList_containsEveryCommandWord() {
         String[] commandWords = {
             AddCommand.COMMAND_WORD, EditCommand.COMMAND_WORD, DeleteCommand.COMMAND_WORD,

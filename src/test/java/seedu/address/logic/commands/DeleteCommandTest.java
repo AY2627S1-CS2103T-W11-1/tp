@@ -24,6 +24,15 @@ public class DeleteCommandTest {
     private final Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
 
     @Test
+    public void getPersonToDelete_validPhone_resolvesWithoutChangingModelOrFilter() throws Exception {
+        model.updateFilteredPersonList(person -> person.equals(ALICE));
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.updateFilteredPersonList(person -> person.equals(ALICE));
+        assertEquals(ALICE, new DeleteCommand(ALICE.getPhone()).getPersonToDelete(model));
+        assertEquals(expectedModel, model);
+    }
+
+    @Test
     public void execute_validPhone_success() {
         Person personToDelete = model.getAddressBook().getPersonList().get(0);
         DeleteCommand deleteCommand = new DeleteCommand(personToDelete.getPhone());
