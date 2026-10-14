@@ -56,10 +56,10 @@ display, including filtered results. Use phone numbers to target `edit` and `del
   For example, in `add n/NAME`, replace `NAME` with a value such as `John Doe`.
 
 * Items in square brackets are optional.<br>
-  For example, `n/NAME [t/TAG]` can be used as `n/John Doe t/friend` or as `n/John Doe`.
+  For example, `edit PHONE [n/NAME] [f/FTP]` can be used as `edit +65 91234567 n/John Doe` or `edit +65 91234567 f/300`.
 
 * Items followed by `…`​ can appear zero or more times.<br>
-  For example, `[t/TAG]…​` may be omitted, or written as `t/friend` or `t/friend t/family`.
+  For example, `[l/LOCATION]…` in `edit` may be omitted, or written as `l/Punggol` or `l/Punggol l/Marina Bay`.
 
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
@@ -83,21 +83,18 @@ Format: `help`
 
 Adds a person to the address book.
 
-Format: `add n/NAME p/PHONE e/EMAIL f/FTP_LEVEL x/EXPERIENCE_LEVEL l/LOCATION [t/TAG]…`
-
-<div markdown="span" class="alert alert-primary">:bulb: **Tip:**
-A person can have any number of tags, including zero.
-</div>
+Format: `add n/NAME p/PHONE e/EMAIL f/FTP_LEVEL x/EXPERIENCE_LEVEL l/LOCATION [l/LOCATION]…`
 
 The phone number must include a country code and one separating space, for example `+65 98765432`.
 It must not belong to another contact, including contacts hidden by a filter.
 FTP must be a whole number from 1 to 600.
+At least one preferred location is required. Repeat `l/` for multiple locations, or use `l/any` alone.
 
 `EXPERIENCE_LEVEL` must be one of `Beginner`, `Intermediate` or `Advanced` (case-insensitive).
 
 Examples:
 * `add n/John Doe p/+65 98765432 e/johnd@example.com f/300 x/Beginner l/any`
-* `add n/Betsy Crowe t/friend e/betsycrowe@example.com p/+65 91234567 f/250 x/Advanced l/Punggol`
+* `add n/Betsy Crowe e/betsycrowe@example.com p/+65 91234567 f/250 x/Advanced l/Punggol`
 
 ### Listing all persons: `list`
 
@@ -109,18 +106,16 @@ Format: `list`
 
 Edits an existing person in the address book.
 
-Format: `edit PHONE [n/NAME] [p/PHONE] [e/EMAIL] [f/FTP] [x/EXPERIENCE] [l/LOCATION]… [t/TAG]…`
+Format: `edit PHONE [n/NAME] [p/PHONE] [e/EMAIL] [f/FTP] [x/EXPERIENCE] [l/LOCATION]…`
 
 * Edits the person with the specified phone number in the displayed list. Exactly one displayed contact must match.
 * The resulting phone number must not belong to another contact anywhere in the book. An unchanged phone number is allowed when it is already unique.
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
-* When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
-* To remove all of a person's tags, enter `t/` without a tag after it.
 
 Examples:
 * `edit +65 98765432 p/+65 91111111 e/johndoe@example.com` updates the identified contact's phone and email.
-* `edit +65 91234567 n/Betsy Crower t/` updates Betsy's name and clears her tags.
+* `edit +65 91234567 n/Betsy Crower` updates Betsy's name.
 
 ### Locating persons by name or phone: `find`
 
@@ -187,7 +182,7 @@ email addresses are unique.
 
 ### Editing the data file
 
-AddressBook data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Older data files may contain an `address` field; Cyclique ignores it and omits it when saving. Advanced users are welcome to update data directly by editing that data file.
+AddressBook data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Older data files may contain `address` or `tags` fields; Cyclique ignores them and omits them when saving, while retaining all supported cyclist details. Advanced users are welcome to update data directly by editing that data file.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
 If your changes make the data file invalid, AddressBook starts with an empty address book at the next run. The invalid file remains on disk until you run a command (AddressBook saves after every command). Still, we recommend backing up the file before editing it.<br>
@@ -218,10 +213,10 @@ _Details coming soon ..._
 
 Action | Format, Examples
 --------|------------------
-**Add** | `add n/NAME p/PHONE e/EMAIL f/FTP_LEVEL x/EXPERIENCE_LEVEL l/LOCATION [t/TAG]…` <br> e.g., `add n/James Ho p/+65 22224444 e/jamesho@example.com f/300 x/Intermediate l/any t/friend`
+**Add** | `add n/NAME p/PHONE e/EMAIL f/FTP_LEVEL x/EXPERIENCE_LEVEL l/LOCATION [l/LOCATION]…` <br> e.g., `add n/James Ho p/+65 22224444 e/jamesho@example.com f/300 x/Intermediate l/any`
 **Clear** | `clear`
 **Delete** | `delete PHONE`<br> e.g., `delete +65 22224444`
-**Edit** | `edit PHONE [n/NAME] [p/PHONE] [e/EMAIL] [f/FTP] [x/EXPERIENCE] [l/LOCATION]… [t/TAG]…`<br> e.g., `edit +65 22224444 n/James Lee e/jameslee@example.com`
+**Edit** | `edit PHONE [n/NAME] [p/PHONE] [e/EMAIL] [f/FTP] [x/EXPERIENCE] [l/LOCATION]…`<br> e.g., `edit +65 22224444 n/James Lee e/jameslee@example.com`
 **Find** | `find [n/NAME_KEYWORD]… [p/PHONE]…`<br> e.g., `find n/James n/Jake`, `find n/James p/+65 96320842`
 **List** | `list`
 **Help** | `help`

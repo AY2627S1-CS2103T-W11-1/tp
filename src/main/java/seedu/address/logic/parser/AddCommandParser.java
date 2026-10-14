@@ -7,7 +7,6 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_FTP;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LOCATION;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
 import java.util.Set;
 import java.util.stream.Stream;
@@ -21,7 +20,6 @@ import seedu.address.model.person.Location;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
-import seedu.address.model.tag.Tag;
 
 /**
  * Parses input arguments and creates a new AddCommand object
@@ -34,9 +32,14 @@ public class AddCommandParser implements Parser<AddCommand> {
      * @throws ParseException if the user input does not conform to the expected format
      */
     public AddCommand parse(String args) throws ParseException {
+        // Prevent the retired prefix from being absorbed into a supported field value.
+        if (args.matches("(?s).*(?:^|\\s)t/.*")) {
+            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddCommand.MESSAGE_USAGE));
+        }
+
         ArgumentMultimap argMultimap =
                 ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_FTP,
-                        PREFIX_EXPERIENCE_LEVEL, PREFIX_LOCATION, PREFIX_TAG);
+                        PREFIX_EXPERIENCE_LEVEL, PREFIX_LOCATION);
 
         if (!argMultimap.getValue(PREFIX_FTP).isPresent()
                 && arePrefixesPresent(argMultimap, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL,
@@ -68,9 +71,8 @@ public class AddCommandParser implements Parser<AddCommand> {
                 ParserUtil.parseExperienceLevel(argMultimap.getValue(PREFIX_EXPERIENCE_LEVEL).get());
 
         Set<Location> locations = ParserUtil.parseLocations(argMultimap.getAllValues(PREFIX_LOCATION));
-        Set<Tag> tagList = ParserUtil.parseTags(argMultimap.getAllValues(PREFIX_TAG));
 
-        Person person = new Person(name, phone, email, ftp, experienceLevel, locations, tagList);
+        Person person = new Person(name, phone, email, ftp, experienceLevel, locations);
 
         return new AddCommand(person);
     }

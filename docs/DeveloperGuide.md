@@ -127,7 +127,7 @@ The `Model` component,
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** The alternative, arguably more object-oriented, design below keeps a unique list of tags in `AddressBook`, and each `Person` references tags from that list. This lets `AddressBook` maintain one `Tag` object per unique tag instead of each `Person` holding its own `Tag` objects.<br>
+<div markdown="span" class="alert alert-info">:information_source: **Note:** The following diagram illustrates a historical model design. Cyclique no longer stores tags. Diagram updates are deferred to a later increment.<br>
 
 <img src="images/BetterModelClassDiagram.png" width="450" />
 
@@ -142,6 +142,7 @@ The `Model` component,
 
 The `Storage` component,
 * can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
+* ignores the retired `tags` property in cyclist JSON records without validating its contents. New saves omit it. Supported cyclist fields retain their existing validation and legacy defaults.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
@@ -514,18 +515,18 @@ Repeat the checks on each operating system supported by the release.
 ### Adding and editing people
 
 1. Enter `clear`, then
-   `add n/John Doe p/+65 98765432 e/johnd@example.com f/300 x/Beginner l/any t/friends t/owesMoney`.
-   Expected: One contact appears with both tags. The success message contains no residential address.
+   `add n/John Doe p/+65 98765432 e/johnd@example.com f/300 x/Beginner l/any`.
+   Expected: One contact appears with all supported fields and no tag row.
+   The success message contains no residential address.
 1. Try adding Alice with `a/10 Test Road` appended and `edit +65 98765432 a/10 Test Road`.
    Expected: Both commands are rejected and cyclist details remain unchanged.
 1. Enter `add n/Alice Tan p/+65 91234567 e/alice@example.com f/1 x/Beginner l/East Coast l/Punggol`.
-   Expected: A second contact appears with both locations and no tags.
+   Expected: A second contact appears with both locations.
 1. Repeat John's add command. Expected: A duplicate-person error and no changes.
 1. Enter `edit +65 98765432 p/+65 96742165 e/johndoe@example.com f/600 x/Advanced l/Punggol`.
    Expected: The success message contains no residential address. John's supplied fields change;
-   his name and tags remain unchanged. His location set is replaced with Punggol.
+   his name remains unchanged. His location set is replaced with Punggol.
    Both contacts are displayed.
-1. Enter `edit +65 96742165 t/`. Expected: John's tags are cleared and other fields are retained.
 1. Try `edit +65 96742165`, `edit +65 96742165 n/John Updated f/601`,
    `edit +65 96742165 l/`, and `edit +65 96742165 p/+65 111 p/+65 222`.
    Expected: Each command shows an error and leaves every contact field unchanged.
@@ -608,8 +609,8 @@ Use the contacts from the alphabetical display scenario before deleting Zara.
    Expected: Both use the same wording with `+65 99999999`.
 1. Enter `delete` or `edit`. Expected: The error begins `Invalid command format.`
    followed by usage instructions. Examples remain copyable command text.
-1. Enter `list`, then try `edit +65 94444444 n/!`,
-   `edit +65 94444444 t/!`, and `edit +65 94444444 x/Expert`.
+1. Enter `list`, then try `edit +65 94444444 n/!`
+   and `edit +65 94444444 x/Expert`.
    Expected: Each validation error ends with a full stop and no details change.
 1. Enter `edit +65 94444444 n/Ben n/Zara`.
    Expected: `Multiple values specified for the following single-valued field(s): n/.`
@@ -618,7 +619,7 @@ Use the contacts from the alphabetical display scenario before deleting Zara.
 ### Saving data and recovering from invalid files
 
 1. Add John again, edit a field, and exit. Launch again.
-   Expected: All saved fields, tags and locations match the last successful command.
+   Expected: All saved fields and locations match the last successful command.
 1. Delete John, exit, and relaunch. Expected: John stays deleted.
 1. Add John, enter `clear`, exit, and relaunch. Expected: The book stays empty.
 1. With the application closed, back up the disposable `data/addressbook.json`, then remove it.
@@ -674,3 +675,19 @@ Use the contacts from the alphabetical display scenario before deleting Zara.
    email to `JOHN@EXAMPLE.COM`, then relaunch.
    Expected: The case-insensitive duplicate email causes the JSON to be rejected in the same way.
    Close Cyclique, restore the valid backup and relaunch. Expected: Both valid records are loaded.
+
+### Tag removal compatibility regression
+
+Use a disposable data directory for these checks.
+
+1. Open Help. Expected: Add and Edit entries contain no tag parameter.
+1. Enter `add n/Tagless Rider p/+65 98888888 e/tagless@example.com f/250 x/Intermediate l/Punggol`.
+   Expected: The card and success message show supported fields without tags or an empty tag row.
+1. Enter `edit +65 98888888 n/Updated Rider`. Expected: The name changes; other fields remain unchanged.
+1. Append `t/friend` to the add command above and try `edit +65 98888888 t/` and
+   `edit +65 98888888 n/Changed t/friend`. Expected: Each command is rejected with tag-free usage;
+   records and saved data remain unchanged.
+1. Exit, add `"tags": ["friends", "invalid tag!"]` to a cyclist in the disposable JSON file,
+   and relaunch. Expected: All supported fields load, with no tags on the card.
+1. Edit a supported field, exit, and inspect the JSON. Expected: No cyclist has a `tags` field.
+   Relaunch and confirm the edit persists.

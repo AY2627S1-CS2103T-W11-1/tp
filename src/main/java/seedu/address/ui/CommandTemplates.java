@@ -6,7 +6,6 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_FTP;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LOCATION;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
 import java.util.List;
 
@@ -38,14 +37,13 @@ public class CommandTemplates {
             new Template(
                     AddCommand.COMMAND_WORD + " " + PREFIX_NAME + "NAME " + PREFIX_PHONE + "PHONE "
                             + PREFIX_EMAIL + "EMAIL " + PREFIX_FTP + "FTP " + PREFIX_EXPERIENCE_LEVEL
-                            + "EXPERIENCE_LEVEL " + PREFIX_LOCATION + "LOCATION [" + PREFIX_TAG + "TAG]...",
+                            + "EXPERIENCE_LEVEL " + PREFIX_LOCATION + "LOCATION [" + PREFIX_LOCATION + "LOCATION]...",
                     AddCommand.COMMAND_WORD + " " + PREFIX_NAME + " " + PREFIX_PHONE + " " + PREFIX_EMAIL + " "
                             + PREFIX_FTP + " " + PREFIX_EXPERIENCE_LEVEL + " " + PREFIX_LOCATION),
             new Template(
                     EditCommand.COMMAND_WORD + " PHONE [" + PREFIX_NAME + "NAME] [" + PREFIX_PHONE + "PHONE] ["
                             + PREFIX_EMAIL + "EMAIL] [" + PREFIX_FTP + "FTP] [" + PREFIX_EXPERIENCE_LEVEL
-                            + "EXPERIENCE_LEVEL] [" + PREFIX_LOCATION + "LOCATION]... [" + PREFIX_TAG
-                            + "TAG]...",
+                            + "EXPERIENCE_LEVEL] [" + PREFIX_LOCATION + "LOCATION]...",
                     EditCommand.COMMAND_WORD + " "),
             new Template(
                     DeleteCommand.COMMAND_WORD + " PHONE",

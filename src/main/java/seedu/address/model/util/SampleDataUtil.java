@@ -14,7 +14,6 @@ import seedu.address.model.person.Location;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
-import seedu.address.model.tag.Tag;
 
 /**
  * Contains utility methods for populating {@code AddressBook} with sample data.
@@ -26,38 +25,32 @@ public class SampleDataUtil {
             new Person(new Name("Alex Yeoh"), new Phone("+65 87438807"),
                     new Email("alexyeoh@example.com"), new Ftp("120"),
                     new ExperienceLevel("Beginner"),
-                    getLocationSet("East Coast Park", "Marina Bay"),
-                    getTagSet("friends")),
+                    getLocationSet("East Coast Park", "Marina Bay")),
 
             new Person(new Name("Bernice Yu"), new Phone("+65 99272758"),
                     new Email("berniceyu@example.com"), new Ftp("185"),
                     new ExperienceLevel("Intermediate"),
-                    getLocationSet("Punggol", "Seletar"),
-                    getTagSet("colleagues", "friends")),
+                    getLocationSet("Punggol", "Seletar")),
 
             new Person(new Name("Charlotte Oliveiro"), new Phone("+65 93210283"),
                     new Email("charlotte@example.com"), new Ftp("280"),
                     new ExperienceLevel("Advanced"),
-                    getLocationSet("Mandai", "Lim Chu Kang"),
-                    getTagSet("neighbours")),
+                    getLocationSet("Mandai", "Lim Chu Kang")),
 
             new Person(new Name("David Li"), new Phone("+65 91031282"),
                     new Email("lidavid@example.com"), new Ftp("145"),
                     new ExperienceLevel("Beginner"),
-                    getLocationSet("Bishan Park"),
-                    getTagSet("family")),
+                    getLocationSet("Bishan Park")),
 
             new Person(new Name("Irfan Ibrahim"), new Phone("+65 92492021"),
                     new Email("irfan@example.com"), new Ftp("210"),
                     new ExperienceLevel("Intermediate"),
-                    getLocationSet("East Coast Park", "Changi"),
-                    getTagSet("classmates")),
+                    getLocationSet("East Coast Park", "Changi")),
 
             new Person(new Name("Roy Balakrishnan"), new Phone("+65 92624417"),
                     new Email("royb@example.com"), new Ftp("320"),
                     new ExperienceLevel("Advanced"),
-                    getLocationSet("any"),
-                    getTagSet("colleagues"))
+                    getLocationSet("any"))
         };
     }
 
@@ -78,12 +71,4 @@ public class SampleDataUtil {
                 .collect(Collectors.toSet());
     }
 
-    /**
-     * Returns a tag set containing the list of strings given.
-     */
-    public static Set<Tag> getTagSet(String... strings) {
-        return Arrays.stream(strings)
-                .map(Tag::new)
-                .collect(Collectors.toSet());
-    }
 }

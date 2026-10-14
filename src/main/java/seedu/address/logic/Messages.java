@@ -51,9 +51,7 @@ public class Messages {
                 .append("; Experience Level: ")
                 .append(person.getExperienceLevel())
                 .append("; Locations: ")
-                .append(person.getLocations())
-                .append("; Tags: ");
-        person.getTags().forEach(builder::append);
+                .append(person.getLocations());
         return builder.toString();
     }
 

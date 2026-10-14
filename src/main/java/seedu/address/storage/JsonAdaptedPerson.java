@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import seedu.address.commons.exceptions.IllegalValueException;
@@ -17,11 +18,12 @@ import seedu.address.model.person.Location;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
-import seedu.address.model.tag.Tag;
 
 /**
  * Jackson-friendly version of {@link Person}.
+ * Retired tags are ignored on loading and omitted from subsequent saves.
  */
+@JsonIgnoreProperties("tags")
 class JsonAdaptedPerson {
 
     public static final String MISSING_FIELD_MESSAGE_FORMAT = "Cyclist's %s field is missing.";
@@ -32,15 +34,6 @@ class JsonAdaptedPerson {
     private final String ftp;
     private final String experienceLevel;
     private final List<String> locations = new ArrayList<>();
-    private final List<JsonAdaptedTag> tags = new ArrayList<>();
-
-    /**
-     * Constructs a {@code JsonAdaptedPerson} with the given person details.
-     */
-    public JsonAdaptedPerson(String name, String phone, String email,
-            String experienceLevel, List<JsonAdaptedTag> tags) {
-        this(name, phone, email, "1", experienceLevel, null, tags);
-    }
 
     /**
      * Constructs an adapted person from the stored cyclist fields.
@@ -49,7 +42,7 @@ class JsonAdaptedPerson {
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("ftp") String ftp,
             @JsonProperty("experienceLevel") String experienceLevel,
-            @JsonProperty("locations") List<String> locations, @JsonProperty("tags") List<JsonAdaptedTag> tags) {
+            @JsonProperty("locations") List<String> locations) {
         this.name = name;
         this.phone = phone;
         this.email = email;
@@ -57,9 +50,6 @@ class JsonAdaptedPerson {
         this.experienceLevel = experienceLevel;
         if (locations != null) {
             this.locations.addAll(locations);
-        }
-        if (tags != null) {
-            this.tags.addAll(tags);
         }
     }
 
@@ -75,9 +65,6 @@ class JsonAdaptedPerson {
         locations.addAll(source.getLocations().stream()
                 .map(location -> location.value)
                 .collect(Collectors.toList()));
-        tags.addAll(source.getTags().stream()
-                .map(JsonAdaptedTag::new)
-                .collect(Collectors.toList()));
     }
 
     /**
@@ -86,11 +73,6 @@ class JsonAdaptedPerson {
      * @throws IllegalValueException if there were any data constraints violated in the adapted person.
      */
     public Person toModelType() throws IllegalValueException {
-        final List<Tag> personTags = new ArrayList<>();
-        for (JsonAdaptedTag tag : tags) {
-            personTags.add(tag.toModelType());
-        }
-
         if (name == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Name.class.getSimpleName()));
         }
@@ -141,9 +123,8 @@ class JsonAdaptedPerson {
             modelLocations.add(new Location("any"));
         }
 
-        final Set<Tag> modelTags = new HashSet<>(personTags);
         return new Person(modelName, modelPhone, modelEmail, modelFtp, modelExperienceLevel,
-                modelLocations, modelTags);
+                modelLocations);
     }
 
 }

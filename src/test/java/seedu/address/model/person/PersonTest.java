@@ -7,7 +7,6 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_EXPERIENCE_LEVEL_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
-import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BOB;
@@ -21,9 +20,9 @@ import seedu.address.testutil.PersonBuilder;
 public class PersonTest {
 
     @Test
-    public void asObservableList_modifyList_throwsUnsupportedOperationException() {
+    public void getLocations_modifySet_throwsUnsupportedOperationException() {
         Person person = new PersonBuilder().build();
-        assertThrows(UnsupportedOperationException.class, () -> person.getTags().remove(0));
+        assertThrows(UnsupportedOperationException.class, () -> person.getLocations().clear());
     }
 
     @Test
@@ -40,12 +39,12 @@ public class PersonTest {
 
         // same phone, different name and email -> returns true
         Person editedAlice = new PersonBuilder(ALICE).withName(VALID_NAME_BOB).withEmail(VALID_EMAIL_BOB)
-                .withTags(VALID_TAG_HUSBAND).build();
+                .build();
         assertTrue(ALICE.isSamePerson(editedAlice));
 
         // same email, different name and phone -> returns true
         editedAlice = new PersonBuilder(ALICE).withName(VALID_NAME_BOB).withPhone(VALID_PHONE_BOB)
-                .withTags(VALID_TAG_HUSBAND).build();
+                .build();
         assertTrue(ALICE.isSamePerson(editedAlice));
 
         // same name, different phone and email -> returns false
@@ -73,7 +72,7 @@ public class PersonTest {
         // non-identity fields differ -> returns true
         editedAlice = new PersonBuilder(ALICE).withFtp("300").withExperienceLevel(VALID_EXPERIENCE_LEVEL_BOB)
                 .withLocations("East Coast Park")
-                .withTags(VALID_TAG_HUSBAND).build();
+                .build();
         assertTrue(ALICE.isSamePerson(editedAlice));
     }
 
@@ -121,10 +120,6 @@ public class PersonTest {
         editedAlice = new PersonBuilder(ALICE).withExperienceLevel(VALID_EXPERIENCE_LEVEL_BOB).build();
         assertFalse(ALICE.equals(editedAlice));
 
-        // different tags -> returns false
-        editedAlice = new PersonBuilder(ALICE).withTags(VALID_TAG_HUSBAND).build();
-        assertFalse(ALICE.equals(editedAlice));
-
         // different preferred locations -> returns false
         editedAlice = new PersonBuilder(ALICE).withLocations("East Coast Park").build();
         assertFalse(ALICE.equals(editedAlice));
@@ -135,7 +130,7 @@ public class PersonTest {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail() + ", ftp=" + ALICE.getFtp()
                 + ", experienceLevel=" + ALICE.getExperienceLevel() + ", locations=" + ALICE.getLocations()
-                + ", tags=" + ALICE.getTags() + "}";
+                + "}";
         assertEquals(expected, ALICE.toString());
     }
 }

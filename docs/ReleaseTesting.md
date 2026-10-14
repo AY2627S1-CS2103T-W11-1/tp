@@ -206,3 +206,23 @@ JSON data is rejected during loading.
 
 JavaFX emits native-access, unnamed-module and deprecated Unsafe warnings on JDK 25.
 They did not fail the automated checks or prevent logged UI startup.
+
+## Tag removal regression — 14 October 2026
+
+Verified with Temurin JDK 25.0.4.1 on macOS:
+
+- `./gradlew check coverage shadowJar`: passed, including production and test Checkstyle.
+  Tag-removal validation: 350 tests passed; line coverage 74.91%, instruction coverage 77.70%,
+  branch coverage 87.59% (above the 50% target).
+- Unit and integration tests cover tag-free records and feedback, removal of Help parameters,
+  old tag input rejection without changes to records or saved files, and legacy JSON tag values.
+- The legacy-file workflow loads cyclists, edits a supported field, saves without tags and
+  reloads while retaining the supported fields. Existing JSON fixtures containing tags remain
+  as compatibility regression data.
+- JavaFX tests load the real card FXML, verify supported controls and check that no tag container remains.
+- Release JAR startup in a disposable directory reached UI startup. The UI tool cannot select
+  the standalone Java process (`java` and `Cyclique` both return `Invalid app`), so command-box,
+  Help menu, card layout and restart checks could not be completed manually. The process was stopped.
+
+Run the Developer Guide's **Tag removal compatibility regression** manually before release.
+Windows and Linux manual checks remain outstanding. Developer Guide UML diagrams are unchanged.

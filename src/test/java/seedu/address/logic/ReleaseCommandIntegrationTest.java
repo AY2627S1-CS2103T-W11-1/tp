@@ -34,12 +34,12 @@ import seedu.address.testutil.PersonBuilder;
  */
 public class ReleaseCommandIntegrationTest {
     private static final String ADD_JOHN = "add n/John Doe p/+65 98765432 e/johnd@example.com"
-            + " f/300 x/Beginner l/any t/friends t/owesMoney";
+            + " f/300 x/Beginner l/any";
     private static final String ADD_ALICE = "add n/Alice Tan p/+65 91234567 e/alice@example.com"
             + " f/1 x/Beginner l/East Coast l/Punggol";
     private static final Person JOHN = new PersonBuilder().withName("John Doe").withPhone("+65 98765432")
             .withEmail("johnd@example.com").withFtp("300")
-            .withLocations("any").withTags("friends", "owesMoney").build();
+            .withLocations("any").build();
     private static final Person ALICE = new PersonBuilder().withName("Alice Tan").withPhone("+65 91234567")
             .withEmail("alice@example.com").withFtp("1")
             .withLocations("East Coast", "Punggol").build();
@@ -50,6 +50,38 @@ public class ReleaseCommandIntegrationTest {
     private Model model;
     private Logic logic;
     private Storage storage;
+
+    @Test
+    public void execute_legacyTags_preservesSupportedFieldsAcrossSaveAndReload() throws Exception {
+        logic.execute(ADD_JOHN);
+        logic.execute(ADD_ALICE);
+        Path dataFile = storage.getAddressBookFilePath();
+        String legacyJson = Files.readString(dataFile).replace("\"name\"",
+                "\"tags\": [\"friends\", \"invalid tag!\"], \"name\"");
+        Files.writeString(dataFile, legacyJson);
+        model = new ModelManager(storage.readAddressBook().orElseThrow(), new UserPrefs());
+        logic = new LogicManager(model, storage);
+        assertEquals(List.of(JOHN, ALICE), model.getAddressBook().getPersonList());
+
+        String feedback = logic.execute("edit +65 98765432 n/Updated Rider").getFeedbackToUser();
+        Person editedJohn = new PersonBuilder(JOHN).withName("Updated Rider").build();
+        assertFalse(feedback.contains("Tags:"));
+        assertFalse(Files.readString(dataFile).contains("\"tags\""));
+        assertEquals(List.of(editedJohn, ALICE), model.getAddressBook().getPersonList());
+        assertSavedState();
+    }
+
+    @Test
+    public void execute_removedTagPrefix_rejectedWithoutChangingData() throws Exception {
+        logic.execute(ADD_JOHN);
+        String savedData = Files.readString(storage.getAddressBookFilePath());
+        for (String command : List.of(ADD_ALICE + " t/friend", "edit +65 98765432 t/",
+                "edit +65 98765432 n/Changed t/friend")) {
+            assertThrows(ParseException.class, () -> logic.execute(command));
+            assertEquals(List.of(JOHN), model.getAddressBook().getPersonList());
+            assertEquals(savedData, Files.readString(storage.getAddressBookFilePath()));
+        }
+    }
 
     @Test
     public void execute_addAndEdit_omitAddressFromFeedbackAndStorage() throws Exception {
@@ -134,17 +166,13 @@ public class ReleaseCommandIntegrationTest {
         assertSavedState();
 
         logic.execute("edit +65 98765432 p/+65 96742165 e/johndoe@example.com f/600"
-                + " x/Advanced l/East Coast l/Punggol t/cyclists");
+                + " x/Advanced l/East Coast l/Punggol");
         Person editedJohn = new PersonBuilder(JOHN).withPhone("+65 96742165")
                 .withEmail("johndoe@example.com").withFtp("600").withExperienceLevel("Advanced")
-                .withLocations("East Coast", "Punggol").withTags("cyclists").build();
+                .withLocations("East Coast", "Punggol").build();
         assertEquals(List.of(editedJohn), model.getAddressBook().getPersonList());
         assertSavedState();
 
-        logic.execute("edit +65 96742165 t/");
-        assertEquals(List.of(new PersonBuilder(editedJohn).withTags().build()),
-                model.getAddressBook().getPersonList());
-        assertSavedState();
     }
 
     @Test
@@ -198,7 +226,6 @@ public class ReleaseCommandIntegrationTest {
         String savedData = Files.readString(storage.getAddressBookFilePath());
         String[][] invalidEdits = {
             {"n/!", "Names should only contain alphanumeric characters and spaces, and should not be blank."},
-            {"t/!", "Tag names should be alphanumeric."},
             {"x/Expert", "Experience level should be one of: Beginner, Intermediate, Advanced (case-insensitive)."},
             {"n/John n/Ben", "Multiple values specified for the following single-valued field(s): n/."}
         };

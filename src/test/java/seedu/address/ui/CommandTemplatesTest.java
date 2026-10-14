@@ -1,6 +1,7 @@
 package seedu.address.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EXPERIENCE_LEVEL;
@@ -8,7 +9,6 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_FTP;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LOCATION;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
 import java.util.List;
 
@@ -24,6 +24,14 @@ import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 
 public class CommandTemplatesTest {
+
+    @Test
+    public void allTemplates_excludeRemovedTagPrefix() {
+        for (CommandTemplates.Template template : CommandTemplates.ALL) {
+            assertFalse(template.display().contains("t/"));
+            assertFalse(template.insertText().contains("t/"));
+        }
+    }
 
     @Test
     public void all_listsEveryCommandInOrder() {
@@ -49,7 +57,7 @@ public class CommandTemplatesTest {
         String display = CommandTemplates.ALL.get(1).display();
 
         for (Object prefix : new Object[] {PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_FTP,
-            PREFIX_EXPERIENCE_LEVEL, PREFIX_LOCATION, PREFIX_TAG}) {
+            PREFIX_EXPERIENCE_LEVEL, PREFIX_LOCATION}) {
             assertTrue(display.contains("[" + prefix), "Edit format should list optional " + prefix);
         }
     }
