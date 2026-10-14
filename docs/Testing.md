@@ -74,3 +74,5 @@ visible card indexes after reordering and filtering, and startup ordering after 
 Run the Developer Guide's **Tag removal compatibility regression** after tag-related changes.
 `JsonAdaptedPersonTest` checks legacy tags (including empty, null and obsolete invalid values)
 are ignored and omitted on serialisation; parser tests reject removed tag input.
+
+Run the Developer Guide’s **Emergency contact regression** for `sos/` changes, including legacy loading, persistence, phone validation, find combinations, cyclist card layout and both Help surfaces.

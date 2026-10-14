@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_EMERGENCY_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EXPERIENCE_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_FTP;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LOCATION;
@@ -56,7 +57,7 @@ public class CommandTemplatesTest {
     public void editTemplate_displayListsEveryEditableFieldAsOptional() {
         String display = CommandTemplates.ALL.get(1).display();
 
-        for (Object prefix : new Object[] {PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_FTP,
+        for (Object prefix : new Object[] {PREFIX_NAME, PREFIX_PHONE, PREFIX_EMERGENCY_PHONE, PREFIX_EMAIL, PREFIX_FTP,
             PREFIX_EXPERIENCE_LEVEL, PREFIX_LOCATION}) {
             assertTrue(display.contains("[" + prefix), "Edit format should list optional " + prefix);
         }
@@ -66,7 +67,7 @@ public class CommandTemplatesTest {
     public void addTemplate_insertTextContainsCompulsoryPrefixes() {
         String insertText = CommandTemplates.ALL.get(0).insertText();
 
-        for (Object prefix : new Object[] {PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_FTP,
+        for (Object prefix : new Object[] {PREFIX_NAME, PREFIX_PHONE, PREFIX_EMERGENCY_PHONE, PREFIX_EMAIL, PREFIX_FTP,
             PREFIX_EXPERIENCE_LEVEL, PREFIX_LOCATION}) {
             assertTrue(insertText.contains(prefix.toString()));
         }

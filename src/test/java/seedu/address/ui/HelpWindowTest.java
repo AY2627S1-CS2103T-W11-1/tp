@@ -16,6 +16,16 @@ import seedu.address.logic.commands.ListCommand;
 public class HelpWindowTest {
 
     @Test
+    public void emergencyPhone_helpFormatsAndFindDropdown_includePrefix() {
+        for (String usage : new String[] {AddCommand.MESSAGE_USAGE, EditCommand.MESSAGE_USAGE,
+            FindCommand.MESSAGE_USAGE}) {
+            assertTrue(usage.contains("sos/EMERGENCY_PHONE"));
+            assertTrue(HelpWindow.COMMAND_LIST.contains(usage));
+        }
+        assertTrue(CommandTemplates.ALL.get(3).display().contains("sos/EMERGENCY_PHONE"));
+    }
+
+    @Test
     public void commandList_containsEveryCommandWord() {
         String[] commandWords = {
             AddCommand.COMMAND_WORD, EditCommand.COMMAND_WORD, DeleteCommand.COMMAND_WORD,

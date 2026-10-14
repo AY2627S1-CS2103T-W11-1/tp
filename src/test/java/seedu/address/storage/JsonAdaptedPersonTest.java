@@ -7,6 +7,7 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
@@ -15,7 +16,9 @@ import seedu.address.commons.util.JsonUtil;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.ExperienceLevel;
 import seedu.address.model.person.Name;
+import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.testutil.PersonBuilder;
 
 public class JsonAdaptedPersonTest {
     private static final String INVALID_NAME = "R@chel";
@@ -27,6 +30,32 @@ public class JsonAdaptedPersonTest {
     private static final String VALID_PHONE = BENSON.getPhone().toString();
     private static final String VALID_EMAIL = BENSON.getEmail().toString();
     private static final String VALID_EXPERIENCE_LEVEL = BENSON.getExperienceLevel().toString();
+
+    @Test
+    public void emergencyPhone_jsonRoundTripAndLegacyCompatibility() throws Exception {
+        Person cyclist = new PersonBuilder(BENSON)
+                .withEmergencyPhone("+65 99999999").build();
+        String json = JsonUtil.toJsonString(new JsonAdaptedPerson(cyclist));
+        assertEquals(cyclist, JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType());
+        for (String field : List.of("", "\"emergencyPhone\":null,")) {
+            String legacyJson = "{" + field + "\"name\":\"Benson Meier\",\"phone\":\"+65 98765432\","
+                    + "\"email\":\"benson@example.com\",\"experienceLevel\":\"Beginner\"}";
+            Person legacy = JsonUtil.fromJsonString(legacyJson,
+                    JsonAdaptedPerson.class).toModelType();
+            assertEquals(Optional.empty(), legacy.getEmergencyPhone());
+            assertEquals(legacy, JsonUtil.fromJsonString(JsonUtil.toJsonString(new JsonAdaptedPerson(legacy)),
+                    JsonAdaptedPerson.class).toModelType());
+        }
+    }
+
+    @Test
+    public void emergencyPhone_invalidStoredValues_rejected() {
+        for (String value : List.of("", "99999999", "+65 99", "+65 999-99999", "+65  99999999")) {
+            JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, "1",
+                    VALID_EXPERIENCE_LEVEL, List.of("any"), value);
+            assertThrows(IllegalValueException.class, Phone.MESSAGE_CONSTRAINTS, person::toModelType);
+        }
+    }
 
     @Test
     public void fromJson_legacyTags_ignoresRetiredField() throws Exception {

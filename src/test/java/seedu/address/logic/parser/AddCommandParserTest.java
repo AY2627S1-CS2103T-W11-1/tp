@@ -24,6 +24,7 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_EXPERIENCE_LEVE
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_EMERGENCY_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EXPERIENCE_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_FTP;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
@@ -47,12 +48,27 @@ import seedu.address.model.person.Phone;
 import seedu.address.testutil.PersonBuilder;
 
 public class AddCommandParserTest {
+    private static final String SOS_DESC = " sos/+65 99999999";
+
     private AddCommandParser parser = new AddCommandParser();
+
+    @Test
+    public void parse_emergencyPhone_requiredAndSingleValued() {
+        String fields = NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + FTP_DESC_BOB
+                + EXPERIENCE_LEVEL_DESC_BOB + LOCATION_DESC_BOB;
+        assertParseFailure(parser, fields,
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddCommand.MESSAGE_USAGE));
+        assertParseFailure(parser, fields + " sos/", Phone.MESSAGE_MISSING_COUNTRY_CODE);
+        assertParseFailure(parser, fields + SOS_DESC + SOS_DESC,
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_EMERGENCY_PHONE));
+        assertParseSuccess(parser, SOS_DESC + fields,
+                new AddCommand(new PersonBuilder(BOB).withEmergencyPhone("+65 99999999").build()));
+    }
 
     @Test
     public void parse_removedPrefix_failure() {
         String validInput = NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB
-                + FTP_DESC_BOB + EXPERIENCE_LEVEL_DESC_BOB + LOCATION_DESC_BOB;
+                + FTP_DESC_BOB + EXPERIENCE_LEVEL_DESC_BOB + LOCATION_DESC_BOB + SOS_DESC;
         String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddCommand.MESSAGE_USAGE);
         for (String removedPrefix : List.of(" t/friend", " t/", " t/!", "\n t/friend")) {
             assertParseFailure(parser, validInput + removedPrefix, expectedMessage);
@@ -62,11 +78,12 @@ public class AddCommandParserTest {
 
     @Test
     public void parse_allFieldsPresent_success() {
-        Person expectedPerson = new PersonBuilder(BOB).build();
+        Person expectedPerson = new PersonBuilder(BOB).withEmergencyPhone("+65 99999999").build();
 
         // whitespace only preamble
         assertParseSuccess(parser, PREAMBLE_WHITESPACE + NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB
-                + FTP_DESC_BOB + EXPERIENCE_LEVEL_DESC_BOB + LOCATION_DESC_BOB, new AddCommand(expectedPerson));
+                + FTP_DESC_BOB + EXPERIENCE_LEVEL_DESC_BOB + LOCATION_DESC_BOB + SOS_DESC,
+                new AddCommand(expectedPerson));
 
     }
 
@@ -74,7 +91,7 @@ public class AddCommandParserTest {
     public void parse_repeatedSingleValue_failure() {
         String validExpectedPersonString = NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + FTP_DESC_BOB
                 + EXPERIENCE_LEVEL_DESC_BOB
-                + LOCATION_DESC_BOB;
+                + LOCATION_DESC_BOB + SOS_DESC;
 
         // multiple names
         assertParseFailure(parser, NAME_DESC_AMY + validExpectedPersonString,
@@ -101,7 +118,7 @@ public class AddCommandParserTest {
                 validExpectedPersonString + PHONE_DESC_AMY + EMAIL_DESC_AMY + NAME_DESC_AMY
                         + EXPERIENCE_LEVEL_DESC_AMY + FTP_DESC_BOB + validExpectedPersonString,
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_NAME, PREFIX_EMAIL, PREFIX_PHONE,
-                        PREFIX_EXPERIENCE_LEVEL, PREFIX_FTP));
+                        PREFIX_EXPERIENCE_LEVEL, PREFIX_FTP, PREFIX_EMERGENCY_PHONE));
 
         // invalid value followed by valid value
 
@@ -134,10 +151,10 @@ public class AddCommandParserTest {
 
     @Test
     public void parse_allRequiredFields_success() {
-        Person expectedPerson = new PersonBuilder(AMY).build();
+        Person expectedPerson = new PersonBuilder(AMY).withEmergencyPhone("+65 99999999").build();
         assertParseSuccess(parser,
                 NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY
-                        + FTP_DESC_BOB + EXPERIENCE_LEVEL_DESC_AMY + LOCATION_DESC_BOB,
+                        + FTP_DESC_BOB + EXPERIENCE_LEVEL_DESC_AMY + LOCATION_DESC_BOB + SOS_DESC,
                 new AddCommand(expectedPerson));
     }
 
@@ -148,25 +165,25 @@ public class AddCommandParserTest {
         // missing name prefix
         assertParseFailure(parser,
                 VALID_NAME_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB
-                        + FTP_DESC_BOB + EXPERIENCE_LEVEL_DESC_BOB + LOCATION_DESC_BOB,
+                        + FTP_DESC_BOB + EXPERIENCE_LEVEL_DESC_BOB + LOCATION_DESC_BOB + SOS_DESC,
                 expectedMessage);
 
         // missing phone prefix
         assertParseFailure(parser,
                 NAME_DESC_BOB + VALID_PHONE_BOB + EMAIL_DESC_BOB
-                        + FTP_DESC_BOB + EXPERIENCE_LEVEL_DESC_BOB + LOCATION_DESC_BOB,
+                        + FTP_DESC_BOB + EXPERIENCE_LEVEL_DESC_BOB + LOCATION_DESC_BOB + SOS_DESC,
                 expectedMessage);
 
         // missing email prefix
         assertParseFailure(parser,
                 NAME_DESC_BOB + PHONE_DESC_BOB + VALID_EMAIL_BOB
-                        + FTP_DESC_BOB + EXPERIENCE_LEVEL_DESC_BOB + LOCATION_DESC_BOB,
+                        + FTP_DESC_BOB + EXPERIENCE_LEVEL_DESC_BOB + LOCATION_DESC_BOB + SOS_DESC,
                 expectedMessage);
 
         // missing experience level prefix
         assertParseFailure(parser,
                 NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB
-                        + FTP_DESC_BOB + VALID_EXPERIENCE_LEVEL_BOB + LOCATION_DESC_BOB,
+                        + FTP_DESC_BOB + VALID_EXPERIENCE_LEVEL_BOB + LOCATION_DESC_BOB + SOS_DESC,
                 expectedMessage);
 
         // all prefixes missing
@@ -178,20 +195,20 @@ public class AddCommandParserTest {
         // missing FTP
         assertParseFailure(parser,
                 NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB
-                        + EXPERIENCE_LEVEL_DESC_BOB + LOCATION_DESC_BOB,
+                        + EXPERIENCE_LEVEL_DESC_BOB + LOCATION_DESC_BOB + SOS_DESC,
                 AddCommand.MESSAGE_MISSING_FTP);
 
         // missing location
         assertParseFailure(parser,
                 NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB
-                        + FTP_DESC_BOB + EXPERIENCE_LEVEL_DESC_BOB,
+                        + FTP_DESC_BOB + EXPERIENCE_LEVEL_DESC_BOB + SOS_DESC,
                 AddCommand.MESSAGE_MISSING_LOCATION);
     }
 
     @Test
     public void parse_ftpBoundariesAndInvalidValues_failureOrSuccess() {
         String requiredFields = NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + EXPERIENCE_LEVEL_DESC_BOB
-                + LOCATION_DESC_BOB;
+                + LOCATION_DESC_BOB + SOS_DESC;
         String ftpConstraints = "FTP should be a whole number between 1 and 600 watts.";
 
         assertDoesNotThrow(() -> parser.parse(requiredFields + " f/1"));
@@ -207,28 +224,28 @@ public class AddCommandParserTest {
     public void parse_invalidValue_failure() {
         // invalid name
         assertParseFailure(parser, INVALID_NAME_DESC + PHONE_DESC_BOB + EMAIL_DESC_BOB
-                + FTP_DESC_BOB + EXPERIENCE_LEVEL_DESC_BOB + LOCATION_DESC_BOB, Name.MESSAGE_CONSTRAINTS);
+                + FTP_DESC_BOB + EXPERIENCE_LEVEL_DESC_BOB + LOCATION_DESC_BOB + SOS_DESC, Name.MESSAGE_CONSTRAINTS);
 
         // invalid phone
         assertParseFailure(parser, NAME_DESC_BOB + INVALID_PHONE_DESC + EMAIL_DESC_BOB
-                + FTP_DESC_BOB + EXPERIENCE_LEVEL_DESC_BOB + LOCATION_DESC_BOB, Phone.MESSAGE_CONSTRAINTS);
+                + FTP_DESC_BOB + EXPERIENCE_LEVEL_DESC_BOB + LOCATION_DESC_BOB + SOS_DESC, Phone.MESSAGE_CONSTRAINTS);
 
         // invalid email
         assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + INVALID_EMAIL_DESC
-                + FTP_DESC_BOB + EXPERIENCE_LEVEL_DESC_BOB + LOCATION_DESC_BOB, Email.MESSAGE_CONSTRAINTS);
+                + FTP_DESC_BOB + EXPERIENCE_LEVEL_DESC_BOB + LOCATION_DESC_BOB + SOS_DESC, Email.MESSAGE_CONSTRAINTS);
 
         // invalid experience level
         assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB
-                + FTP_DESC_BOB + INVALID_EXPERIENCE_LEVEL_DESC + LOCATION_DESC_BOB,
+                + FTP_DESC_BOB + INVALID_EXPERIENCE_LEVEL_DESC + LOCATION_DESC_BOB + SOS_DESC,
                 ExperienceLevel.MESSAGE_CONSTRAINTS);
 
         // two invalid values, only first invalid value reported
         assertParseFailure(parser, INVALID_NAME_DESC + PHONE_DESC_BOB + EMAIL_DESC_BOB
-                + FTP_DESC_BOB + EXPERIENCE_LEVEL_DESC_BOB + LOCATION_DESC_BOB, Name.MESSAGE_CONSTRAINTS);
+                + FTP_DESC_BOB + EXPERIENCE_LEVEL_DESC_BOB + LOCATION_DESC_BOB + SOS_DESC, Name.MESSAGE_CONSTRAINTS);
 
         // non-empty preamble
         assertParseFailure(parser, PREAMBLE_NON_EMPTY + NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB
-                + FTP_DESC_BOB + EXPERIENCE_LEVEL_DESC_BOB + LOCATION_DESC_BOB,
+                + FTP_DESC_BOB + EXPERIENCE_LEVEL_DESC_BOB + LOCATION_DESC_BOB + SOS_DESC,
                 String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddCommand.MESSAGE_USAGE));
     }
 }

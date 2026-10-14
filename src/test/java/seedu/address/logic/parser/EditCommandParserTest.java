@@ -50,6 +50,31 @@ public class EditCommandParserTest {
     private EditCommandParser parser = new EditCommandParser();
 
     @Test
+    public void parse_emergencyPhoneOnly_successAndRejectsDuplicates() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()
+                .withEmergencyPhone("+65 99999999").build();
+        assertParseSuccess(parser, TARGET_PHONE + " sos/+65 99999999", new EditCommand(TARGET_PHONE, descriptor));
+        assertParseFailure(parser, TARGET_PHONE + " sos/+65 111 sos/+65 222",
+                Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_EMERGENCY_PHONE));
+    }
+
+    @Test
+    public void parse_emergencyPhone_usesSameValidationAsPhone() {
+        String[] values = {"", "91234567", "+6591234567", "+65  91234567", "+65 12", "+65 9123-4567",
+            "+65 (91234567)", "+1234 91234567"};
+        String[] messages = {Phone.MESSAGE_MISSING_COUNTRY_CODE, Phone.MESSAGE_MISSING_COUNTRY_CODE,
+            Phone.MESSAGE_MISSING_SEPARATOR, Phone.MESSAGE_MULTIPLE_SEPARATORS, Phone.MESSAGE_CONSTRAINTS,
+            Phone.MESSAGE_CONSTRAINTS, Phone.MESSAGE_CONSTRAINTS, Phone.MESSAGE_CONSTRAINTS};
+        for (int i = 0; i < values.length; i++) {
+            assertParseFailure(parser, TARGET_PHONE + " sos/" + values[i], messages[i]);
+            assertParseFailure(new FindCommandParser(), "sos/" + values[i], messages[i]);
+            assertParseFailure(new AddCommandParser(),
+                    " n/Bob p/+65 91234567 e/bob@example.com f/300 x/Beginner l/any sos/" + values[i],
+                    messages[i]);
+        }
+    }
+
+    @Test
     public void parse_removedPrefix_failure() {
         String validInput = TARGET_PHONE + " n/Bob";
         String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditCommand.MESSAGE_USAGE);

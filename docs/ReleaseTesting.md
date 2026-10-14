@@ -226,3 +226,34 @@ Verified with Temurin JDK 25.0.4.1 on macOS:
 
 Run the Developer Guide's **Tag removal compatibility regression** manually before release.
 Windows and Linux manual checks remain outstanding. Developer Guide UML diagrams are unchanged.
+
+## Emergency contact regression — 14 October 2026
+
+Implemented compulsory `sos/` for new cyclists, optional emergency-number edits,
+and exact emergency-number find criteria using the existing phone validation.
+Emergency numbers are saved, displayed on labelled SOS card rows and included in
+command feedback. Missing or null legacy values load as absent and display
+**Not provided**; other edits preserve that absence. Emergency contacts may be
+shared without changing cyclist identity or edit/delete targeting.
+
+Verified using Eclipse Temurin JDK 25.0.4.1 on macOS ARM64:
+
+- `./gradlew check coverage` passes: **365 tests**, no failures, errors or skips;
+  production and test Checkstyle pass. The release JAR builds with `shadowJar`.
+- JaCoCo line coverage is **75.72%** (1,085 of 1,433 lines), instruction coverage
+  is 78.72% and branch coverage is 88.49%, exceeding the 50% target.
+- Regression tests cover required, blank, malformed and repeated `sos/` input;
+  shared emergency contacts; field-specific and combined find criteria; edit
+  replacement and preservation; legacy loading and JSON save/reload; Help formats
+  and dropdown templates. JavaFX tests load the real card FXML and verify the SOS
+  label, displayed number, wrapping and legacy placeholder.
+- The release JAR launched with a disposable legacy book in
+  `/private/tmp/cyclique-sos-ui` and reached UI startup. The computer-use tool
+  cannot bind to the standalone JavaFX process: both `java` and `Cyclique` return
+  `Invalid app`. Manual command-box, Help/F1/dropdown, card resize and restart
+  checks therefore remain outstanding. The temporary application was stopped.
+  Automated checks do not confirm visual
+  layout or keyboard behaviour. Windows and Linux manual checks remain outstanding.
+
+Run the Developer Guide's **Emergency contact regression** manually before release.
+Developer Guide UML diagrams are unchanged.

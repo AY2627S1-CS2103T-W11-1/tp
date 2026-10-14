@@ -33,14 +33,16 @@ import seedu.address.testutil.PersonBuilder;
  * Exercises release command workflows through parsing, execution, filtering, and JSON storage.
  */
 public class ReleaseCommandIntegrationTest {
-    private static final String ADD_JOHN = "add n/John Doe p/+65 98765432 e/johnd@example.com"
+    private static final String ADD_JOHN = "add n/John Doe p/+65 98765432 sos/+65 99999999 e/johnd@example.com"
             + " f/300 x/Beginner l/any";
-    private static final String ADD_ALICE = "add n/Alice Tan p/+65 91234567 e/alice@example.com"
+    private static final String ADD_ALICE = "add n/Alice Tan p/+65 91234567 sos/+65 99999999 e/alice@example.com"
             + " f/1 x/Beginner l/East Coast l/Punggol";
-    private static final Person JOHN = new PersonBuilder().withName("John Doe").withPhone("+65 98765432")
+    private static final Person JOHN = new PersonBuilder()
+            .withEmergencyPhone("+65 99999999").withName("John Doe").withPhone("+65 98765432")
             .withEmail("johnd@example.com").withFtp("300")
             .withLocations("any").build();
-    private static final Person ALICE = new PersonBuilder().withName("Alice Tan").withPhone("+65 91234567")
+    private static final Person ALICE = new PersonBuilder()
+            .withEmergencyPhone("+65 99999999").withName("Alice Tan").withPhone("+65 91234567")
             .withEmail("alice@example.com").withFtp("1")
             .withLocations("East Coast", "Punggol").build();
 
@@ -50,6 +52,54 @@ public class ReleaseCommandIntegrationTest {
     private Model model;
     private Logic logic;
     private Storage storage;
+
+    @Test
+    public void execute_emergencyPhone_sharedEditedFoundAndReloaded() throws Exception {
+        logic.execute(ADD_JOHN);
+        logic.execute(ADD_ALICE);
+        logic.execute("find sos/+65 99999999");
+        assertEquals(List.of(ALICE, JOHN), model.getFilteredPersonList());
+        logic.execute("edit +65 98765432 sos/+65 88888888");
+        Person editedJohn = new PersonBuilder(JOHN).withEmergencyPhone("+65 88888888").build();
+        assertEquals(List.of(editedJohn, ALICE), model.getAddressBook().getPersonList());
+        assertSavedState();
+        logic.execute("find n/john p/+65 98765432 sos/+65 88888888");
+        assertEquals(List.of(editedJohn), model.getFilteredPersonList());
+        logic.execute("edit +65 98765432 f/400");
+        assertEquals(editedJohn.getEmergencyPhone(), model.getAddressBook().getPersonList().get(0).getEmergencyPhone());
+        assertSavedState();
+        logic.execute("find sos/+65 99999999 sos/+65 88888888");
+        assertEquals(2, model.getFilteredPersonList().size());
+    }
+
+    @Test
+    public void execute_legacyEmergencyPhone_preservesAbsenceAndAllowsUpgrade() throws Exception {
+        model.addPerson(new PersonBuilder().withName("Legacy Rider").withPhone("+65 91111111").build());
+        logic.execute("edit +65 91111111 f/300");
+        assertTrue(model.getAddressBook().getPersonList().get(0).getEmergencyPhone().isEmpty());
+        assertSavedState();
+        logic.execute("find sos/+65 99999999");
+        assertTrue(model.getFilteredPersonList().isEmpty());
+        logic.execute("list");
+        logic.execute("edit +65 91111111 sos/+65 99999999");
+        assertEquals("+65 99999999",
+                model.getAddressBook().getPersonList().get(0).getEmergencyPhone().orElseThrow().value);
+        assertSavedState();
+    }
+
+    @Test
+    public void execute_invalidEmergencyPhone_leavesSavedDataUnchanged() throws Exception {
+        logic.execute(ADD_JOHN);
+        String savedData = Files.readString(storage.getAddressBookFilePath());
+        for (String command : List.of(ADD_ALICE.replace(" sos/+65 99999999", ""),
+                ADD_ALICE.replace("sos/+65 99999999", "sos/"), ADD_ALICE + " sos/+65 111",
+                "edit +65 98765432 sos/+65 abc", "edit +65 98765432 sos/",
+                "edit +65 98765432 sos/+65 111 sos/+65 222", "find sos/")) {
+            assertThrows(ParseException.class, () -> logic.execute(command));
+            assertEquals(List.of(JOHN), model.getAddressBook().getPersonList());
+            assertEquals(savedData, Files.readString(storage.getAddressBookFilePath()));
+        }
+    }
 
     @Test
     public void execute_legacyTags_preservesSupportedFieldsAcrossSaveAndReload() throws Exception {
@@ -96,7 +146,8 @@ public class ReleaseCommandIntegrationTest {
         logic.execute(ADD_JOHN);
         String savedData = Files.readString(storage.getAddressBookFilePath());
         for (String command : List.of(ADD_ALICE + " a/10 Test Road",
-                "add a/10 Test Road n/Alice Tan p/+65 91234567 e/alice@example.com f/1 x/Beginner l/any",
+                "add a/10 Test Road n/Alice Tan p/+65 91234567 sos/+65 99999999 e/alice@example.com"
+                        + " f/1 x/Beginner l/any",
                 "edit +65 98765432 a/10 Test Road", "edit +65 98765432 n/John Updated a/10 Test Road")) {
             assertThrows(ParseException.class, () -> logic.execute(command));
             assertEquals(List.of(JOHN), model.getAddressBook().getPersonList());
@@ -108,8 +159,9 @@ public class ReleaseCommandIntegrationTest {
     public void execute_alphabeticalDisplay_preservesPhoneTargetsAndReloadOrder() throws Exception {
         logic.execute(ADD_JOHN);
         logic.execute(ADD_ALICE);
-        logic.execute("add n/Bernice p/+65 91111111 e/bernice@example.com f/300 x/Beginner l/any");
-        Person bernice = new PersonBuilder().withName("Bernice").withPhone("+65 91111111")
+        logic.execute("add n/Bernice p/+65 91111111 sos/+65 99999999 e/bernice@example.com f/300 x/Beginner l/any");
+        Person bernice = new PersonBuilder()
+                .withEmergencyPhone("+65 99999999").withName("Bernice").withPhone("+65 91111111")
                 .withEmail("bernice@example.com").withFtp("300").build();
         assertEquals(List.of(ALICE, bernice, JOHN), logic.getFilteredPersonList());
 
@@ -135,9 +187,9 @@ public class ReleaseCommandIntegrationTest {
 
     @Test
     public void execute_equalNames_preservesRelativeOrderAfterEditAndReload() throws Exception {
-        logic.execute("add n/aLEX p/+65 91111111 e/first@example.com f/300 x/Beginner l/any");
-        logic.execute("add n/Alex p/+65 92222222 e/second@example.com f/300 x/Beginner l/any");
-        logic.execute("add n/ALEX p/+65 93333333 e/third@example.com f/300 x/Beginner l/any");
+        logic.execute("add n/aLEX p/+65 91111111 sos/+65 99999999 e/first@example.com f/300 x/Beginner l/any");
+        logic.execute("add n/Alex p/+65 92222222 sos/+65 99999999 e/second@example.com f/300 x/Beginner l/any");
+        logic.execute("add n/ALEX p/+65 93333333 sos/+65 99999999 e/third@example.com f/300 x/Beginner l/any");
         logic.execute("find n/alex");
         logic.execute("edit +65 91111111 n/alex");
         List<String> expectedPhones = List.of("+65 91111111", "+65 92222222", "+65 93333333");
@@ -308,7 +360,7 @@ public class ReleaseCommandIntegrationTest {
     public void execute_addDuplicatePhoneOutsideFilteredList_rejectsWithoutChanges() throws Exception {
         logic.execute(ADD_JOHN);
         logic.execute("find n/nobody");
-        assertRejectedWithoutChanges("add n/Jane Doe p/+65 98765432 e/jane@example.com"
+        assertRejectedWithoutChanges("add n/Jane Doe p/+65 98765432 sos/+65 99999999 e/jane@example.com"
                 + " f/300 x/Beginner l/any", AddCommand.MESSAGE_DUPLICATE_PERSON);
     }
 
@@ -336,7 +388,7 @@ public class ReleaseCommandIntegrationTest {
     public void execute_addDuplicateEmailOutsideFilteredList_rejectsWithoutChanges() throws Exception {
         logic.execute(ADD_JOHN);
         logic.execute("find n/nobody");
-        assertRejectedWithoutChanges("add n/Jane Doe p/+65 91111111 e/"
+        assertRejectedWithoutChanges("add n/Jane Doe p/+65 91111111 sos/+65 99999999 e/"
                 + JOHN.getEmail().value.toUpperCase(Locale.ROOT)
                 + " f/300 x/Beginner l/any", AddCommand.MESSAGE_DUPLICATE_PERSON);
     }

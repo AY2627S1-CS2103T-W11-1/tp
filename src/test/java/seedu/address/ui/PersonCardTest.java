@@ -51,6 +51,23 @@ public class PersonCardTest {
     }
 
     @Test
+    public void constructor_emergencyPhone_showsNumberOrLegacyPlaceholder() throws Exception {
+        Person legacy = new PersonBuilder().build();
+        Person cyclist = new PersonBuilder(legacy).withEmergencyPhone("+65 99999999").build();
+        runOnJavaFxThread(() -> {
+            Parent root = new PersonCard(cyclist, 1).getRoot();
+            Label emergencyPhone = getLabel(root, "emergencyPhone");
+            assertEquals("+65 99999999", emergencyPhone.getText());
+            assertTrue(emergencyPhone.isWrapText());
+            assertTrue(emergencyPhone.isVisible());
+            assertTrue(emergencyPhone.isManaged());
+            assertSame(getLabel(root, "phone").getParent(), emergencyPhone.getParent());
+            assertTrue(getAllLabelTexts(root).contains("SOS"));
+            assertEquals("Not provided", getLabel(new PersonCard(legacy, 2).getRoot(), "emergencyPhone").getText());
+        });
+    }
+
+    @Test
     public void formatLocations_multipleLocations_displaysEveryLocation() {
         Person person = new PersonBuilder()
                 .withLocations("Marina Bay", "East Coast Park")
