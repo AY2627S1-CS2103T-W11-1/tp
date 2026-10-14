@@ -495,7 +495,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 ## **Appendix: Instructions for manual testing**
 
 Use JDK 25 and a disposable folder containing the release JAR. Run
-`java -version` to confirm the selected JDK, then `java -jar addressbook.jar`
+`java -version` to confirm the selected JDK, then `java -jar cyclique.jar`
 from that folder. All commands below operate on test contacts; do not use real contact data.
 Repeat the checks on each operating system supported by the release.
 
