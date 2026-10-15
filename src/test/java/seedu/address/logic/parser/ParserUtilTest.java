@@ -10,8 +10,14 @@ import org.junit.jupiter.api.Test;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.ExperienceLevel;
+import seedu.address.model.person.Location;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.ride.Distance;
+import seedu.address.model.ride.GroupSize;
+import seedu.address.model.ride.MinimumPower;
+import seedu.address.model.ride.Notes;
+import seedu.address.model.ride.RideDateTime;
 
 public class ParserUtilTest {
     private static final String INVALID_NAME = "R@chel";
@@ -144,4 +150,106 @@ public class ParserUtilTest {
         assertEquals(expectedEmail, ParserUtil.parseEmail(emailWithWhitespace));
     }
 
+
+    @Test
+    public void parseLocation_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseLocation(null));
+    }
+
+    @Test
+    public void parseLocation_invalidValue_throwsParseException() {
+        assertThrows(ParseException.class, () -> ParserUtil.parseLocation(" "));
+        assertThrows(ParseException.class, () -> ParserUtil.parseLocation("East Coast!"));
+    }
+
+    @Test
+    public void parseLocation_validValueWithWhitespace_returnsTrimmedLocation() throws Exception {
+        assertEquals(new Location("East Coast"), ParserUtil.parseLocation(WHITESPACE + "East Coast" + WHITESPACE));
+    }
+
+    @Test
+    public void parseRideDateTime_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseRideDateTime(null));
+    }
+
+    @Test
+    public void parseRideDateTime_invalidValue_throwsParseException() {
+        assertThrows(ParseException.class, RideDateTime.MESSAGE_CONSTRAINTS, () ->
+                ParserUtil.parseRideDateTime("2026-10-18 0630"));
+        assertThrows(ParseException.class, RideDateTime.MESSAGE_CONSTRAINTS, () ->
+                ParserUtil.parseRideDateTime("31-02-2026 0630"));
+    }
+
+    @Test
+    public void parseRideDateTime_validValueWithWhitespace_returnsTrimmedDateTime() throws Exception {
+        assertEquals(new RideDateTime("18-10-2026 0630"),
+                ParserUtil.parseRideDateTime(WHITESPACE + "18-10-2026 0630" + WHITESPACE));
+    }
+
+    @Test
+    public void parseDistance_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseDistance(null));
+    }
+
+    @Test
+    public void parseDistance_invalidValue_throwsParseException() {
+        assertThrows(ParseException.class, Distance.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseDistance("0"));
+        assertThrows(ParseException.class, Distance.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseDistance("far"));
+    }
+
+    @Test
+    public void parseDistance_validValueWithWhitespace_returnsTrimmedDistance() throws Exception {
+        assertEquals(new Distance("45.5"), ParserUtil.parseDistance(WHITESPACE + "45.5" + WHITESPACE));
+    }
+
+    @Test
+    public void parseMinimumPower_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseMinimumPower(null));
+    }
+
+    @Test
+    public void parseMinimumPower_invalidValue_throwsParseException() {
+        assertThrows(ParseException.class, MinimumPower.MESSAGE_CONSTRAINTS, () ->
+                ParserUtil.parseMinimumPower("601"));
+        assertThrows(ParseException.class, MinimumPower.MESSAGE_CONSTRAINTS, () ->
+                ParserUtil.parseMinimumPower("0"));
+    }
+
+    @Test
+    public void parseMinimumPower_validValueWithWhitespace_returnsTrimmedMinimumPower() throws Exception {
+        assertEquals(new MinimumPower("180"), ParserUtil.parseMinimumPower(WHITESPACE + "180" + WHITESPACE));
+    }
+
+    @Test
+    public void parseGroupSize_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseGroupSize(null));
+    }
+
+    @Test
+    public void parseGroupSize_invalidValue_throwsParseException() {
+        assertThrows(ParseException.class, GroupSize.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseGroupSize("0"));
+        assertThrows(ParseException.class, GroupSize.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseGroupSize("2.5"));
+    }
+
+    @Test
+    public void parseGroupSize_validValueWithWhitespace_returnsTrimmedGroupSize() throws Exception {
+        assertEquals(new GroupSize("12"), ParserUtil.parseGroupSize(WHITESPACE + "12" + WHITESPACE));
+    }
+
+    @Test
+    public void parseNotes_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseNotes(null));
+    }
+
+    @Test
+    public void parseNotes_invalidValue_throwsParseException() {
+        assertThrows(ParseException.class, Notes.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseNotes("   "));
+        assertThrows(ParseException.class, Notes.MESSAGE_CONSTRAINTS, () ->
+                ParserUtil.parseNotes("one two three four five six seven eight nine ten eleven"));
+    }
+
+    @Test
+    public void parseNotes_validValueWithWhitespace_returnsTrimmedNotes() throws Exception {
+        assertEquals(new Notes("Bring lights"), ParserUtil.parseNotes(WHITESPACE + "Bring lights" + WHITESPACE));
+    }
 }

@@ -3,19 +3,26 @@ package seedu.address.model;
 import static java.util.Objects.requireNonNull;
 
 import java.util.List;
+import java.util.Objects;
 
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.UniquePersonList;
+import seedu.address.model.ride.Ride;
 
 /**
  * Wraps all data at the address-book level.
  * Duplicates are not allowed (by .isSamePerson comparison).
+ * Rides are identified by their ID, so rides with the same details are allowed.
  */
 public class AddressBook implements ReadOnlyAddressBook {
 
     private final UniquePersonList persons = new UniquePersonList();
+    private final ObservableList<Ride> rides = FXCollections.observableArrayList();
+    private final ObservableList<Ride> unmodifiableRides = FXCollections.unmodifiableObservableList(rides);
+    private int nextRideId = 1;
 
     public AddressBook() {}
 
@@ -38,12 +45,24 @@ public class AddressBook implements ReadOnlyAddressBook {
     }
 
     /**
+     * Replaces the contents of the ride list with {@code rides} and sets the ID that the next added ride receives.
+     * The next ride ID is raised if needed so that it is always higher than every ID in {@code rides}.
+     */
+    public void setRides(List<Ride> rides, int nextRideId) {
+        requireNonNull(rides);
+        int lowestSafeId = rides.stream().mapToInt(Ride::getId).max().orElse(0) + 1;
+        this.rides.setAll(rides);
+        this.nextRideId = Math.max(Math.max(nextRideId, lowestSafeId), 1);
+    }
+
+    /**
      * Resets the existing data of this {@code AddressBook} with {@code newData}.
      */
     public void resetData(ReadOnlyAddressBook newData) {
         requireNonNull(newData);
 
         setPersons(newData.getPersonList());
+        setRides(newData.getRideList(), newData.getNextRideId());
     }
 
     //// person-level operations
@@ -83,18 +102,44 @@ public class AddressBook implements ReadOnlyAddressBook {
         persons.remove(key);
     }
 
+    //// ride-level operations
+
+    /**
+     * Adds a ride to the address book and returns it with the next free ride ID.
+     * IDs go up in the order rides are added and are never reused.
+     */
+    public Ride addRide(Ride ride) {
+        requireNonNull(ride);
+        Ride storedRide = ride.withId(nextRideId);
+        nextRideId++;
+        rides.add(storedRide);
+        return storedRide;
+    }
+
     //// util methods
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
                 .add("persons", persons)
+                .add("rides", rides)
+                .add("nextRideId", nextRideId)
                 .toString();
     }
 
     @Override
     public ObservableList<Person> getPersonList() {
         return persons.asUnmodifiableObservableList();
+    }
+
+    @Override
+    public ObservableList<Ride> getRideList() {
+        return unmodifiableRides;
+    }
+
+    @Override
+    public int getNextRideId() {
+        return nextRideId;
     }
 
     @Override
@@ -108,11 +153,13 @@ public class AddressBook implements ReadOnlyAddressBook {
             return false;
         }
 
-        return persons.equals(otherAddressBook.persons);
+        return persons.equals(otherAddressBook.persons)
+                && rides.equals(otherAddressBook.rides)
+                && nextRideId == otherAddressBook.nextRideId;
     }
 
     @Override
     public int hashCode() {
-        return persons.hashCode();
+        return Objects.hash(persons, rides, nextRideId);
     }
 }

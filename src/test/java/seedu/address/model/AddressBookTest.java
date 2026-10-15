@@ -16,7 +16,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.exceptions.DuplicatePersonException;
+import seedu.address.model.ride.Ride;
 import seedu.address.testutil.PersonBuilder;
+import seedu.address.testutil.RideBuilder;
 
 public class AddressBookTest {
 
@@ -79,8 +81,70 @@ public class AddressBookTest {
 
     @Test
     public void toStringMethod() {
-        String expected = AddressBook.class.getCanonicalName() + "{persons=" + addressBook.getPersonList() + "}";
+        String expected = AddressBook.class.getCanonicalName() + "{persons=" + addressBook.getPersonList()
+                + ", rides=" + addressBook.getRideList() + ", nextRideId=" + addressBook.getNextRideId() + "}";
         assertEquals(expected, addressBook.toString());
+    }
+
+    @Test
+    public void addRide_assignsIncreasingIdsStartingFromOne() {
+        Ride first = addressBook.addRide(new RideBuilder().build());
+        Ride second = addressBook.addRide(new RideBuilder().withName("Evening Spin").build());
+
+        assertEquals(1, first.getId());
+        assertEquals(2, second.getId());
+        assertEquals(3, addressBook.getNextRideId());
+        assertEquals(List.of(first, second), addressBook.getRideList());
+    }
+
+    @Test
+    public void addRide_sameDetailsAsExistingRide_isAllowed() {
+        addressBook.addRide(new RideBuilder().build());
+        addressBook.addRide(new RideBuilder().build());
+
+        assertEquals(2, addressBook.getRideList().size());
+    }
+
+    @Test
+    public void addRide_nullRide_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> addressBook.addRide(null));
+    }
+
+    @Test
+    public void getRideList_modifyList_throwsUnsupportedOperationException() {
+        assertThrows(UnsupportedOperationException.class, () ->
+                addressBook.getRideList().add(new RideBuilder().withId(1).build()));
+    }
+
+    @Test
+    public void resetData_withRides_copiesRidesAndNextRideId() {
+        AddressBook source = new AddressBook();
+        source.addRide(new RideBuilder().build());
+        source.addRide(new RideBuilder().withName("Evening Spin").build());
+
+        addressBook.resetData(source);
+
+        assertEquals(source, addressBook);
+        assertEquals(3, addressBook.getNextRideId());
+    }
+
+    @Test
+    public void setRides_nextRideIdLowerThanExistingIds_raisesNextRideId() {
+        Ride ride = new RideBuilder().withId(7).build();
+
+        addressBook.setRides(List.of(ride), 2);
+
+        assertEquals(8, addressBook.getNextRideId());
+    }
+
+    @Test
+    public void setRides_nextRideIdHigherThanExistingIds_keepsNextRideId() {
+        Ride ride = new RideBuilder().withId(1).build();
+
+        addressBook.setRides(List.of(ride), 5);
+
+        assertEquals(5, addressBook.getNextRideId());
+        assertEquals(5, addressBook.addRide(new RideBuilder().build()).getId());
     }
 
     /**
@@ -96,6 +160,16 @@ public class AddressBookTest {
         @Override
         public ObservableList<Person> getPersonList() {
             return persons;
+        }
+
+        @Override
+        public ObservableList<Ride> getRideList() {
+            return FXCollections.observableArrayList();
+        }
+
+        @Override
+        public int getNextRideId() {
+            return 1;
         }
     }
 

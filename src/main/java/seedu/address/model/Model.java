@@ -5,6 +5,7 @@ import java.util.function.Predicate;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.person.Person;
+import seedu.address.model.ride.Ride;
 
 /**
  * The API of the Model component.
@@ -59,6 +60,11 @@ public interface Model {
      * The person identity of {@code editedPerson} must not be the same as another existing person in the address book.
      */
     void setPerson(Person target, Person editedPerson);
+
+    /**
+     * Adds the given ride and returns it with the next free ride ID. IDs are never reused.
+     */
+    Ride addRide(Ride ride);
 
     /**
      * Returns an unmodifiable, live view of the filtered person list sorted by full name, ignoring case.

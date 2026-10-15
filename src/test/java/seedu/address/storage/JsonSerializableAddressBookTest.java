@@ -7,6 +7,7 @@ import static seedu.address.testutil.TypicalPersons.ALICE;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,9 @@ import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.commons.util.JsonUtil;
 import seedu.address.model.AddressBook;
 import seedu.address.model.person.Person;
+import seedu.address.model.ride.Ride;
 import seedu.address.testutil.PersonBuilder;
+import seedu.address.testutil.RideBuilder;
 import seedu.address.testutil.TypicalPersons;
 
 public class JsonSerializableAddressBookTest {
@@ -84,8 +87,112 @@ public class JsonSerializableAddressBookTest {
         assertEquals(2, actualAddressBook.getPersonList().size());
     }
 
+    @Test
+    public void toModelType_ridesAndNextRideId_loadsRides() throws Exception {
+        Ride first = new RideBuilder().withId(1).build();
+        Ride second = new RideBuilder().withId(2).withName("Evening Spin").withNotes("Bring lights").build();
+        JsonSerializableAddressBook data = createSerializableAddressBook(List.of(first, second), 3);
+
+        AddressBook addressBook = data.toModelType();
+
+        assertEquals(List.of(first, second), addressBook.getRideList());
+        assertEquals(3, addressBook.getNextRideId());
+    }
+
+    @Test
+    public void toModelType_savedNextRideIdAboveHighestId_isKeptSoIdsAreNotReused() throws Exception {
+        Ride onlyRide = new RideBuilder().withId(1).build();
+        JsonSerializableAddressBook data = createSerializableAddressBook(List.of(onlyRide), 6);
+
+        assertEquals(6, data.toModelType().getNextRideId());
+    }
+
+    @Test
+    public void toModelType_noNextRideId_continuesAfterHighestId() throws Exception {
+        Ride ride = new RideBuilder().withId(4).build();
+        JsonSerializableAddressBook data = createSerializableAddressBook(List.of(ride), null);
+
+        assertEquals(5, data.toModelType().getNextRideId());
+    }
+
+    @Test
+    public void toModelType_nextRideIdBelowHighestId_isRaisedAboveHighestId() throws Exception {
+        Ride ride = new RideBuilder().withId(4).build();
+        JsonSerializableAddressBook data = createSerializableAddressBook(List.of(ride), 2);
+
+        assertEquals(5, data.toModelType().getNextRideId());
+    }
+
+    @Test
+    public void toModelType_noRidesAndNoNextRideId_startsNumberingAtOne() throws Exception {
+        JsonSerializableAddressBook data = createSerializableAddressBook(List.of(), null);
+
+        AddressBook addressBook = data.toModelType();
+
+        assertEquals(List.of(), addressBook.getRideList());
+        assertEquals(1, addressBook.getNextRideId());
+    }
+
+    @Test
+    public void toModelType_duplicateRideIds_throwsIllegalValueException() {
+        Ride first = new RideBuilder().withId(1).build();
+        Ride second = new RideBuilder().withId(1).withName("Evening Spin").build();
+        JsonSerializableAddressBook data = createSerializableAddressBook(List.of(first, second), 3);
+
+        assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_DUPLICATE_RIDE_ID,
+                data::toModelType);
+    }
+
+    @Test
+    public void toModelType_sameRideDetailsWithDifferentIds_loadsBothRides() throws Exception {
+        Ride first = new RideBuilder().withId(1).build();
+        Ride second = new RideBuilder().withId(2).build();
+        JsonSerializableAddressBook data = createSerializableAddressBook(List.of(first, second), 3);
+
+        assertEquals(2, data.toModelType().getRideList().size());
+    }
+
+    @Test
+    public void toModelType_nonPositiveNextRideId_throwsIllegalValueException() {
+        JsonSerializableAddressBook zero = createSerializableAddressBook(List.of(), 0);
+        JsonSerializableAddressBook negative = createSerializableAddressBook(List.of(), -3);
+
+        assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_INVALID_NEXT_RIDE_ID,
+                zero::toModelType);
+        assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_INVALID_NEXT_RIDE_ID,
+                negative::toModelType);
+    }
+
+    @Test
+    public void toModelType_invalidRide_throwsIllegalValueException() {
+        JsonAdaptedRide invalidRide = new JsonAdaptedRide(1, "Bad&Name", "18-10-2026 0630", "18-10-2026 0930",
+                "East Coast", "45", "180", "12", null, null);
+        JsonSerializableAddressBook data = new JsonSerializableAddressBook(List.of(), List.of(invalidRide), 2);
+
+        assertThrows(IllegalValueException.class, data::toModelType);
+    }
+
+    @Test
+    public void constructorFromAddressBook_roundTripKeepsRidesAndNextRideId() throws Exception {
+        AddressBook original = new AddressBook();
+        original.addPerson(ALICE);
+        original.addRide(new RideBuilder().withNotes("Bring lights").withRoster("+65 91234567").build());
+        original.addRide(new RideBuilder().withName("Evening Spin").build());
+
+        AddressBook roundTripped = new JsonSerializableAddressBook(original).toModelType();
+
+        assertEquals(original, roundTripped);
+        assertEquals(3, roundTripped.getNextRideId());
+    }
+
+    private JsonSerializableAddressBook createSerializableAddressBook(List<Ride> rides, Integer nextRideId) {
+        return new JsonSerializableAddressBook(List.of(), rides.stream().map(JsonAdaptedRide::new).toList(),
+                nextRideId);
+    }
+
     private JsonSerializableAddressBook createSerializableAddressBook(Person... persons) {
-        return new JsonSerializableAddressBook(Arrays.stream(persons).map(JsonAdaptedPerson::new).toList());
+        return new JsonSerializableAddressBook(Arrays.stream(persons).map(JsonAdaptedPerson::new).toList(),
+                null, null);
     }
 
 }

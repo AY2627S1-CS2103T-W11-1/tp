@@ -9,6 +9,7 @@ import static seedu.address.testutil.TypicalPersons.IDA;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -19,7 +20,9 @@ import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.person.Person;
+import seedu.address.model.ride.Ride;
 import seedu.address.testutil.PersonBuilder;
+import seedu.address.testutil.RideBuilder;
 
 public class JsonAddressBookStorageTest {
     private static final Path TEST_DATA_FOLDER = Paths.get("src", "test", "data", "JsonAddressBookStorageTest");
@@ -86,6 +89,47 @@ public class JsonAddressBookStorageTest {
         readBack = jsonAddressBookStorage.readAddressBook().get(); // file path not specified
         assertEquals(original, new AddressBook(readBack));
 
+    }
+
+    @Test
+    public void readAndSaveAddressBook_withRides_keepsRidesAndContinuesIdNumbering() throws Exception {
+        Path filePath = testFolder.resolve("RidesAddressBook.json");
+        AddressBook original = getTypicalAddressBook();
+        original.addRide(new RideBuilder().withNotes("Bring lights").build());
+        original.addRide(new RideBuilder().withName("Evening Spin").withRoster("+65 91234567").build());
+        JsonAddressBookStorage jsonAddressBookStorage = new JsonAddressBookStorage(filePath);
+
+        jsonAddressBookStorage.saveAddressBook(original, filePath);
+        AddressBook readBack = new AddressBook(jsonAddressBookStorage.readAddressBook(filePath).get());
+
+        assertEquals(original, readBack);
+        assertEquals(2, readBack.getRideList().size());
+        assertEquals(3, readBack.getNextRideId());
+
+        // a ride added after a restart gets the next number
+        Ride added = readBack.addRide(new RideBuilder().withName("Night Ride").build());
+        assertEquals(3, added.getId());
+        jsonAddressBookStorage.saveAddressBook(readBack, filePath);
+        assertEquals(4, jsonAddressBookStorage.readAddressBook(filePath).get().getNextRideId());
+    }
+
+    @Test
+    public void readAddressBook_fileWithoutRides_loadsWithNoRides() throws Exception {
+        Path filePath = testFolder.resolve("NoRidesAddressBook.json");
+        Files.writeString(filePath, "{ \"persons\" : [ ] }");
+
+        AddressBook readBack = new AddressBook(new JsonAddressBookStorage(filePath).readAddressBook(filePath).get());
+
+        assertEquals(0, readBack.getRideList().size());
+        assertEquals(1, readBack.getNextRideId());
+    }
+
+    @Test
+    public void readAddressBook_fileWithInvalidRide_throwsDataLoadingException() throws Exception {
+        Path filePath = testFolder.resolve("InvalidRideAddressBook.json");
+        Files.writeString(filePath, "{ \"persons\" : [ ], \"rides\" : [ { \"id\" : 1, \"name\" : \"Ride\" } ] }");
+
+        assertThrows(DataLoadingException.class, () -> new JsonAddressBookStorage(filePath).readAddressBook(filePath));
     }
 
     @Test

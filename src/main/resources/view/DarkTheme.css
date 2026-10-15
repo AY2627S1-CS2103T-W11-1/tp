@@ -360,6 +360,11 @@
     -fx-pref-height: 50px;
 }
 
+#rideListView .list-cell {
+    -fx-text-fill: #f2f2f2;
+    -fx-font-size: 12px;
+}
+
 #filterField, #personListPanel, #personWebpage {
     -fx-effect: innershadow(gaussian, black, 10, 0, 0, 0);
 }

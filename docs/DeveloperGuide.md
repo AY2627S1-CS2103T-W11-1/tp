@@ -123,6 +123,7 @@ How the parsing works:
 The `Model` component,
 
 * stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
+* stores all `Ride` objects in the order they were added, together with the ID the next ride will receive. `AddressBook#addRide` assigns IDs, so they only go up and are never reused. Rides are not filtered or sorted. The UI shows them in a basic, read-only `RideListPanel` in the right-hand 30% of the main window, which observes `Logic#getRideList()`.
 * selects matching `Person` objects using a `FilteredList`, then exposes a live, unmodifiable `SortedList` through `getFilteredPersonList()`. It sorts by the full displayed name with `String.CASE_INSENSITIVE_ORDER`, using each person's stored position as the tie-breaker. This preserves the relative order of names that are identical ignoring case, including after additions, edits and filtering. The stored list and JSON order remain unchanged. The UI observes this view and numbers cards from 1 using their current displayed index. Phone-number targeting retains its existing rules.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
@@ -142,6 +143,7 @@ The `Model` component,
 
 The `Storage` component,
 * can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
+* saves group rides in a `rides` array and the ID counter in `nextRideId`, both in the same file as the cyclists. Both are optional when reading, so older files load with no rides, and invalid ride data makes the whole file invalid in the same way as invalid cyclist data.
 * ignores the retired `tags` property in cyclist JSON records without validating its contents. New saves omit it. Supported cyclist fields retain their existing validation and legacy defaults.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
@@ -185,6 +187,63 @@ are never serialised and disappear when the application closes or restarts.
 `Person` stores an `Optional<Phone>` emergency contact as a data field. New `add` commands require `sos/`; `edit` optionally replaces it and otherwise preserves it. All supplied numbers reuse `ParserUtil.parsePhone`, including repeated `sos/` find criteria. Find uses OR within each field and AND across supplied fields. Emergency contacts do not participate in cyclist identity because riders may share a contact. Edit and delete still target the cyclist’s own phone number.
 
 `JsonAdaptedPerson` saves the `emergencyPhone` property. Missing or null values load as `Optional.empty()` for backwards compatibility, while supplied invalid values reject the record. `PersonCard` shows the number in a labelled SOS row, or **Not provided** for legacy records. Help formats and dropdown templates include the new prefix.
+
+### Group ride creation (`rideadd`)
+
+`rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MINIMUM_POWER s/MAX_GROUP_SIZE [notes/NOTES]`
+creates a group ride. The diagrams are not updated for rides yet and are deferred to a later increment.
+
+**Model.** A `Ride` (package `seedu.address.model.ride`) is immutable and holds an `int` ID, a `Name`, two
+`RideDateTime` values (`from` and `to`), a `Location`, a `Distance`, a `MinimumPower`, a `GroupSize`, an
+`Optional<Notes>` and a roster. `Name` and `Location` are reused from the cyclist model, so a ride follows the
+same name and location rules as a cyclist. Every other field is a small value class with its own
+`isValidXyz` method and `MESSAGE_CONSTRAINTS`, in the same style as `Ftp` and `Phone`:
+
+* `RideDateTime` accepts only `DD-MM-YYYY TTTT`. A regular expression fixes the digit counts, and a strict
+  `java.time` formatter then rejects dates that do not exist (such as 31 February) and times outside 0000 to 2359.
+* `Distance` is a positive number of kilometres with up to 2 decimal places, stored in its simplest form so that
+  `45`, `045` and `45.0` are equal.
+* `MinimumPower` is a whole number from 1 to 600 watts, the same range as `Ftp`. It is a separate class so that its
+  error message talks about minimum power instead of FTP.
+* `GroupSize` is a positive whole number. `Notes` has at most 10 words, and repeated spaces are collapsed.
+* The roster is an unmodifiable list of cyclist phone numbers. A new ride starts with an empty roster. Phone
+  numbers are used because a cyclist's phone number is already how cyclists are identified.
+
+`Ride`'s constructor rejects a `to` that is earlier than `from`, using `Ride.isValidPeriod`. A ride that ends at
+the moment it starts is allowed.
+
+**ID assignment.** The parser builds a ride whose ID is `Ride.UNASSIGNED_ID` (0). `Model#addRide` passes it to
+`AddressBook#addRide`, which gives it the current `nextRideId`, increments the counter and returns the stored ride.
+The ID is therefore decided in one place and `RideAddCommand` shows the stored ride to the user. IDs are never
+reused, because the counter only goes up and is saved with the data. `AddressBook#setRides` raises the counter if it
+is lower than the highest ride ID, so a hand-edited file cannot cause a clash. Rides are told apart by ID, so two
+rides with identical details are allowed and `rideadd` has no duplicate check.
+
+**Parsing.** `RideAddCommandParser` tokenises with the prefixes `n/`, `from/`, `to/`, `l/`, `d/`, `f/`, `s/` and
+`notes/`. Prefixes are only recognised after whitespace, so `notes/` is not confused with `n/` and `to/` is not
+confused with a word that happens to end in `to`. Rides reuse `PREFIX_NAME`, `PREFIX_LOCATION` and `PREFIX_FTP`
+(for minimum power); `CliSyntax` adds `PREFIX_FROM`, `PREFIX_TO`, `PREFIX_DISTANCE`, `PREFIX_GROUP_SIZE` and
+`PREFIX_NOTES`. A missing compulsory field or a non-empty preamble gives the usual invalid-format message with
+`RideAddCommand.MESSAGE_USAGE`, a repeated prefix is reported by `verifyNoDuplicatePrefixesFor`, and each field is
+parsed by a `ParserUtil` method that throws the field's own message. Values are checked in the order name, `from`,
+`to`, location, distance, minimum power, group size and notes, and only the first error is reported. The check
+that `to/` is not earlier than `from/` runs after every field is valid.
+
+**Storage.** Rides are saved in the same `data/addressbook.json`, in a `rides` array, with a `nextRideId` number.
+`JsonAdaptedRide` mirrors `Ride` and validates each field when loading, throwing an `IllegalValueException` with the
+field's message. `rides` and `nextRideId` are optional when reading, so files saved before rides existed load with
+no rides and `nextRideId` 1. Duplicate ride IDs or a non-positive `nextRideId` make the file invalid. If
+`nextRideId` is missing, numbering continues after the highest saved ID.
+
+**Design considerations.**
+
+* *Where the ID is assigned.* Assigning it in the model keeps the parser free of state and keeps all numbering in
+  one class. The alternative, a counter inside the parser, would be lost on restart and would be hard to test.
+* *Where rides are stored.* Keeping rides in `AddressBook` means they are saved by the existing storage code after
+  every command. A separate rides file would need its own load and save path and could get out of step with the
+  cyclist data.
+* *Dates.* `java.time.LocalDateTime` is used, with a strict parser, so invalid dates are rejected by the library
+  instead of by hand-written checks. Time zones are not needed because every ride is local to the organiser.
 
 ### \[Proposed\] Undo/redo feature
 
@@ -700,6 +759,44 @@ Use the contacts from the alphabetical display scenario before deleting Zara.
 1. Enter `edit +65 94444444 n/Ben n/Zara`.
    Expected: `Multiple values specified for the following single-valued field(s): n/.`
    No details change.
+
+### Adding a group ride
+
+Rides appear in the basic **Rides** panel, the column on the right of the window (about 30% of its width).
+Each ride takes up to four short lines: `#1 Sunday Sunrise Ride`, then `18-10-2026 0630 to 18-10-2026 0930`, then
+`East Coast | 45 km | 180 W | max 12`, then the notes if there are any. The command box, result box and cyclist
+list stay in the left 70%. Check the panel after each step, and check the saved file `data/addressbook.json`
+where the steps say so.
+
+1. Launch the application with no rides. Expected: The Rides panel shows `No rides yet. Use rideadd to create one.`
+
+1. Enter `rideadd n/Sunday Sunrise Ride from/18-10-2026 0630 to/18-10-2026 0930 l/East Coast d/45 f/180 s/12 notes/Bring lights and a spare tube`.
+   Expected: The result box shows `New ride added: Ride 1: Sunday Sunrise Ride; From: 18-10-2026 0630;
+   To: 18-10-2026 0930; Location: East Coast; Distance: 45 km; Minimum power: 180 W; Max group size: 12;
+   Notes: Bring lights and a spare tube; Cyclists on roster: 0`. The Rides panel shows the ride as `#1` and the
+   cyclist list is unchanged.
+1. Enter `rideadd n/Evening Spin from/20-10-2026 1800 to/20-10-2026 1930 l/Punggol d/30.5 f/150 s/8`.
+   Expected: The message shows `Ride 2`, `Distance: 30.5 km` and `Notes: None`. The panel lists `#2` below `#1`.
+1. Enter the first command again. Expected: A third ride is added as `Ride 3`. Rides with the same details are allowed.
+1. Enter `rideadd s/12 f/180 d/45 l/East Coast to/18-10-2026 0930 from/18-10-2026 0630 n/Fields In Another Order`.
+   Expected: The ride is added. Fields may be in any order.
+1. Enter `rideadd n/Same Time from/18-10-2026 0630 to/18-10-2026 0630 l/East Coast d/45 f/180 s/12`.
+   Expected: The ride is added, because the end time may equal the start time.
+1. Try each of these. Expected: Each one shows an error and adds no ride (the next added ride keeps the next number).
+   * `rideadd` and `rideadd n/Only A Name` (missing fields: invalid command format message).
+   * `rideadd n/Bad from/18-10-2026 0930 to/18-10-2026 0629 l/East Coast d/45 f/180 s/12` (end before start).
+   * `from/` values `2026-10-18 0630`, `18-10-2026`, `31-02-2026 0630`, `18-10-2026 2400` and `18-10-2026 06:30`
+     (date and time format).
+   * `d/0`, `d/-3`, `d/45.123` and `d/far`; `f/0`, `f/601` and `f/strong`; `s/0`, `s/2.5` and `s/many`.
+   * `n/Bad&Name`, `l/East Coast!` and a repeated prefix such as two `d/` values.
+   * `notes/` with 11 words, and an empty `notes/`.
+1. Enter `rideadd` with `notes/` of exactly 10 words. Expected: The ride is added.
+1. Exit and open `data/addressbook.json`. Expected: A `rides` array holds every ride added, each with its `id`,
+   and `nextRideId` is one more than the highest ID. Relaunch. Expected: The Rides panel shows the same rides.
+   Add one more ride. Expected: Its ID continues from the saved counter and no ID is repeated.
+1. Close the application, replace the disposable data file with `{ "persons" : [ ] }`, and launch.
+   Expected: The application starts with an empty Rides panel and the next ride added is `Ride 1`. Restore your backup after
+   the check if needed.
 
 ### Saving data and recovering from invalid files
 
