@@ -20,9 +20,23 @@ import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.address.model.person.ExperienceLevel;
 import seedu.address.model.person.Ftp;
 import seedu.address.model.person.Location;
+import seedu.address.model.person.Phone;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 
 public class EditPersonDescriptorTest {
+
+    @Test
+    public void emergencyPhone_countsAsEditAndIsCopied() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptor();
+        assertTrue(descriptor.getEmergencyPhone().isEmpty());
+        descriptor.setEmergencyPhone(new Phone("+65 99999999"));
+        assertTrue(descriptor.isAnyFieldEdited());
+        EditPersonDescriptor copy = new EditPersonDescriptor(descriptor);
+        assertEquals(descriptor, copy);
+        descriptor.setEmergencyPhone(new Phone("+65 88888888"));
+        assertFalse(descriptor.equals(copy));
+        assertEquals("+65 99999999", copy.getEmergencyPhone().orElseThrow().value);
+    }
 
     @Test
     public void newCyclingFields_gettersSettersAndEditState() {
@@ -132,7 +146,8 @@ public class EditPersonDescriptorTest {
         EditPersonDescriptor editPersonDescriptor = new EditPersonDescriptor();
         String expected = EditPersonDescriptor.class.getCanonicalName() + "{name="
                 + editPersonDescriptor.getName().orElse(null) + ", phone="
-                + editPersonDescriptor.getPhone().orElse(null) + ", email="
+                + editPersonDescriptor.getPhone().orElse(null) + ", emergencyPhone="
+                + editPersonDescriptor.getEmergencyPhone().orElse(null) + ", email="
                 + editPersonDescriptor.getEmail().orElse(null) + ", ftp="
                 + editPersonDescriptor.getFtp().orElse(null) + ", experienceLevel="
                 + editPersonDescriptor.getExperienceLevel().orElse(null) + ", locations="

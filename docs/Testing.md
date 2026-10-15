@@ -82,3 +82,10 @@ confirmation, cancellation notices with subsequent outputs/errors, replacement
 requests, Help/Exit flags, stale targets, restart behaviour and storage failures.
 Run the Developer Guide's **Deletion confirmation regression** for command-box,
 result-panel, Help, resize and restart checks after changes to this flow.
+Run the Developer Guide’s **Emergency contact regression** for `sos/` changes, including legacy loading, persistence, phone validation, find combinations, cyclist card layout and both Help surfaces.
+
+`JsonAdaptedPersonTest.fromJson_constructorDiscoveryOrder_preservesCurrentAndLegacyRecords`
+exercises both constructor discovery orders to reproduce JVM-dependent Jackson loading
+failures. It verifies populated, null and missing emergency numbers. Only the full
+`JsonAdaptedPerson` constructor carries JSON property annotations; the convenience
+constructor is for direct Java callers.

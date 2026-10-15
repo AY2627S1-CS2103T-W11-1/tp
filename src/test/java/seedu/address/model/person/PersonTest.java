@@ -20,6 +20,18 @@ import seedu.address.testutil.PersonBuilder;
 public class PersonTest {
 
     @Test
+    public void emergencyPhone_changesDataButNotIdentity() {
+        Person updated = new PersonBuilder(ALICE).withEmergencyPhone("+65 99999999").build();
+        assertTrue(ALICE.getEmergencyPhone().isEmpty());
+        assertEquals(new Phone("+65 99999999"), updated.getEmergencyPhone().orElseThrow());
+        assertFalse(ALICE.equals(updated));
+        assertTrue(ALICE.isSamePerson(updated));
+        Person copy = new PersonBuilder(updated).build();
+        assertEquals(updated, copy);
+        assertEquals(updated.hashCode(), copy.hashCode());
+    }
+
+    @Test
     public void getLocations_modifySet_throwsUnsupportedOperationException() {
         Person person = new PersonBuilder().build();
         assertThrows(UnsupportedOperationException.class, () -> person.getLocations().clear());
@@ -128,6 +140,7 @@ public class PersonTest {
     @Test
     public void toStringMethod() {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
+                + ", emergencyPhone=" + ALICE.getEmergencyPhone().orElse(null)
                 + ", email=" + ALICE.getEmail() + ", ftp=" + ALICE.getFtp()
                 + ", experienceLevel=" + ALICE.getExperienceLevel() + ", locations=" + ALICE.getLocations()
                 + "}";

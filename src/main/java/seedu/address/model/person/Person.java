@@ -5,6 +5,7 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import seedu.address.commons.util.ToStringBuilder;
@@ -21,6 +22,8 @@ public class Person {
     private final Email email;
 
     // Data fields
+    /** Absent only for records created before emergency contacts were supported. */
+    private final Optional<Phone> emergencyPhone;
     private final ExperienceLevel experienceLevel;
     private final Ftp ftp;
     private final Set<Location> locations = new HashSet<>();
@@ -30,7 +33,16 @@ public class Person {
      */
     public Person(Name name, Phone phone, Email email, Ftp ftp, ExperienceLevel experienceLevel,
             Set<Location> locations) {
-        requireAllNonNull(name, phone, email, ftp, experienceLevel, locations);
+        this(name, phone, email, ftp, experienceLevel, locations, Optional.empty());
+    }
+
+    /**
+     * Constructs a person with an optional emergency contact for legacy record compatibility.
+     */
+    public Person(Name name, Phone phone, Email email, Ftp ftp, ExperienceLevel experienceLevel,
+            Set<Location> locations, Optional<Phone> emergencyPhone) {
+        requireAllNonNull(name, phone, email, ftp, experienceLevel, locations, emergencyPhone);
+        this.emergencyPhone = emergencyPhone;
         this.name = name;
         this.phone = phone;
         this.email = email;
@@ -59,6 +71,10 @@ public class Person {
 
     public Phone getPhone() {
         return phone;
+    }
+
+    public Optional<Phone> getEmergencyPhone() {
+        return emergencyPhone;
     }
 
     public Email getEmail() {
@@ -108,6 +124,7 @@ public class Person {
 
         return name.equals(otherPerson.name)
                 && phone.equals(otherPerson.phone)
+                && emergencyPhone.equals(otherPerson.emergencyPhone)
                 && email.equals(otherPerson.email)
                 && ftp.equals(otherPerson.ftp)
                 && experienceLevel.equals(otherPerson.experienceLevel)
@@ -117,7 +134,7 @@ public class Person {
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, ftp, experienceLevel, locations);
+        return Objects.hash(name, phone, emergencyPhone, email, ftp, experienceLevel, locations);
     }
 
     @Override
@@ -125,6 +142,7 @@ public class Person {
         return new ToStringBuilder(this)
                 .add("name", name)
                 .add("phone", phone)
+                .add("emergencyPhone", emergencyPhone.orElse(null))
                 .add("email", email)
                 .add("ftp", ftp)
                 .add("experienceLevel", experienceLevel)

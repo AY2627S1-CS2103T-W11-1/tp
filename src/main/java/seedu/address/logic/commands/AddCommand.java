@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_EMERGENCY_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EXPERIENCE_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_FTP;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LOCATION;
@@ -26,6 +27,7 @@ public class AddCommand extends Command {
             + "Parameters: "
             + PREFIX_NAME + "NAME "
             + PREFIX_PHONE + "PHONE "
+            + PREFIX_EMERGENCY_PHONE + "EMERGENCY_PHONE "
             + PREFIX_EMAIL + "EMAIL "
             + PREFIX_FTP + "FTP_LEVEL "
             + PREFIX_EXPERIENCE_LEVEL + "EXPERIENCE_LEVEL "
@@ -33,6 +35,7 @@ public class AddCommand extends Command {
             + "Example: " + COMMAND_WORD + " "
             + PREFIX_NAME + "John Doe "
             + PREFIX_PHONE + "+65 98765432 "
+            + PREFIX_EMERGENCY_PHONE + "+65 91234567 "
             + PREFIX_EMAIL + "johnd@example.com "
             + PREFIX_FTP + "300 "
             + PREFIX_EXPERIENCE_LEVEL + "Beginner "

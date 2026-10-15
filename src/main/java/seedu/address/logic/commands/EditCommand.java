@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_EMERGENCY_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EXPERIENCE_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_FTP;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LOCATION;
@@ -44,6 +45,7 @@ public class EditCommand extends Command {
             + "Parameters: PHONE "
             + "[" + PREFIX_NAME + "NAME] "
             + "[" + PREFIX_PHONE + "PHONE] "
+            + "[" + PREFIX_EMERGENCY_PHONE + "EMERGENCY_PHONE] "
             + "[" + PREFIX_EMAIL + "EMAIL] "
             + "[" + PREFIX_FTP + "FTP] "
             + "[" + PREFIX_EXPERIENCE_LEVEL + "EXPERIENCE] "
@@ -114,6 +116,8 @@ public class EditCommand extends Command {
 
         Name updatedName = editPersonDescriptor.getName().orElse(personToEdit.getName());
         Phone updatedPhone = editPersonDescriptor.getPhone().orElse(personToEdit.getPhone());
+        Optional<Phone> updatedEmergencyPhone = editPersonDescriptor.getEmergencyPhone().isPresent()
+                ? editPersonDescriptor.getEmergencyPhone() : personToEdit.getEmergencyPhone();
         Email updatedEmail = editPersonDescriptor.getEmail().orElse(personToEdit.getEmail());
         Ftp updatedFtp = editPersonDescriptor.getFtp().orElse(personToEdit.getFtp());
         ExperienceLevel updatedExperienceLevel = editPersonDescriptor.getExperienceLevel()
@@ -121,7 +125,7 @@ public class EditCommand extends Command {
         Set<Location> updatedLocations = editPersonDescriptor.getLocations().orElse(personToEdit.getLocations());
 
         return new Person(updatedName, updatedPhone, updatedEmail, updatedFtp,
-                updatedExperienceLevel, updatedLocations);
+                updatedExperienceLevel, updatedLocations, updatedEmergencyPhone);
     }
 
     @Override
@@ -154,6 +158,7 @@ public class EditCommand extends Command {
     public static class EditPersonDescriptor {
         private Name name;
         private Phone phone;
+        private Phone emergencyPhone;
         private Email email;
         private Ftp ftp;
         private ExperienceLevel experienceLevel;
@@ -168,6 +173,7 @@ public class EditCommand extends Command {
         public EditPersonDescriptor(EditPersonDescriptor toCopy) {
             setName(toCopy.name);
             setPhone(toCopy.phone);
+            setEmergencyPhone(toCopy.emergencyPhone);
             setEmail(toCopy.email);
             setFtp(toCopy.ftp);
             setExperienceLevel(toCopy.experienceLevel);
@@ -178,7 +184,7 @@ public class EditCommand extends Command {
          * Returns true if at least one field is edited.
          */
         public boolean isAnyFieldEdited() {
-            return CollectionUtil.isAnyNonNull(name, phone, email, ftp, experienceLevel, locations);
+            return CollectionUtil.isAnyNonNull(name, phone, emergencyPhone, email, ftp, experienceLevel, locations);
         }
 
         public void setName(Name name) {
@@ -195,6 +201,14 @@ public class EditCommand extends Command {
 
         public Optional<Phone> getPhone() {
             return Optional.ofNullable(phone);
+        }
+
+        public void setEmergencyPhone(Phone emergencyPhone) {
+            this.emergencyPhone = emergencyPhone;
+        }
+
+        public Optional<Phone> getEmergencyPhone() {
+            return Optional.ofNullable(emergencyPhone);
         }
 
         public void setEmail(Email email) {
@@ -251,6 +265,7 @@ public class EditCommand extends Command {
 
             return Objects.equals(name, otherEditPersonDescriptor.name)
                     && Objects.equals(phone, otherEditPersonDescriptor.phone)
+                    && Objects.equals(emergencyPhone, otherEditPersonDescriptor.emergencyPhone)
                     && Objects.equals(email, otherEditPersonDescriptor.email)
                     && Objects.equals(ftp, otherEditPersonDescriptor.ftp)
                     && Objects.equals(experienceLevel, otherEditPersonDescriptor.experienceLevel)
@@ -262,6 +277,7 @@ public class EditCommand extends Command {
             return new ToStringBuilder(this)
                     .add("name", name)
                     .add("phone", phone)
+                    .add("emergencyPhone", emergencyPhone)
                     .add("email", email)
                     .add("ftp", ftp)
                     .add("experienceLevel", experienceLevel)

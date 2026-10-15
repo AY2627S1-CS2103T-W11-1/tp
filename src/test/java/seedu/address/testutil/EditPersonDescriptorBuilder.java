@@ -35,6 +35,7 @@ public class EditPersonDescriptorBuilder {
         descriptor = new EditPersonDescriptor();
         descriptor.setName(person.getName());
         descriptor.setPhone(person.getPhone());
+        person.getEmergencyPhone().ifPresent(descriptor::setEmergencyPhone);
         descriptor.setEmail(person.getEmail());
         descriptor.setFtp(person.getFtp());
         descriptor.setExperienceLevel(person.getExperienceLevel());
@@ -87,6 +88,14 @@ public class EditPersonDescriptorBuilder {
     public EditPersonDescriptorBuilder withLocations(String... locations) {
         Set<Location> locationSet = Stream.of(locations).map(Location::new).collect(Collectors.toSet());
         descriptor.setLocations(locationSet);
+        return this;
+    }
+
+    /**
+     * Sets the emergency contact number to edit.
+     */
+    public EditPersonDescriptorBuilder withEmergencyPhone(String emergencyPhone) {
+        descriptor.setEmergencyPhone(new Phone(emergencyPhone));
         return this;
     }
 

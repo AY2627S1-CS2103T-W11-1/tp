@@ -1,6 +1,7 @@
 package seedu.address.testutil;
 
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_EMERGENCY_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EXPERIENCE_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_FTP;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LOCATION;
@@ -31,6 +32,8 @@ public class PersonUtil {
         StringBuilder sb = new StringBuilder();
         sb.append(PREFIX_NAME + person.getName().fullName + " ");
         sb.append(PREFIX_PHONE + person.getPhone().value + " ");
+        person.getEmergencyPhone().ifPresent(number ->
+                sb.append(PREFIX_EMERGENCY_PHONE).append(number.value).append(" "));
         sb.append(PREFIX_EMAIL + person.getEmail().value + " ");
         sb.append(PREFIX_FTP + person.getFtp().value + " ");
         sb.append(PREFIX_EXPERIENCE_LEVEL + person.getExperienceLevel().value + " ");
@@ -49,6 +52,8 @@ public class PersonUtil {
         StringBuilder sb = new StringBuilder();
         descriptor.getName().ifPresent(name -> sb.append(PREFIX_NAME).append(name.fullName).append(" "));
         descriptor.getPhone().ifPresent(phone -> sb.append(PREFIX_PHONE).append(phone.value).append(" "));
+        descriptor.getEmergencyPhone().ifPresent(number ->
+                sb.append(PREFIX_EMERGENCY_PHONE).append(number.value).append(" "));
         descriptor.getEmail().ifPresent(email -> sb.append(PREFIX_EMAIL).append(email.value).append(" "));
         descriptor.getFtp().ifPresent(ftp -> sb.append(PREFIX_FTP).append(ftp.value).append(" "));
         descriptor.getExperienceLevel().ifPresent(experienceLevel ->
