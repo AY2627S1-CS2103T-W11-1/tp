@@ -17,6 +17,16 @@ public class FindCommandParserTest {
     private FindCommandParser parser = new FindCommandParser();
 
     @Test
+    public void parse_emergencyPhones_supportsRepeatedAndCombinedFields() {
+        List<Phone> emergencyPhones = List.of(new Phone("+65 99999999"), new Phone("+1 123"));
+        assertParseSuccess(parser, "sos/+65 99999999 sos/+1 123", new FindCommand(
+                new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), emergencyPhones)));
+        FindCommand combined = new FindCommand(new PersonMatchesFindCriteriaPredicate(
+                List.of("Alice"), List.of(new Phone("+65 91234567")), emergencyPhones));
+        assertParseSuccess(parser, "sos/+65 99999999 n/Alice p/+65 91234567 sos/+1 123", combined);
+    }
+
+    @Test
     public void parse_emptyArg_throwsParseException() {
         assertParseFailure(parser, "     ", String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
         assertParseFailure(parser, "alex david",

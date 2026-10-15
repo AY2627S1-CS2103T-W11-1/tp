@@ -28,7 +28,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
    * `list` : Lists all contacts.
 
-   * `add n/John Doe p/+65 98765432 e/johnd@example.com f/300 x/Beginner l/any` : Adds a contact named `John Doe` to the Address Book.
+   * `add n/John Doe p/+65 98765432 sos/+65 99999999 e/johnd@example.com f/300 x/Beginner l/any` : Adds a contact named `John Doe` to the Address Book.
 
    * `delete +65 98765432` : Deletes the contact with this phone number.
 
@@ -83,7 +83,9 @@ Format: `help`
 
 Adds a person to the address book.
 
-Format: `add n/NAME p/PHONE e/EMAIL f/FTP_LEVEL x/EXPERIENCE_LEVEL l/LOCATION [l/LOCATION]…`
+Format: `add n/NAME p/PHONE sos/EMERGENCY_PHONE e/EMAIL f/FTP_LEVEL x/EXPERIENCE_LEVEL l/LOCATION [l/LOCATION]…`
+
+The emergency contact number (`sos/`) is required for new cyclists and follows the same validation as `p/`: a `+`, a country code of 1–3 digits, exactly one space, and a number of at least 3 digits. Blank values, parentheses and hyphens are rejected. Emergency numbers may be shared and do not determine duplicate cyclists.
 
 The phone number must include a country code and one separating space, for example `+65 98765432`.
 It must not belong to another contact, including contacts hidden by a filter.
@@ -93,8 +95,8 @@ At least one preferred location is required. Repeat `l/` for multiple locations,
 `EXPERIENCE_LEVEL` must be one of `Beginner`, `Intermediate` or `Advanced` (case-insensitive).
 
 Examples:
-* `add n/John Doe p/+65 98765432 e/johnd@example.com f/300 x/Beginner l/any`
-* `add n/Betsy Crowe e/betsycrowe@example.com p/+65 91234567 f/250 x/Advanced l/Punggol`
+* `add n/John Doe p/+65 98765432 sos/+65 99999999 e/johnd@example.com f/300 x/Beginner l/any`
+* `add n/Betsy Crowe sos/+65 99999999 e/betsycrowe@example.com p/+65 91234567 f/250 x/Advanced l/Punggol`
 
 ### Listing all persons: `list`
 
@@ -106,7 +108,7 @@ Format: `list`
 
 Edits an existing person in the address book.
 
-Format: `edit PHONE [n/NAME] [p/PHONE] [e/EMAIL] [f/FTP] [x/EXPERIENCE] [l/LOCATION]…`
+Format: `edit PHONE [n/NAME] [p/PHONE] [sos/EMERGENCY_PHONE] [e/EMAIL] [f/FTP] [x/EXPERIENCE] [l/LOCATION]…`
 
 * Edits the person with the specified phone number in the displayed list. Exactly one displayed contact must match.
 * The resulting phone number must not belong to another contact anywhere in the book. An unchanged phone number is allowed when it is already unique.
@@ -117,17 +119,23 @@ Examples:
 * `edit +65 98765432 p/+65 91111111 e/johndoe@example.com` updates the identified contact's phone and email.
 * `edit +65 91234567 n/Betsy Crower` updates Betsy's name.
 
-### Locating persons by name or phone: `find`
+* `edit +65 98765432 sos/+65 98888888` updates only the emergency number. Omitting `sos/` retains its current value; blank `sos/` is rejected.
 
-Finds persons by name keywords and phone numbers.
+Cyclist cards label emergency contact numbers as **SOS**. Older saved records without an emergency number load normally and show **Not provided**. Use `edit PHONE sos/EMERGENCY_PHONE` to supply one; other edits preserve its absence. Numbers are saved automatically and retained after restarting.
 
-Format: `find [n/NAME_KEYWORD]… [p/PHONE]…` (at least one field is required)
+### Locating persons by name, phone or emergency number: `find`
+
+Finds persons by name keywords, phone numbers and emergency contact numbers.
+
+Format: `find [n/NAME_KEYWORD]… [p/PHONE]… [sos/EMERGENCY_PHONE]…` (at least one field is required)
 
 * Each `n/` takes one name keyword. Name matching is case-insensitive and requires a full word; for example, `n/hans` matches `Hans` but `n/Han` does not.
 * Each `p/` takes one complete phone number. Phone matching is exact; `p/+65 963` does not match `+65 96320842`.
 * Multiple values for the same field use `OR`: `find n/Hans n/Bo` returns people named `Hans Gruber` or `Bo Yang`.
-* When both fields are supplied, a person must match a name keyword **and** a phone number. Prefix order does not matter.
-* Name keywords and phone numbers search only their respective fields.
+* Each `sos/` takes one complete emergency contact number and uses the same phone validation and exact matching as `p/`. Repeated `sos/` values match any of those numbers.
+* When multiple fields are supplied, a person must match every supplied field. Prefix order does not matter.
+* Name keywords, phone numbers and emergency contact numbers search only their respective fields.
+* `find sos/+65 99999999` lists cyclists with that emergency number.
 
 Examples:
 * `find n/John` returns `john` and `John Doe`
@@ -213,10 +221,10 @@ _Details coming soon ..._
 
 Action | Format, Examples
 --------|------------------
-**Add** | `add n/NAME p/PHONE e/EMAIL f/FTP_LEVEL x/EXPERIENCE_LEVEL l/LOCATION [l/LOCATION]…` <br> e.g., `add n/James Ho p/+65 22224444 e/jamesho@example.com f/300 x/Intermediate l/any`
+**Add** | `add n/NAME p/PHONE sos/EMERGENCY_PHONE e/EMAIL f/FTP_LEVEL x/EXPERIENCE_LEVEL l/LOCATION [l/LOCATION]…` <br> e.g., `add n/James Ho p/+65 22224444 sos/+65 99999999 e/jamesho@example.com f/300 x/Intermediate l/any`
 **Clear** | `clear`
 **Delete** | `delete PHONE`<br> e.g., `delete +65 22224444`
-**Edit** | `edit PHONE [n/NAME] [p/PHONE] [e/EMAIL] [f/FTP] [x/EXPERIENCE] [l/LOCATION]…`<br> e.g., `edit +65 22224444 n/James Lee e/jameslee@example.com`
-**Find** | `find [n/NAME_KEYWORD]… [p/PHONE]…`<br> e.g., `find n/James n/Jake`, `find n/James p/+65 96320842`
+**Edit** | `edit PHONE [n/NAME] [p/PHONE] [sos/EMERGENCY_PHONE] [e/EMAIL] [f/FTP] [x/EXPERIENCE] [l/LOCATION]…`<br> e.g., `edit +65 22224444 n/James Lee e/jameslee@example.com`
+**Find** | `find [n/NAME_KEYWORD]… [p/PHONE]… [sos/EMERGENCY_PHONE]…`<br> e.g., `find n/James n/Jake`, `find n/James p/+65 96320842`
 **List** | `list`
 **Help** | `help`

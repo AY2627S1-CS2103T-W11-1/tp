@@ -3,6 +3,7 @@ package seedu.address.storage;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -30,19 +31,31 @@ class JsonAdaptedPerson {
 
     private final String name;
     private final String phone;
+    private final String emergencyPhone;
     private final String email;
     private final String ftp;
     private final String experienceLevel;
     private final List<String> locations = new ArrayList<>();
 
     /**
-     * Constructs an adapted person from the stored cyclist fields.
+     * Constructs an adapted person without an emergency number for direct Java callers.
+     * Only the full constructor is annotated for JSON deserialization to avoid ambiguous creator properties.
+     */
+    public JsonAdaptedPerson(String name, String phone, String email, String ftp,
+            String experienceLevel, List<String> locations) {
+        this(name, phone, email, ftp, experienceLevel, locations, null);
+    }
+
+    /**
+     * Constructs an adapted person, accepting a missing emergency number in legacy data.
      */
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("ftp") String ftp,
             @JsonProperty("experienceLevel") String experienceLevel,
-            @JsonProperty("locations") List<String> locations) {
+            @JsonProperty("locations") List<String> locations,
+            @JsonProperty("emergencyPhone") String emergencyPhone) {
+        this.emergencyPhone = emergencyPhone;
         this.name = name;
         this.phone = phone;
         this.email = email;
@@ -59,6 +72,7 @@ class JsonAdaptedPerson {
     public JsonAdaptedPerson(Person source) {
         name = source.getName().fullName;
         phone = source.getPhone().value;
+        emergencyPhone = source.getEmergencyPhone().map(number -> number.value).orElse(null);
         email = source.getEmail().value;
         ftp = source.getFtp().value;
         experienceLevel = source.getExperienceLevel().value;
@@ -88,6 +102,11 @@ class JsonAdaptedPerson {
             throw new IllegalValueException(Phone.MESSAGE_CONSTRAINTS);
         }
         final Phone modelPhone = new Phone(phone);
+
+        if (emergencyPhone != null && !Phone.isValidPhone(emergencyPhone)) {
+            throw new IllegalValueException(Phone.MESSAGE_CONSTRAINTS);
+        }
+        final Optional<Phone> modelEmergencyPhone = Optional.ofNullable(emergencyPhone).map(Phone::new);
 
         if (email == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Email.class.getSimpleName()));
@@ -124,7 +143,7 @@ class JsonAdaptedPerson {
         }
 
         return new Person(modelName, modelPhone, modelEmail, modelFtp, modelExperienceLevel,
-                modelLocations);
+                modelLocations, modelEmergencyPhone);
     }
 
 }

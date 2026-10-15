@@ -44,6 +44,8 @@ public class Messages {
         builder.append(person.getName())
                 .append("; Phone: ")
                 .append(person.getPhone())
+                .append("; Emergency phone: ")
+                .append(person.getEmergencyPhone().map(number -> number.value).orElse("Not provided"))
                 .append("; Email: ")
                 .append(person.getEmail())
                 .append("; FTP: ")

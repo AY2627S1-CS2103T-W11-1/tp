@@ -1,6 +1,7 @@
 package seedu.address.testutil;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import seedu.address.model.person.Email;
@@ -23,6 +24,7 @@ public class PersonBuilder {
 
     private Name name;
     private Phone phone;
+    private Optional<Phone> emergencyPhone = Optional.empty();
     private Email email;
     private ExperienceLevel experienceLevel;
     private Ftp ftp;
@@ -46,6 +48,7 @@ public class PersonBuilder {
     public PersonBuilder(Person personToCopy) {
         name = personToCopy.getName();
         phone = personToCopy.getPhone();
+        emergencyPhone = personToCopy.getEmergencyPhone();
         email = personToCopy.getEmail();
         experienceLevel = personToCopy.getExperienceLevel();
         ftp = personToCopy.getFtp();
@@ -99,8 +102,16 @@ public class PersonBuilder {
         return this;
     }
 
+    /**
+     * Sets the emergency contact number of the person being built.
+     */
+    public PersonBuilder withEmergencyPhone(String emergencyPhone) {
+        this.emergencyPhone = Optional.of(new Phone(emergencyPhone));
+        return this;
+    }
+
     public Person build() {
-        return new Person(name, phone, email, ftp, experienceLevel, locations);
+        return new Person(name, phone, email, ftp, experienceLevel, locations, emergencyPhone);
     }
 
 }

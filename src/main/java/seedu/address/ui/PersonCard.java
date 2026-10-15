@@ -31,6 +31,8 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label phone;
     @FXML
+    private Label emergencyPhone;
+    @FXML
     private Label email;
     @FXML
     private Label ftp;
@@ -48,6 +50,7 @@ public class PersonCard extends UiPart<Region> {
         id.setText(displayedIndex + ". ");
         name.setText(person.getName().fullName);
         phone.setText(person.getPhone().value);
+        emergencyPhone.setText(person.getEmergencyPhone().map(number -> number.value).orElse("Not provided"));
         email.setText(person.getEmail().value);
         experienceLevel.setText(person.getExperienceLevel().value);
         ftp.setText(person.getFtp().value + " W");

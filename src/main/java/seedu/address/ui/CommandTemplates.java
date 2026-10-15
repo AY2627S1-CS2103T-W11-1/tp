@@ -1,6 +1,7 @@
 package seedu.address.ui;
 
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_EMERGENCY_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EXPERIENCE_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_FTP;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LOCATION;
@@ -36,12 +37,15 @@ public class CommandTemplates {
     public static final List<Template> ALL = List.of(
             new Template(
                     AddCommand.COMMAND_WORD + " " + PREFIX_NAME + "NAME " + PREFIX_PHONE + "PHONE "
+                            + PREFIX_EMERGENCY_PHONE + "EMERGENCY_PHONE "
                             + PREFIX_EMAIL + "EMAIL " + PREFIX_FTP + "FTP " + PREFIX_EXPERIENCE_LEVEL
                             + "EXPERIENCE_LEVEL " + PREFIX_LOCATION + "LOCATION [" + PREFIX_LOCATION + "LOCATION]...",
-                    AddCommand.COMMAND_WORD + " " + PREFIX_NAME + " " + PREFIX_PHONE + " " + PREFIX_EMAIL + " "
+                    AddCommand.COMMAND_WORD + " " + PREFIX_NAME + " " + PREFIX_PHONE + " "
+                            + PREFIX_EMERGENCY_PHONE + " " + PREFIX_EMAIL + " "
                             + PREFIX_FTP + " " + PREFIX_EXPERIENCE_LEVEL + " " + PREFIX_LOCATION),
             new Template(
                     EditCommand.COMMAND_WORD + " PHONE [" + PREFIX_NAME + "NAME] [" + PREFIX_PHONE + "PHONE] ["
+                            + PREFIX_EMERGENCY_PHONE + "EMERGENCY_PHONE] ["
                             + PREFIX_EMAIL + "EMAIL] [" + PREFIX_FTP + "FTP] [" + PREFIX_EXPERIENCE_LEVEL
                             + "EXPERIENCE_LEVEL] [" + PREFIX_LOCATION + "LOCATION]...",
                     EditCommand.COMMAND_WORD + " "),
@@ -50,7 +54,7 @@ public class CommandTemplates {
                     DeleteCommand.COMMAND_WORD + " "),
             new Template(
                     FindCommand.COMMAND_WORD + " [" + PREFIX_NAME + "NAME_KEYWORD]... [" + PREFIX_PHONE
-                            + "PHONE]...",
+                            + "PHONE]... [" + PREFIX_EMERGENCY_PHONE + "EMERGENCY_PHONE]...",
                     FindCommand.COMMAND_WORD + " "),
             new Template(ListCommand.COMMAND_WORD, ListCommand.COMMAND_WORD),
             new Template(ClearCommand.COMMAND_WORD, ClearCommand.COMMAND_WORD),

@@ -2,12 +2,14 @@ package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_EMERGENCY_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EXPERIENCE_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_FTP;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LOCATION;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -38,32 +40,33 @@ public class AddCommandParser implements Parser<AddCommand> {
         }
 
         ArgumentMultimap argMultimap =
-                ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_FTP,
-                        PREFIX_EXPERIENCE_LEVEL, PREFIX_LOCATION);
+                ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMERGENCY_PHONE,
+                        PREFIX_EMAIL, PREFIX_FTP, PREFIX_EXPERIENCE_LEVEL, PREFIX_LOCATION);
 
         if (!argMultimap.getValue(PREFIX_FTP).isPresent()
-                && arePrefixesPresent(argMultimap, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL,
+                && arePrefixesPresent(argMultimap, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMERGENCY_PHONE, PREFIX_EMAIL,
                 PREFIX_EXPERIENCE_LEVEL, PREFIX_LOCATION)) {
             throw new ParseException(AddCommand.MESSAGE_MISSING_FTP);
         }
 
         if (!argMultimap.getValue(PREFIX_LOCATION).isPresent()
-                && arePrefixesPresent(argMultimap, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL,
+                && arePrefixesPresent(argMultimap, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMERGENCY_PHONE, PREFIX_EMAIL,
                 PREFIX_EXPERIENCE_LEVEL, PREFIX_FTP)) {
             throw new ParseException(AddCommand.MESSAGE_MISSING_LOCATION);
         }
 
-        if (!arePrefixesPresent(argMultimap, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL,
+        if (!arePrefixesPresent(argMultimap, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMERGENCY_PHONE, PREFIX_EMAIL,
                 PREFIX_FTP, PREFIX_EXPERIENCE_LEVEL, PREFIX_LOCATION)
                 || !argMultimap.getPreamble().isEmpty()) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddCommand.MESSAGE_USAGE));
         }
 
-        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_FTP,
-                PREFIX_EXPERIENCE_LEVEL);
+        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMERGENCY_PHONE,
+                PREFIX_EMAIL, PREFIX_FTP, PREFIX_EXPERIENCE_LEVEL);
 
         Name name = ParserUtil.parseName(argMultimap.getValue(PREFIX_NAME).get());
         Phone phone = ParserUtil.parsePhone(argMultimap.getValue(PREFIX_PHONE).get());
+        Phone emergencyPhone = ParserUtil.parsePhone(argMultimap.getValue(PREFIX_EMERGENCY_PHONE).get());
         Email email = ParserUtil.parseEmail(argMultimap.getValue(PREFIX_EMAIL).get());
         Ftp ftp = ParserUtil.parseFtp(argMultimap.getValue(PREFIX_FTP).get());
 
@@ -72,7 +75,7 @@ public class AddCommandParser implements Parser<AddCommand> {
 
         Set<Location> locations = ParserUtil.parseLocations(argMultimap.getAllValues(PREFIX_LOCATION));
 
-        Person person = new Person(name, phone, email, ftp, experienceLevel, locations);
+        Person person = new Person(name, phone, email, ftp, experienceLevel, locations, Optional.of(emergencyPhone));
 
         return new AddCommand(person);
     }

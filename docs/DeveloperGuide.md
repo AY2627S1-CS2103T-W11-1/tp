@@ -156,6 +156,12 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Emergency contact implementation
+
+`Person` stores an `Optional<Phone>` emergency contact as a data field. New `add` commands require `sos/`; `edit` optionally replaces it and otherwise preserves it. All supplied numbers reuse `ParserUtil.parsePhone`, including repeated `sos/` find criteria. Find uses OR within each field and AND across supplied fields. Emergency contacts do not participate in cyclist identity because riders may share a contact. Edit and delete still target the cyclist’s own phone number.
+
+`JsonAdaptedPerson` saves the `emergencyPhone` property. Missing or null values load as `Optional.empty()` for backwards compatibility, while supplied invalid values reject the record. `PersonCard` shows the number in a labelled SOS row, or **Not provided** for legacy records. Help formats and dropdown templates include the new prefix.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
@@ -484,7 +490,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 * **Java 25**: The minimum Java platform version required to run Cyclique, based on the project constraints.
 * **Local storage**: Data stored on the user's own computer rather than on a remote server.
 * **Mainstream OS**: Windows, Linux, Unix, or macOS
-* **Parameter prefix**: A command prefix that identifies the type of value being supplied, such as `n/` for name, `p/` for phone number, or `f/` for FTP.
+* **Parameter prefix**: A command prefix that identifies the type of value being supplied, such as `n/` for name, `p/` for phone number, `sos/` for emergency contact number, or `f/` for FTP.
 * **Persistent data**: Data that remains available after Cyclique is closed and reopened.
 * **Preferred cycling location**: A location where a cyclist prefers to ride or participate in group rides. A cyclist may have more than one preferred cycling location. The special value `any`, supplied as `l/any`, indicates that the cyclist has no location restriction and is considered to match every ride location.
 * **Private contact detail**: A contact detail that is not meant to be shared with others
@@ -504,7 +510,7 @@ Repeat the checks on each operating system supported by the release.
 
 1. Launch in a folder without `preferences.json` or `data/addressbook.json`.
    Expected: The opening artwork is followed by the main window and sample contacts.
-   Contact cards show labelled phone, email, FTP, experience and location fields.
+   Contact cards show labelled phone, SOS, email, FTP, experience and location fields.
 1. Resize and move the window, then enter `exit`.
    Expected: The closing artwork appears and the application closes.
 1. Launch again. Expected: The window size and position are retained.
@@ -512,15 +518,26 @@ Repeat the checks on each operating system supported by the release.
    usage instructions for all eight commands. Closing help leaves the main window usable.
 1. Close the main window using its close button. Expected: The application shuts down.
 
+### Emergency contact regression
+
+1. Launch with a copy of an older saved book whose cyclists have no `emergencyPhone` property. Expected: Records load, with **SOS: Not provided** on their cards.
+1. Edit another field of a legacy cyclist, then restart. Expected: The emergency number remains absent.
+1. Enter `edit PHONE sos/+65 99999999` using that cyclist’s own phone for `PHONE`. Expected: The SOS row and success message show the number; it remains after restarting.
+1. Add a cyclist using all required fields including `sos/+65 99999999`. Expected: The labelled SOS number appears. A second cyclist may share it if their own phone and email are unique.
+1. Repeat the add without `sos/`, with blank `sos/`, with `sos/99999999`, with `sos/+65 999-99999`, and with two `sos/` values. Expected: Each command is rejected without changing data. Repeat the invalid values and duplicate prefix with `edit PHONE`.
+1. Enter `find sos/+65 99999999`, then repeat with a second `sos/` number. Expected: Exact emergency-number matches; repeated values use OR. Add `n/` and `p/` criteria. Expected: All supplied fields must match. Cyclists without emergency numbers do not match `sos/`.
+1. Enter `help`, press F1 and inspect the Help dropdown. Expected: Add, edit and find formats include `sos/`; the add starter inserts it.
+1. Resize the main window. Expected: SOS values wrap and remain readable without overlapping other fields.
+
 ### Adding and editing people
 
 1. Enter `clear`, then
-   `add n/John Doe p/+65 98765432 e/johnd@example.com f/300 x/Beginner l/any`.
+   `add n/John Doe p/+65 98765432 sos/+65 99999999 e/johnd@example.com f/300 x/Beginner l/any`.
    Expected: One contact appears with all supported fields and no tag row.
    The success message contains no residential address.
 1. Try adding Alice with `a/10 Test Road` appended and `edit +65 98765432 a/10 Test Road`.
    Expected: Both commands are rejected and cyclist details remain unchanged.
-1. Enter `add n/Alice Tan p/+65 91234567 e/alice@example.com f/1 x/Beginner l/East Coast l/Punggol`.
+1. Enter `add n/Alice Tan p/+65 91234567 sos/+65 99999999 e/alice@example.com f/1 x/Beginner l/East Coast l/Punggol`.
    Expected: A second contact appears with both locations.
 1. Repeat John's add command. Expected: A duplicate-person error and no changes.
 1. Enter `edit +65 98765432 p/+65 96742165 e/johndoe@example.com f/600 x/Advanced l/Punggol`.
@@ -570,11 +587,11 @@ Use John and Alice from the previous section.
 Use a disposable test book. Check both cyclist names and card indexes after every step.
 
 1. Enter `clear`, then add these contacts in the stated order:
-   `add n/David p/+65 94444444 e/david@example.com f/300 x/Beginner l/any`,
-   `add n/alex Zane p/+65 91111111 e/alexz@example.com f/300 x/Beginner l/any`,
-   `add n/Alex Adams p/+65 92222222 e/alexa@example.com f/300 x/Beginner l/any`.
+   `add n/David p/+65 94444444 sos/+65 99999999 e/david@example.com f/300 x/Beginner l/any`,
+   `add n/alex Zane p/+65 91111111 sos/+65 99999999 e/alexz@example.com f/300 x/Beginner l/any`,
+   `add n/Alex Adams p/+65 92222222 sos/+65 99999999 e/alexa@example.com f/300 x/Beginner l/any`.
    Expected: `1. Alex Adams`, `2. alex Zane`, `3. David` (full names, ignoring case).
-1. Enter `add n/Bernice p/+65 93333333 e/bernice@example.com f/300 x/Beginner l/any`.
+1. Enter `add n/Bernice p/+65 93333333 sos/+65 99999999 e/bernice@example.com f/300 x/Beginner l/any`.
    Expected: Bernice appears at index 3, between alex Zane and David; David becomes index 4.
 1. Enter `find n/david n/bernice`. Expected: `1. Bernice`, `2. David`.
    Enter `list`. Expected: All four contacts return in alphabetical order, numbered 1 to 4.
@@ -582,7 +599,7 @@ Use a disposable test book. Check both cyclist names and card indexes after ever
    Enter `edit +65 94444444 n/Zara`. Expected: Zara moves to index 4;
    the remaining fields and phone number are retained.
 1. Enter `find n/bernice`, then
-   `add n/BERNICE p/+65 95555555 e/bernice2@example.com f/300 x/Beginner l/any`.
+   `add n/BERNICE p/+65 95555555 sos/+65 99999999 e/bernice2@example.com f/300 x/Beginner l/any`.
    Expected: All contacts appear. Bernice is followed by BERNICE, in their stored order.
 1. Enter `find n/bernice`. Expected: `1. Bernice` (`+65 93333333`),
    `2. BERNICE` (`+65 95555555`). Enter `edit +65 93333333 n/bernice`.
@@ -633,15 +650,15 @@ Use the contacts from the alphabetical display scenario before deleting Zara.
 ### Release regression: duplicate cyclist identities
 
 1. Enter `clear`, then
-   `add n/John Doe p/+65 98765432 e/john@example.com f/300 x/Beginner l/any`.
+   `add n/John Doe p/+65 98765432 sos/+65 99999999 e/john@example.com f/300 x/Beginner l/any`.
    Expected: John is added successfully.
-1. Enter `add n/Jane Tan p/+65 98765432 e/jane@example.com f/250 x/Intermediate l/Punggol`.
+1. Enter `add n/Jane Tan p/+65 98765432 sos/+65 99999999 e/jane@example.com f/250 x/Intermediate l/Punggol`.
    Expected: The add is rejected with `Another cyclist already has this phone number or email.`
    John remains unchanged and Jane is not added.
-1. Enter `add n/Jane Tan p/+65 91234567 e/JOHN@EXAMPLE.COM f/250 x/Intermediate l/Punggol`.
+1. Enter `add n/Jane Tan p/+65 91234567 sos/+65 99999999 e/JOHN@EXAMPLE.COM f/250 x/Intermediate l/Punggol`.
    Expected: The add is rejected with the same message because email matching ignores letter case.
    John remains unchanged and Jane is not added.
-1. Enter `add n/John Doe p/+65 91234567 e/jane@example.com f/250 x/Intermediate l/Punggol`.
+1. Enter `add n/John Doe p/+65 91234567 sos/+65 99999999 e/jane@example.com f/250 x/Intermediate l/Punggol`.
    Expected: The second John Doe is added because both the phone number and email are unique.
 1. Enter `edit +65 91234567 p/+65 98765432`.
    Expected: The edit is rejected with `Another cyclist already has this phone number or email.`
@@ -681,7 +698,7 @@ Use the contacts from the alphabetical display scenario before deleting Zara.
 Use a disposable data directory for these checks.
 
 1. Open Help. Expected: Add and Edit entries contain no tag parameter.
-1. Enter `add n/Tagless Rider p/+65 98888888 e/tagless@example.com f/250 x/Intermediate l/Punggol`.
+1. Enter `add n/Tagless Rider p/+65 98888888 sos/+65 99999999 e/tagless@example.com f/250 x/Intermediate l/Punggol`.
    Expected: The card and success message show supported fields without tags or an empty tag row.
 1. Enter `edit +65 98888888 n/Updated Rider`. Expected: The name changes; other fields remain unchanged.
 1. Append `t/friend` to the add command above and try `edit +65 98888888 t/` and

@@ -14,6 +14,34 @@ public class PersonMatchesFindCriteriaPredicateTest {
     private final Person alice = new PersonBuilder().withName("Alice Bob").withPhone("+65 96320842").build();
 
     @Test
+    public void test_emergencyPhone_matchesOwnFieldAndAllCriteria() {
+        Person cyclist = new PersonBuilder(alice).withEmergencyPhone("+65 99999999").build();
+        List<Phone> emergencyPhones = List.of(new Phone("+65 88888888"), new Phone("+65 99999999"));
+        assertTrue(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), emergencyPhones).test(cyclist));
+        assertFalse(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), emergencyPhones).test(alice));
+        assertFalse(new PersonMatchesFindCriteriaPredicate(List.of(), emergencyPhones, List.of()).test(cyclist));
+        assertFalse(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(),
+                List.of(alice.getPhone())).test(cyclist));
+        assertTrue(new PersonMatchesFindCriteriaPredicate(List.of("alice"), List.of(alice.getPhone()),
+                emergencyPhones).test(cyclist));
+        assertFalse(new PersonMatchesFindCriteriaPredicate(List.of("carol"), List.of(alice.getPhone()),
+                emergencyPhones).test(cyclist));
+        assertFalse(new PersonMatchesFindCriteriaPredicate(List.of("alice"),
+                List.of(new Phone("+65 88888888")), emergencyPhones).test(cyclist));
+        assertFalse(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(),
+                List.of(new Phone("+65 999"))).test(cyclist));
+    }
+
+    @Test
+    public void equals_differentEmergencyCriteria_returnsFalse() {
+        PersonMatchesFindCriteriaPredicate predicate = new PersonMatchesFindCriteriaPredicate(
+                List.of(), List.of(), List.of(new Phone("+65 99999999")));
+        assertFalse(predicate.equals(new PersonMatchesFindCriteriaPredicate(List.of(), List.of())));
+        assertTrue(predicate.equals(new PersonMatchesFindCriteriaPredicate(
+                List.of(), List.of(), List.of(new Phone("+65 99999999")))));
+    }
+
+    @Test
     public void test_nameKeywords_matchAnyFullWordIgnoringCase() {
         assertTrue(new PersonMatchesFindCriteriaPredicate(List.of("carol", "aLIce"), List.of()).test(alice));
         assertFalse(new PersonMatchesFindCriteriaPredicate(List.of("Ali"), List.of()).test(alice));

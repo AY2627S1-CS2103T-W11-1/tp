@@ -1,6 +1,7 @@
 package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_EMERGENCY_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 
@@ -23,10 +24,13 @@ public class FindCommandParser implements Parser<FindCommand> {
      * @throws ParseException if the user input does not conform to the expected format
      */
     public FindCommand parse(String args) throws ParseException {
-        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(" " + args.trim(), PREFIX_NAME, PREFIX_PHONE);
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(" " + args.trim(), PREFIX_NAME, PREFIX_PHONE,
+                PREFIX_EMERGENCY_PHONE);
         List<String> nameKeywords = argMultimap.getAllValues(PREFIX_NAME);
         List<String> phoneValues = argMultimap.getAllValues(PREFIX_PHONE);
-        if (!argMultimap.getPreamble().isEmpty() || nameKeywords.isEmpty() && phoneValues.isEmpty()
+        List<String> emergencyPhoneValues = argMultimap.getAllValues(PREFIX_EMERGENCY_PHONE);
+        if (!argMultimap.getPreamble().isEmpty()
+                || (nameKeywords.isEmpty() && phoneValues.isEmpty() && emergencyPhoneValues.isEmpty())
                 || nameKeywords.stream().anyMatch(keyword -> keyword.isEmpty() || keyword.matches(".*\\s+.*"))) {
             throw new ParseException(
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
@@ -39,7 +43,11 @@ public class FindCommandParser implements Parser<FindCommand> {
         for (String value : phoneValues) {
             phones.add(ParserUtil.parsePhone(value));
         }
-        return new FindCommand(new PersonMatchesFindCriteriaPredicate(nameKeywords, phones));
+        List<Phone> emergencyPhones = new ArrayList<>();
+        for (String value : emergencyPhoneValues) {
+            emergencyPhones.add(ParserUtil.parsePhone(value));
+        }
+        return new FindCommand(new PersonMatchesFindCriteriaPredicate(nameKeywords, phones, emergencyPhones));
     }
 
 }

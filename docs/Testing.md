@@ -74,3 +74,11 @@ visible card indexes after reordering and filtering, and startup ordering after 
 Run the Developer Guide's **Tag removal compatibility regression** after tag-related changes.
 `JsonAdaptedPersonTest` checks legacy tags (including empty, null and obsolete invalid values)
 are ignored and omitted on serialisation; parser tests reject removed tag input.
+
+Run the Developer Guide’s **Emergency contact regression** for `sos/` changes, including legacy loading, persistence, phone validation, find combinations, cyclist card layout and both Help surfaces.
+
+`JsonAdaptedPersonTest.fromJson_constructorDiscoveryOrder_preservesCurrentAndLegacyRecords`
+exercises both constructor discovery orders to reproduce JVM-dependent Jackson loading
+failures. It verifies populated, null and missing emergency numbers. Only the full
+`JsonAdaptedPerson` constructor carries JSON property annotations; the convenience
+constructor is for direct Java callers.

@@ -41,6 +41,9 @@
           <Label styleClass="person-field-label" text="Email" GridPane.rowIndex="1" />
           <Label fx:id="email" maxWidth="1.7976931348623157E308" styleClass="person-field-value"
                  text="\$email" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+          <Label styleClass="person-field-label" text="SOS" GridPane.rowIndex="2" />
+          <Label fx:id="emergencyPhone" maxWidth="1.7976931348623157E308" styleClass="person-field-value"
+                 text="\$emergencyPhone" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="2" />
         </GridPane>
       </VBox>
       <VBox maxWidth="1.7976931348623157E308" spacing="2"
