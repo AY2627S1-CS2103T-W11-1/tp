@@ -31,6 +31,23 @@ public class AddressBookParser {
     private static final Logger logger = LogsCenter.getLogger(AddressBookParser.class);
 
     /**
+     * Returns whether input starts with a supported command word, even if its arguments are invalid.
+     * This distinguishes a new command from an invalid deletion-confirmation reply.
+     */
+    public boolean isRecognisedCommand(String userInput) {
+        Matcher matcher = BASIC_COMMAND_FORMAT.matcher(userInput.trim());
+        if (!matcher.matches()) {
+            return false;
+        }
+        return switch (matcher.group("commandWord")) {
+            case AddCommand.COMMAND_WORD, EditCommand.COMMAND_WORD, DeleteCommand.COMMAND_WORD,
+                    ClearCommand.COMMAND_WORD, FindCommand.COMMAND_WORD, ListCommand.COMMAND_WORD,
+                    ExitCommand.COMMAND_WORD, HelpCommand.COMMAND_WORD -> true;
+            default -> false;
+        };
+    }
+
+    /**
      * Parses user input into command for execution.
      *
      * @param userInput full user input string

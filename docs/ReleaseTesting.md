@@ -227,6 +227,39 @@ Verified with Temurin JDK 25.0.4.1 on macOS:
 Run the Developer Guide's **Tag removal compatibility regression** manually before release.
 Windows and Linux manual checks remain outstanding. Developer Guide UML diagrams are unchanged.
 
+## Cyclist deletion confirmation — 14 October 2026
+
+`delete PHONE` now shows the target cyclist in the existing result panel and
+waits for a reply in the command box. Case-insensitive `y`/`yes` confirms;
+`n`/`no` cancels without changing the records, active filter or saved data.
+Invalid replies retain the pending request. Another supported command cancels
+it and displays `Deletion cancelled.` followed by that command's output or error.
+Another delete starts a new confirmation for its own target. Phone-based targeting
+and the existing missing/hidden/ambiguous-target and storage errors are preserved.
+
+Verified with Eclipse Temurin JDK 25.0.4.1 on macOS ARM64:
+
+- `./gradlew check coverage` passes: **372 tests**, no failures, errors or skips;
+  production and test Checkstyle pass. `shadowJar` builds the release JAR.
+- JaCoCo line coverage is **75.87%** (1,094 of 1,442 lines), instruction coverage
+  is 78.44% and branch coverage is 88.54%, exceeding the 50% target.
+- Tests exercise requests without mutation or storage writes, every accepted
+  reply capitalisation, invalid replies, cancellation, subsequent outputs/errors,
+  replacement requests, Help/Exit flags, filtered and same-name phone targets,
+  stale cyclist details, pending-request loss on restart and storage failures.
+  Successful confirmations are checked against the saved JSON and reloaded book.
+- Repository checks and `git diff --check` pass. UG/DG instructions and affected
+  manual scenarios are updated; UML diagrams remain unchanged.
+- The release JAR reached UI startup using disposable data in
+  `/private/tmp/cyclique-deletion-confirmation-ui`. The computer-use tool does not
+  expose the JavaFX process and selecting `Cyclique` returns `Invalid app`.
+  Manual command-box, result-panel, Help, resize and restart checks could not be
+  completed. The temporary application was stopped. Windows and Linux manual
+  checks remain outstanding.
+
+Run the Developer Guide's **Deletion confirmation regression** before release.
+Automated command/storage tests do not establish visual correctness or keyboard
+focus behaviour.
 ## Emergency contact regression — 14 October 2026
 
 Implemented compulsory `sos/` for new cyclists, optional emergency-number edits,

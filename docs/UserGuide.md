@@ -30,7 +30,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
    * `add n/John Doe p/+65 98765432 sos/+65 99999999 e/johnd@example.com f/300 x/Beginner l/any` : Adds a contact named `John Doe` to the Address Book.
 
-   * `delete +65 98765432` : Deletes the contact with this phone number.
+   * `delete +65 98765432` : Requests deletion of the contact with this phone number. Enter `yes` to confirm or `no` to cancel.
 
    * `clear` : Deletes all contacts.
 
@@ -145,18 +145,25 @@ Examples:
 
 ### Deleting a person: `delete`
 
-Deletes the specified person from the address book.
+Requests confirmation before deleting the specified cyclist from the address book.
 
-Format: `delete PHONE`
+Format: `delete PHONE`, followed by a confirmation reply in the command box.
 
-* Deletes the person with the specified `PHONE` number in the displayed list.
+* Shows the details of the cyclist with the specified `PHONE` number in the result panel. No cyclist is removed until you confirm.
+* Enter `y` or `yes` to confirm, or `n` or `no` to cancel. Replies ignore letter case, so `Y`, `YES`, `yEs`, `N` and `NO` are accepted. Leading and trailing spaces are ignored.
+* Cancellation displays `Deletion cancelled.` and leaves cyclist records, the current filter and saved data unchanged.
+* An unrecognised reply, such as `maybe` or `yes please`, shows an error and keeps waiting for a valid reply.
+* Entering another supported command cancels the pending deletion and executes that command. The result panel shows `Deletion cancelled.` followed by the command’s usual output or error. Another `delete PHONE` starts a fresh confirmation for its target. Commands retain their usual case-sensitive spelling.
+* Closing or restarting Cyclique discards any pending confirmation. A confirmation reply has no effect when no deletion is pending.
 * A cyclist hidden by a filter cannot be deleted. Use `list` or change the `find` criteria to display the intended cyclist first.
 * If more than one displayed contact has that number, deletion is rejected.
 * Use a complete number with country code and one space, for example `+65 96742165`;
   the number after the space must contain at least three digits.
 
 Examples:
-* `delete +65 96742165` deletes the contact with that phone number.
+* Enter `delete +65 96742165`, check the displayed cyclist details, then enter `yes` to delete that cyclist.
+* Enter `delete +65 96742165`, then `no` to keep the cyclist.
+* Enter `delete +65 96742165`, then `list` to cancel the deletion and list all cyclists. Both messages appear in the result panel.
 
 Both `edit` and `delete` report the same error when the target is absent from the displayed list:
 `Cyclist with phone number PHONE cannot be found in the displayed list. Use list to show all cyclists.`
@@ -223,7 +230,7 @@ Action | Format, Examples
 --------|------------------
 **Add** | `add n/NAME p/PHONE sos/EMERGENCY_PHONE e/EMAIL f/FTP_LEVEL x/EXPERIENCE_LEVEL l/LOCATION [l/LOCATION]…` <br> e.g., `add n/James Ho p/+65 22224444 sos/+65 99999999 e/jamesho@example.com f/300 x/Intermediate l/any`
 **Clear** | `clear`
-**Delete** | `delete PHONE`<br> e.g., `delete +65 22224444`
+**Delete** | `delete PHONE`, then `y`/`yes` to confirm or `n`/`no` to cancel (case-insensitive)<br> e.g., `delete +65 22224444`, then `yes`
 **Edit** | `edit PHONE [n/NAME] [p/PHONE] [sos/EMERGENCY_PHONE] [e/EMAIL] [f/FTP] [x/EXPERIENCE] [l/LOCATION]…`<br> e.g., `edit +65 22224444 n/James Lee e/jameslee@example.com`
 **Find** | `find [n/NAME_KEYWORD]… [p/PHONE]… [sos/EMERGENCY_PHONE]…`<br> e.g., `find n/James n/Jake`, `find n/James p/+65 96320842`
 **List** | `list`

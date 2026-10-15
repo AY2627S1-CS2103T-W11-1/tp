@@ -1,6 +1,7 @@
 package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
@@ -32,6 +33,17 @@ import seedu.address.testutil.PersonUtil;
 public class AddressBookParserTest {
 
     private final AddressBookParser parser = new AddressBookParser();
+
+    @Test
+    public void isRecognisedCommand_identifiesCommandWordsRegardlessOfArgumentValidity() {
+        for (String word : new String[] {"add", "edit", "delete", "clear", "find", "list", "exit", "help"}) {
+            assertTrue(parser.isRecognisedCommand("  " + word + "  "));
+            assertTrue(parser.isRecognisedCommand(word + " invalid arguments"));
+        }
+        for (String reply : new String[] {"", "  ", "maybe", "yes", "no", "y", "n", "LIST", "delete123"}) {
+            assertFalse(parser.isRecognisedCommand(reply));
+        }
+    }
 
     @Test
     public void parseCommand_add() throws Exception {
