@@ -2,11 +2,14 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.List;
+
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 
 /**
- * Clears the address book.
+ * Clears the address book. Every cyclist and ride is removed, but ride IDs are never reused, so the
+ * next ride added still receives the next unused ID.
  */
 public class ClearCommand extends Command {
 
@@ -17,7 +20,9 @@ public class ClearCommand extends Command {
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
-        model.setAddressBook(new AddressBook());
+        AddressBook clearedAddressBook = new AddressBook();
+        clearedAddressBook.setRides(List.of(), model.getAddressBook().getNextRideId());
+        model.setAddressBook(clearedAddressBook);
         return new CommandResult(MESSAGE_SUCCESS);
     }
 }

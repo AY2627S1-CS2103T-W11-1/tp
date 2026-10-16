@@ -125,6 +125,22 @@ public class JsonAddressBookStorageTest {
     }
 
     @Test
+    public void readAddressBook_fileWithNullRideEntry_throwsDataLoadingException() throws Exception {
+        Path filePath = testFolder.resolve("NullRideAddressBook.json");
+        Files.writeString(filePath, "{ \"persons\" : [ ], \"rides\" : [ null ] }");
+
+        assertThrows(DataLoadingException.class, () -> new JsonAddressBookStorage(filePath).readAddressBook(filePath));
+    }
+
+    @Test
+    public void readAddressBook_fileWithOnlyNullRides_throwsDataLoadingException() throws Exception {
+        Path filePath = testFolder.resolve("OnlyNullRidesAddressBook.json");
+        Files.writeString(filePath, "{ \"persons\" : [ ], \"rides\" : [ null, null ], \"nextRideId\" : 3 }");
+
+        assertThrows(DataLoadingException.class, () -> new JsonAddressBookStorage(filePath).readAddressBook(filePath));
+    }
+
+    @Test
     public void readAddressBook_fileWithInvalidRide_throwsDataLoadingException() throws Exception {
         Path filePath = testFolder.resolve("InvalidRideAddressBook.json");
         Files.writeString(filePath, "{ \"persons\" : [ ], \"rides\" : [ { \"id\" : 1, \"name\" : \"Ride\" } ] }");

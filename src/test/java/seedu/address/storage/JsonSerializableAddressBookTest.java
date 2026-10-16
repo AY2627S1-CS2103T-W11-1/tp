@@ -134,6 +134,17 @@ public class JsonSerializableAddressBookTest {
     }
 
     @Test
+    public void toModelType_nullRideEntry_throwsIllegalValueException() {
+        List<JsonAdaptedRide> ridesWithNull = new java.util.ArrayList<>();
+        ridesWithNull.add(new JsonAdaptedRide(new RideBuilder().withId(1).build()));
+        ridesWithNull.add(null);
+        JsonSerializableAddressBook data = new JsonSerializableAddressBook(List.of(), ridesWithNull, 3);
+
+        assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_NULL_RIDE,
+                data::toModelType);
+    }
+
+    @Test
     public void toModelType_duplicateRideIds_throwsIllegalValueException() {
         Ride first = new RideBuilder().withId(1).build();
         Ride second = new RideBuilder().withId(1).withName("Evening Spin").build();

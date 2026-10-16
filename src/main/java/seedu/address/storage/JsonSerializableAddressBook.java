@@ -24,6 +24,7 @@ class JsonSerializableAddressBook {
 
     public static final String MESSAGE_DUPLICATE_PERSON = "Cyclist list contains duplicate cyclists.";
     public static final String MESSAGE_DUPLICATE_RIDE_ID = "Ride list contains duplicate ride IDs.";
+    public static final String MESSAGE_NULL_RIDE = "Ride list contains a null entry.";
     public static final String MESSAGE_INVALID_NEXT_RIDE_ID = "Next ride ID should be a positive whole number.";
 
     private final List<JsonAdaptedPerson> persons = new ArrayList<>();
@@ -77,6 +78,9 @@ class JsonSerializableAddressBook {
         List<Ride> modelRides = new ArrayList<>();
         Set<Integer> rideIds = new HashSet<>();
         for (JsonAdaptedRide jsonAdaptedRide : rides) {
+            if (jsonAdaptedRide == null) {
+                throw new IllegalValueException(MESSAGE_NULL_RIDE);
+            }
             Ride ride = jsonAdaptedRide.toModelType();
             if (!rideIds.add(ride.getId())) {
                 throw new IllegalValueException(MESSAGE_DUPLICATE_RIDE_ID);

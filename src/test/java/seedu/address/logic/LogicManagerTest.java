@@ -103,6 +103,23 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_clearThenRideAdd_doesNotReuseRideIdsAndSavesCounter() throws Exception {
+        Ride draft = new RideBuilder().build();
+        logic.execute(RideUtil.getRideAddCommand(draft));
+        logic.execute(RideUtil.getRideAddCommand(new RideBuilder(draft).withName("Evening Spin").build()));
+
+        logic.execute("clear");
+        assertEquals(0, model.getAddressBook().getRideList().size());
+        JsonAddressBookStorage reader = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        assertEquals(3, reader.readAddressBook().get().getNextRideId());
+
+        logic.execute(RideUtil.getRideAddCommand(new RideBuilder(draft).withName("Night Ride").build()));
+
+        assertEquals(3, model.getAddressBook().getRideList().get(0).getId());
+        assertEquals(4, reader.readAddressBook().get().getNextRideId());
+    }
+
+    @Test
     public void execute_rideAddWithInvalidField_doesNotAddRide() {
         assertParseException("rideadd n/Ride from/18-10-2026 0930 to/18-10-2026 0630 l/East Coast d/45 f/180 s/12",
                 Ride.MESSAGE_INVALID_PERIOD);
