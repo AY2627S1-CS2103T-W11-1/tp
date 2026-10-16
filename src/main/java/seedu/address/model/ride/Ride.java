@@ -83,6 +83,13 @@ public class Ride {
         return new Ride(newId, name, from, to, location, distance, minimumPower, maxGroupSize, notes, roster);
     }
 
+    /**
+     * Returns a copy with the supplied roster, preserving all ride details.
+     */
+    public Ride withRoster(List<Phone> newRoster) {
+        return new Ride(id, name, from, to, location, distance, minimumPower, maxGroupSize, notes, newRoster);
+    }
+
     public int getId() {
         return id;
     }

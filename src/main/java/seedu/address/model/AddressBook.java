@@ -92,6 +92,10 @@ public class AddressBook implements ReadOnlyAddressBook {
         requireNonNull(editedPerson);
 
         persons.setPerson(target, editedPerson);
+        if (!target.getPhone().equals(editedPerson.getPhone())) {
+            rides.replaceAll(ride -> ride.withRoster(ride.getRoster().stream()
+                    .map(phone -> phone.equals(target.getPhone()) ? editedPerson.getPhone() : phone).toList()));
+        }
     }
 
     /**
@@ -100,6 +104,8 @@ public class AddressBook implements ReadOnlyAddressBook {
      */
     public void removePerson(Person key) {
         persons.remove(key);
+        rides.replaceAll(ride -> ride.withRoster(ride.getRoster().stream()
+                .filter(phone -> !phone.equals(key.getPhone())).toList()));
     }
 
     //// ride-level operations
@@ -114,6 +120,18 @@ public class AddressBook implements ReadOnlyAddressBook {
         nextRideId++;
         rides.add(storedRide);
         return storedRide;
+    }
+
+    /**
+     * Replaces an existing ride without changing its ID or position.
+     */
+    public void setRide(Ride target, Ride editedRide) {
+        requireNonNull(editedRide);
+        int index = rides.indexOf(target);
+        if (index < 0 || target.getId() != editedRide.getId()) {
+            throw new IllegalArgumentException("Ride must exist and retain its ID.");
+        }
+        rides.set(index, editedRide);
     }
 
     //// util methods

@@ -313,3 +313,32 @@ coverage remains **75.72%** (1,085 of 1,433 lines), above the 50% target.
 Linux CI still needs to run against the updated branch; local verification does
 not claim that the remote run has passed. The existing emergency-contact manual
 UI checks remain outstanding because the UI tool cannot access the JavaFX window.
+
+
+## Ride roster management (16 October 2026)
+
+Issue #93 follows the Week 10 command formats: `rideaddcyclist ID PHONE` (`rac`)
+and `ridedeletecyclist ID PHONE` (`rdc`). Roster membership is displayed on ride
+cards and persisted; phone edits and confirmed cyclist deletions update all rosters.
+UG/DG text and manual scenarios are updated; UML diagrams are deferred to a later increment.
+
+JDK 25.0.1: `./gradlew check coverage` passes with **563 tests**, no failures,
+errors or skips; both Checkstyle tasks pass. Line coverage is **80.94%**
+(1567 of 1936 lines). The release JAR also builds using `shadowJar`.
+This Windows installation needs the temporary JVM option
+`-Djdk.net.unixdomain.tmpdir=C:/codex-java-tmp` to avoid a JDK loopback-socket
+error caused by its default temporary directory; no build configuration was changed.
+
+Automated integration checks cover both names and aliases, hidden cyclists,
+capacity, minimum FTP, duplicate/absent membership, invalid IDs and phones,
+unchanged JSON on rejection, preserving other rides, phone edits, cancelled and
+confirmed contact deletion, pending-deletion cancellation, and saved-data readback. Additional regressions reload saved membership before removal,
+verify invalid syntax preserves the model, filter and file, and check both Help formats and aliases.
+A JavaFX test loads ride-card FXML and checks empty/populated roster text and wrapping.
+It shares the existing JavaFX toolkit lifecycle in `PersonCardTest`.
+
+The isolated JAR launched successfully in a disposable temporary folder with sample
+contacts and the empty Rides panel. Its window closed before the first roster command
+could be submitted. The Developer Guide's **Ride roster regression (manual testing)**
+therefore remains outstanding, including live card refresh, Help interaction, resizing
+and restart verification. Automated checks do not establish visual correctness.

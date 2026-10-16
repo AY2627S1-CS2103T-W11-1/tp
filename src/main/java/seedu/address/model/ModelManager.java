@@ -107,6 +107,11 @@ public class ModelManager implements Model {
         return addressBook.addRide(ride);
     }
 
+    @Override
+    public void setRide(Ride target, Ride editedRide) {
+        addressBook.setRide(target, editedRide);
+    }
+
     //=========== Filtered Person List Accessors =============================================================
 
     /**

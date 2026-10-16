@@ -245,6 +245,23 @@ no rides and `nextRideId` 1. Duplicate ride IDs or a non-positive `nextRideId` m
 * *Dates.* `java.time.LocalDateTime` is used, with a strict parser, so invalid dates are rejected by the library
   instead of by hand-written checks. Time zones are not needed because every ride is local to the organiser.
 
+### Ride roster management
+
+`rideaddcyclist ID PHONE` (`rac`) and `ridedeletecyclist ID PHONE` (`rdc`) share
+`RideRosterCommandParser` and `RideRosterCommand`. The parser separates the first token
+as a positive integer ride ID and validates the remaining text as a complete phone number.
+The command resolves the ride by ID, independently of cyclist filtering. Addition requires
+an existing cyclist, no duplicate membership, a free place and sufficient FTP. Removal
+requires membership and leaves the cyclist record intact. Validation finishes before mutation.
+
+`Ride#withRoster` creates an immutable replacement. `Model#setRide` delegates to
+`AddressBook#setRide`, preserving the ride's ID, position and next-ID counter. The observable
+list replacement refreshes its ride card. `LogicManager` saves through the existing JSON
+path; the roster phone list already has storage support. Phone edits replace roster references
+across rides, and confirmed cyclist deletion removes them. The deletion prompt explains this effect.
+
+UML diagram updates are deferred to a later increment. Invalid requests throw before `setRide`.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
@@ -609,7 +626,7 @@ Repeat the checks on each operating system supported by the release.
    Expected: The closing artwork appears and the application closes.
 1. Launch again. Expected: The window size and position are retained.
 1. Enter `help`, close its window, then press F1. Expected: Both actions open readable
-   usage instructions for all eight commands. Closing help leaves the main window usable.
+   usage instructions for all supported commands. Closing help leaves the main window usable.
 1. Close the main window using its close button. Expected: The application shuts down.
 
 ### Emergency contact regression
@@ -889,3 +906,28 @@ Use a disposable data directory for these checks.
    and relaunch. Expected: All supported fields load, with no tags on the card.
 1. Edit a supported field, exit, and inspect the JSON. Expected: No cyclist has a `tags` field.
    Relaunch and confirm the edit persists.
+
+### Ride roster regression (manual testing)
+
+Use a separate data directory or back up your data first.
+
+1. In a disposable folder with no rides, enter
+   `add n/Roster Rider p/+65 91234567 sos/+65 99999999 e/roster@example.com f/180 x/Beginner l/any`.
+   Then enter `rideadd n/Roster Check from/18-10-2026 0630 to/18-10-2026 0930 l/East Coast d/45 f/180 s/1`.
+   Expected: ride 1 appears and its card says `No cyclists`.
+1. Enter `find n/NoSuchCyclist`, then `rideaddcyclist 1 +65 91234567`.
+   Expected: addition succeeds, the filter stays active and the ride card shows the phone.
+1. Repeat using `rac`. Expected: already-on-roster error; no roster change.
+1. Add another cyclist with FTP 179. Attempt to add them to ride 1.
+   Expected: full-ride error. Remove the first cyclist using `rdc 1 +65 91234567` and retry.
+   Expected: minimum-power error. An unknown cyclist or ride ID also reports an error.
+1. Enter `rac 0 +65 91234567`, `rac 1`, and `rac 1 p/+65 91234567`.
+   Expected: invalid-input errors with no data changes.
+1. Add the first cyclist again. Run `list`, edit their phone to `+65 91111111`.
+   Expected: the roster shows the new phone. Restart; expected: membership is preserved.
+1. Delete that contact and cancel. Expected: roster unchanged. Delete again and confirm.
+   Expected: the prompt explains removal from all rosters; the card says `No cyclists`.
+1. Check Help dropdown and Full help for both commands and aliases. Create a second ride
+   with maximum group size 12 and add several eligible cyclists. Resize the window; expected: text wraps and the ride card stays within its column.
+1. Try `ridedeletecyclist` for a cyclist not on the roster. Expected: membership error;
+   no contact records or other rides change.

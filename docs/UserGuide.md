@@ -197,6 +197,25 @@ Examples:
 * `rideadd n/Sunday Sunrise Ride from/18-10-2026 0630 to/18-10-2026 0930 l/East Coast d/45 f/180 s/12 notes/Bring lights and a spare tube`
 * `rideadd n/Evening Spin from/20-10-2026 1800 to/20-10-2026 1930 l/Punggol d/30.5 f/150 s/8`
 
+### Adding and removing cyclists from a ride
+
+Use `rideaddcyclist ID PHONE` (or `rac ID PHONE`) to add a saved cyclist to a ride.
+Use `ridedeletecyclist ID PHONE` (or `rdc ID PHONE`) to remove them from that ride only.
+For example: `rac 1 +65 91234567`, then `rdc 1 +65 91234567`.
+
+* `ID` is the positive ride ID shown on the card, rather than a position in the list.
+  Use a whole number from 1 to 2147483647. Command names and aliases are case-sensitive.
+* `PHONE` includes the country code and one space, as in cyclist commands. Do not add `p/`.
+* Cyclists can be added even when hidden by `find`. They must exist in the address book,
+  meet the ride's minimum power and fit within its maximum group size.
+* A cyclist cannot join the same ride twice. Removing a cyclist who is absent reports an error.
+* Removing a cyclist from a ride keeps their contact record and other ride memberships.
+* Ride cards show roster phone numbers, or `No cyclists` when empty. Changes are saved automatically.
+* Editing a cyclist's phone updates all their ride memberships. Confirming deletion of their
+  contact removes them from all ride rosters; cancelling deletion preserves those memberships.
+* Both commands appear in Help. Entering either while a contact deletion is pending cancels
+  that pending deletion and runs the roster command.
+
 ### Clearing all entries: `clear`
 
 Clears all entries from the address book.
@@ -263,3 +282,5 @@ Action | Format, Examples
 **List** | `list`
 **Help** | `help`
 **Rideadd** | `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MINIMUM_POWER s/MAX_GROUP_SIZE [notes/NOTES]`<br> e.g., `rideadd n/Sunday Sunrise Ride from/18-10-2026 0630 to/18-10-2026 0930 l/East Coast d/45 f/180 s/12 notes/Bring lights`
+**Add cyclist to ride** | `rideaddcyclist ID PHONE` or `rac ID PHONE`
+**Remove cyclist from ride** | `ridedeletecyclist ID PHONE` or `rdc ID PHONE`

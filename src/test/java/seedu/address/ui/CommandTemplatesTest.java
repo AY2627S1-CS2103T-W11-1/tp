@@ -47,7 +47,8 @@ public class CommandTemplatesTest {
                 .toList();
 
         assertEquals(List.of(AddCommand.COMMAND_WORD, EditCommand.COMMAND_WORD, DeleteCommand.COMMAND_WORD,
-                FindCommand.COMMAND_WORD, RideAddCommand.COMMAND_WORD, ListCommand.COMMAND_WORD,
+                FindCommand.COMMAND_WORD, RideAddCommand.COMMAND_WORD, "rideaddcyclist", "ridedeletecyclist",
+                ListCommand.COMMAND_WORD,
                 ClearCommand.COMMAND_WORD, HelpCommand.COMMAND_WORD, ExitCommand.COMMAND_WORD), commandWords);
     }
 
@@ -109,7 +110,7 @@ public class CommandTemplatesTest {
         int rideAddIndex = commandWords.indexOf(RideAddCommand.COMMAND_WORD);
 
         assertEquals(commandWords.indexOf(FindCommand.COMMAND_WORD) + 1, rideAddIndex);
-        assertEquals(commandWords.indexOf(ListCommand.COMMAND_WORD) - 1, rideAddIndex);
+        assertEquals(commandWords.indexOf(ListCommand.COMMAND_WORD) - 3, rideAddIndex);
     }
 
     private static CommandTemplates.Template templateFor(String commandWord) {
