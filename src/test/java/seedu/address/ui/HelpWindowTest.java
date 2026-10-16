@@ -12,6 +12,7 @@ import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.RideAddCommand;
 
 public class HelpWindowTest {
 
@@ -35,7 +36,7 @@ public class HelpWindowTest {
         String[] commandWords = {
             AddCommand.COMMAND_WORD, EditCommand.COMMAND_WORD, DeleteCommand.COMMAND_WORD,
             FindCommand.COMMAND_WORD, ListCommand.COMMAND_WORD, ClearCommand.COMMAND_WORD,
-            HelpCommand.COMMAND_WORD, ExitCommand.COMMAND_WORD
+            HelpCommand.COMMAND_WORD, ExitCommand.COMMAND_WORD, RideAddCommand.COMMAND_WORD
         };
 
         for (String commandWord : commandWords) {
@@ -50,5 +51,23 @@ public class HelpWindowTest {
         assertTrue(HelpWindow.COMMAND_LIST.contains(EditCommand.MESSAGE_USAGE));
         assertTrue(HelpWindow.COMMAND_LIST.contains(DeleteCommand.MESSAGE_USAGE));
         assertTrue(HelpWindow.COMMAND_LIST.contains(FindCommand.MESSAGE_USAGE));
+        assertTrue(HelpWindow.COMMAND_LIST.contains(RideAddCommand.MESSAGE_USAGE));
+    }
+
+    @Test
+    public void commandList_rideAddUsage_includesDateFormatAndExample() {
+        assertTrue(HelpWindow.COMMAND_LIST.contains("rideadd: Adds a group ride."));
+        assertTrue(HelpWindow.COMMAND_LIST.contains("DD-MM-YYYY TTTT"));
+        assertTrue(HelpWindow.COMMAND_LIST.contains("Example: rideadd n/Sunday Sunrise Ride"));
+    }
+
+    @Test
+    public void commandList_listsRideAddAfterFindAndBeforeList() {
+        int findIndex = HelpWindow.COMMAND_LIST.indexOf(FindCommand.MESSAGE_USAGE);
+        int rideAddIndex = HelpWindow.COMMAND_LIST.indexOf(RideAddCommand.MESSAGE_USAGE);
+        int listIndex = HelpWindow.COMMAND_LIST.indexOf(ListCommand.COMMAND_WORD + ": Lists all persons.");
+
+        assertTrue(findIndex < rideAddIndex);
+        assertTrue(rideAddIndex < listIndex);
     }
 }

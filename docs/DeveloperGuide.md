@@ -805,6 +805,15 @@ Check the panel after each step, and check the saved file `data/addressbook.json
    Expected: The application starts with an empty Rides panel and the next ride added is `Ride 1`. Restore your backup after
    the check if needed.
 
+### Help dropdown and Full help for `rideadd`
+
+1. Click the **Help** menu. Expected: The dropdown lists `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE
+   f/MINIMUM_POWER s/MAX_GROUP_SIZE [notes/NOTES]` after `find` and before `list`, with only `notes/` in brackets.
+1. Click the `rideadd` item. Expected: The command box contains `rideadd n/ from/ to/ l/ d/ f/ s/` with the cursor
+   at the end, and the command is not run. Type a value straight after each prefix to complete it.
+1. Choose **Full help...** (or enter `help`, or press F1). Expected: The window lists `rideadd` after `find` and
+   before `list`, with its parameters, the `DD-MM-YYYY TTTT` date format and an example command.
+
 ### Saving data and recovering from invalid files
 
 1. Add John again, edit a field, and exit. Launch again.
