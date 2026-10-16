@@ -1,5 +1,7 @@
 package seedu.address.ui;
 
+import java.util.stream.Collectors;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
@@ -35,6 +37,8 @@ public class RideCard extends UiPart<Region> {
     @FXML
     private Label maxGroupSize;
     @FXML
+    private Label roster;
+    @FXML
     private GridPane notesRow;
     @FXML
     private Label notes;
@@ -51,6 +55,8 @@ public class RideCard extends UiPart<Region> {
         distance.setText(formatDistance(ride));
         minimumPower.setText(formatMinimumPower(ride));
         maxGroupSize.setText(ride.getMaxGroupSize().value);
+        roster.setText(ride.getRoster().isEmpty() ? "No cyclists" : ride.getRoster().stream()
+                .map(Object::toString).collect(Collectors.joining(", ")));
 
         // The notes line takes up no space when the ride has no notes.
         boolean hasNotes = ride.getNotes().isPresent();

@@ -26,6 +26,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.PersonBuilder;
+import seedu.address.testutil.RideBuilder;
 
 public class PersonCardTest {
 
@@ -48,6 +49,21 @@ public class PersonCardTest {
     @AfterAll
     public static void stopJavaFxToolkit() {
         Platform.exit();
+    }
+
+    @Test
+    public void constructor_rideRoster_populatesWrappingFxmlLabel() throws Exception {
+        runOnJavaFxThread(() -> {
+            Parent emptyCard = new RideCard(new RideBuilder().build()).getRoot();
+            assertEquals("No cyclists", getLabel(emptyCard, "roster").getText());
+            Parent populatedCard = new RideCard(new RideBuilder()
+                    .withRoster("+65 91234567", "+65 98765432").build()).getRoot();
+            Label roster = getLabel(populatedCard, "roster");
+            assertEquals("+65 91234567, +65 98765432", roster.getText());
+            assertTrue(roster.isWrapText());
+            assertTrue(roster.isManaged());
+            assertTrue(roster.isVisible());
+        });
     }
 
     @Test
