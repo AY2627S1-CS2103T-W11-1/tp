@@ -18,6 +18,7 @@ import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.RideAddCommand;
 
 /**
  * Controller for a help page
@@ -36,6 +37,7 @@ public class HelpWindow extends UiPart<Stage> {
             EditCommand.MESSAGE_USAGE,
             DeleteCommand.MESSAGE_USAGE,
             FindCommand.MESSAGE_USAGE,
+            RideAddCommand.MESSAGE_USAGE,
             ListCommand.COMMAND_WORD + ": Lists all persons.\nExample: " + ListCommand.COMMAND_WORD,
             ClearCommand.COMMAND_WORD + ": Clears all entries.\nExample: " + ClearCommand.COMMAND_WORD,
             HelpCommand.MESSAGE_USAGE,
