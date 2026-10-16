@@ -30,10 +30,13 @@ import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
+import seedu.address.model.ride.Ride;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
 import seedu.address.testutil.PersonBuilder;
+import seedu.address.testutil.RideBuilder;
+import seedu.address.testutil.RideUtil;
 
 public class LogicManagerTest {
     private static final IOException DUMMY_IO_EXCEPTION = new IOException("dummy IO exception");
@@ -70,6 +73,57 @@ public class LogicManagerTest {
     public void execute_validCommand_success() throws Exception {
         String listCommand = ListCommand.COMMAND_WORD;
         assertCommandSuccess(listCommand, ListCommand.MESSAGE_SUCCESS, model);
+    }
+
+    @Test
+    public void execute_rideAdd_addsRideAndSavesItToStorage() throws Exception {
+        Ride draft = new RideBuilder().withNotes("Bring lights").build();
+
+        logic.execute(RideUtil.getRideAddCommand(draft));
+        logic.execute(RideUtil.getRideAddCommand(new RideBuilder(draft).withName("Evening Spin").build()));
+
+        assertEquals(2, model.getAddressBook().getRideList().size());
+        JsonAddressBookStorage reader = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        ReadOnlyAddressBook saved = reader.readAddressBook().get();
+        assertEquals(new RideBuilder(draft).withId(1).build(), saved.getRideList().get(0));
+        assertEquals("Evening Spin", saved.getRideList().get(1).getName().fullName);
+        assertEquals(2, saved.getRideList().get(1).getId());
+        assertEquals(3, saved.getNextRideId());
+    }
+
+    @Test
+    public void getRideList_afterRideAdd_isLiveViewOfAddedRides() throws Exception {
+        assertEquals(0, logic.getRideList().size());
+
+        logic.execute(RideUtil.getRideAddCommand(new RideBuilder().build()));
+
+        assertEquals(1, logic.getRideList().size());
+        assertEquals(1, logic.getRideList().get(0).getId());
+        assertThrows(UnsupportedOperationException.class, () -> logic.getRideList().clear());
+    }
+
+    @Test
+    public void execute_clearThenRideAdd_doesNotReuseRideIdsAndSavesCounter() throws Exception {
+        Ride draft = new RideBuilder().build();
+        logic.execute(RideUtil.getRideAddCommand(draft));
+        logic.execute(RideUtil.getRideAddCommand(new RideBuilder(draft).withName("Evening Spin").build()));
+
+        logic.execute("clear");
+        assertEquals(0, model.getAddressBook().getRideList().size());
+        JsonAddressBookStorage reader = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        assertEquals(3, reader.readAddressBook().get().getNextRideId());
+
+        logic.execute(RideUtil.getRideAddCommand(new RideBuilder(draft).withName("Night Ride").build()));
+
+        assertEquals(3, model.getAddressBook().getRideList().get(0).getId());
+        assertEquals(4, reader.readAddressBook().get().getNextRideId());
+    }
+
+    @Test
+    public void execute_rideAddWithInvalidField_doesNotAddRide() {
+        assertParseException("rideadd n/Ride from/18-10-2026 0930 to/18-10-2026 0630 l/East Coast d/45 f/180 s/12",
+                Ride.MESSAGE_INVALID_PERIOD);
+        assertEquals(0, model.getAddressBook().getRideList().size());
     }
 
     @Test

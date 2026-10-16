@@ -6,6 +6,7 @@ import java.util.stream.Stream;
 
 import seedu.address.logic.parser.Prefix;
 import seedu.address.model.person.Person;
+import seedu.address.model.ride.Ride;
 
 /**
  * Container for user visible messages.
@@ -55,6 +56,21 @@ public class Messages {
                 .append("; Locations: ")
                 .append(person.getLocations());
         return builder.toString();
+    }
+
+    /**
+     * Formats the {@code ride} for display to the user.
+     */
+    public static String formatRide(Ride ride) {
+        return "Ride " + ride.getId() + ": " + ride.getName()
+                + "; From: " + ride.getFrom()
+                + "; To: " + ride.getTo()
+                + "; Location: " + ride.getLocation()
+                + "; Distance: " + ride.getDistance() + " km"
+                + "; Minimum power: " + ride.getMinimumPower() + " W"
+                + "; Max group size: " + ride.getMaxGroupSize()
+                + "; Notes: " + ride.getNotes().map(notes -> notes.value).orElse("None")
+                + "; Cyclists on roster: " + ride.getRoster().size();
     }
 
 }

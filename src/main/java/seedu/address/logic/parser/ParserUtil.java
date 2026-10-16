@@ -15,6 +15,11 @@ import seedu.address.model.person.Ftp;
 import seedu.address.model.person.Location;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.ride.Distance;
+import seedu.address.model.ride.GroupSize;
+import seedu.address.model.ride.MinimumPower;
+import seedu.address.model.ride.Notes;
+import seedu.address.model.ride.RideDateTime;
 
 /**
  * Contains utility methods used for parsing strings in the various *Parser classes.
@@ -128,6 +133,95 @@ public class ParserUtil {
             parsedLocations.add(new Location("any"));
         }
         return parsedLocations;
+    }
+
+    /**
+     * Parses a {@code String location} into a single {@code Location}, as used by a ride.
+     * Leading and trailing whitespaces will be trimmed.
+     *
+     * @throws ParseException if the given {@code location} is invalid.
+     */
+    public static Location parseLocation(String location) throws ParseException {
+        requireNonNull(location);
+        String trimmedLocation = location.trim();
+        if (!Location.isValidLocation(trimmedLocation)) {
+            throw new ParseException(Location.MESSAGE_CONSTRAINTS);
+        }
+        return new Location(trimmedLocation);
+    }
+
+    /**
+     * Parses a {@code String dateTime} written as {@code DD-MM-YYYY TTTT} into a {@code RideDateTime}.
+     * Leading and trailing whitespaces will be trimmed.
+     *
+     * @throws ParseException if the given {@code dateTime} is invalid.
+     */
+    public static RideDateTime parseRideDateTime(String dateTime) throws ParseException {
+        requireNonNull(dateTime);
+        String trimmedDateTime = dateTime.trim();
+        if (!RideDateTime.isValidRideDateTime(trimmedDateTime)) {
+            throw new ParseException(RideDateTime.MESSAGE_CONSTRAINTS);
+        }
+        return new RideDateTime(trimmedDateTime);
+    }
+
+    /**
+     * Parses a {@code String distance} into a {@code Distance}.
+     * Leading and trailing whitespaces will be trimmed.
+     *
+     * @throws ParseException if the given {@code distance} is invalid.
+     */
+    public static Distance parseDistance(String distance) throws ParseException {
+        requireNonNull(distance);
+        String trimmedDistance = distance.trim();
+        if (!Distance.isValidDistance(trimmedDistance)) {
+            throw new ParseException(Distance.MESSAGE_CONSTRAINTS);
+        }
+        return new Distance(trimmedDistance);
+    }
+
+    /**
+     * Parses a {@code String minimumPower} into a {@code MinimumPower}.
+     * Leading and trailing whitespaces will be trimmed.
+     *
+     * @throws ParseException if the given {@code minimumPower} is invalid.
+     */
+    public static MinimumPower parseMinimumPower(String minimumPower) throws ParseException {
+        requireNonNull(minimumPower);
+        String trimmedMinimumPower = minimumPower.trim();
+        if (!MinimumPower.isValidMinimumPower(trimmedMinimumPower)) {
+            throw new ParseException(MinimumPower.MESSAGE_CONSTRAINTS);
+        }
+        return new MinimumPower(trimmedMinimumPower);
+    }
+
+    /**
+     * Parses a {@code String groupSize} into a {@code GroupSize}.
+     * Leading and trailing whitespaces will be trimmed.
+     *
+     * @throws ParseException if the given {@code groupSize} is invalid.
+     */
+    public static GroupSize parseGroupSize(String groupSize) throws ParseException {
+        requireNonNull(groupSize);
+        String trimmedGroupSize = groupSize.trim();
+        if (!GroupSize.isValidGroupSize(trimmedGroupSize)) {
+            throw new ParseException(GroupSize.MESSAGE_CONSTRAINTS);
+        }
+        return new GroupSize(trimmedGroupSize);
+    }
+
+    /**
+     * Parses a {@code String notes} into a {@code Notes}.
+     * Leading and trailing whitespaces will be trimmed.
+     *
+     * @throws ParseException if the given {@code notes} is invalid.
+     */
+    public static Notes parseNotes(String notes) throws ParseException {
+        requireNonNull(notes);
+        if (!Notes.isValidNotes(notes)) {
+            throw new ParseException(Notes.MESSAGE_CONSTRAINTS);
+        }
+        return new Notes(notes);
     }
 
     /**

@@ -15,8 +15,10 @@ import org.junit.jupiter.api.Test;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
+import seedu.address.model.ride.Ride;
 import seedu.address.testutil.AddressBookBuilder;
 import seedu.address.testutil.PersonBuilder;
+import seedu.address.testutil.RideBuilder;
 
 public class ModelManagerTest {
 
@@ -203,6 +205,36 @@ public class ModelManagerTest {
 
         modelManager.setAddressBook(new AddressBook());
         assertTrue(displayedPersons.isEmpty());
+    }
+
+    @Test
+    public void addRide_assignsIdAndAddsToAddressBook() {
+        Ride added = modelManager.addRide(new RideBuilder().build());
+
+        assertEquals(1, added.getId());
+        assertEquals(List.of(added), modelManager.getAddressBook().getRideList());
+    }
+
+    @Test
+    public void addRide_secondRide_getsNextId() {
+        modelManager.addRide(new RideBuilder().build());
+
+        Ride second = modelManager.addRide(new RideBuilder().withName("Evening Spin").build());
+
+        assertEquals(2, second.getId());
+    }
+
+    @Test
+    public void addRide_nullRide_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> modelManager.addRide(null));
+    }
+
+    @Test
+    public void equals_differentRides_returnsFalse() {
+        ModelManager other = new ModelManager();
+        other.addRide(new RideBuilder().build());
+
+        assertFalse(modelManager.equals(other));
     }
 
     @Test

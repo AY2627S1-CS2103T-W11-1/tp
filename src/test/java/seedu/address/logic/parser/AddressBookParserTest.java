@@ -22,13 +22,17 @@ import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.RideAddCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.PersonMatchesFindCriteriaPredicate;
 import seedu.address.model.person.Phone;
+import seedu.address.model.ride.Ride;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.PersonUtil;
+import seedu.address.testutil.RideBuilder;
+import seedu.address.testutil.RideUtil;
 
 public class AddressBookParserTest {
 
@@ -36,7 +40,8 @@ public class AddressBookParserTest {
 
     @Test
     public void isRecognisedCommand_identifiesCommandWordsRegardlessOfArgumentValidity() {
-        for (String word : new String[] {"add", "edit", "delete", "clear", "find", "list", "exit", "help"}) {
+        for (String word : new String[] {"add", "edit", "delete", "clear", "find", "list", "exit", "help",
+            "rideadd"}) {
             assertTrue(parser.isRecognisedCommand("  " + word + "  "));
             assertTrue(parser.isRecognisedCommand(word + " invalid arguments"));
         }
@@ -99,6 +104,19 @@ public class AddressBookParserTest {
     public void parseCommand_list() throws Exception {
         assertTrue(parser.parseCommand(ListCommand.COMMAND_WORD) instanceof ListCommand);
         assertTrue(parser.parseCommand(ListCommand.COMMAND_WORD + " 3") instanceof ListCommand);
+    }
+
+    @Test
+    public void parseCommand_rideAdd() throws Exception {
+        Ride ride = new RideBuilder().withNotes("Bring lights").build();
+        RideAddCommand command = (RideAddCommand) parser.parseCommand(RideUtil.getRideAddCommand(ride));
+        assertEquals(new RideAddCommand(ride), command);
+    }
+
+    @Test
+    public void parseCommand_rideAddWithInvalidArguments_throwsParseException() {
+        assertThrows(ParseException.class, String.format(MESSAGE_INVALID_COMMAND_FORMAT,
+                RideAddCommand.MESSAGE_USAGE), () -> parser.parseCommand("rideadd"));
     }
 
     @Test

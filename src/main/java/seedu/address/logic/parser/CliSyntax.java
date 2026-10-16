@@ -14,4 +14,11 @@ public class CliSyntax {
     public static final Prefix PREFIX_LOCATION = new Prefix("l/");
     public static final Prefix PREFIX_EXPERIENCE_LEVEL = new Prefix("x/");
 
+    /* Ride prefix definitions. Rides also use PREFIX_NAME, PREFIX_LOCATION and PREFIX_FTP (minimum power). */
+    public static final Prefix PREFIX_FROM = new Prefix("from/");
+    public static final Prefix PREFIX_TO = new Prefix("to/");
+    public static final Prefix PREFIX_DISTANCE = new Prefix("d/");
+    public static final Prefix PREFIX_GROUP_SIZE = new Prefix("s/");
+    public static final Prefix PREFIX_NOTES = new Prefix("notes/");
+
 }

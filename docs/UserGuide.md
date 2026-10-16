@@ -170,6 +170,33 @@ Both `edit` and `delete` report the same error when the target is absent from th
 Here, `PHONE` is replaced with the number you entered. Error sentences end with full stops;
 command syntax and usage examples retain their original format so you can copy them directly.
 
+### Adding a group ride: `rideadd`
+
+Adds a group ride that an organiser plans to lead.
+
+Format: `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MINIMUM_POWER s/MAX_GROUP_SIZE [notes/NOTES]`
+
+Field | Meaning and rules
+------|------------------
+`n/NAME` | The name of the ride. Letters, numbers and spaces only; it must not be blank.
+`from/FROM` | When the ride starts, written as `DD-MM-YYYY TTTT`. `TTTT` is the time on a 24-hour clock from `0000` to `2359`, for example `18-10-2026 0630`. The date must be a real date.
+`to/TO` | When the ride ends, in the same format as `from/`. It must not be earlier than `from/` (the same time is allowed).
+`l/LOCATION` | One location. Letters, numbers, spaces, hyphens and apostrophes only.
+`d/DISTANCE` | The distance in kilometres. A positive number with at most 2 decimal places, such as `45` or `45.5`.
+`f/MINIMUM_POWER` | The minimum power a cyclist needs to join, in watts. A whole number from 1 to 600, the same range as a cyclist's FTP.
+`s/MAX_GROUP_SIZE` | The most cyclists that can join. A positive whole number.
+`notes/NOTES` | Optional. At most 10 words.
+
+Every field except `notes/` is required, and each prefix can be used only once. You can give the fields in any order.
+
+Each new ride gets an ID automatically: 1 for the first ride, 2 for the next and so on. IDs follow the order in which rides are created, are never reused, and carry on from where they stopped after you restart the app. A new ride has no cyclists on its roster yet. Two rides may have the same name, because rides are told apart by their IDs.
+
+The ride is shown in the result box when it is added, and it is saved with your other data. The window also has a basic **Rides** panel in a column on the right (about 30% of the window width), next to the command box, result box and cyclist list. It shows each ride as a few short lines: its ID and name, start and end, location, distance, minimum power, maximum group size, and notes if there are any. A nicer ride display is planned for a later version.
+
+Examples:
+* `rideadd n/Sunday Sunrise Ride from/18-10-2026 0630 to/18-10-2026 0930 l/East Coast d/45 f/180 s/12 notes/Bring lights and a spare tube`
+* `rideadd n/Evening Spin from/20-10-2026 1800 to/20-10-2026 1930 l/Punggol d/30.5 f/150 s/8`
+
 ### Clearing all entries: `clear`
 
 Clears all entries from the address book.
@@ -197,7 +224,7 @@ email addresses are unique.
 
 ### Editing the data file
 
-AddressBook data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Older data files may contain `address` or `tags` fields; Cyclique ignores them and omits them when saving, while retaining all supported cyclist details. Advanced users are welcome to update data directly by editing that data file.
+AddressBook data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Older data files may contain `address` or `tags` fields; Cyclique ignores them and omits them when saving, while retaining all supported cyclist details. Group rides are saved in the same file under `rides`, together with a `nextRideId` number that stops ride IDs from being reused; data files saved before rides existed still load, with no rides. Advanced users are welcome to update data directly by editing that data file.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
 If your changes make the data file invalid, AddressBook starts with an empty address book at the next run. The invalid file remains on disk until you run a command (AddressBook saves after every command). Still, we recommend backing up the file before editing it.<br>
@@ -235,3 +262,4 @@ Action | Format, Examples
 **Find** | `find [n/NAME_KEYWORD]… [p/PHONE]… [sos/EMERGENCY_PHONE]…`<br> e.g., `find n/James n/Jake`, `find n/James p/+65 96320842`
 **List** | `list`
 **Help** | `help`
+**Rideadd** | `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MINIMUM_POWER s/MAX_GROUP_SIZE [notes/NOTES]`<br> e.g., `rideadd n/Sunday Sunrise Ride from/18-10-2026 0630 to/18-10-2026 0930 l/East Coast d/45 f/180 s/12 notes/Bring lights`
