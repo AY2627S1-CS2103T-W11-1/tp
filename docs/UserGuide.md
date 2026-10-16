@@ -191,7 +191,7 @@ Every field except `notes/` is required, and each prefix can be used only once. 
 
 Each new ride gets an ID automatically: 1 for the first ride, 2 for the next and so on. IDs follow the order in which rides are created, are never reused, and carry on from where they stopped after you restart the app. A new ride has no cyclists on its roster yet. Two rides may have the same name, because rides are told apart by their IDs.
 
-The ride is shown in the result box when it is added, and it is saved with your other data. The window also has a basic **Rides** panel in a column on the right (about 30% of the window width), next to the command box, result box and cyclist list. It shows each ride as a few short lines: its ID and name, start and end, location, distance, minimum power, maximum group size, and notes if there are any. A nicer ride display is planned for a later version.
+The ride is shown in the result box when it is added, and it is saved with your other data. The window also has a **Rides** panel in a column on the right (about 30% of the window width), next to the command box, result box and cyclist list. Each ride is shown as a card, like the cyclist cards. The card shows the ride's ID and name in a yellow-tinted heading, then its start and end, then labelled lines for the location, distance, minimum power and maximum group size, and a **Notes** line if the ride has notes. Long names, locations and notes wrap onto more lines, so the panel never needs a horizontal scrollbar. Click a ride to highlight its card. If there are no rides, the panel says `No rides yet. Use rideadd to create one.`
 
 Examples:
 * `rideadd n/Sunday Sunrise Ride from/18-10-2026 0630 to/18-10-2026 0930 l/East Coast d/45 f/180 s/12 notes/Bring lights and a spare tube`
