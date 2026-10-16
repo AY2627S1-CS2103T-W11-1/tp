@@ -27,7 +27,8 @@ import seedu.address.logic.commands.RideAddCommand;
 
 /**
  * Holds the one-line command formats shown in the Help dropdown menu. Command words and prefixes
- * come from the command classes and {@code CliSyntax}, so the menu follows any change to them.
+ * come from the command classes and {@code CliSyntax} where available. Roster templates are
+ * defined here so the dropdown can be delivered independently of the roster commands.
  */
 public class CommandTemplates {
 
@@ -70,6 +71,8 @@ public class CommandTemplates {
                     RideAddCommand.COMMAND_WORD + " " + PREFIX_NAME + " " + PREFIX_FROM + " " + PREFIX_TO + " "
                             + PREFIX_LOCATION + " " + PREFIX_DISTANCE + " " + PREFIX_FTP + " "
                             + PREFIX_GROUP_SIZE),
+            new Template("rideaddcyclist ID PHONE (rac)", "rideaddcyclist "),
+            new Template("ridedeletecyclist ID PHONE (rdc)", "ridedeletecyclist "),
             new Template(ListCommand.COMMAND_WORD, ListCommand.COMMAND_WORD),
             new Template(ClearCommand.COMMAND_WORD, ClearCommand.COMMAND_WORD),
             new Template(HelpCommand.COMMAND_WORD, HelpCommand.COMMAND_WORD),

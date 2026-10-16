@@ -889,3 +889,24 @@ Use a disposable data directory for these checks.
    and relaunch. Expected: All supported fields load, with no tags on the card.
 1. Edit a supported field, exit, and inspect the JSON. Expected: No cyclist has a `tags` field.
    Relaunch and confirm the edit persists.
+
+
+### Roster Help dropdown regression
+
+The roster dropdown templates are provided by `CommandTemplates`, independently of
+roster command implementation. The existing `MainWindow#addCommandsToHelpMenu`
+creates the menu items and passes their starter text to `CommandBox#setCommandText`.
+This increment changes neither command parsing nor the Full help window. UML updates
+are deferred to a later increment.
+
+1. Open **Help**. Expected: after `rideadd`, the dropdown shows
+   `rideaddcyclist ID PHONE (rac)` followed by `ridedeletecyclist ID PHONE (rdc)`.
+1. Click the addition entry. Expected: the command box contains `rideaddcyclist `,
+   with a trailing space and the caret at the end, ready for the ride ID and phone.
+1. Open **Help** and click the removal entry. Expected: the command box contains
+   `ridedeletecyclist `, replacing the previous contents and placing the caret at the end.
+1. Confirm the labels display the literal `ID PHONE` arguments and both aliases.
+   No `p/` prefix or placeholder arguments should be inserted into the command box.
+1. Check that existing menu entries still insert their expected starter text and
+   **Full help...** still opens the help window. Executing roster commands requires
+   the separate roster implementation; this increment only supplies dropdown templates.
