@@ -123,7 +123,7 @@ How the parsing works:
 The `Model` component,
 
 * stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
-* stores all `Ride` objects in the order they were added, together with the ID the next ride will receive. `AddressBook#addRide` assigns IDs, so they only go up and are never reused. Rides are not filtered or sorted. The UI shows them in a basic, read-only `RideListPanel` in the right-hand 30% of the main window, which observes `Logic#getRideList()`.
+* stores all `Ride` objects in the order they were added, together with the ID the next ride will receive. `AddressBook#addRide` assigns IDs, so they only go up and are never reused. Rides are not filtered or sorted. The UI shows them as cards in a read-only `RideListPanel` in the right-hand 30% of the main window. The panel observes `Logic#getRideList()` and builds one `RideCard` (laid out by `RideListCard.fxml`) for each ride, in the same way that `PersonListPanel` builds `PersonCard`s. `RideCard` keeps its text formatting in small static methods so that they can be unit tested without the GUI.
 * selects matching `Person` objects using a `FilteredList`, then exposes a live, unmodifiable `SortedList` through `getFilteredPersonList()`. It sorts by the full displayed name with `String.CASE_INSENSITIVE_ORDER`, using each person's stored position as the tie-breaker. This preserves the relative order of names that are identical ignoring case, including after additions, edits and filtering. The stored list and JSON order remain unchanged. The UI observes this view and numbers cards from 1 using their current displayed index. Phone-number targeting retains its existing rules.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
@@ -762,11 +762,11 @@ Use the contacts from the alphabetical display scenario before deleting Zara.
 
 ### Adding a group ride
 
-Rides appear in the basic **Rides** panel, the column on the right of the window (about 30% of its width).
-Each ride takes up to four short lines: `#1 Sunday Sunrise Ride`, then `18-10-2026 0630 to 18-10-2026 0930`, then
-`East Coast | 45 km | 180 W | max 12`, then the notes if there are any. The command box, result box and cyclist
-list stay in the left 70%. Check the panel after each step, and check the saved file `data/addressbook.json`
-where the steps say so.
+Rides appear as cards in the **Rides** panel, the column on the right of the window (about 30% of its width).
+Each card shows the ride's ID and name in a yellow-tinted heading (for example `#1 Sunday Sunrise Ride`), then the start and end
+(`18-10-2026 0630 to 18-10-2026 0930`), then labelled lines for Location, Distance, Min power and Max group, and a
+Notes line only if the ride has notes. The command box, result box and cyclist list stay in the left 70%.
+Check the panel after each step, and check the saved file `data/addressbook.json` where the steps say so.
 
 1. Launch the application with no rides. Expected: The Rides panel shows `No rides yet. Use rideadd to create one.`
 
@@ -782,6 +782,13 @@ where the steps say so.
    Expected: The ride is added. Fields may be in any order.
 1. Enter `rideadd n/Same Time from/18-10-2026 0630 to/18-10-2026 0630 l/East Coast d/45 f/180 s/12`.
    Expected: The ride is added, because the end time may equal the start time.
+1. Enter `rideadd n/The Extraordinarily Long Weekend Charity Fundraiser Century Ride For Everyone from/31-12-2026 2300 to/01-01-2027 0100 l/Marina Bay Sands Waterfront Promenade and Gardens d/160.75 f/250 s/150 notes/Bring plenty of water and snacks for the whole day`.
+   Expected: The ride appears as a card whose long name, location and notes wrap onto further lines inside the card.
+   Make the window as narrow as it allows. Expected: The Rides panel shows no horizontal scrollbar and every card
+   stays inside the column.
+1. Enter `rideadd n/Any Place Ride from/21-10-2026 0600 to/21-10-2026 0800 l/any d/20 f/100 s/5`.
+   Expected: The card's Location line shows `Any`, and the card has no Notes line.
+1. Click a ride card. Expected: The card is highlighted with a yellow border.
 1. Try each of these. Expected: Each one shows an error and adds no ride (the next added ride keeps the next number).
    * `rideadd` and `rideadd n/Only A Name` (missing fields: invalid command format message).
    * `rideadd n/Bad from/18-10-2026 0930 to/18-10-2026 0629 l/East Coast d/45 f/180 s/12` (end before start).

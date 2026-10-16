@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<HBox id="cardPane" fx:id="cardPane" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+  <VBox alignment="CENTER_LEFT" spacing="4" HBox.hgrow="ALWAYS">
+    <padding>
+      <Insets top="10" right="12" bottom="10" left="15" />
+    </padding>
+    <!-- The ID and name form one chip. A long title wraps onto further lines instead of widening the card. -->
+    <Label fx:id="title" styleClass="ride-title" text="\$title" wrapText="true" />
+    <Label fx:id="period" maxWidth="1.7976931348623157E308" styleClass="ride-field-value"
+           text="\$period" wrapText="true" />
+    <GridPane hgap="8" vgap="2" maxWidth="1.7976931348623157E308">
+      <columnConstraints>
+        <ColumnConstraints minWidth="68" prefWidth="68" />
+        <ColumnConstraints hgrow="ALWAYS" />
+      </columnConstraints>
+      <Label styleClass="ride-field-label" text="Location" GridPane.rowIndex="0" />
+      <Label fx:id="rideLocation" maxWidth="1.7976931348623157E308" styleClass="ride-field-value"
+             text="\$rideLocation" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+      <Label styleClass="ride-field-label" text="Distance" GridPane.rowIndex="1" />
+      <Label fx:id="distance" maxWidth="1.7976931348623157E308" styleClass="ride-field-value"
+             text="\$distance" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+      <Label styleClass="ride-field-label" text="Min power" GridPane.rowIndex="2" />
+      <Label fx:id="minimumPower" maxWidth="1.7976931348623157E308" styleClass="ride-field-value"
+             text="\$minimumPower" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+      <Label styleClass="ride-field-label" text="Max group" GridPane.rowIndex="3" />
+      <Label fx:id="maxGroupSize" maxWidth="1.7976931348623157E308" styleClass="ride-field-value"
+             text="\$maxGroupSize" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+    </GridPane>
+    <!-- Only shown when the ride has notes -->
+    <GridPane fx:id="notesRow" hgap="8" maxWidth="1.7976931348623157E308">
+      <columnConstraints>
+        <ColumnConstraints minWidth="68" prefWidth="68" />
+        <ColumnConstraints hgrow="ALWAYS" />
+      </columnConstraints>
+      <Label styleClass="ride-field-label" text="Notes" />
+      <Label fx:id="notes" maxWidth="1.7976931348623157E308" styleClass="ride-field-value"
+             text="\$notes" wrapText="true" GridPane.columnIndex="1" />
+    </GridPane>
+  </VBox>
+</HBox>

@@ -132,7 +132,7 @@
     -fx-text-fill: #010504;
 }
 
-.list-cell .person-field-label {
+.list-cell .person-field-label, .list-cell .ride-field-label {
     -fx-font-family: "Segoe UI Semibold";
     -fx-font-size: 11px;
     -fx-text-fill: #b8b8b8;
@@ -144,7 +144,7 @@
     -fx-text-fill: #929292;
 }
 
-.list-cell .person-field-value {
+.list-cell .person-field-value, .list-cell .ride-field-value {
     -fx-font-family: "Segoe UI";
     -fx-font-size: 13px;
     -fx-text-fill: #f2f2f2;
@@ -360,9 +360,20 @@
     -fx-pref-height: 50px;
 }
 
-#rideListView .list-cell {
-    -fx-text-fill: #f2f2f2;
+.list-cell .ride-title {
+    -fx-background-color: #454127;
+    -fx-background-radius: 4;
+    -fx-padding: 2 8 2 8;
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-size: 16px;
+    -fx-text-fill: #ffe580;
+}
+
+.ride-placeholder {
+    -fx-font-family: "Segoe UI";
     -fx-font-size: 12px;
+    -fx-text-fill: #929292;
+    -fx-padding: 0 10 0 10;
 }
 
 #filterField, #personListPanel, #personWebpage {
