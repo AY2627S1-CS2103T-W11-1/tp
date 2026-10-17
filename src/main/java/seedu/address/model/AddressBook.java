@@ -116,6 +116,24 @@ public class AddressBook implements ReadOnlyAddressBook {
         return storedRide;
     }
 
+    /**
+     * Replaces the given ride {@code target} with {@code editedRide}.
+     * {@code target} must exist in the address book.
+     */
+    public void setRide(Ride target, Ride editedRide) {
+        requireNonNull(target);
+        requireNonNull(editedRide);
+        if (target.getId() != editedRide.getId()) {
+            throw new IllegalArgumentException("An edited ride must preserve its ride ID.");
+        }
+
+        int index = rides.indexOf(target);
+        if (index == -1) {
+            throw new IllegalArgumentException("Target ride must exist in the address book.");
+        }
+        rides.set(index, editedRide);
+    }
+
     //// util methods
 
     @Override

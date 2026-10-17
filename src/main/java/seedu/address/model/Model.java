@@ -67,6 +67,12 @@ public interface Model {
     Ride addRide(Ride ride);
 
     /**
+     * Replaces the given ride {@code target} with {@code editedRide}.
+     * {@code target} must exist in the address book.
+     */
+    void setRide(Ride target, Ride editedRide);
+
+    /**
      * Returns an unmodifiable, live view of the filtered person list sorted by full name, ignoring case.
      * Persons with equal names retain their relative order in the address book.
      */
