@@ -29,6 +29,7 @@ import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RideAddCommand;
+import seedu.address.logic.commands.RideEditCommand;
 
 public class CommandTemplatesTest {
 
@@ -47,8 +48,9 @@ public class CommandTemplatesTest {
                 .toList();
 
         assertEquals(List.of(AddCommand.COMMAND_WORD, EditCommand.COMMAND_WORD, DeleteCommand.COMMAND_WORD,
-                FindCommand.COMMAND_WORD, RideAddCommand.COMMAND_WORD, ListCommand.COMMAND_WORD,
-                ClearCommand.COMMAND_WORD, HelpCommand.COMMAND_WORD, ExitCommand.COMMAND_WORD), commandWords);
+                FindCommand.COMMAND_WORD, RideAddCommand.COMMAND_WORD, RideEditCommand.COMMAND_WORD,
+                ListCommand.COMMAND_WORD, ClearCommand.COMMAND_WORD, HelpCommand.COMMAND_WORD,
+                ExitCommand.COMMAND_WORD), commandWords);
     }
 
     @Test
@@ -109,7 +111,39 @@ public class CommandTemplatesTest {
         int rideAddIndex = commandWords.indexOf(RideAddCommand.COMMAND_WORD);
 
         assertEquals(commandWords.indexOf(FindCommand.COMMAND_WORD) + 1, rideAddIndex);
-        assertEquals(commandWords.indexOf(ListCommand.COMMAND_WORD) - 1, rideAddIndex);
+        assertEquals(commandWords.indexOf(RideEditCommand.COMMAND_WORD) - 1, rideAddIndex);
+    }
+
+    @Test
+    public void rideEditTemplate_displayListsEveryEditableFieldAsOptional() {
+        String display = templateFor(RideEditCommand.COMMAND_WORD).display();
+
+        assertEquals("rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_FTP]"
+                + " [s/MAX_SIZE] [notes/NOTES]", display);
+        for (Object prefix : new Object[] {PREFIX_NAME, PREFIX_FROM, PREFIX_TO, PREFIX_LOCATION, PREFIX_DISTANCE,
+            PREFIX_FTP, PREFIX_GROUP_SIZE, PREFIX_NOTES}) {
+            assertTrue(display.contains("[" + prefix), "Ride Edit format should list optional " + prefix);
+        }
+    }
+
+    @Test
+    public void rideEditTemplate_insertTextContainsNoDocumentationBrackets() {
+        String insertText = templateFor(RideEditCommand.COMMAND_WORD).insertText();
+
+        assertEquals("rideedit ", insertText);
+        assertFalse(insertText.contains("["));
+        assertFalse(insertText.contains("]"));
+    }
+
+    @Test
+    public void rideEditTemplate_isListedAfterRideAddAndBeforeList() {
+        List<String> commandWords = CommandTemplates.ALL.stream()
+                .map(template -> template.insertText().trim().split(" ")[0])
+                .toList();
+        int rideEditIndex = commandWords.indexOf(RideEditCommand.COMMAND_WORD);
+
+        assertEquals(commandWords.indexOf(RideAddCommand.COMMAND_WORD) + 1, rideEditIndex);
+        assertEquals(commandWords.indexOf(ListCommand.COMMAND_WORD) - 1, rideEditIndex);
     }
 
     private static CommandTemplates.Template templateFor(String commandWord) {

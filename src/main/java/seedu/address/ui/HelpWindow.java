@@ -19,6 +19,7 @@ import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RideAddCommand;
+import seedu.address.logic.commands.RideEditCommand;
 
 /**
  * Controller for a help page
@@ -27,6 +28,17 @@ public class HelpWindow extends UiPart<Stage> {
 
     public static final String USERGUIDE_URL = "https://se-education.org/addressbook-level3/UserGuide.html";
     public static final String HELP_MESSAGE = "Refer to the user guide: " + USERGUIDE_URL;
+
+    /** Additional Ride Edit guidance and executable examples shown after its command usage. */
+    public static final String RIDE_EDIT_HELP = RideEditCommand.MESSAGE_USAGE + "\n"
+            + "Supply at least one editable field. The ride ID, cyclist roster and unspecified fields stay "
+            + "unchanged. Omit notes/ to preserve notes, or use notes/ without a value to clear them. "
+            + "Invalid edits leave the ride unchanged.\n"
+            + "More examples:\n"
+            + "rideedit 101 n/NightRide\n"
+            + "rideedit 101 f/250\n"
+            + "rideedit 101 from/20-10-2026 1400 to/20-10-2026 1600\n"
+            + "rideedit 101 notes/";
 
     /**
      * The usage text of every command, shown in the help window. Commands that already define a
@@ -38,6 +50,7 @@ public class HelpWindow extends UiPart<Stage> {
             DeleteCommand.MESSAGE_USAGE,
             FindCommand.MESSAGE_USAGE,
             RideAddCommand.MESSAGE_USAGE,
+            RIDE_EDIT_HELP,
             ListCommand.COMMAND_WORD + ": Lists all persons.\nExample: " + ListCommand.COMMAND_WORD,
             ClearCommand.COMMAND_WORD + ": Clears all entries.\nExample: " + ClearCommand.COMMAND_WORD,
             HelpCommand.MESSAGE_USAGE,

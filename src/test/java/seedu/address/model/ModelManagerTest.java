@@ -230,6 +230,27 @@ public class ModelManagerTest {
     }
 
     @Test
+    public void setRide_validReplacement_updatesExistingObservableList() {
+        Ride target = modelManager.addRide(new RideBuilder().build());
+        Ride replacement = new RideBuilder(target).withName("Edited Ride").build();
+        List<Ride> observedRides = modelManager.getAddressBook().getRideList();
+
+        modelManager.setRide(target, replacement);
+
+        assertEquals(List.of(replacement), observedRides);
+        assertEquals(2, modelManager.getAddressBook().getNextRideId());
+    }
+
+    @Test
+    public void setRide_nullArguments_throwsNullPointerException() {
+        Ride target = modelManager.addRide(new RideBuilder().build());
+
+        assertThrows(NullPointerException.class, () -> modelManager.setRide(null, target));
+        assertThrows(NullPointerException.class, () -> modelManager.setRide(target, null));
+        assertEquals(List.of(target), modelManager.getAddressBook().getRideList());
+    }
+
+    @Test
     public void equals_differentRides_returnsFalse() {
         ModelManager other = new ModelManager();
         other.addRide(new RideBuilder().build());

@@ -197,6 +197,40 @@ Examples:
 * `rideadd n/Sunday Sunrise Ride from/18-10-2026 0630 to/18-10-2026 0930 l/East Coast d/45 f/180 s/12 notes/Bring lights and a spare tube`
 * `rideadd n/Evening Spin from/20-10-2026 1800 to/20-10-2026 1930 l/Punggol d/30.5 f/150 s/8`
 
+### Editing a group ride: `rideedit`
+
+Edits an existing group ride identified by its ride ID.
+
+Format: `rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_FTP] [s/MAX_SIZE] [notes/NOTES]`
+
+`ID` is the positive whole number displayed on the ride card and assigned when the ride is created. Supply at
+least one editable field after it. All fields use the same rules as [`rideadd`](#adding-a-group-ride-rideadd), and
+each prefix can be used only once. In particular, `from/` and `to/` use `DD-MM-YYYY TTTT` with 24-hour time. The
+resulting end date and time cannot be earlier than the start date and time; equal times are allowed.
+
+Only the supplied fields are replaced. The ride ID, cyclist roster and all unspecified fields remain unchanged.
+Supplying `notes/NOTES` replaces the existing notes, while `notes/` with no value clears them. Omitting `notes/`
+preserves the existing notes. Notes are optional and limited to 10 words.
+
+On success, Cyclique displays `Edited ride:` followed by the complete updated ride. The Rides panel updates in the
+same position, and the change is saved automatically. An invalid edit is rejected without changing the ride or
+its roster.
+
+Examples:
+* `rideedit 101 n/NightRide`
+* `rideedit 101 f/250`
+* `rideedit 101 from/20-10-2026 1400 to/20-10-2026 1600`
+* `rideedit 101 notes/`
+
+Common failures include:
+* A missing, zero, negative, non-numeric or excessively large ride ID is rejected with the command usage instructions.
+* An ID that does not identify an existing ride: `Ride with ID ID cannot be found.`, where the second `ID` is
+  replaced with the number entered.
+* No editable field after the ID: `At least one field to edit must be provided.`
+* An invalid field value, which reports the same constraint as `rideadd`.
+* A resulting end time before the start time, including after changing only one endpoint:
+  `The end date and time (to/) cannot be earlier than the start date and time (from/).`
+
 ### Clearing all entries: `clear`
 
 Clears all entries from the address book.
@@ -263,3 +297,4 @@ Action | Format, Examples
 **List** | `list`
 **Help** | `help`
 **Rideadd** | `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MINIMUM_POWER s/MAX_GROUP_SIZE [notes/NOTES]`<br> e.g., `rideadd n/Sunday Sunrise Ride from/18-10-2026 0630 to/18-10-2026 0930 l/East Coast d/45 f/180 s/12 notes/Bring lights`
+**Rideedit** | `rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_FTP] [s/MAX_SIZE] [notes/NOTES]`<br> e.g., `rideedit 101 n/NightRide`, `rideedit 101 notes/`
