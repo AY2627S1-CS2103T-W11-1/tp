@@ -116,6 +116,17 @@ public class AddressBook implements ReadOnlyAddressBook {
         return storedRide;
     }
 
+    /**
+     * Removes {@code ride} from the address book.
+     * {@code ride} must exist in the address book.
+     */
+    public void removeRide(Ride ride) {
+        requireNonNull(ride);
+        if (!rides.remove(ride)) {
+            throw new IllegalArgumentException("Ride must exist in the address book.");
+        }
+    }
+
     //// util methods
 
     @Override

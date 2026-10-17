@@ -19,6 +19,7 @@ import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RideAddCommand;
+import seedu.address.logic.commands.RideDeleteCommand;
 
 /**
  * Controller for a help page
@@ -27,6 +28,11 @@ public class HelpWindow extends UiPart<Stage> {
 
     public static final String USERGUIDE_URL = "https://se-education.org/addressbook-level3/UserGuide.html";
     public static final String HELP_MESSAGE = "Refer to the user guide: " + USERGUIDE_URL;
+
+    private static final String RIDE_DELETE_DETAILS = "Use the ride's persistent ID. Deletion requires no "
+            + "confirmation. It removes the ride and its roster associations, but leaves cyclist records and "
+            + "other rides and their rosters unchanged. Remaining ride IDs are not renumbered, deleted IDs are "
+            + "not reused, and an unknown ID is rejected.";
 
     /**
      * The usage text of every command, shown in the help window. Commands that already define a
@@ -38,6 +44,7 @@ public class HelpWindow extends UiPart<Stage> {
             DeleteCommand.MESSAGE_USAGE,
             FindCommand.MESSAGE_USAGE,
             RideAddCommand.MESSAGE_USAGE,
+            RideDeleteCommand.MESSAGE_USAGE + "\n" + RIDE_DELETE_DETAILS,
             ListCommand.COMMAND_WORD + ": Lists all persons.\nExample: " + ListCommand.COMMAND_WORD,
             ClearCommand.COMMAND_WORD + ": Clears all entries.\nExample: " + ClearCommand.COMMAND_WORD,
             HelpCommand.MESSAGE_USAGE,
