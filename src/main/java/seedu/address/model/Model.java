@@ -67,6 +67,12 @@ public interface Model {
     Ride addRide(Ride ride);
 
     /**
+     * Deletes the given ride.
+     * The ride must exist in the address book.
+     */
+    void deleteRide(Ride target);
+
+    /**
      * Returns an unmodifiable, live view of the filtered person list sorted by full name, ignoring case.
      * Persons with equal names retain their relative order in the address book.
      */
