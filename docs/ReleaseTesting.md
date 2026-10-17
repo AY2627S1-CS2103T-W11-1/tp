@@ -313,3 +313,44 @@ coverage remains **75.72%** (1,085 of 1,433 lines), above the 50% target.
 Linux CI still needs to run against the updated branch; local verification does
 not claim that the remote run has passed. The existing emergency-contact manual
 UI checks remain outstanding because the UI tool cannot access the JavaFX window.
+
+
+## Roster Help dropdown extraction (16 October 2026)
+
+Branch `93-roster-help-dropdown` starts from master and adds only the dropdown
+formats for `rideaddcyclist ID PHONE` and `ridedeletecyclist ID PHONE`,
+their tests and documentation. Command execution remains in the separate roster
+implementation. UML diagrams and Full help content are unchanged.
+
+JDK 25.0.1: `./gradlew check coverage` and `./gradlew shadowJar` pass. All **555 tests**
+pass with no failures, errors or skips; both Checkstyle tasks pass. Line coverage
+is **79.72%** (1,498 of 1,879 lines), above the 50% target. The same temporary JVM
+option `-Djdk.net.unixdomain.tmpdir=C:/codex-java-tmp` avoids the local Windows
+loopback-socket startup issue without changing project configuration.
+
+Manual Windows checks used an isolated temporary data directory. The Help menu
+shows both roster entries, with positional arguments, after `rideadd`.
+Selecting addition inserts `rideaddcyclist ` and focuses the command box with the
+caret at the end. Selecting removal replaces it with `ridedeletecyclist `.
+F1 still opens Full help. Automated tests verify exact trailing spaces. No roster
+commands were executed because their implementation is outside this branch.
+
+## Roster alias removal (17 October 2026)
+
+Remove the short-form roster aliases from Help dropdown labels and update the
+User Guide, Developer Guide and template assertions to match the PR reviews.
+Full command names and inserted starter text remain the same.
+
+JDK 25.0.4.1: `./gradlew check coverage shadowJar` passes using the documented
+`-Djdk.net.unixdomain.tmpdir=C:/codex-java-tmp` workaround. All 555 tests pass,
+both Checkstyle tasks pass, and line coverage is 79.72% (1,498 of 1,879 lines).
+
+Manual Windows UI verification passed on retry using JDK 25 and temporary data
+outside the repository. The Help dropdown shows `rideaddcyclist ID PHONE` followed
+by `ridedeletecyclist ID PHONE` immediately after `rideadd`, with no short-form
+aliases. Selecting each roster entry replaces the command box contents with its
+full command name and a trailing space. Typing `1 91234567` immediately after each
+selection appends the arguments correctly, confirming command-box focus and the
+caret at the end; no prefixes or placeholders are inserted. Existing `add` and
+`list` entries still insert their expected starter text. Clicking **Full help...**
+opens the Help window. No roster commands were executed.
