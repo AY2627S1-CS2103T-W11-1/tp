@@ -90,7 +90,7 @@ failures. It verifies populated, null and missing emergency numbers. Only the fu
 `JsonAdaptedPerson` constructor carries JSON property annotations; the convenience
 constructor is for direct Java callers.
 
-`CommandTemplatesTest` checks roster dropdown labels, aliases, menu order and exact
+`CommandTemplatesTest` checks roster dropdown labels, menu order and exact
 starter text, including the trailing space. Run the Developer Guide's **Roster Help
 dropdown regression** for menu selection, focus and caret behaviour. Roster command
 execution is delivered separately from these menu templates.

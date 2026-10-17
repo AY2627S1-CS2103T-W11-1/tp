@@ -114,9 +114,9 @@ public class CommandTemplatesTest {
     }
 
     @Test
-    public void rosterTemplates_showPositionalArgumentsAndAliases() {
-        assertEquals("rideaddcyclist ID PHONE (rac)", templateFor("rideaddcyclist").display());
-        assertEquals("ridedeletecyclist ID PHONE (rdc)", templateFor("ridedeletecyclist").display());
+    public void rosterTemplates_showPositionalArguments() {
+        assertEquals("rideaddcyclist ID PHONE", templateFor("rideaddcyclist").display());
+        assertEquals("ridedeletecyclist ID PHONE", templateFor("ridedeletecyclist").display());
     }
 
     @Test
