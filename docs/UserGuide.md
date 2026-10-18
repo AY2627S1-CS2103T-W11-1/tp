@@ -217,6 +217,10 @@ Only the supplied fields are replaced. The ride ID, cyclist roster and all unspe
 Supplying `notes/NOTES` replaces the existing notes, while `notes/` with no value clears them. Omitting `notes/`
 preserves the existing notes. Notes are optional and limited to 10 words.
 
+The minimum FTP cannot be raised above the FTP of any cyclist currently on the roster, and the maximum group size
+cannot be reduced below the current roster count. An edit that breaks either constraint is rejected without changing
+the ride.
+
 On success, Cyclique displays `Edited ride:` followed by the complete updated ride. The Rides panel updates in the
 same position, and the change is saved automatically. An invalid edit is rejected without changing the ride or
 its roster.

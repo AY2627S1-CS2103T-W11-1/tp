@@ -21,6 +21,8 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Location;
 import seedu.address.model.person.Name;
+import seedu.address.model.person.Person;
+import seedu.address.model.person.Phone;
 import seedu.address.model.ride.Distance;
 import seedu.address.model.ride.GroupSize;
 import seedu.address.model.ride.MinimumPower;
@@ -57,6 +59,10 @@ public class RideEditCommand extends Command {
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
     public static final String MESSAGE_RIDE_NOT_FOUND = "Ride with ID %1$d cannot be found.";
     public static final String MESSAGE_INVALID_ID = "Ride ID must be a positive integer.";
+    public static final String MESSAGE_GROUP_SIZE_TOO_SMALL =
+            "Cannot edit ride: maximum group size cannot be smaller than the current roster size.";
+    public static final String MESSAGE_MINIMUM_POWER_TOO_HIGH =
+            "Cannot edit ride: minimum FTP exceeds the FTP of an existing cyclist.";
 
     private final int targetId;
     private final EditRideDescriptor editRideDescriptor;
@@ -80,6 +86,7 @@ public class RideEditCommand extends Command {
                 .findFirst()
                 .orElseThrow(() -> new CommandException(String.format(MESSAGE_RIDE_NOT_FOUND, targetId)));
         Ride editedRide = createEditedRide(rideToEdit, editRideDescriptor);
+        validateRosterEligibility(model, editedRide, editRideDescriptor);
 
         model.setRide(rideToEdit, editedRide);
         return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.formatRide(editedRide)));
@@ -110,6 +117,32 @@ public class RideEditCommand extends Command {
 
         return new Ride(rideToEdit.getId(), updatedName, updatedFrom, updatedTo, updatedLocation,
                 updatedDistance, updatedMinimumPower, updatedMaxGroupSize, updatedNotes, rideToEdit.getRoster());
+    }
+
+    /**
+     * Validates edited roster constraints before the ride is replaced.
+     */
+    private static void validateRosterEligibility(Model model, Ride editedRide,
+            EditRideDescriptor editRideDescriptor) throws CommandException {
+        if (editRideDescriptor.getMaxGroupSize().isPresent()
+                && Integer.parseInt(editedRide.getMaxGroupSize().value) < editedRide.getRoster().size()) {
+            throw new CommandException(MESSAGE_GROUP_SIZE_TOO_SMALL);
+        }
+
+        if (editRideDescriptor.getMinimumPower().isEmpty()) {
+            return;
+        }
+
+        int editedMinimumPower = Integer.parseInt(editedRide.getMinimumPower().value);
+        for (Phone phone : editedRide.getRoster()) {
+            Person cyclist = model.getAddressBook().getPersonList().stream()
+                    .filter(person -> person.getPhone().equals(phone))
+                    .findFirst()
+                    .orElseThrow(() -> new CommandException(RideRosterCommand.MESSAGE_PERSON_NOT_FOUND));
+            if (Integer.parseInt(cyclist.getFtp().value) < editedMinimumPower) {
+                throw new CommandException(MESSAGE_MINIMUM_POWER_TOO_HIGH);
+            }
+        }
     }
 
     @Override

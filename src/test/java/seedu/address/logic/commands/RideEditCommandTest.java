@@ -24,6 +24,7 @@ import seedu.address.model.ride.MinimumPower;
 import seedu.address.model.ride.Notes;
 import seedu.address.model.ride.Ride;
 import seedu.address.model.ride.RideDateTime;
+import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.RideBuilder;
 
 public class RideEditCommandTest {
@@ -35,6 +36,9 @@ public class RideEditCommandTest {
     @BeforeEach
     public void setUp() {
         model = new ModelManager();
+        model.addPerson(new PersonBuilder().withPhone("+65 91234567").withFtp("300").build());
+        model.addPerson(new PersonBuilder().withPhone("+65 92345678")
+                .withEmail("other@example.com").withFtp("300").build());
         rideToEdit = model.addRide(new RideBuilder().withNotes("Bring lights")
                 .withRoster("+65 91234567", "+65 92345678").build());
         otherRide = model.addRide(new RideBuilder().withName("Evening Spin").build());

@@ -259,10 +259,13 @@ it.
 
 **Replacement and validation.** `RideEditCommand` finds the target by its unique ID and combines the descriptor
 with the existing ride. It validates the complete resulting period, so changing only `from/` or `to/` cannot
-produce an end time earlier than the start time. Only after validation succeeds does it create an immutable
-replacement with the same ID and roster and call `Model#setRide`. `AddressBook#setRide` replaces the target at its
-current list position, preserving other rides and the next ride ID counter. Failed parsing, a missing target or an
-invalid resulting period therefore leaves the model unchanged.
+produce an end time earlier than the start time. When minimum power or maximum group size is edited, the command
+also checks the proposed value against the existing roster. It resolves roster phone numbers through the address
+book, rejects a maximum below the roster count before checking cyclists' FTP, and rejects a minimum above any
+member's FTP. The proposed replacement is immutable and retains the same ID and roster. Only after every validation
+succeeds does the command call `Model#setRide`. `AddressBook#setRide` replaces the target at its current list
+position, preserving other rides and the next ride ID counter. Failed parsing, a missing target or an invalid
+resulting ride therefore leaves the model unchanged.
 
 The address book's observable ride list emits the replacement, allowing the existing Rides panel to refresh. A
 successful command returns through `LogicManager`, which saves the updated address book using the existing JSON
@@ -854,6 +857,9 @@ Start with a fresh address book. Enter the following command to create a ride wi
 
 Record the assigned ride ID. The steps below assume it is `1`. If a different ID is assigned, substitute that ID in every command.
 
+Add two cyclists with FTP values of 200 W and 250 W, then add both to ride 1 with `rideaddcyclist`. The following
+steps use this roster to exercise Ride Edit validation.
+
 1. Enter `rideedit 1 n/NightRide`. Expected: The result starts with `Edited ride: Ride 1: NightRide`; every other
    field, the roster and the ride's position in the Rides panel remain unchanged.
 1. Enter `rideedit 1 l/East Coast Park f/200 notes/New meeting point`. Expected: All three supplied fields change,
@@ -866,6 +872,13 @@ Record the assigned ride ID. The steps below assume it is `1`. If a different ID
 1. Enter `rideedit 1 to/20-10-2026 1300`. Expected: The same invalid-period error is reported, and no data changes.
 1. Enter `rideedit 1 from/20-10-2026 1600 to/20-10-2026 1600`. Expected: The edit succeeds because equal start
    and end times are allowed.
+1. Enter `rideedit 1 s/1 n/Too Small`. Expected: Cyclique reports
+   `Cannot edit ride: maximum group size cannot be smaller than the current roster size.` The name and group size
+   remain unchanged.
+1. Enter `rideedit 1 f/201 notes/Changed notes`. Expected: Cyclique reports
+   `Cannot edit ride: minimum FTP exceeds the FTP of an existing cyclist.` The minimum FTP and notes remain
+   unchanged. Enter `rideedit 1 f/200 s/2`; expected: equality with the least-powerful cyclist and roster count is
+   accepted.
 1. Try `rideedit`, `rideedit 0 n/Bad`, `rideedit abc n/Bad`, `rideedit 999999 n/Bad` and `rideedit 1`.
    Expected: Each reports the relevant invalid-format, missing-ride or missing-field error without changing ride data.
 1. Exit and relaunch. Expected: Successful edits remain visible and failed edits have not changed the saved ride.
