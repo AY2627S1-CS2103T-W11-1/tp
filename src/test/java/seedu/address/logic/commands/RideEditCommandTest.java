@@ -29,6 +29,9 @@ import seedu.address.testutil.RideBuilder;
 
 public class RideEditCommandTest {
 
+    private static final String FIRST_PHONE = "+65 91234567";
+    private static final String SECOND_PHONE = "+65 92345678";
+
     private Model model;
     private Ride rideToEdit;
     private Ride otherRide;
@@ -36,11 +39,11 @@ public class RideEditCommandTest {
     @BeforeEach
     public void setUp() {
         model = new ModelManager();
-        model.addPerson(new PersonBuilder().withPhone("+65 91234567").withFtp("300").build());
-        model.addPerson(new PersonBuilder().withPhone("+65 92345678")
-                .withEmail("other@example.com").withFtp("300").build());
+        model.addPerson(new PersonBuilder().withPhone(FIRST_PHONE).withFtp("200").build());
+        model.addPerson(new PersonBuilder().withPhone(SECOND_PHONE)
+                .withEmail("other@example.com").withFtp("250").build());
         rideToEdit = model.addRide(new RideBuilder().withNotes("Bring lights")
-                .withRoster("+65 91234567", "+65 92345678").build());
+                .withRoster(FIRST_PHONE, SECOND_PHONE).build());
         otherRide = model.addRide(new RideBuilder().withName("Evening Spin").build());
     }
 
@@ -65,65 +68,92 @@ public class RideEditCommandTest {
     }
 
     @Test
-    public void execute_editName_updatesOnlyName() throws Exception {
+    public void execute_eachNonRosterField_updatesOnlySuppliedField() throws Exception {
         EditRideDescriptor descriptor = descriptorWithName("Night Ride");
         Ride expectedRide = new RideBuilder(rideToEdit).withName("Night Ride").build();
-
         assertEditSuccess(descriptor, expectedRide);
-    }
 
-    @Test
-    public void execute_editFrom_updatesOnlyStart() throws Exception {
-        EditRideDescriptor descriptor = new EditRideDescriptor();
+        descriptor = new EditRideDescriptor();
         descriptor.setFrom(new RideDateTime("18-10-2026 0600"));
-        Ride expectedRide = new RideBuilder(rideToEdit).withFrom("18-10-2026 0600").build();
-
+        expectedRide = new RideBuilder(rideToEdit).withFrom("18-10-2026 0600").build();
         assertEditSuccess(descriptor, expectedRide);
-    }
 
-    @Test
-    public void execute_editTo_updatesOnlyEnd() throws Exception {
-        EditRideDescriptor descriptor = new EditRideDescriptor();
+        descriptor = new EditRideDescriptor();
         descriptor.setTo(new RideDateTime("18-10-2026 1000"));
-        Ride expectedRide = new RideBuilder(rideToEdit).withTo("18-10-2026 1000").build();
-
+        expectedRide = new RideBuilder(rideToEdit).withTo("18-10-2026 1000").build();
         assertEditSuccess(descriptor, expectedRide);
-    }
 
-    @Test
-    public void execute_editLocation_updatesOnlyLocation() throws Exception {
-        EditRideDescriptor descriptor = new EditRideDescriptor();
+        descriptor = new EditRideDescriptor();
         descriptor.setLocation(new Location("Punggol"));
-        Ride expectedRide = new RideBuilder(rideToEdit).withLocation("Punggol").build();
-
+        expectedRide = new RideBuilder(rideToEdit).withLocation("Punggol").build();
         assertEditSuccess(descriptor, expectedRide);
-    }
 
-    @Test
-    public void execute_editDistance_updatesOnlyDistance() throws Exception {
-        EditRideDescriptor descriptor = new EditRideDescriptor();
+        descriptor = new EditRideDescriptor();
         descriptor.setDistance(new Distance("50.5"));
-        Ride expectedRide = new RideBuilder(rideToEdit).withDistance("50.5").build();
-
+        expectedRide = new RideBuilder(rideToEdit).withDistance("50.5").build();
         assertEditSuccess(descriptor, expectedRide);
     }
 
     @Test
-    public void execute_editMinimumPower_updatesOnlyMinimumPower() throws Exception {
-        EditRideDescriptor descriptor = new EditRideDescriptor();
-        descriptor.setMinimumPower(new MinimumPower("250"));
-        Ride expectedRide = new RideBuilder(rideToEdit).withMinimumPower("250").build();
-
-        assertEditSuccess(descriptor, expectedRide);
+    public void execute_minimumPowerAtLowestFtpThenLowered_updatesRide() throws Exception {
+        for (String minimumPower : List.of("200", "150")) {
+            EditRideDescriptor descriptor = new EditRideDescriptor();
+            descriptor.setMinimumPower(new MinimumPower(minimumPower));
+            Ride expectedRide = new RideBuilder(rideToEdit).withMinimumPower(minimumPower).build();
+            assertEditSuccess(descriptor, expectedRide);
+        }
     }
 
     @Test
-    public void execute_editMaxGroupSize_updatesOnlyMaxGroupSize() throws Exception {
-        EditRideDescriptor descriptor = new EditRideDescriptor();
-        descriptor.setMaxGroupSize(new GroupSize("20"));
-        Ride expectedRide = new RideBuilder(rideToEdit).withMaxGroupSize("20").build();
+    public void execute_groupSizeAtRosterCountThenIncreased_updatesRide() throws Exception {
+        for (String groupSize : List.of("2", "20")) {
+            EditRideDescriptor descriptor = new EditRideDescriptor();
+            descriptor.setMaxGroupSize(new GroupSize(groupSize));
+            Ride expectedRide = new RideBuilder(rideToEdit).withMaxGroupSize(groupSize).build();
+            assertEditSuccess(descriptor, expectedRide);
+        }
+    }
 
-        assertEditSuccess(descriptor, expectedRide);
+    @Test
+    public void execute_rosterConstraintsWithEmptyRoster_updatesRide() throws Exception {
+        EditRideDescriptor descriptor = new EditRideDescriptor();
+        descriptor.setMinimumPower(new MinimumPower("600"));
+        descriptor.setMaxGroupSize(new GroupSize("1"));
+        Ride expectedEmptyRosterRide = new RideBuilder(otherRide).withMinimumPower("600")
+                .withMaxGroupSize("1").build();
+
+        new RideEditCommand(otherRide.getId(), descriptor).execute(model);
+
+        assertEquals(List.of(rideToEdit, expectedEmptyRosterRide), model.getAddressBook().getRideList());
+    }
+
+    @Test
+    public void execute_invalidRosterConstraints_rejectsAtomicallyWithGroupSizeFirst() {
+        EditRideDescriptor descriptor = descriptorWithName("Changed Name");
+        descriptor.setMinimumPower(new MinimumPower("201"));
+        descriptor.setMaxGroupSize(new GroupSize("1"));
+
+        assertCommandFailure(new RideEditCommand(rideToEdit.getId(), descriptor), model,
+                RideEditCommand.MESSAGE_GROUP_SIZE_TOO_SMALL);
+
+        descriptor.setMaxGroupSize(new GroupSize("2"));
+        assertCommandFailure(new RideEditCommand(rideToEdit.getId(), descriptor), model,
+                RideEditCommand.MESSAGE_MINIMUM_POWER_TOO_HIGH);
+    }
+
+    @Test
+    public void execute_unresolvedRosterReference_allowsUnrelatedEditButRejectsFtpEdit() throws Exception {
+        Model unresolvedModel = new ModelManager();
+        Ride unresolvedRide = unresolvedModel.addRide(new RideBuilder().withRoster(FIRST_PHONE).build());
+
+        new RideEditCommand(unresolvedRide.getId(), descriptorWithName("Renamed Ride")).execute(unresolvedModel);
+        Ride renamedRide = new RideBuilder(unresolvedRide).withName("Renamed Ride").build();
+        assertEquals(List.of(renamedRide), unresolvedModel.getAddressBook().getRideList());
+
+        EditRideDescriptor descriptor = new EditRideDescriptor();
+        descriptor.setMinimumPower(new MinimumPower("200"));
+        assertCommandFailure(new RideEditCommand(unresolvedRide.getId(), descriptor), unresolvedModel,
+                RideRosterCommand.MESSAGE_PERSON_NOT_FOUND);
     }
 
     @Test
@@ -140,7 +170,7 @@ public class RideEditCommandTest {
         EditRideDescriptor descriptor = new EditRideDescriptor();
         descriptor.setNotes(Optional.empty());
         Ride expectedRide = new RideBuilder().withId(rideToEdit.getId())
-                .withRoster("+65 91234567", "+65 92345678").build();
+                .withRoster(FIRST_PHONE, SECOND_PHONE).build();
 
         assertEditSuccess(descriptor, expectedRide);
     }
@@ -165,12 +195,12 @@ public class RideEditCommandTest {
         descriptor.setTo(new RideDateTime("19-10-2026 1100"));
         descriptor.setLocation(new Location("Changi"));
         descriptor.setDistance(new Distance("100"));
-        descriptor.setMinimumPower(new MinimumPower("220"));
+        descriptor.setMinimumPower(new MinimumPower("200"));
         descriptor.setMaxGroupSize(new GroupSize("18"));
         descriptor.setNotes(Optional.of(new Notes("Bring two bottles")));
         Ride expectedRide = new RideBuilder(rideToEdit).withName("Coastal Century")
                 .withFrom("19-10-2026 0600").withTo("19-10-2026 1100").withLocation("Changi")
-                .withDistance("100").withMinimumPower("220").withMaxGroupSize("18")
+                .withDistance("100").withMinimumPower("200").withMaxGroupSize("18")
                 .withNotes("Bring two bottles").build();
 
         assertEditSuccess(descriptor, expectedRide);
@@ -193,31 +223,19 @@ public class RideEditCommandTest {
     }
 
     @Test
-    public void execute_bothTimesCreateInvalidPeriod_throwsCommandExceptionAndLeavesModelUnchanged() {
-        EditRideDescriptor descriptor = new EditRideDescriptor();
-        descriptor.setFrom(new RideDateTime("20-10-2026 1000"));
-        descriptor.setTo(new RideDateTime("20-10-2026 0900"));
+    public void execute_invalidPeriods_throwsCommandExceptionAndLeavesModelUnchanged() {
+        EditRideDescriptor bothTimes = new EditRideDescriptor();
+        bothTimes.setFrom(new RideDateTime("20-10-2026 1000"));
+        bothTimes.setTo(new RideDateTime("20-10-2026 0900"));
+        EditRideDescriptor onlyFrom = new EditRideDescriptor();
+        onlyFrom.setFrom(new RideDateTime("18-10-2026 1000"));
+        EditRideDescriptor onlyTo = new EditRideDescriptor();
+        onlyTo.setTo(new RideDateTime("18-10-2026 0600"));
 
-        assertCommandFailure(new RideEditCommand(rideToEdit.getId(), descriptor), model,
-                Ride.MESSAGE_INVALID_PERIOD);
-    }
-
-    @Test
-    public void execute_onlyFromCreatesInvalidPeriod_throwsCommandExceptionAndLeavesModelUnchanged() {
-        EditRideDescriptor descriptor = new EditRideDescriptor();
-        descriptor.setFrom(new RideDateTime("18-10-2026 1000"));
-
-        assertCommandFailure(new RideEditCommand(rideToEdit.getId(), descriptor), model,
-                Ride.MESSAGE_INVALID_PERIOD);
-    }
-
-    @Test
-    public void execute_onlyToCreatesInvalidPeriod_throwsCommandExceptionAndLeavesModelUnchanged() {
-        EditRideDescriptor descriptor = new EditRideDescriptor();
-        descriptor.setTo(new RideDateTime("18-10-2026 0600"));
-
-        assertCommandFailure(new RideEditCommand(rideToEdit.getId(), descriptor), model,
-                Ride.MESSAGE_INVALID_PERIOD);
+        for (EditRideDescriptor descriptor : List.of(bothTimes, onlyFrom, onlyTo)) {
+            assertCommandFailure(new RideEditCommand(rideToEdit.getId(), descriptor), model,
+                    Ride.MESSAGE_INVALID_PERIOD);
+        }
     }
 
     @Test
@@ -267,9 +285,8 @@ public class RideEditCommandTest {
         assertEquals(String.format(RideEditCommand.MESSAGE_SUCCESS, Messages.formatRide(expectedRide)),
                 result.getFeedbackToUser());
         assertEquals(List.of(expectedRide, otherRide), model.getAddressBook().getRideList());
-        assertEquals(rideToEdit.getId(), expectedRide.getId());
-        assertEquals(rideToEdit.getRoster(), expectedRide.getRoster());
         assertEquals(3, model.getAddressBook().getNextRideId());
+        rideToEdit = expectedRide;
     }
 
     private static EditRideDescriptor descriptorWithName(String name) {
