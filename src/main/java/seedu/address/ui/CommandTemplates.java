@@ -68,7 +68,7 @@ public class CommandTemplates {
             new Template(
                     RideAddCommand.COMMAND_WORD + " " + PREFIX_NAME + "NAME " + PREFIX_FROM + "FROM "
                             + PREFIX_TO + "TO " + PREFIX_LOCATION + "LOCATION " + PREFIX_DISTANCE + "DISTANCE "
-                            + PREFIX_FTP + "MINIMUM_POWER " + PREFIX_GROUP_SIZE + "MAX_GROUP_SIZE ["
+                            + PREFIX_FTP + "MIN_POWER " + PREFIX_GROUP_SIZE + "MAX_GROUP_SIZE ["
                             + PREFIX_NOTES + "NOTES]",
                     RideAddCommand.COMMAND_WORD + " " + PREFIX_NAME + " " + PREFIX_FROM + " " + PREFIX_TO + " "
                             + PREFIX_LOCATION + " " + PREFIX_DISTANCE + " " + PREFIX_FTP + " "
@@ -76,7 +76,7 @@ public class CommandTemplates {
             new Template(
                     RideEditCommand.COMMAND_WORD + " ID [" + PREFIX_NAME + "NAME] [" + PREFIX_FROM + "START] ["
                             + PREFIX_TO + "END] [" + PREFIX_LOCATION + "LOCATION] [" + PREFIX_DISTANCE
-                            + "DISTANCE] [" + PREFIX_FTP + "MIN_FTP] [" + PREFIX_GROUP_SIZE + "MAX_SIZE] ["
+                            + "DISTANCE] [" + PREFIX_FTP + "MIN_POWER] [" + PREFIX_GROUP_SIZE + "MAX_GROUP_SIZE] ["
                             + PREFIX_NOTES + "NOTES]",
                     RideEditCommand.COMMAND_WORD + " "),
             new Template("rideaddcyclist ID PHONE", RideRosterCommand.JOIN_COMMAND_WORD + " "),

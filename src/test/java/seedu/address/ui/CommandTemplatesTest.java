@@ -86,7 +86,7 @@ public class CommandTemplatesTest {
     public void rideAddTemplate_displayShowsCompulsoryPrefixesAndNotesAsOptional() {
         String display = templateFor(RideAddCommand.COMMAND_WORD).display();
 
-        assertEquals("rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MINIMUM_POWER s/MAX_GROUP_SIZE"
+        assertEquals("rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MIN_POWER s/MAX_GROUP_SIZE"
                 + " [notes/NOTES]", display);
         for (Object prefix : new Object[] {PREFIX_NAME, PREFIX_FROM, PREFIX_TO, PREFIX_LOCATION, PREFIX_DISTANCE,
             PREFIX_FTP, PREFIX_GROUP_SIZE}) {
@@ -119,8 +119,8 @@ public class CommandTemplatesTest {
     public void rideEditTemplate_displayListsEveryEditableFieldAsOptional() {
         String display = templateFor(RideEditCommand.COMMAND_WORD).display();
 
-        assertEquals("rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_FTP]"
-                + " [s/MAX_SIZE] [notes/NOTES]", display);
+        assertEquals("rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER]"
+                + " [s/MAX_GROUP_SIZE] [notes/NOTES]", display);
         for (Object prefix : new Object[] {PREFIX_NAME, PREFIX_FROM, PREFIX_TO, PREFIX_LOCATION, PREFIX_DISTANCE,
             PREFIX_FTP, PREFIX_GROUP_SIZE, PREFIX_NOTES}) {
             assertTrue(display.contains("[" + prefix), "Ride Edit format should list optional " + prefix);
