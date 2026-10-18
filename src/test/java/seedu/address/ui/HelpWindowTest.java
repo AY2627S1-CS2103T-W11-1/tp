@@ -17,15 +17,15 @@ import seedu.address.logic.commands.RideAddCommand;
 public class HelpWindowTest {
 
     @Test
-    public void commandList_rosterCommands_includesFormatsAliasesAndExample() {
-        assertTrue(HelpWindow.COMMAND_LIST.contains("rideaddcyclist ID PHONE (alias: rac)"));
-        assertTrue(HelpWindow.COMMAND_LIST.contains("ridedeletecyclist ID PHONE (alias: rdc)"));
+    public void commandList_rosterCommands_includesFormatsAndExample() {
+        assertTrue(HelpWindow.COMMAND_LIST.contains("rideaddcyclist ID PHONE"));
+        assertTrue(HelpWindow.COMMAND_LIST.contains("ridedeletecyclist ID PHONE"));
         assertTrue(HelpWindow.COMMAND_LIST.contains("Example: rideaddcyclist 1 +65 91234567"));
         assertTrue(CommandTemplates.ALL.stream().anyMatch(template ->
-                template.display().equals("rideaddcyclist ID PHONE (rac)")
+                template.display().equals("rideaddcyclist ID PHONE")
                         && template.insertText().equals("rideaddcyclist ")));
         assertTrue(CommandTemplates.ALL.stream().anyMatch(template ->
-                template.display().equals("ridedeletecyclist ID PHONE (rdc)")
+                template.display().equals("ridedeletecyclist ID PHONE")
                         && template.insertText().equals("ridedeletecyclist ")));
     }
 

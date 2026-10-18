@@ -247,7 +247,7 @@ no rides and `nextRideId` 1. Duplicate ride IDs or a non-positive `nextRideId` m
 
 ### Ride roster management
 
-`rideaddcyclist ID PHONE` (`rac`) and `ridedeletecyclist ID PHONE` (`rdc`) share
+`rideaddcyclist ID PHONE` and `ridedeletecyclist ID PHONE` share
 `RideRosterCommandParser` and `RideRosterCommand`. The parser separates the first token
 as a positive integer ride ID and validates the remaining text as a complete phone number.
 The command resolves the ride by ID, independently of cyclist filtering. Addition requires
@@ -917,17 +917,17 @@ Use a separate data directory or back up your data first.
    Expected: ride 1 appears and its card says `No cyclists`.
 1. Enter `find n/NoSuchCyclist`, then `rideaddcyclist 1 +65 91234567`.
    Expected: addition succeeds, the filter stays active and the ride card shows the phone.
-1. Repeat using `rac`. Expected: already-on-roster error; no roster change.
+1. Repeat using `rideaddcyclist`. Expected: already-on-roster error; no roster change.
 1. Add another cyclist with FTP 179. Attempt to add them to ride 1.
-   Expected: full-ride error. Remove the first cyclist using `rdc 1 +65 91234567` and retry.
+   Expected: full-ride error. Remove the first cyclist using `ridedeletecyclist 1 +65 91234567` and retry.
    Expected: minimum-power error. An unknown cyclist or ride ID also reports an error.
-1. Enter `rac 0 +65 91234567`, `rac 1`, and `rac 1 p/+65 91234567`.
+1. Enter `rideaddcyclist 0 +65 91234567`, `rideaddcyclist 1`, and `rideaddcyclist 1 p/+65 91234567`.
    Expected: invalid-input errors with no data changes.
 1. Add the first cyclist again. Run `list`, edit their phone to `+65 91111111`.
    Expected: the roster shows the new phone. Restart; expected: membership is preserved.
 1. Delete that contact and cancel. Expected: roster unchanged. Delete again and confirm.
    Expected: the prompt explains removal from all rosters; the card says `No cyclists`.
-1. Check Help dropdown and Full help for both commands and aliases. Create a second ride
+1. Check Help dropdown and Full help for both commands. Create a second ride
    with maximum group size 12 and add several eligible cyclists. Resize the window; expected: text wraps and the ride card stays within its column.
 1. Try `ridedeletecyclist` for a cyclist not on the roster. Expected: membership error;
    no contact records or other rides change.

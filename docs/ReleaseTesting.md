@@ -317,8 +317,8 @@ UI checks remain outstanding because the UI tool cannot access the JavaFX window
 
 ## Ride roster management (16 October 2026)
 
-Issue #93 follows the Week 10 command formats: `rideaddcyclist ID PHONE` (`rac`)
-and `ridedeletecyclist ID PHONE` (`rdc`). Roster membership is displayed on ride
+Issue #93 follows the Week 10 command formats: `rideaddcyclist ID PHONE`
+and `ridedeletecyclist ID PHONE`. Roster membership is displayed on ride
 cards and persisted; phone edits and confirmed cyclist deletions update all rosters.
 UG/DG text and manual scenarios are updated; UML diagrams are deferred to a later increment.
 
@@ -329,11 +329,11 @@ This Windows installation needs the temporary JVM option
 `-Djdk.net.unixdomain.tmpdir=C:/codex-java-tmp` to avoid a JDK loopback-socket
 error caused by its default temporary directory; no build configuration was changed.
 
-Automated integration checks cover both names and aliases, hidden cyclists,
+Automated integration checks cover both names, hidden cyclists,
 capacity, minimum FTP, duplicate/absent membership, invalid IDs and phones,
 unchanged JSON on rejection, preserving other rides, phone edits, cancelled and
 confirmed contact deletion, pending-deletion cancellation, and saved-data readback. Additional regressions reload saved membership before removal,
-verify invalid syntax preserves the model, filter and file, and check both Help formats and aliases.
+verify invalid syntax preserves the model, filter and file, and check both Help formats.
 A JavaFX test loads ride-card FXML and checks empty/populated roster text and wrapping.
 It shares the existing JavaFX toolkit lifecycle in `PersonCardTest`.
 
@@ -342,3 +342,19 @@ contacts and the empty Rides panel. Its window closed before the first roster co
 could be submitted. The Developer Guide's **Ride roster regression (manual testing)**
 therefore remains outstanding, including live card refresh, Help interaction, resizing
 and restart verification. Automated checks do not establish visual correctness.
+
+## Roster alias removal (18 October 2026)
+
+Remove short-form aliases from parsing, Help, examples and regression scenarios
+following PR #106 review. Use full command names throughout roster integration tests.
+A new regression rejects both removed aliases without changing saved data or
+cancelling an existing deletion confirmation request.
+
+JDK 25.0.4.1: `./gradlew check coverage shadowJar` passes using the documented
+Windows loopback workaround. All 564 tests pass; both Checkstyle tasks pass.
+Line coverage is 80.94% (1,567 of 1,936 lines), above the 50% target.
+
+Manual UI verification was attempted with the new JAR and disposable data. The UI
+tool failed to activate the JavaFX window and returned a Task Manager screenshot
+on retry. The updated roster manual scenario therefore remains outstanding;
+automated Help and integration checks passed.

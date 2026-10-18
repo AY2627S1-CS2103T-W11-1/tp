@@ -71,8 +71,8 @@ public class CommandTemplates {
                     RideAddCommand.COMMAND_WORD + " " + PREFIX_NAME + " " + PREFIX_FROM + " " + PREFIX_TO + " "
                             + PREFIX_LOCATION + " " + PREFIX_DISTANCE + " " + PREFIX_FTP + " "
                             + PREFIX_GROUP_SIZE),
-            new Template("rideaddcyclist ID PHONE (rac)", RideRosterCommand.JOIN_COMMAND_WORD + " "),
-            new Template("ridedeletecyclist ID PHONE (rdc)", RideRosterCommand.LEAVE_COMMAND_WORD + " "),
+            new Template("rideaddcyclist ID PHONE", RideRosterCommand.JOIN_COMMAND_WORD + " "),
+            new Template("ridedeletecyclist ID PHONE", RideRosterCommand.LEAVE_COMMAND_WORD + " "),
             new Template(ListCommand.COMMAND_WORD, ListCommand.COMMAND_WORD),
             new Template(ClearCommand.COMMAND_WORD, ClearCommand.COMMAND_WORD),
             new Template(HelpCommand.COMMAND_WORD, HelpCommand.COMMAND_WORD),

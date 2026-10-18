@@ -1,6 +1,7 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -54,7 +55,7 @@ public class RideRosterIntegrationTest {
     }
 
     @Test
-    public void execute_fullNamesAndAliases_updatesRosterAndPersists() throws Exception {
+    public void execute_fullNames_updatesRosterAndPersists() throws Exception {
         model.updateFilteredPersonList(person -> false);
         Ride original = model.getAddressBook().getRideList().get(0);
         logic.execute("rideaddcyclist 1 " + PHONE);
@@ -63,9 +64,9 @@ public class RideRosterIntegrationTest {
         assertSavedState();
         logic.execute("ridedeletecyclist 1 " + PHONE);
         assertEquals(original, currentRide());
-        logic.execute("rac 1 " + PHONE);
+        logic.execute("rideaddcyclist 1 " + PHONE);
         assertSavedState();
-        logic.execute("rdc 1 " + PHONE);
+        logic.execute("ridedeletecyclist 1 " + PHONE);
         assertEquals(original, currentRide());
         assertEquals(2, model.getAddressBook().getNextRideId());
         assertSavedState();
@@ -73,7 +74,7 @@ public class RideRosterIntegrationTest {
 
     @Test
     public void execute_afterReload_canRemovePersistedMembership() throws Exception {
-        logic.execute("rac 1 " + PHONE);
+        logic.execute("rideaddcyclist 1 " + PHONE);
         model = new ModelManager(storage.readAddressBook().orElseThrow(), new UserPrefs());
         logic = new LogicManager(model, storage);
         assertEquals(List.of(new Phone(PHONE)), currentRide().getRoster());
@@ -84,11 +85,12 @@ public class RideRosterIntegrationTest {
 
     @Test
     public void execute_invalidSyntax_preservesModelFilterAndSavedData() throws Exception {
-        logic.execute("rac 1 " + PHONE);
+        logic.execute("rideaddcyclist 1 " + PHONE);
         model.updateFilteredPersonList(person -> false);
         Ride before = currentRide();
         String saved = Files.readString(storage.getAddressBookFilePath());
-        for (String input : List.of("rac 0 " + PHONE, "rdc 1 p/" + PHONE, "rac 1 " + PHONE + " extra")) {
+        for (String input : List.of("rideaddcyclist 0 " + PHONE, "ridedeletecyclist 1 p/" + PHONE,
+                "rideaddcyclist 1 " + PHONE + " extra")) {
             assertThrows(ParseException.class, () -> logic.execute(input));
             assertEquals(before, currentRide());
             assertTrue(model.getFilteredPersonList().isEmpty());
@@ -99,9 +101,9 @@ public class RideRosterIntegrationTest {
     @Test
     public void execute_removeFromOneRide_preservesOtherRideAndCyclist() throws Exception {
         model.addRide(new RideBuilder().build());
-        logic.execute("rac 1 " + PHONE);
-        logic.execute("rac 2 " + PHONE);
-        logic.execute("rdc 1 " + PHONE);
+        logic.execute("rideaddcyclist 1 " + PHONE);
+        logic.execute("rideaddcyclist 2 " + PHONE);
+        logic.execute("ridedeletecyclist 1 " + PHONE);
         assertTrue(currentRide().getRoster().isEmpty());
         assertEquals(List.of(new Phone(PHONE)), model.getAddressBook().getRideList().get(1).getRoster());
         assertEquals(2, model.getAddressBook().getPersonList().size());
@@ -110,23 +112,23 @@ public class RideRosterIntegrationTest {
 
     @Test
     public void execute_invalidMembership_rejectsWithoutChanges() throws Exception {
-        assertRejected("rac 99 " + PHONE, RideRosterCommand.MESSAGE_RIDE_NOT_FOUND);
-        assertRejected("rac 1 +65 99999999", RideRosterCommand.MESSAGE_PERSON_NOT_FOUND);
-        assertRejected("rdc 1 " + PHONE, RideRosterCommand.MESSAGE_NOT_JOINED);
-        assertRejected("rac 1 " + OTHER_PHONE, RideRosterCommand.MESSAGE_LOW_POWER);
-        logic.execute("rac 1 " + PHONE);
-        assertRejected("rac 1 " + PHONE, RideRosterCommand.MESSAGE_ALREADY_JOINED);
-        assertRejected("rac 1 " + OTHER_PHONE, RideRosterCommand.MESSAGE_FULL);
-        logic.execute("rdc 1 " + PHONE);
-        logic.execute("rac 1 " + PHONE);
+        assertRejected("rideaddcyclist 99 " + PHONE, RideRosterCommand.MESSAGE_RIDE_NOT_FOUND);
+        assertRejected("rideaddcyclist 1 +65 99999999", RideRosterCommand.MESSAGE_PERSON_NOT_FOUND);
+        assertRejected("ridedeletecyclist 1 " + PHONE, RideRosterCommand.MESSAGE_NOT_JOINED);
+        assertRejected("rideaddcyclist 1 " + OTHER_PHONE, RideRosterCommand.MESSAGE_LOW_POWER);
+        logic.execute("rideaddcyclist 1 " + PHONE);
+        assertRejected("rideaddcyclist 1 " + PHONE, RideRosterCommand.MESSAGE_ALREADY_JOINED);
+        assertRejected("rideaddcyclist 1 " + OTHER_PHONE, RideRosterCommand.MESSAGE_FULL);
+        logic.execute("ridedeletecyclist 1 " + PHONE);
+        logic.execute("rideaddcyclist 1 " + PHONE);
         assertSavedState();
     }
 
     @Test
     public void execute_phoneEditAndConfirmedDeletion_updatesAllRosters() throws Exception {
         model.addRide(new RideBuilder().build());
-        logic.execute("rac 1 " + PHONE);
-        logic.execute("rac 2 " + PHONE);
+        logic.execute("rideaddcyclist 1 " + PHONE);
+        logic.execute("rideaddcyclist 2 " + PHONE);
         logic.execute("edit " + PHONE + " p/+65 91111111");
         for (Ride ride : model.getAddressBook().getRideList()) {
             assertEquals(List.of(new Phone("+65 91111111")), ride.getRoster());
@@ -146,7 +148,7 @@ public class RideRosterIntegrationTest {
     @Test
     public void execute_rosterCommand_cancelsPendingCyclistDeletion() throws Exception {
         logic.execute("delete " + PHONE);
-        assertTrue(logic.execute("rac 1 " + PHONE).getFeedbackToUser().startsWith("Deletion cancelled."));
+        assertTrue(logic.execute("rideaddcyclist 1 " + PHONE).getFeedbackToUser().startsWith("Deletion cancelled."));
         assertEquals(2, model.getAddressBook().getPersonList().size());
         assertEquals(List.of(new Phone(PHONE)), currentRide().getRoster());
     }
@@ -154,7 +156,7 @@ public class RideRosterIntegrationTest {
     @Test
     public void parse_invalidArguments_rejects() {
         AddressBookParser parser = new AddressBookParser();
-        for (String word : List.of("rideaddcyclist", "ridedeletecyclist", "rac", "rdc")) {
+        for (String word : List.of("rideaddcyclist", "ridedeletecyclist")) {
             assertTrue(parser.isRecognisedCommand(word));
             for (String args : List.of("", " 1", " 0 " + PHONE, " -1 " + PHONE,
                     " 2147483648 " + PHONE, " abc " + PHONE, " 1 91234567",
@@ -162,6 +164,26 @@ public class RideRosterIntegrationTest {
                 assertThrows(ParseException.class, () -> parser.parseCommand(word + args), word + args);
             }
         }
+    }
+
+    @Test
+    public void execute_removedAliases_rejectWithoutChangingDataOrPendingDeletion() throws Exception {
+        AddressBookParser parser = new AddressBookParser();
+        String saved = Files.readString(storage.getAddressBookFilePath());
+        Ride before = currentRide();
+        for (String alias : List.of("rac", "rdc")) {
+            assertFalse(parser.isRecognisedCommand(alias));
+            ParseException exception = assertThrows(ParseException.class, () -> logic.execute(alias + " 1 " + PHONE));
+            assertEquals(Messages.MESSAGE_UNKNOWN_COMMAND, exception.getMessage());
+            assertEquals(before, currentRide());
+            assertEquals(saved, Files.readString(storage.getAddressBookFilePath()));
+        }
+        logic.execute("delete " + PHONE);
+        for (String alias : List.of("rac", "rdc")) {
+            assertThrows(CommandException.class, () -> logic.execute(alias + " 1 " + PHONE));
+        }
+        assertEquals("Deletion cancelled.", logic.execute("no").getFeedbackToUser());
+        assertEquals(saved, Files.readString(storage.getAddressBookFilePath()));
     }
 
     private Ride currentRide() {

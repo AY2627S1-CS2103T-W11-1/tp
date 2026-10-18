@@ -199,12 +199,12 @@ Examples:
 
 ### Adding and removing cyclists from a ride
 
-Use `rideaddcyclist ID PHONE` (or `rac ID PHONE`) to add a saved cyclist to a ride.
-Use `ridedeletecyclist ID PHONE` (or `rdc ID PHONE`) to remove them from that ride only.
-For example: `rac 1 +65 91234567`, then `rdc 1 +65 91234567`.
+Use `rideaddcyclist ID PHONE` to add a saved cyclist to a ride.
+Use `ridedeletecyclist ID PHONE` to remove them from that ride only.
+For example: `rideaddcyclist 1 +65 91234567`, then `ridedeletecyclist 1 +65 91234567`.
 
 * `ID` is the positive ride ID shown on the card, rather than a position in the list.
-  Use a whole number from 1 to 2147483647. Command names and aliases are case-sensitive.
+  Use a whole number from 1 to 2147483647. Command names are case-sensitive.
 * `PHONE` includes the country code and one space, as in cyclist commands. Do not add `p/`.
 * Cyclists can be added even when hidden by `find`. They must exist in the address book,
   meet the ride's minimum power and fit within its maximum group size.
@@ -282,5 +282,5 @@ Action | Format, Examples
 **List** | `list`
 **Help** | `help`
 **Rideadd** | `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MINIMUM_POWER s/MAX_GROUP_SIZE [notes/NOTES]`<br> e.g., `rideadd n/Sunday Sunrise Ride from/18-10-2026 0630 to/18-10-2026 0930 l/East Coast d/45 f/180 s/12 notes/Bring lights`
-**Add cyclist to ride** | `rideaddcyclist ID PHONE` or `rac ID PHONE`
-**Remove cyclist from ride** | `ridedeletecyclist ID PHONE` or `rdc ID PHONE`
+**Add cyclist to ride** | `rideaddcyclist ID PHONE`
+**Remove cyclist from ride** | `ridedeletecyclist ID PHONE`

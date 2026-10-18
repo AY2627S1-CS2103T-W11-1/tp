@@ -90,8 +90,8 @@ failures. It verifies populated, null and missing emergency numbers. Only the fu
 `JsonAdaptedPerson` constructor carries JSON property annotations; the convenience
 constructor is for direct Java callers.
 
-`RideRosterIntegrationTest` covers roster commands and aliases, filtered cyclists,
+`RideRosterIntegrationTest` covers roster commands, filtered cyclists,
 capacity and FTP boundaries, invalid input, rejected commands without mutation,
 phone edits, confirmed/cancelled contact deletion, JSON readback and removal after reload.
-`HelpWindowTest` verifies both roster command formats, aliases and dropdown starters. Run the
+`HelpWindowTest` verifies both roster command formats and dropdown starters. Run the
 Developer Guide's **Ride roster regression (manual testing)** after roster changes.
