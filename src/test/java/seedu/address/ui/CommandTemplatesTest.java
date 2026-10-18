@@ -30,6 +30,7 @@ import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RideAddCommand;
 import seedu.address.logic.commands.RideEditCommand;
+import seedu.address.logic.commands.RideRosterCommand;
 
 public class CommandTemplatesTest {
 
@@ -49,8 +50,8 @@ public class CommandTemplatesTest {
 
         assertEquals(List.of(AddCommand.COMMAND_WORD, EditCommand.COMMAND_WORD, DeleteCommand.COMMAND_WORD,
                 FindCommand.COMMAND_WORD, RideAddCommand.COMMAND_WORD, RideEditCommand.COMMAND_WORD,
-                ListCommand.COMMAND_WORD, ClearCommand.COMMAND_WORD, HelpCommand.COMMAND_WORD,
-                ExitCommand.COMMAND_WORD), commandWords);
+                RideRosterCommand.JOIN_COMMAND_WORD, RideRosterCommand.LEAVE_COMMAND_WORD, ListCommand.COMMAND_WORD,
+                ClearCommand.COMMAND_WORD, HelpCommand.COMMAND_WORD, ExitCommand.COMMAND_WORD), commandWords);
     }
 
     @Test
@@ -136,14 +137,26 @@ public class CommandTemplatesTest {
     }
 
     @Test
-    public void rideEditTemplate_isListedAfterRideAddAndBeforeList() {
+    public void rideEditTemplate_isListedAfterRideAddAndBeforeRosterCommands() {
         List<String> commandWords = CommandTemplates.ALL.stream()
                 .map(template -> template.insertText().trim().split(" ")[0])
                 .toList();
         int rideEditIndex = commandWords.indexOf(RideEditCommand.COMMAND_WORD);
 
         assertEquals(commandWords.indexOf(RideAddCommand.COMMAND_WORD) + 1, rideEditIndex);
-        assertEquals(commandWords.indexOf(ListCommand.COMMAND_WORD) - 1, rideEditIndex);
+        assertEquals(commandWords.indexOf(RideRosterCommand.JOIN_COMMAND_WORD) - 1, rideEditIndex);
+    }
+
+    @Test
+    public void rosterTemplates_showPositionalArguments() {
+        assertEquals("rideaddcyclist ID PHONE", templateFor(RideRosterCommand.JOIN_COMMAND_WORD).display());
+        assertEquals("ridedeletecyclist ID PHONE", templateFor(RideRosterCommand.LEAVE_COMMAND_WORD).display());
+    }
+
+    @Test
+    public void rosterTemplates_insertCommandAndTrailingSpaceOnly() {
+        assertEquals("rideaddcyclist ", templateFor(RideRosterCommand.JOIN_COMMAND_WORD).insertText());
+        assertEquals("ridedeletecyclist ", templateFor(RideRosterCommand.LEAVE_COMMAND_WORD).insertText());
     }
 
     private static CommandTemplates.Template templateFor(String commandWord) {

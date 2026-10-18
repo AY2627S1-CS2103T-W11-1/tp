@@ -92,6 +92,10 @@ public class AddressBook implements ReadOnlyAddressBook {
         requireNonNull(editedPerson);
 
         persons.setPerson(target, editedPerson);
+        if (!target.getPhone().equals(editedPerson.getPhone())) {
+            rides.replaceAll(ride -> ride.withRoster(ride.getRoster().stream()
+                    .map(phone -> phone.equals(target.getPhone()) ? editedPerson.getPhone() : phone).toList()));
+        }
     }
 
     /**
@@ -100,6 +104,8 @@ public class AddressBook implements ReadOnlyAddressBook {
      */
     public void removePerson(Person key) {
         persons.remove(key);
+        rides.replaceAll(ride -> ride.withRoster(ride.getRoster().stream()
+                .filter(phone -> !phone.equals(key.getPhone())).toList()));
     }
 
     //// ride-level operations
@@ -117,7 +123,7 @@ public class AddressBook implements ReadOnlyAddressBook {
     }
 
     /**
-     * Replaces the given ride {@code target} with {@code editedRide}.
+     * Replaces the given ride {@code target} with {@code editedRide} without changing its ID or position.
      * {@code target} must exist in the address book.
      */
     public void setRide(Ride target, Ride editedRide) {

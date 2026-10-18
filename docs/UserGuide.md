@@ -72,6 +72,11 @@ display, including filtered results. Use phone numbers to target `edit` and `del
 
 ### Viewing help: `help`
 
+The **Help** dropdown lists `rideedit` after `rideadd`, followed by
+`rideaddcyclist ID PHONE` and `ridedeletecyclist ID PHONE`. Clicking either roster entry places
+its full command name followed by a space in the command box for you to complete.
+`ID` and `PHONE` are positional arguments; no `p/` prefix is inserted.
+
 Shows a message explaining how to access the help page.
 
 ![help message](images/helpMessage.png)
@@ -231,6 +236,25 @@ Common failures include:
 * A resulting end time before the start time, including after changing only one endpoint:
   `The end date and time (to/) cannot be earlier than the start date and time (from/).`
 
+### Adding and removing cyclists from a ride
+
+Use `rideaddcyclist ID PHONE` to add a saved cyclist to a ride.
+Use `ridedeletecyclist ID PHONE` to remove them from that ride only.
+For example: `rideaddcyclist 1 +65 91234567`, then `ridedeletecyclist 1 +65 91234567`.
+
+* `ID` is the positive ride ID shown on the card, rather than a position in the list.
+  Use a whole number from 1 to 2147483647. Command names are case-sensitive.
+* `PHONE` includes the country code and one space, as in cyclist commands. Do not add `p/`.
+* Cyclists can be added even when hidden by `find`. They must exist in the address book,
+  meet the ride's minimum power and fit within its maximum group size.
+* A cyclist cannot join the same ride twice. Removing a cyclist who is absent reports an error.
+* Removing a cyclist from a ride keeps their contact record and other ride memberships.
+* Ride cards show roster phone numbers, or `No cyclists` when empty. Changes are saved automatically.
+* Editing a cyclist's phone updates all their ride memberships. Confirming deletion of their
+  contact removes them from all ride rosters; cancelling deletion preserves those memberships.
+* Both commands appear in Help. Entering either while a contact deletion is pending cancels
+  that pending deletion and runs the roster command.
+
 ### Clearing all entries: `clear`
 
 Clears all entries from the address book.
@@ -298,3 +322,5 @@ Action | Format, Examples
 **Help** | `help`
 **Rideadd** | `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MINIMUM_POWER s/MAX_GROUP_SIZE [notes/NOTES]`<br> e.g., `rideadd n/Sunday Sunrise Ride from/18-10-2026 0630 to/18-10-2026 0930 l/East Coast d/45 f/180 s/12 notes/Bring lights`
 **Rideedit** | `rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_FTP] [s/MAX_SIZE] [notes/NOTES]`<br> e.g., `rideedit 101 n/NightRide`, `rideedit 101 notes/`
+**Add cyclist to ride** | `rideaddcyclist ID PHONE`
+**Remove cyclist from ride** | `ridedeletecyclist ID PHONE`

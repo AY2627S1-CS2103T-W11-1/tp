@@ -19,6 +19,7 @@ import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RideAddCommand;
 import seedu.address.logic.commands.RideEditCommand;
+import seedu.address.logic.commands.RideRosterCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 
 /**
@@ -45,7 +46,8 @@ public class AddressBookParser {
             case AddCommand.COMMAND_WORD, EditCommand.COMMAND_WORD, DeleteCommand.COMMAND_WORD,
                     ClearCommand.COMMAND_WORD, FindCommand.COMMAND_WORD, ListCommand.COMMAND_WORD,
                     ExitCommand.COMMAND_WORD, HelpCommand.COMMAND_WORD, RideAddCommand.COMMAND_WORD,
-                    RideEditCommand.COMMAND_WORD -> true;
+                    RideEditCommand.COMMAND_WORD,
+                    RideRosterCommand.JOIN_COMMAND_WORD, RideRosterCommand.LEAVE_COMMAND_WORD -> true;
             default -> false;
         };
     }
@@ -80,6 +82,8 @@ public class AddressBookParser {
             case ListCommand.COMMAND_WORD -> new ListCommand();
             case ExitCommand.COMMAND_WORD -> new ExitCommand();
             case HelpCommand.COMMAND_WORD -> new HelpCommand();
+            case RideRosterCommand.JOIN_COMMAND_WORD -> new RideRosterCommandParser(true).parse(arguments);
+            case RideRosterCommand.LEAVE_COMMAND_WORD -> new RideRosterCommandParser(false).parse(arguments);
             case RideAddCommand.COMMAND_WORD -> new RideAddCommandParser().parse(arguments);
             case RideEditCommand.COMMAND_WORD -> new RideEditCommandParser().parse(arguments);
             default -> {
