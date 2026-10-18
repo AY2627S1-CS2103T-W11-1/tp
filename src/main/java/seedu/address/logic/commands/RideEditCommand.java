@@ -13,7 +13,9 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_TO;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.util.CollectionUtil;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
@@ -64,6 +66,8 @@ public class RideEditCommand extends Command {
     public static final String MESSAGE_MINIMUM_POWER_TOO_HIGH =
             "Cannot edit ride: minimum FTP exceeds the FTP of an existing cyclist.";
 
+    private static final Logger logger = LogsCenter.getLogger(RideEditCommand.class);
+
     private final int targetId;
     private final EditRideDescriptor editRideDescriptor;
 
@@ -80,6 +84,7 @@ public class RideEditCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
+        logger.fine("Attempting to edit ride ID: " + targetId);
 
         Ride rideToEdit = model.getAddressBook().getRideList().stream()
                 .filter(ride -> ride.getId() == targetId)
@@ -89,6 +94,7 @@ public class RideEditCommand extends Command {
         validateRosterEligibility(model, editedRide, editRideDescriptor);
 
         model.setRide(rideToEdit, editedRide);
+        logger.fine("Successfully edited ride ID: " + targetId);
         return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.formatRide(editedRide)));
     }
 
