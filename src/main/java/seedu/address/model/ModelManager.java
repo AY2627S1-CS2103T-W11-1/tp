@@ -113,6 +113,11 @@ public class ModelManager implements Model {
         addressBook.removeRide(target);
     }
 
+    @Override
+    public void setRide(Ride target, Ride editedRide) {
+        addressBook.setRide(target, editedRide);
+    }
+
     //=========== Filtered Person List Accessors =============================================================
 
     /**

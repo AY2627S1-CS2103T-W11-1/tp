@@ -134,6 +134,11 @@ public class AddCommandTest {
         }
 
         @Override
+        public void setRide(Ride target, Ride editedRide) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
         public Ride addRide(Ride ride) {
             throw new AssertionError("This method should not be called.");
         }

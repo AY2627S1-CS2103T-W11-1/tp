@@ -18,6 +18,19 @@ import seedu.address.logic.commands.RideDeleteCommand;
 public class HelpWindowTest {
 
     @Test
+    public void commandList_rosterCommands_includesFormatsAndExample() {
+        assertTrue(HelpWindow.COMMAND_LIST.contains("rideaddcyclist ID PHONE"));
+        assertTrue(HelpWindow.COMMAND_LIST.contains("ridedeletecyclist ID PHONE"));
+        assertTrue(HelpWindow.COMMAND_LIST.contains("Example: rideaddcyclist 1 +65 91234567"));
+        assertTrue(CommandTemplates.ALL.stream().anyMatch(template ->
+                template.display().equals("rideaddcyclist ID PHONE")
+                        && template.insertText().equals("rideaddcyclist ")));
+        assertTrue(CommandTemplates.ALL.stream().anyMatch(template ->
+                template.display().equals("ridedeletecyclist ID PHONE")
+                        && template.insertText().equals("ridedeletecyclist ")));
+    }
+
+    @Test
     public void commandList_deleteUsage_explainsConfirmationAndCancellation() {
         assertTrue(HelpWindow.COMMAND_LIST.contains("Enter y/yes to confirm or n/no to cancel"));
     }

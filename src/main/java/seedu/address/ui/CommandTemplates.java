@@ -25,10 +25,12 @@ import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RideAddCommand;
 import seedu.address.logic.commands.RideDeleteCommand;
+import seedu.address.logic.commands.RideRosterCommand;
 
 /**
  * Holds the one-line command formats shown in the Help dropdown menu. Command words and prefixes
- * come from the command classes and {@code CliSyntax}, so the menu follows any change to them.
+ * come from the command classes and {@code CliSyntax} where available. Roster templates are
+ * defined here so the dropdown can be delivered independently of the roster commands.
  */
 public class CommandTemplates {
 
@@ -74,6 +76,8 @@ public class CommandTemplates {
             new Template(
                     RideDeleteCommand.COMMAND_WORD + " ID",
                     RideDeleteCommand.COMMAND_WORD + " "),
+            new Template("rideaddcyclist ID PHONE", RideRosterCommand.JOIN_COMMAND_WORD + " "),
+            new Template("ridedeletecyclist ID PHONE", RideRosterCommand.LEAVE_COMMAND_WORD + " "),
             new Template(ListCommand.COMMAND_WORD, ListCommand.COMMAND_WORD),
             new Template(ClearCommand.COMMAND_WORD, ClearCommand.COMMAND_WORD),
             new Template(HelpCommand.COMMAND_WORD, HelpCommand.COMMAND_WORD),
