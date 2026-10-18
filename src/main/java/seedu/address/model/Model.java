@@ -67,6 +67,11 @@ public interface Model {
     Ride addRide(Ride ride);
 
     /**
+     * Replaces an existing ride while preserving its ID and position.
+     */
+    void setRide(Ride target, Ride editedRide);
+
+    /**
      * Returns an unmodifiable, live view of the filtered person list sorted by full name, ignoring case.
      * Persons with equal names retain their relative order in the address book.
      */

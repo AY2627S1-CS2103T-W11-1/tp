@@ -27,6 +27,7 @@ public class DeleteCommand extends Command {
 
     public static final String MESSAGE_DELETE_PERSON_SUCCESS = "Deleted person: %1$s";
     public static final String MESSAGE_CONFIRM_DELETE = "Delete this cyclist? %1$s\n"
+            + "This also removes them from all ride rosters.\n"
             + "Enter y/yes to confirm or n/no to cancel (case-insensitive).";
     public static final String MESSAGE_DELETE_CANCELLED = "Deletion cancelled.";
     public static final String MESSAGE_INVALID_CONFIRMATION =
