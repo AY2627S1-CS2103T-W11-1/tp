@@ -29,6 +29,7 @@ import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RideAddCommand;
+import seedu.address.logic.commands.RideListCommand;
 
 public class CommandTemplatesTest {
 
@@ -48,7 +49,7 @@ public class CommandTemplatesTest {
 
         assertEquals(List.of(AddCommand.COMMAND_WORD, EditCommand.COMMAND_WORD, DeleteCommand.COMMAND_WORD,
                 FindCommand.COMMAND_WORD, RideAddCommand.COMMAND_WORD, "rideaddcyclist", "ridedeletecyclist",
-                ListCommand.COMMAND_WORD,
+                RideListCommand.COMMAND_WORD, ListCommand.COMMAND_WORD,
                 ClearCommand.COMMAND_WORD, HelpCommand.COMMAND_WORD, ExitCommand.COMMAND_WORD), commandWords);
     }
 
@@ -110,7 +111,7 @@ public class CommandTemplatesTest {
         int rideAddIndex = commandWords.indexOf(RideAddCommand.COMMAND_WORD);
 
         assertEquals(commandWords.indexOf(FindCommand.COMMAND_WORD) + 1, rideAddIndex);
-        assertEquals(commandWords.indexOf(ListCommand.COMMAND_WORD) - 3, rideAddIndex);
+        assertEquals(commandWords.indexOf(ListCommand.COMMAND_WORD) - 4, rideAddIndex);
     }
 
     @Test
@@ -123,6 +124,18 @@ public class CommandTemplatesTest {
     public void rosterTemplates_insertCommandAndTrailingSpaceOnly() {
         assertEquals("rideaddcyclist ", templateFor("rideaddcyclist").insertText());
         assertEquals("ridedeletecyclist ", templateFor("ridedeletecyclist").insertText());
+    }
+
+    @Test
+    public void rideListTemplate_hasExactFormatInsertionAndSingleEntry() {
+        CommandTemplates.Template template = templateFor(RideListCommand.COMMAND_WORD);
+        long occurrences = CommandTemplates.ALL.stream()
+                .filter(candidate -> candidate.insertText().trim().equals(RideListCommand.COMMAND_WORD))
+                .count();
+
+        assertEquals("ridelist ID", template.display());
+        assertEquals("ridelist ", template.insertText());
+        assertEquals(1, occurrences);
     }
 
     private static CommandTemplates.Template templateFor(String commandWord) {

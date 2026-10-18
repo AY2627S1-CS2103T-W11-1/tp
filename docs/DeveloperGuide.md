@@ -262,6 +262,22 @@ across rides, and confirmed cyclist deletion removes them. The deletion prompt e
 
 UML diagram updates are deferred to a later increment. Invalid requests throw before `setRide`.
 
+### Ride roster display (`ridelist`)
+
+`RideListCommandParser` accepts exactly one positive integer ID. `RideListCommand` finds the ride using
+`Ride#getId()`, so the ID is persistent and is not a displayed position. Its roster contains `Phone` objects;
+before filtering, the command resolves every phone against the complete person list rather than the currently
+filtered view. An unknown ride or unresolved phone throws before the existing filter changes.
+
+For a valid ride, `Model#updateFilteredPersonList()` selects people whose phones occur in the roster. This replaces
+the prior predicate instead of intersecting with it. The existing `SortedList` keeps results alphabetical, and the
+unchanged `PersonListPanel` and `PersonCard` display them. The independent Rides panel is not filtered. The predicate
+captures the roster selected at execution time, so users run `ridelist ID` again after membership changes.
+
+The command does not mutate cyclist or ride data. `LogicManager` may still save the unchanged address book after a
+successful command through its existing execution path. Validation finishes before the filter update, preserving
+the previous filter on failure.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
@@ -952,3 +968,19 @@ Use a separate data directory or back up your data first.
    with maximum group size 12 and add several eligible cyclists. Resize the window; expected: text wraps and the ride card stays within its column.
 1. Try `ridedeletecyclist` for a cyclist not on the roster. Expected: membership error;
    no contact records or other rides change.
+
+### Ride list regression (manual testing)
+
+Use the valid ride and cyclists created in the preceding roster scenario, and note their original details.
+
+1. Add at least two eligible cyclists to one ride, then enter `ridelist ID` using that ride's displayed ID.
+   Expected: only its roster members appear in the left panel, alphabetically; the Rides panel is unchanged.
+1. Enter `list`. Expected: all cyclists return. Enter `find n/NoSuchCyclist`, then repeat `ridelist ID`.
+   Expected: the complete ride roster replaces the empty Find result rather than intersecting with it.
+1. Create a second ride without adding any cyclists. Enter `ridelist 2`, assuming its assigned ID is `2`.
+   Expected: the left panel is empty and the result says `Ride 2 has no registered cyclists.` Substitute the
+   actual assigned ride ID if it differs.
+1. Enter `ridelist 999999`, `ridelist`, `ridelist 0`, `ridelist abc` and `ridelist 1 extra`.
+   Expected: the unknown ID or invalid-format error appears, and the previous cyclist filter remains unchanged.
+1. Recheck the cyclist and ride details, roster cards and IDs. Expected: nothing is modified. Restart Cyclique;
+   expected: the same stored data returns. Change a roster, then rerun `ridelist ID` to refresh the one-time view.

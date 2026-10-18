@@ -1,5 +1,6 @@
 package seedu.address.ui;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
@@ -13,6 +14,8 @@ import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RideAddCommand;
+import seedu.address.logic.commands.RideListCommand;
+import seedu.address.logic.commands.RideRosterCommand;
 
 public class HelpWindowTest {
 
@@ -49,7 +52,8 @@ public class HelpWindowTest {
         String[] commandWords = {
             AddCommand.COMMAND_WORD, EditCommand.COMMAND_WORD, DeleteCommand.COMMAND_WORD,
             FindCommand.COMMAND_WORD, ListCommand.COMMAND_WORD, ClearCommand.COMMAND_WORD,
-            HelpCommand.COMMAND_WORD, ExitCommand.COMMAND_WORD, RideAddCommand.COMMAND_WORD
+            HelpCommand.COMMAND_WORD, ExitCommand.COMMAND_WORD, RideAddCommand.COMMAND_WORD,
+            RideListCommand.COMMAND_WORD
         };
 
         for (String commandWord : commandWords) {
@@ -65,6 +69,7 @@ public class HelpWindowTest {
         assertTrue(HelpWindow.COMMAND_LIST.contains(DeleteCommand.MESSAGE_USAGE));
         assertTrue(HelpWindow.COMMAND_LIST.contains(FindCommand.MESSAGE_USAGE));
         assertTrue(HelpWindow.COMMAND_LIST.contains(RideAddCommand.MESSAGE_USAGE));
+        assertTrue(HelpWindow.COMMAND_LIST.contains(RideListCommand.MESSAGE_USAGE));
     }
 
     @Test
@@ -75,12 +80,24 @@ public class HelpWindowTest {
     }
 
     @Test
-    public void commandList_listsRideAddAfterFindAndBeforeList() {
+    public void commandList_listsRideCommandsBeforeGeneralList() {
         int findIndex = HelpWindow.COMMAND_LIST.indexOf(FindCommand.MESSAGE_USAGE);
         int rideAddIndex = HelpWindow.COMMAND_LIST.indexOf(RideAddCommand.MESSAGE_USAGE);
+        int rosterIndex = HelpWindow.COMMAND_LIST.indexOf(RideRosterCommand.MESSAGE_USAGE);
+        int rideListIndex = HelpWindow.COMMAND_LIST.indexOf(RideListCommand.MESSAGE_USAGE);
         int listIndex = HelpWindow.COMMAND_LIST.indexOf(ListCommand.COMMAND_WORD + ": Lists all persons.");
 
         assertTrue(findIndex < rideAddIndex);
-        assertTrue(rideAddIndex < listIndex);
+        assertTrue(rideAddIndex < rosterIndex);
+        assertTrue(rosterIndex < rideListIndex);
+        assertTrue(rideListIndex < listIndex);
+    }
+
+    @Test
+    public void commandList_rideListUsage_hasGuidanceAndExecutableExample() {
+        assertTrue(HelpWindow.COMMAND_LIST.contains("persistent identifier, not a list position"));
+        assertTrue(HelpWindow.COMMAND_LIST.contains("Rides panel is unchanged"));
+        assertTrue(HelpWindow.COMMAND_LIST.contains("Example: ridelist 101"));
+        assertFalse(RideListCommand.MESSAGE_USAGE.contains("[ID]"));
     }
 }

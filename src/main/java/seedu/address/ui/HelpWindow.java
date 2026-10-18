@@ -19,6 +19,7 @@ import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RideAddCommand;
+import seedu.address.logic.commands.RideListCommand;
 import seedu.address.logic.commands.RideRosterCommand;
 
 /**
@@ -28,6 +29,14 @@ public class HelpWindow extends UiPart<Stage> {
 
     public static final String USERGUIDE_URL = "https://se-education.org/addressbook-level3/UserGuide.html";
     public static final String HELP_MESSAGE = "Refer to the user guide: " + USERGUIDE_URL;
+    private static final String RIDE_LIST_GUIDANCE = RideListCommand.MESSAGE_USAGE + "\n"
+            + "The ID is a persistent identifier, not a list position. The left-hand cyclist panel shows the "
+            + "ride's registered cyclists using its existing alphabetically sorted cards; the Rides panel is "
+            + "unchanged.\n"
+            + "An empty roster shows no cyclist cards. list restores all cyclists, while find or another ridelist "
+            + "replaces this one-time filter. Run ridelist again after roster changes.\n"
+            + "Invalid or unknown IDs and unresolved roster references are rejected without changing the previous "
+            + "filter. This command does not modify ride or cyclist records.";
 
     /**
      * The usage text of every command, shown in the help window. Commands that already define a
@@ -40,6 +49,7 @@ public class HelpWindow extends UiPart<Stage> {
             FindCommand.MESSAGE_USAGE,
             RideAddCommand.MESSAGE_USAGE,
             RideRosterCommand.MESSAGE_USAGE,
+            RIDE_LIST_GUIDANCE,
             ListCommand.COMMAND_WORD + ": Lists all persons.\nExample: " + ListCommand.COMMAND_WORD,
             ClearCommand.COMMAND_WORD + ": Clears all entries.\nExample: " + ClearCommand.COMMAND_WORD,
             HelpCommand.MESSAGE_USAGE,
