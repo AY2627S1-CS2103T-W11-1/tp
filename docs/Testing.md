@@ -90,7 +90,8 @@ failures. It verifies populated, null and missing emergency numbers. Only the fu
 `JsonAdaptedPerson` constructor carries JSON property annotations; the convenience
 constructor is for direct Java callers.
 
-`CommandTemplatesTest` checks roster dropdown labels, menu order and exact
-starter text, including the trailing space. Run the Developer Guide's **Roster Help
-dropdown regression** for menu selection, focus and caret behaviour. Roster command
-execution is delivered separately from these menu templates.
+`RideRosterIntegrationTest` covers roster commands, filtered cyclists,
+capacity and FTP boundaries, invalid input, rejected commands without mutation,
+phone edits, confirmed/cancelled contact deletion, JSON readback and removal after reload.
+`HelpWindowTest` verifies both roster command formats and dropdown starters. Run the
+Developer Guide's **Ride roster regression (manual testing)** after roster changes.
