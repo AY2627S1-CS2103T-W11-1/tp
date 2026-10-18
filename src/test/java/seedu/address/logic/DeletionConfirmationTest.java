@@ -21,6 +21,7 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.DeleteCommand;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.RideEditCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
@@ -28,11 +29,14 @@ import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
+import seedu.address.model.ride.Ride;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.Storage;
 import seedu.address.storage.StorageManager;
 import seedu.address.testutil.PersonBuilder;
+import seedu.address.testutil.RideBuilder;
+import seedu.address.testutil.RideUtil;
 
 /**
  * Tests deletion confirmation through the real command pipeline and JSON storage.
@@ -137,6 +141,24 @@ public class DeletionConfirmationTest {
                 logic.execute("find n/alice").getFeedbackToUser());
         assertEquals(List.of(ALICE), model.getFilteredPersonList());
         assertEquals(List.of(JOHN, ALICE), model.getAddressBook().getPersonList());
+        assertThrows(ParseException.class, Messages.MESSAGE_UNKNOWN_COMMAND, () -> logic.execute("yes"));
+    }
+
+    @Test
+    public void execute_newRideEdit_cancelsDeletionAndEditsRide() throws Exception {
+        Ride draft = new RideBuilder().build();
+        logic.execute(RideUtil.getRideAddCommand(draft));
+        logic.execute(DELETE_JOHN);
+        Ride editedRide = new RideBuilder(draft).withId(1).withName("Night Ride").build();
+
+        CommandResult result = logic.execute("rideedit 1 n/Night Ride");
+
+        assertEquals(DeleteCommand.MESSAGE_DELETE_CANCELLED + "\n"
+                + String.format(RideEditCommand.MESSAGE_SUCCESS, Messages.formatRide(editedRide)),
+                result.getFeedbackToUser());
+        assertEquals(List.of(JOHN, ALICE), model.getAddressBook().getPersonList());
+        assertEquals(List.of(editedRide), model.getAddressBook().getRideList());
+        assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
         assertThrows(ParseException.class, Messages.MESSAGE_UNKNOWN_COMMAND, () -> logic.execute("yes"));
     }
 

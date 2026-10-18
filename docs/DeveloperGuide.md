@@ -245,6 +245,32 @@ no rides and `nextRideId` 1. Duplicate ride IDs or a non-positive `nextRideId` m
 * *Dates.* `java.time.LocalDateTime` is used, with a strict parser, so invalid dates are rejected by the library
   instead of by hand-written checks. Time zones are not needed because every ride is local to the organiser.
 
+### Group ride editing (`rideedit`)
+
+`rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_FTP] [s/MAX_SIZE] [notes/NOTES]`
+edits an existing ride without changing its identity or roster. The diagrams are not updated for Ride Edit in this
+increment.
+
+**Parsing.** `RideEditCommandParser` separates the positive ride ID from the prefixed fields and builds an
+`EditRideDescriptor`. Each supplied value is parsed by the same `ParserUtil` method used by `rideadd`, while
+duplicate prefixes, malformed IDs and a command with no editable field are rejected. Notes have three explicit
+states: an omitted `notes/` preserves the existing value, a non-empty value replaces it and an empty value clears
+it.
+
+**Replacement and validation.** `RideEditCommand` finds the target by its unique ID and combines the descriptor
+with the existing ride. It validates the complete resulting period, so changing only `from/` or `to/` cannot
+produce an end time earlier than the start time. When minimum power or maximum group size is edited, the command
+also checks the proposed value against the existing roster. It resolves roster phone numbers through the address
+book, rejects a maximum below the roster count before checking cyclists' FTP, and rejects a minimum above any
+member's FTP. The proposed replacement is immutable and retains the same ID and roster. Only after every validation
+succeeds does the command call `Model#setRide`. `AddressBook#setRide` replaces the target at its current list
+position, preserving other rides and the next ride ID counter. Failed parsing, a missing target or an invalid
+resulting ride therefore leaves the model unchanged.
+
+The address book's observable ride list emits the replacement, allowing the existing Rides panel to refresh. A
+successful command returns through `LogicManager`, which saves the updated address book using the existing JSON
+storage path. No separate Ride Edit storage format is required.
+
 ### Ride roster management
 
 `rideaddcyclist ID PHONE` and `ridedeletecyclist ID PHONE` share
@@ -822,14 +848,55 @@ Check the panel after each step, and check the saved file `data/addressbook.json
    Expected: The application starts with an empty Rides panel and the next ride added is `Ride 1`. Restore your backup after
    the check if needed.
 
-### Help dropdown and Full help for `rideadd`
+
+### Editing a group ride
+
+Start with a fresh address book. Enter the following command to create a ride with known details:
+
+`rideadd n/Morning Ride from/20-10-2026 1400 to/20-10-2026 1600 l/Punggol d/40 f/180 s/10 notes/Bring lights`
+
+Record the assigned ride ID. The steps below assume it is `1`. If a different ID is assigned, substitute that ID in every command.
+
+Add two cyclists with FTP values of 200 W and 250 W, then add both to ride 1 with `rideaddcyclist`. The following
+steps use this roster to exercise Ride Edit validation.
+
+1. Enter `rideedit 1 n/NightRide`. Expected: The result starts with `Edited ride: Ride 1: NightRide`; every other
+   field, the roster and the ride's position in the Rides panel remain unchanged.
+1. Enter `rideedit 1 l/East Coast Park f/200 notes/New meeting point`. Expected: All three supplied fields change,
+   and every omitted field remains unchanged.
+1. Enter `rideedit 1 notes/`. Expected: The result shows `Notes: None`, and the ride card no longer shows a Notes
+   line. Enter `rideedit 1 n/Late Ride`. Expected: The absent `notes/` preserves `Notes: None`.
+1. Enter `rideedit 1 from/20-10-2026 2000`. Expected: Cyclique reports
+   `The end date and time (to/) cannot be earlier than the start date and time (from/).`
+   The ride and saved data remain unchanged.
+1. Enter `rideedit 1 to/20-10-2026 1300`. Expected: The same invalid-period error is reported, and no data changes.
+1. Enter `rideedit 1 from/20-10-2026 1600 to/20-10-2026 1600`. Expected: The edit succeeds because equal start
+   and end times are allowed.
+1. Enter `rideedit 1 s/1 n/Too Small`. Expected: Cyclique reports
+   `Cannot edit ride: maximum group size cannot be smaller than the current roster size.` The name and group size
+   remain unchanged.
+1. Enter `rideedit 1 f/201 notes/Changed notes`. Expected: Cyclique reports
+   `Cannot edit ride: minimum FTP exceeds the FTP of an existing cyclist.` The minimum FTP and notes remain
+   unchanged. Enter `rideedit 1 f/200 s/2`; expected: equality with the least-powerful cyclist and roster count is
+   accepted.
+1. Try `rideedit`, `rideedit 0 n/Bad`, `rideedit abc n/Bad`, `rideedit 999999 n/Bad` and `rideedit 1`.
+   Expected: Each reports the relevant invalid-format, missing-ride or missing-field error without changing ride data.
+1. Exit and relaunch. Expected: Successful edits remain visible and failed edits have not changed the saved ride.
+   Add another ride. Expected: Its ID follows the previous counter rather than being affected by edits.
+
+### Help dropdown and Full help for ride commands
 
 1. Click the **Help** menu. Expected: The dropdown lists `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE
-   f/MINIMUM_POWER s/MAX_GROUP_SIZE [notes/NOTES]` after `find` and before `list`, with only `notes/` in brackets.
+   f/MINIMUM_POWER s/MAX_GROUP_SIZE [notes/NOTES]` after `find`. It then lists `rideedit ID [n/NAME] [from/START]
+   [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_FTP] [s/MAX_SIZE] [notes/NOTES]` before `list`.
 1. Click the `rideadd` item. Expected: The command box contains `rideadd n/ from/ to/ l/ d/ f/ s/` with the cursor
    at the end, and the command is not run. Type a value straight after each prefix to complete it.
+1. Click the `rideedit` item. Expected: The command box contains `rideedit ` with the cursor at the end, and the
+   command is not run. Add the ride ID and at least one field; do not type the square brackets shown in the format.
 1. Choose **Full help...** (or enter `help`, or press F1). Expected: The window lists `rideadd` after `find` and
-   before `list`, with its parameters, the `DD-MM-YYYY TTTT` date format and an example command.
+   `rideedit` after `rideadd` and before `list`. Ride Edit explains preserved fields and roster, notes clearing,
+   invalid-edit atomicity and the `DD-MM-YYYY TTTT` date format. Its examples are executable and contain no square
+   brackets.
 
 ### Saving data and recovering from invalid files
 
@@ -910,13 +977,11 @@ Use a disposable data directory for these checks.
 
 ### Roster Help dropdown regression
 
-The roster dropdown templates are provided by `CommandTemplates`, independently of
-roster command implementation. The existing `MainWindow#addCommandsToHelpMenu`
+The roster dropdown templates are provided by `CommandTemplates`. The existing `MainWindow#addCommandsToHelpMenu`
 creates the menu items and passes their starter text to `CommandBox#setCommandText`.
-This increment changes neither command parsing nor the Full help window. UML updates
-are deferred to a later increment.
+The Full help window reuses `RideRosterCommand#MESSAGE_USAGE`. UML updates are deferred to a later increment.
 
-1. Open Help. Expected: after `rideadd`, the dropdown shows
+1. Open Help. Expected: after `rideadd` and `rideedit`, the dropdown shows
    `rideaddcyclist ID PHONE` followed by `ridedeletecyclist ID PHONE`.
 1. Click the addition entry. Expected: the command box contains `rideaddcyclist `,
    with a trailing space and the caret at the end, ready for the ride ID and phone.
@@ -925,9 +990,8 @@ are deferred to a later increment.
 1. Confirm the labels display the literal `ID PHONE` arguments without short-form aliases.
    No `p/` prefix or placeholder arguments should be inserted into the command box.
 1. Check that existing menu entries still insert their expected starter text and
-   Full help... still opens the help window. Executing roster commands requires
-   the separate roster implementation; this increment only supplies dropdown templates.
-   
+   Full help... still opens the help window and includes the roster command usage.
+
 ### Ride roster regression (manual testing)
 
 Use a separate data directory or back up your data first.

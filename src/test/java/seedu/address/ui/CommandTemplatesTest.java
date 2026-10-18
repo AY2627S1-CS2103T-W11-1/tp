@@ -29,6 +29,8 @@ import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RideAddCommand;
+import seedu.address.logic.commands.RideEditCommand;
+import seedu.address.logic.commands.RideRosterCommand;
 
 public class CommandTemplatesTest {
 
@@ -47,8 +49,8 @@ public class CommandTemplatesTest {
                 .toList();
 
         assertEquals(List.of(AddCommand.COMMAND_WORD, EditCommand.COMMAND_WORD, DeleteCommand.COMMAND_WORD,
-                FindCommand.COMMAND_WORD, RideAddCommand.COMMAND_WORD, "rideaddcyclist", "ridedeletecyclist",
-                ListCommand.COMMAND_WORD,
+                FindCommand.COMMAND_WORD, RideAddCommand.COMMAND_WORD, RideEditCommand.COMMAND_WORD,
+                RideRosterCommand.JOIN_COMMAND_WORD, RideRosterCommand.LEAVE_COMMAND_WORD, ListCommand.COMMAND_WORD,
                 ClearCommand.COMMAND_WORD, HelpCommand.COMMAND_WORD, ExitCommand.COMMAND_WORD), commandWords);
     }
 
@@ -84,7 +86,7 @@ public class CommandTemplatesTest {
     public void rideAddTemplate_displayShowsCompulsoryPrefixesAndNotesAsOptional() {
         String display = templateFor(RideAddCommand.COMMAND_WORD).display();
 
-        assertEquals("rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MINIMUM_POWER s/MAX_GROUP_SIZE"
+        assertEquals("rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MIN_POWER s/MAX_GROUP_SIZE"
                 + " [notes/NOTES]", display);
         for (Object prefix : new Object[] {PREFIX_NAME, PREFIX_FROM, PREFIX_TO, PREFIX_LOCATION, PREFIX_DISTANCE,
             PREFIX_FTP, PREFIX_GROUP_SIZE}) {
@@ -110,19 +112,51 @@ public class CommandTemplatesTest {
         int rideAddIndex = commandWords.indexOf(RideAddCommand.COMMAND_WORD);
 
         assertEquals(commandWords.indexOf(FindCommand.COMMAND_WORD) + 1, rideAddIndex);
-        assertEquals(commandWords.indexOf(ListCommand.COMMAND_WORD) - 3, rideAddIndex);
+        assertEquals(commandWords.indexOf(RideEditCommand.COMMAND_WORD) - 1, rideAddIndex);
+    }
+
+    @Test
+    public void rideEditTemplate_displayListsEveryEditableFieldAsOptional() {
+        String display = templateFor(RideEditCommand.COMMAND_WORD).display();
+
+        assertEquals("rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER]"
+                + " [s/MAX_GROUP_SIZE] [notes/NOTES]", display);
+        for (Object prefix : new Object[] {PREFIX_NAME, PREFIX_FROM, PREFIX_TO, PREFIX_LOCATION, PREFIX_DISTANCE,
+            PREFIX_FTP, PREFIX_GROUP_SIZE, PREFIX_NOTES}) {
+            assertTrue(display.contains("[" + prefix), "Ride Edit format should list optional " + prefix);
+        }
+    }
+
+    @Test
+    public void rideEditTemplate_insertTextContainsNoDocumentationBrackets() {
+        String insertText = templateFor(RideEditCommand.COMMAND_WORD).insertText();
+
+        assertEquals("rideedit ", insertText);
+        assertFalse(insertText.contains("["));
+        assertFalse(insertText.contains("]"));
+    }
+
+    @Test
+    public void rideEditTemplate_isListedAfterRideAddAndBeforeRosterCommands() {
+        List<String> commandWords = CommandTemplates.ALL.stream()
+                .map(template -> template.insertText().trim().split(" ")[0])
+                .toList();
+        int rideEditIndex = commandWords.indexOf(RideEditCommand.COMMAND_WORD);
+
+        assertEquals(commandWords.indexOf(RideAddCommand.COMMAND_WORD) + 1, rideEditIndex);
+        assertEquals(commandWords.indexOf(RideRosterCommand.JOIN_COMMAND_WORD) - 1, rideEditIndex);
     }
 
     @Test
     public void rosterTemplates_showPositionalArguments() {
-        assertEquals("rideaddcyclist ID PHONE", templateFor("rideaddcyclist").display());
-        assertEquals("ridedeletecyclist ID PHONE", templateFor("ridedeletecyclist").display());
+        assertEquals("rideaddcyclist ID PHONE", templateFor(RideRosterCommand.JOIN_COMMAND_WORD).display());
+        assertEquals("ridedeletecyclist ID PHONE", templateFor(RideRosterCommand.LEAVE_COMMAND_WORD).display());
     }
 
     @Test
     public void rosterTemplates_insertCommandAndTrailingSpaceOnly() {
-        assertEquals("rideaddcyclist ", templateFor("rideaddcyclist").insertText());
-        assertEquals("ridedeletecyclist ", templateFor("ridedeletecyclist").insertText());
+        assertEquals("rideaddcyclist ", templateFor(RideRosterCommand.JOIN_COMMAND_WORD).insertText());
+        assertEquals("ridedeletecyclist ", templateFor(RideRosterCommand.LEAVE_COMMAND_WORD).insertText());
     }
 
     private static CommandTemplates.Template templateFor(String commandWord) {
