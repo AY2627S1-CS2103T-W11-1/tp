@@ -28,7 +28,8 @@ import seedu.address.logic.commands.RideRosterCommand;
 
 /**
  * Holds the one-line command formats shown in the Help dropdown menu. Command words and prefixes
- * come from the command classes and {@code CliSyntax}, so the menu follows any change to them.
+ * come from the command classes and {@code CliSyntax} where available. Roster templates are
+ * defined here so the dropdown can be delivered independently of the roster commands.
  */
 public class CommandTemplates {
 

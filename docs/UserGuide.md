@@ -72,6 +72,13 @@ display, including filtered results. Use phone numbers to target `edit` and `del
 
 ### Viewing help: `help`
 
+The **Help** dropdown includes `rideaddcyclist ID PHONE` and
+`ridedeletecyclist ID PHONE` after `rideadd`. Clicking either entry places
+its full command name followed by a space in the command box for you to complete.
+`ID` and `PHONE` are positional arguments; no `p/` prefix is inserted.
+These menu templates accompany the roster commands being delivered separately;
+they do not enable command execution on their own.
+
 Shows a message explaining how to access the help page.
 
 ![help message](images/helpMessage.png)

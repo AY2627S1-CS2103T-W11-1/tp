@@ -113,6 +113,18 @@ public class CommandTemplatesTest {
         assertEquals(commandWords.indexOf(ListCommand.COMMAND_WORD) - 3, rideAddIndex);
     }
 
+    @Test
+    public void rosterTemplates_showPositionalArguments() {
+        assertEquals("rideaddcyclist ID PHONE", templateFor("rideaddcyclist").display());
+        assertEquals("ridedeletecyclist ID PHONE", templateFor("ridedeletecyclist").display());
+    }
+
+    @Test
+    public void rosterTemplates_insertCommandAndTrailingSpaceOnly() {
+        assertEquals("rideaddcyclist ", templateFor("rideaddcyclist").insertText());
+        assertEquals("ridedeletecyclist ", templateFor("ridedeletecyclist").insertText());
+    }
+
     private static CommandTemplates.Template templateFor(String commandWord) {
         return CommandTemplates.ALL.stream()
                 .filter(template -> template.insertText().trim().split(" ")[0].equals(commandWord))
