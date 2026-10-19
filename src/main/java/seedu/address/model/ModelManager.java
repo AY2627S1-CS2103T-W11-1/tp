@@ -108,6 +108,12 @@ public class ModelManager implements Model {
     }
 
     @Override
+    public void deleteRide(Ride target) {
+        requireNonNull(target);
+        addressBook.removeRide(target);
+    }
+
+    @Override
     public void setRide(Ride target, Ride editedRide) {
         requireAllNonNull(target, editedRide);
         addressBook.setRide(target, editedRide);

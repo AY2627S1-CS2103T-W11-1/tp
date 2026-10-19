@@ -123,6 +123,17 @@ public class AddressBook implements ReadOnlyAddressBook {
     }
 
     /**
+     * Removes {@code ride} from the address book.
+     * {@code ride} must exist in the address book.
+     */
+    public void removeRide(Ride ride) {
+        requireNonNull(ride);
+        if (!rides.remove(ride)) {
+            throw new IllegalArgumentException("Ride must exist in the address book.");
+        }
+    }
+
+    /**
      * Replaces the given ride {@code target} with {@code editedRide} without changing its ID or position.
      * {@code target} must exist in the address book.
      */

@@ -271,6 +271,19 @@ The address book's observable ride list emits the replacement, allowing the exis
 successful command returns through `LogicManager`, which saves the updated address book using the existing JSON
 storage path. No separate Ride Edit storage format is required.
 
+### Group ride deletion (`ridedelete`)
+
+`RideDeleteCommandParser` parses the argument as one positive integer using the existing index parser; missing,
+malformed, overflowing or additional arguments produce the standard invalid-command-format error.
+`RideDeleteCommand` treats that value as a persistent ride ID rather than a list position. It finds the matching
+ride before mutation and rejects an unknown ID.
+
+On success, `RideDeleteCommand` calls `Model#deleteRide`, which delegates to `AddressBook#removeRide`. Removing the
+immutable ride also removes its contained roster associations. It does not alter cyclist records, other rides or
+their rosters, and `nextRideId` is preserved so remaining IDs are not renumbered and deleted IDs are not reused.
+The existing observable ride list notifies the Rides panel, while `LogicManager` saves the updated model through
+the existing JSON storage path. Ride deletion is immediate and does not use cyclist deletion confirmation.
+
 ### Ride roster management
 
 `rideaddcyclist ID PHONE` and `ridedeletecyclist ID PHONE` share
@@ -848,7 +861,6 @@ Check the panel after each step, and check the saved file `data/addressbook.json
    Expected: The application starts with an empty Rides panel and the next ride added is `Ride 1`. Restore your backup after
    the check if needed.
 
-
 ### Editing a group ride
 
 Start with a fresh address book. Enter the following command to create a ride with known details:
@@ -884,19 +896,35 @@ steps use this roster to exercise Ride Edit validation.
 1. Exit and relaunch. Expected: Successful edits remain visible and failed edits have not changed the saved ride.
    Add another ride. Expected: Its ID follows the previous counter rather than being affected by edits.
 
+### Deleting a group ride
+
+Use disposable test data and note the number of cyclist records before starting.
+
+1. Enter `rideadd n/Delete Me from/18-10-2026 0630 to/18-10-2026 0730 l/East Coast d/20 f/150 s/8`.
+1. Enter `rideadd n/Keep Me from/19-10-2026 0630 to/19-10-2026 0730 l/Punggol d/25 f/160 s/10`.
+   Expected: Two ride cards appear. Record their assigned IDs and the second ride's complete details.
+1. Enter `ridedelete ID`, replacing `ID` with the first ride's assigned ID.
+   Expected: The result identifies the deleted ride, its card disappears, and the second ride remains unchanged.
+   The cyclist-record count is unchanged.
+1. Exit and relaunch Cyclique. Expected: The deleted ride remains absent and the second ride remains unchanged.
+1. Add another valid ride. Expected: Its ID is higher than both recorded IDs; the deleted ID is not reused.
+
 ### Help dropdown and Full help for ride commands
 
 1. Click the **Help** menu. Expected: The dropdown lists `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE
-   f/MINIMUM_POWER s/MAX_GROUP_SIZE [notes/NOTES]` after `find`. It then lists `rideedit ID [n/NAME] [from/START]
-   [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_FTP] [s/MAX_SIZE] [notes/NOTES]` before `list`.
+   f/MIN_POWER s/MAX_GROUP_SIZE [notes/NOTES]` after `find`. It then lists `rideedit ID [n/NAME] [from/START]
+   [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`, followed by
+   `ridedelete ID` before the roster commands and `list`.
 1. Click the `rideadd` item. Expected: The command box contains `rideadd n/ from/ to/ l/ d/ f/ s/` with the cursor
    at the end, and the command is not run. Type a value straight after each prefix to complete it.
 1. Click the `rideedit` item. Expected: The command box contains `rideedit ` with the cursor at the end, and the
    command is not run. Add the ride ID and at least one field; do not type the square brackets shown in the format.
+1. Click the `ridedelete` item. Expected: The command box contains `ridedelete ` with the cursor at the end.
 1. Choose **Full help...** (or enter `help`, or press F1). Expected: The window lists `rideadd` after `find` and
-   `rideedit` after `rideadd` and before `list`. Ride Edit explains preserved fields and roster, notes clearing,
-   invalid-edit atomicity and the `DD-MM-YYYY TTTT` date format. Its examples are executable and contain no square
-   brackets.
+   `rideedit` after `rideadd`, followed by `ridedelete` before the roster commands and `list`. Ride Edit explains
+   preserved fields and roster, notes clearing, invalid-edit atomicity and the `DD-MM-YYYY TTTT` date format. Its
+   examples are executable and contain no square brackets. Ride Delete explains its positive ID requirement,
+   no-confirmation behaviour and example command.
 
 ### Saving data and recovering from invalid files
 
@@ -981,7 +1009,7 @@ The roster dropdown templates are provided by `CommandTemplates`. The existing `
 creates the menu items and passes their starter text to `CommandBox#setCommandText`.
 The Full help window reuses `RideRosterCommand#MESSAGE_USAGE`. UML updates are deferred to a later increment.
 
-1. Open Help. Expected: after `rideadd` and `rideedit`, the dropdown shows
+1. Open Help. Expected: after `rideadd`, `rideedit` and `ridedelete`, the dropdown shows
    `rideaddcyclist ID PHONE` followed by `ridedeletecyclist ID PHONE`.
 1. Click the addition entry. Expected: the command box contains `rideaddcyclist `,
    with a trailing space and the caret at the end, ready for the ride ID and phone.

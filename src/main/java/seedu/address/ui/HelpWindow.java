@@ -19,6 +19,7 @@ import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RideAddCommand;
+import seedu.address.logic.commands.RideDeleteCommand;
 import seedu.address.logic.commands.RideEditCommand;
 import seedu.address.logic.commands.RideRosterCommand;
 
@@ -42,6 +43,11 @@ public class HelpWindow extends UiPart<Stage> {
             + "rideedit 101 from/20-10-2026 1400 to/20-10-2026 1600\n"
             + "rideedit 101 notes/";
 
+    private static final String RIDE_DELETE_DETAILS = "Use the ride's persistent ID. Deletion requires no "
+            + "confirmation. It removes the ride and its roster associations, but leaves cyclist records and "
+            + "other rides and their rosters unchanged. Remaining ride IDs are not renumbered, deleted IDs are "
+            + "not reused, and an unknown ID is rejected.";
+
     /**
      * The usage text of every command, shown in the help window. Commands that already define a
      * {@code MESSAGE_USAGE} reuse it so the help window stays in sync with the commands themselves.
@@ -53,6 +59,7 @@ public class HelpWindow extends UiPart<Stage> {
             FindCommand.MESSAGE_USAGE,
             RideAddCommand.MESSAGE_USAGE,
             RIDE_EDIT_HELP,
+            RideDeleteCommand.MESSAGE_USAGE + "\n" + RIDE_DELETE_DETAILS,
             RideRosterCommand.MESSAGE_USAGE,
             ListCommand.COMMAND_WORD + ": Lists all persons.\nExample: " + ListCommand.COMMAND_WORD,
             ClearCommand.COMMAND_WORD + ": Clears all entries.\nExample: " + ClearCommand.COMMAND_WORD,

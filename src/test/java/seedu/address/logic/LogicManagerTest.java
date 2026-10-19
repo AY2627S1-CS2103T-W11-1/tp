@@ -25,6 +25,7 @@ import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.DeleteCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.RideDeleteCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
@@ -126,6 +127,20 @@ public class LogicManagerTest {
         assertParseException("rideadd n/Ride from/18-10-2026 0930 to/18-10-2026 0630 l/East Coast d/45 f/180 s/12",
                 Ride.MESSAGE_INVALID_PERIOD);
         assertEquals(0, model.getAddressBook().getRideList().size());
+    }
+
+    @Test
+    public void execute_invalidOrUnknownRideId_preservesModelAndSavedData() throws Exception {
+        logic.execute(RideUtil.getRideAddCommand(new RideBuilder().build()));
+        Path addressBookFile = temporaryFolder.resolve("addressBook.json");
+        String savedData = Files.readString(addressBookFile);
+
+        assertParseException("ridedelete 0", String.format(Messages.MESSAGE_INVALID_COMMAND_FORMAT,
+                RideDeleteCommand.MESSAGE_USAGE));
+        assertCommandException("ridedelete 999",
+                String.format(RideDeleteCommand.MESSAGE_RIDE_NOT_FOUND, 999));
+
+        assertEquals(savedData, Files.readString(addressBookFile));
     }
 
     @Test

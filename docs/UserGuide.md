@@ -72,7 +72,7 @@ display, including filtered results. Use phone numbers to target `edit` and `del
 
 ### Viewing help: `help`
 
-The **Help** dropdown lists `rideedit` after `rideadd`, followed by
+The **Help** dropdown lists `rideedit` and `ridedelete` after `rideadd`, followed by
 `rideaddcyclist ID PHONE` and `ridedeletecyclist ID PHONE`. Clicking either roster entry places
 its full command name followed by a space in the command box for you to complete.
 `ID` and `PHONE` are positional arguments; no `p/` prefix is inserted.
@@ -240,6 +240,25 @@ Common failures include:
 * A resulting end time before the start time, including after changing only one endpoint:
   `The end date and time (to/) cannot be earlier than the start date and time (from/).`
 
+### Deleting a group ride: `ridedelete`
+
+Deletes one group ride using the persistent ID shown on its ride card.
+
+Format: `ridedelete ID`
+
+Example: `ridedelete 101`
+
+The ID must be a positive integer and identifies the ride rather than its position in the Rides panel. Deletion is
+immediate and does not require confirmation. On success, Cyclique displays `Deleted ride:` followed by the deleted
+ride's details, removes its card from the Rides panel and saves the change automatically.
+
+The deleted ride's roster associations are removed with the ride. Cyclist records, other rides and their rosters
+remain unchanged. Remaining ride IDs are not renumbered, and deleted IDs are never reused.
+
+A missing, malformed, non-positive, overflowing or additional argument produces `Invalid command format.` followed
+by the command usage. For example, an unknown ID of 101 reports `Ride with ID 101 cannot be found.` Failed
+deletions do not change ride or cyclist data.
+
 ### Adding and removing cyclists from a ride
 
 Use `rideaddcyclist ID PHONE` to add a saved cyclist to a ride.
@@ -326,5 +345,6 @@ Action | Format, Examples
 **Help** | `help`
 **Rideadd** | `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MINIMUM_POWER s/MAX_GROUP_SIZE [notes/NOTES]`<br> e.g., `rideadd n/Sunday Sunrise Ride from/18-10-2026 0630 to/18-10-2026 0930 l/East Coast d/45 f/180 s/12 notes/Bring lights`
 **Rideedit** | `rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_FTP] [s/MAX_SIZE] [notes/NOTES]`<br> e.g., `rideedit 101 n/NightRide`, `rideedit 101 notes/`
+**Ridedelete** | `ridedelete ID`<br> e.g., `ridedelete 101`
 **Add cyclist to ride** | `rideaddcyclist ID PHONE`
 **Remove cyclist from ride** | `ridedeletecyclist ID PHONE`

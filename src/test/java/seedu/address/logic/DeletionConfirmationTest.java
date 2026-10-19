@@ -21,6 +21,7 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.DeleteCommand;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.RideDeleteCommand;
 import seedu.address.logic.commands.RideEditCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -131,6 +132,24 @@ public class DeletionConfirmationTest {
         assertEquals(List.of(JOHN, ALICE), model.getAddressBook().getPersonList());
         assertEquals(originalJson, Files.readString(storage.getAddressBookFilePath()));
         assertThrows(ParseException.class, Messages.MESSAGE_UNKNOWN_COMMAND, () -> logic.execute("yes"));
+    }
+
+    @Test
+    public void execute_rideDelete_cancelsPendingDeletionAndPersistsRideRemoval() throws Exception {
+        logic.execute(RideUtil.getRideAddCommand(new RideBuilder().withRoster(JOHN.getPhone().value).build()));
+        String deletedRide = Messages.formatRide(model.getAddressBook().getRideList().get(0));
+        addressBookStorage.saveCalls = 0;
+        logic.execute(DELETE_JOHN);
+
+        CommandResult result = logic.execute("ridedelete 1");
+
+        assertEquals(DeleteCommand.MESSAGE_DELETE_CANCELLED + "\n"
+                + String.format(RideDeleteCommand.MESSAGE_DELETE_RIDE_SUCCESS, deletedRide),
+                result.getFeedbackToUser());
+        assertEquals(List.of(JOHN, ALICE), model.getAddressBook().getPersonList());
+        assertTrue(model.getAddressBook().getRideList().isEmpty());
+        assertEquals(1, addressBookStorage.saveCalls);
+        assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
     }
 
     @Test

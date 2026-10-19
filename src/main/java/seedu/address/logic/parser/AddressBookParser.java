@@ -18,6 +18,7 @@ import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RideAddCommand;
+import seedu.address.logic.commands.RideDeleteCommand;
 import seedu.address.logic.commands.RideEditCommand;
 import seedu.address.logic.commands.RideRosterCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -47,6 +48,7 @@ public class AddressBookParser {
                     ClearCommand.COMMAND_WORD, FindCommand.COMMAND_WORD, ListCommand.COMMAND_WORD,
                     ExitCommand.COMMAND_WORD, HelpCommand.COMMAND_WORD, RideAddCommand.COMMAND_WORD,
                     RideEditCommand.COMMAND_WORD,
+                    RideDeleteCommand.COMMAND_WORD,
                     RideRosterCommand.JOIN_COMMAND_WORD, RideRosterCommand.LEAVE_COMMAND_WORD -> true;
             default -> false;
         };
@@ -86,6 +88,7 @@ public class AddressBookParser {
             case RideRosterCommand.LEAVE_COMMAND_WORD -> new RideRosterCommandParser(false).parse(arguments);
             case RideAddCommand.COMMAND_WORD -> new RideAddCommandParser().parse(arguments);
             case RideEditCommand.COMMAND_WORD -> new RideEditCommandParser().parse(arguments);
+            case RideDeleteCommand.COMMAND_WORD -> new RideDeleteCommandParser().parse(arguments);
             default -> {
                 logger.finer("This user input caused a ParseException: " + userInput);
                 throw new ParseException(MESSAGE_UNKNOWN_COMMAND);

@@ -10,10 +10,12 @@ import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.jupiter.api.Test;
 
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.exceptions.DuplicatePersonException;
@@ -109,6 +111,32 @@ public class AddressBookTest {
     @Test
     public void addRide_nullRide_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> addressBook.addRide(null));
+    }
+
+    @Test
+    public void removeRide_existingRide_removesRideAndNotifiesObservableList() {
+        Ride first = addressBook.addRide(new RideBuilder().build());
+        Ride second = addressBook.addRide(new RideBuilder().withName("Evening Spin").build());
+        int nextRideId = addressBook.getNextRideId();
+        AtomicBoolean listChanged = new AtomicBoolean();
+        addressBook.getRideList().addListener((ListChangeListener<Ride>) change -> listChanged.set(true));
+
+        addressBook.removeRide(first);
+
+        assertEquals(List.of(second), addressBook.getRideList());
+        assertEquals(nextRideId, addressBook.getNextRideId());
+        assertTrue(listChanged.get());
+    }
+
+    @Test
+    public void removeRide_invalidTarget_throwsException() {
+        Ride staleRide = addressBook.addRide(new RideBuilder().build());
+        addressBook.removeRide(staleRide);
+
+        assertThrows(NullPointerException.class, () -> addressBook.removeRide(null));
+        assertThrows(IllegalArgumentException.class, () -> addressBook.removeRide(staleRide));
+        assertThrows(IllegalArgumentException.class, () ->
+                addressBook.removeRide(new RideBuilder().withId(99).build()));
     }
 
     @Test

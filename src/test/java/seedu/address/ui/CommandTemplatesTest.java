@@ -29,6 +29,7 @@ import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RideAddCommand;
+import seedu.address.logic.commands.RideDeleteCommand;
 import seedu.address.logic.commands.RideEditCommand;
 import seedu.address.logic.commands.RideRosterCommand;
 
@@ -50,6 +51,7 @@ public class CommandTemplatesTest {
 
         assertEquals(List.of(AddCommand.COMMAND_WORD, EditCommand.COMMAND_WORD, DeleteCommand.COMMAND_WORD,
                 FindCommand.COMMAND_WORD, RideAddCommand.COMMAND_WORD, RideEditCommand.COMMAND_WORD,
+                RideDeleteCommand.COMMAND_WORD,
                 RideRosterCommand.JOIN_COMMAND_WORD, RideRosterCommand.LEAVE_COMMAND_WORD, ListCommand.COMMAND_WORD,
                 ClearCommand.COMMAND_WORD, HelpCommand.COMMAND_WORD, ExitCommand.COMMAND_WORD), commandWords);
     }
@@ -105,7 +107,7 @@ public class CommandTemplatesTest {
     }
 
     @Test
-    public void rideAddTemplate_isListedAfterFindAndBeforeList() {
+    public void rideAddTemplate_isListedAfterFindAndBeforeRideEdit() {
         List<String> commandWords = CommandTemplates.ALL.stream()
                 .map(template -> template.insertText().trim().split(" ")[0])
                 .toList();
@@ -144,7 +146,22 @@ public class CommandTemplatesTest {
         int rideEditIndex = commandWords.indexOf(RideEditCommand.COMMAND_WORD);
 
         assertEquals(commandWords.indexOf(RideAddCommand.COMMAND_WORD) + 1, rideEditIndex);
-        assertEquals(commandWords.indexOf(RideRosterCommand.JOIN_COMMAND_WORD) - 1, rideEditIndex);
+        assertEquals(commandWords.indexOf(RideDeleteCommand.COMMAND_WORD) - 1, rideEditIndex);
+    }
+
+    @Test
+    public void rideDeleteTemplate_hasExpectedFormatInsertionAndOrder() {
+        CommandTemplates.Template template = templateFor(RideDeleteCommand.COMMAND_WORD);
+        List<String> commandWords = CommandTemplates.ALL.stream()
+                .map(commandTemplate -> commandTemplate.insertText().trim().split(" ")[0])
+                .toList();
+
+        assertEquals("ridedelete ID", template.display());
+        assertEquals("ridedelete ", template.insertText());
+        assertEquals(commandWords.indexOf(RideEditCommand.COMMAND_WORD) + 1,
+                commandWords.indexOf(RideDeleteCommand.COMMAND_WORD));
+        assertEquals(commandWords.indexOf(RideRosterCommand.JOIN_COMMAND_WORD) - 1,
+                commandWords.indexOf(RideDeleteCommand.COMMAND_WORD));
     }
 
     @Test
