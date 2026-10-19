@@ -97,6 +97,44 @@ public class PersonMatchesFindCriteriaPredicateTest {
     }
 
     @Test
+    public void test_minimumFtp_matchesExactBoundary() {
+        Person cyclist = new PersonBuilder(alice).withFtp("300").build();
+
+        assertTrue(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(), List.of(), Set.of(),
+                new Ftp("300")).test(cyclist));
+    }
+
+    @Test
+    public void test_locationExperienceAndMinimumFtp_requireAllFieldsToMatch() {
+        Person cyclist = new PersonBuilder(alice).withLocations("Punggol")
+                .withExperienceLevel("Intermediate").withFtp("300").build();
+        Person wrongLocation = new PersonBuilder(cyclist).withLocations("Tampines").build();
+        Person wrongExperience = new PersonBuilder(cyclist).withExperienceLevel("Beginner").build();
+        Person insufficientFtp = new PersonBuilder(cyclist).withFtp("299").build();
+        PersonMatchesFindCriteriaPredicate predicate = new PersonMatchesFindCriteriaPredicate(List.of(), List.of(),
+                List.of(), List.of(new ExperienceLevel("Intermediate")), Set.of(new Location("Punggol")),
+                new Ftp("300"));
+
+        assertTrue(predicate.test(cyclist));
+        assertFalse(predicate.test(wrongLocation));
+        assertFalse(predicate.test(wrongExperience));
+        assertFalse(predicate.test(insufficientFtp));
+    }
+
+    @Test
+    public void test_allFindCriteria_requireEveryFieldToMatch() {
+        Person cyclist = new PersonBuilder(alice).withEmergencyPhone("+65 99999999")
+                .withLocations("Tampines").withExperienceLevel("Intermediate").withFtp("300").build();
+        Person wrongEmergencyPhone = new PersonBuilder(cyclist).withEmergencyPhone("+65 88888888").build();
+        PersonMatchesFindCriteriaPredicate predicate = new PersonMatchesFindCriteriaPredicate(
+                List.of("alice"), List.of(cyclist.getPhone()), List.of(cyclist.getEmergencyPhone().get()),
+                List.of(new ExperienceLevel("Intermediate")), Set.of(new Location("Tampines")), new Ftp("300"));
+
+        assertTrue(predicate.test(cyclist));
+        assertFalse(predicate.test(wrongEmergencyPhone));
+    }
+
+    @Test
     public void equals_differentCyclingCriteria_returnsFalse() {
         PersonMatchesFindCriteriaPredicate locationPredicate = new PersonMatchesFindCriteriaPredicate(
                 List.of(), List.of(), List.of(), List.of(), Set.of(new Location("Punggol")), null);
