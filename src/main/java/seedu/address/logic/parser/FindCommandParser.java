@@ -2,14 +2,22 @@ package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMERGENCY_PHONE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_EXPERIENCE_LEVEL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_FTP;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_LOCATION;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.ExperienceLevel;
+import seedu.address.model.person.Ftp;
+import seedu.address.model.person.Location;
 import seedu.address.model.person.PersonMatchesFindCriteriaPredicate;
 import seedu.address.model.person.Phone;
 
@@ -25,12 +33,16 @@ public class FindCommandParser implements Parser<FindCommand> {
      */
     public FindCommand parse(String args) throws ParseException {
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(" " + args.trim(), PREFIX_NAME, PREFIX_PHONE,
-                PREFIX_EMERGENCY_PHONE);
+                PREFIX_EMERGENCY_PHONE, PREFIX_FTP, PREFIX_EXPERIENCE_LEVEL, PREFIX_LOCATION);
+        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_FTP);
         List<String> nameKeywords = argMultimap.getAllValues(PREFIX_NAME);
         List<String> phoneValues = argMultimap.getAllValues(PREFIX_PHONE);
         List<String> emergencyPhoneValues = argMultimap.getAllValues(PREFIX_EMERGENCY_PHONE);
+        List<String> locationValues = argMultimap.getAllValues(PREFIX_LOCATION);
         if (!argMultimap.getPreamble().isEmpty()
-                || (nameKeywords.isEmpty() && phoneValues.isEmpty() && emergencyPhoneValues.isEmpty())
+                || (nameKeywords.isEmpty() && phoneValues.isEmpty() && emergencyPhoneValues.isEmpty()
+                && locationValues.isEmpty() && argMultimap.getValue(PREFIX_FTP).isEmpty()
+                && argMultimap.getValue(PREFIX_EXPERIENCE_LEVEL).isEmpty())
                 || nameKeywords.stream().anyMatch(keyword -> keyword.isEmpty() || keyword.matches(".*\\s+.*"))) {
             throw new ParseException(
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
@@ -47,7 +59,18 @@ public class FindCommandParser implements Parser<FindCommand> {
         for (String value : emergencyPhoneValues) {
             emergencyPhones.add(ParserUtil.parsePhone(value));
         }
-        return new FindCommand(new PersonMatchesFindCriteriaPredicate(nameKeywords, phones, emergencyPhones));
+        Ftp minimumFtp = argMultimap.getValue(PREFIX_FTP).isPresent()
+                ? ParserUtil.parseFtp(argMultimap.getValue(PREFIX_FTP).get()) : null;
+        List<ExperienceLevel> experienceLevels = new ArrayList<>();
+        for (String value : argMultimap.getAllValues(PREFIX_EXPERIENCE_LEVEL)) {
+            experienceLevels.add(ParserUtil.parseExperienceLevel(value));
+        }
+        Set<Location> locations = new HashSet<>();
+        for (String locationValue : locationValues) {
+            locations.addAll(ParserUtil.parseLocations(List.of(locationValue)));
+        }
+        return new FindCommand(new PersonMatchesFindCriteriaPredicate(nameKeywords, phones, emergencyPhones,
+                experienceLevels, locations, minimumFtp));
     }
 
 }

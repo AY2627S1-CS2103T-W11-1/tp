@@ -8,17 +8,19 @@ import seedu.address.model.Model;
 import seedu.address.model.person.PersonMatchesFindCriteriaPredicate;
 
 /**
- * Finds and lists persons matching the supplied name, phone and emergency phone criteria.
+ * Finds and lists persons matching the supplied cyclist criteria.
  */
 public class FindCommand extends Command {
 
     public static final String COMMAND_WORD = "find";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Finds persons by name, phone or emergency phone. "
-            + "Name keywords match full words, ignoring case. Repeated values within a field match any value; "
-            + "when multiple fields are given, all must match.\n"
-            + "Parameters: [n/NAME_KEYWORD]... [p/PHONE]... [sos/EMERGENCY_PHONE]... (at least one required)\n"
-            + "Example: " + COMMAND_WORD + " n/alice p/+65 91234567";
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Finds cyclists matching the supplied criteria.\n"
+            + "Parameters: [n/NAME]... [p/PHONE]... [sos/EMERGENCY_PHONE]... [f/MIN_FTP] "
+            + "[x/EXPERIENCE]... [l/LOCATION]...\n"
+            + "At least one search criterion is required. Names and text criteria match full words case-insensitively. "
+            + "Use multiple values within a field for OR matching; different fields use AND matching. "
+            + "f/MIN_FTP matches cyclists with FTP at least the specified value in watts.\n"
+            + "Example: " + COMMAND_WORD + " l/Punggol x/Intermediate f/250";
 
     private final PersonMatchesFindCriteriaPredicate predicate;
 
