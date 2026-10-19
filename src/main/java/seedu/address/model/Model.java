@@ -89,4 +89,12 @@ public interface Model {
      * @throws NullPointerException if {@code predicate} is null.
      */
     void updateFilteredPersonList(Predicate<Person> predicate);
+
+    /**
+     * Filters the person list by the current roster of the ride identified by {@code rideId}.
+     * The filter remains active and refreshes when the ride list changes.
+     *
+     * @throws IllegalArgumentException if {@code rideId} is not positive.
+     */
+    void updateFilteredPersonListForRide(int rideId);
 }

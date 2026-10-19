@@ -278,6 +278,33 @@ For example: `rideaddcyclist 1 +65 91234567`, then `ridedeletecyclist 1 +65 9123
 * Both commands appear in Help. Entering either while a contact deletion is pending cancels
   that pending deletion and runs the roster command.
 
+### Listing cyclists registered for a ride: `ridelist`
+
+Shows the cyclists registered for one ride in the left-hand cyclist panel without changing any records.
+
+Format: `ridelist ID`
+
+Example: `ridelist 101`
+
+A successful non-empty selection reports `Showing registered cyclists for ride 101 in the left panel.`
+
+`ID` is the persistent positive ride ID shown on its card, not the ride's position in the Rides panel.
+The selected cyclists use the existing cards and remain alphabetically sorted. The right-hand Rides panel
+does not change. An empty roster succeeds with `Ride 101 has no registered cyclists.` and shows no cyclist cards.
+
+Ride List replaces the current cyclist filter rather than combining with it. Successful `rideaddcyclist` and
+`ridedeletecyclist` commands automatically refresh the displayed cyclists when they change the selected ride.
+Changes to another ride do not change the selected ride. `list` restores every cyclist; `find` or another `ridelist`
+replaces the Ride List filter, and later roster changes do not reactivate it.
+
+If the selected ride is deleted, Ride List remains associated with that ride ID and the cyclist panel becomes empty.
+It does not switch to another ride. Use `list`, `find` or another `ridelist` to replace the filter.
+
+An unknown ride ID, such as `999999`, reports `Ride with ID 999999 cannot be found.` Malformed, missing, zero,
+negative, overflowing or extra arguments produce the invalid-command-format message and usage guidance. If a roster
+phone no longer resolves to a cyclist, the command reports `Cannot list ride: a registered cyclist cannot be found.`
+The previous filter and all ride and cyclist data remain unchanged after either failure.
+
 ### Clearing all entries: `clear`
 
 Clears all entries from the address book.
@@ -348,3 +375,4 @@ Action | Format, Examples
 **Ridedelete** | `ridedelete ID`<br> e.g., `ridedelete 101`
 **Add cyclist to ride** | `rideaddcyclist ID PHONE`
 **Remove cyclist from ride** | `ridedeletecyclist ID PHONE`
+**List cyclists in ride** | `ridelist ID`<br> e.g., `ridelist 101`

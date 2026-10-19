@@ -16,6 +16,8 @@ import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RideAddCommand;
 import seedu.address.logic.commands.RideDeleteCommand;
 import seedu.address.logic.commands.RideEditCommand;
+import seedu.address.logic.commands.RideListCommand;
+import seedu.address.logic.commands.RideRosterCommand;
 
 public class HelpWindowTest {
 
@@ -53,7 +55,7 @@ public class HelpWindowTest {
             AddCommand.COMMAND_WORD, EditCommand.COMMAND_WORD, DeleteCommand.COMMAND_WORD,
             FindCommand.COMMAND_WORD, ListCommand.COMMAND_WORD, ClearCommand.COMMAND_WORD,
             HelpCommand.COMMAND_WORD, ExitCommand.COMMAND_WORD, RideAddCommand.COMMAND_WORD,
-            RideEditCommand.COMMAND_WORD, RideDeleteCommand.COMMAND_WORD
+            RideEditCommand.COMMAND_WORD, RideDeleteCommand.COMMAND_WORD, RideListCommand.COMMAND_WORD
         };
 
         for (String commandWord : commandWords) {
@@ -71,6 +73,7 @@ public class HelpWindowTest {
         assertTrue(HelpWindow.COMMAND_LIST.contains(RideAddCommand.MESSAGE_USAGE));
         assertTrue(HelpWindow.COMMAND_LIST.contains(RideEditCommand.MESSAGE_USAGE));
         assertTrue(HelpWindow.COMMAND_LIST.contains(RideDeleteCommand.MESSAGE_USAGE));
+        assertTrue(HelpWindow.COMMAND_LIST.contains(RideListCommand.MESSAGE_USAGE));
     }
 
     @Test
@@ -86,12 +89,17 @@ public class HelpWindowTest {
         int rideAddIndex = HelpWindow.COMMAND_LIST.indexOf(RideAddCommand.MESSAGE_USAGE);
         int rideEditIndex = HelpWindow.COMMAND_LIST.indexOf(RideEditCommand.MESSAGE_USAGE);
         int rideDeleteIndex = HelpWindow.COMMAND_LIST.indexOf(RideDeleteCommand.MESSAGE_USAGE);
+        int rosterIndex = HelpWindow.COMMAND_LIST.indexOf(RideRosterCommand.MESSAGE_USAGE);
+        int rideListIndex = HelpWindow.COMMAND_LIST.indexOf(RideListCommand.MESSAGE_USAGE);
         int listIndex = HelpWindow.COMMAND_LIST.indexOf(ListCommand.COMMAND_WORD + ": Lists all persons.");
 
         assertTrue(findIndex < rideAddIndex);
         assertTrue(rideAddIndex < rideEditIndex);
         assertTrue(rideEditIndex < rideDeleteIndex);
-        assertTrue(rideDeleteIndex < listIndex);
+        assertTrue(rideDeleteIndex < rosterIndex);
+        assertTrue(rideAddIndex < rosterIndex);
+        assertTrue(rosterIndex < rideListIndex);
+        assertTrue(rideListIndex < listIndex);
     }
 
     @Test
@@ -123,5 +131,16 @@ public class HelpWindowTest {
             assertFalse(example.contains("["));
             assertFalse(example.contains("]"));
         }
+    }
+
+    @Test
+    public void commandList_rideListUsage_hasGuidanceAndExecutableExample() {
+        assertTrue(HelpWindow.COMMAND_LIST.contains("persistent identifier, not a list position"));
+        assertTrue(HelpWindow.COMMAND_LIST.contains("Rides panel is unchanged"));
+        assertTrue(HelpWindow.COMMAND_LIST.contains("roster additions and removals refresh this list automatically"));
+        assertTrue(HelpWindow.COMMAND_LIST.contains("Deleting the selected ride leaves the filter active"));
+        assertTrue(HelpWindow.COMMAND_LIST.contains("Example: ridelist 101"));
+        assertFalse(HelpWindow.COMMAND_LIST.contains("Run ridelist again after roster changes"));
+        assertFalse(RideListCommand.MESSAGE_USAGE.contains("[ID]"));
     }
 }

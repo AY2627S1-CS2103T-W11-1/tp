@@ -26,6 +26,7 @@ import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RideAddCommand;
 import seedu.address.logic.commands.RideDeleteCommand;
 import seedu.address.logic.commands.RideEditCommand;
+import seedu.address.logic.commands.RideListCommand;
 import seedu.address.logic.commands.RideRosterCommand;
 
 /**
@@ -85,6 +86,7 @@ public class CommandTemplates {
                     RideDeleteCommand.COMMAND_WORD + " "),
             new Template("rideaddcyclist ID PHONE", RideRosterCommand.JOIN_COMMAND_WORD + " "),
             new Template("ridedeletecyclist ID PHONE", RideRosterCommand.LEAVE_COMMAND_WORD + " "),
+            new Template(RideListCommand.COMMAND_WORD + " ID", RideListCommand.COMMAND_WORD + " "),
             new Template(ListCommand.COMMAND_WORD, ListCommand.COMMAND_WORD),
             new Template(ClearCommand.COMMAND_WORD, ClearCommand.COMMAND_WORD),
             new Template(HelpCommand.COMMAND_WORD, HelpCommand.COMMAND_WORD),

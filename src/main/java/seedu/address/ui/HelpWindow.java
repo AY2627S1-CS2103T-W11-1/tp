@@ -21,6 +21,7 @@ import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RideAddCommand;
 import seedu.address.logic.commands.RideDeleteCommand;
 import seedu.address.logic.commands.RideEditCommand;
+import seedu.address.logic.commands.RideListCommand;
 import seedu.address.logic.commands.RideRosterCommand;
 
 /**
@@ -47,6 +48,15 @@ public class HelpWindow extends UiPart<Stage> {
             + "confirmation. It removes the ride and its roster associations, but leaves cyclist records and "
             + "other rides and their rosters unchanged. Remaining ride IDs are not renumbered, deleted IDs are "
             + "not reused, and an unknown ID is rejected.";
+    private static final String RIDE_LIST_GUIDANCE = RideListCommand.MESSAGE_USAGE + "\n"
+            + "The ID is a persistent identifier, not a list position. The left-hand cyclist panel shows the "
+            + "ride's registered cyclists using its existing alphabetically sorted cards; the Rides panel is "
+            + "unchanged.\n"
+            + "An empty roster shows no cyclist cards. Successful roster additions and removals refresh this list "
+            + "automatically. Deleting the selected ride leaves the filter active and shows no cyclists.\n"
+            + "list restores all cyclists, while find or another ridelist replaces the Ride List filter.\n"
+            + "Invalid or unknown IDs and unresolved roster references are rejected without changing the previous "
+            + "filter. This command does not modify ride or cyclist records.";
 
     /**
      * The usage text of every command, shown in the help window. Commands that already define a
@@ -61,6 +71,7 @@ public class HelpWindow extends UiPart<Stage> {
             RIDE_EDIT_HELP,
             RideDeleteCommand.MESSAGE_USAGE + "\n" + RIDE_DELETE_DETAILS,
             RideRosterCommand.MESSAGE_USAGE,
+            RIDE_LIST_GUIDANCE,
             ListCommand.COMMAND_WORD + ": Lists all persons.\nExample: " + ListCommand.COMMAND_WORD,
             ClearCommand.COMMAND_WORD + ": Clears all entries.\nExample: " + ClearCommand.COMMAND_WORD,
             HelpCommand.MESSAGE_USAGE,

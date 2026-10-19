@@ -2,6 +2,7 @@ package seedu.address.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -205,6 +206,31 @@ public class ModelManagerTest {
 
         modelManager.setAddressBook(new AddressBook());
         assertTrue(displayedPersons.isEmpty());
+    }
+
+    @Test
+    public void setAddressBook_activeRideListFilter_cancelsSelectionAndKeepsListenerAttached() {
+        AddressBook initialBook = new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build();
+        Ride selectedRide = new RideBuilder().withId(5).withRoster(ALICE.getPhone().value).build();
+        initialBook.setRides(List.of(selectedRide), 6);
+        modelManager = new ModelManager(initialBook, new UserPrefs());
+        List<Ride> observedRides = modelManager.getAddressBook().getRideList();
+        modelManager.updateFilteredPersonListForRide(5);
+        modelManager.deleteRide(selectedRide);
+        assertTrue(modelManager.getFilteredPersonList().isEmpty());
+
+        AddressBook replacementBook = new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build();
+        Ride replacementRide = new RideBuilder().withId(5).withRoster(ALICE.getPhone().value).build();
+        replacementBook.setRides(List.of(replacementRide), 6);
+        modelManager.setAddressBook(replacementBook);
+
+        assertSame(observedRides, modelManager.getAddressBook().getRideList());
+        assertEquals(List.of(ALICE, BENSON), modelManager.getFilteredPersonList());
+
+        modelManager.updateFilteredPersonListForRide(5);
+        Ride updatedRide = replacementRide.withRoster(List.of(BENSON.getPhone()));
+        modelManager.setRide(replacementRide, updatedRide);
+        assertEquals(List.of(BENSON), modelManager.getFilteredPersonList());
     }
 
     @Test

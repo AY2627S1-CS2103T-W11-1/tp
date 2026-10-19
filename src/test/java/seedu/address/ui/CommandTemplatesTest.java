@@ -31,6 +31,7 @@ import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RideAddCommand;
 import seedu.address.logic.commands.RideDeleteCommand;
 import seedu.address.logic.commands.RideEditCommand;
+import seedu.address.logic.commands.RideListCommand;
 import seedu.address.logic.commands.RideRosterCommand;
 
 public class CommandTemplatesTest {
@@ -52,7 +53,8 @@ public class CommandTemplatesTest {
         assertEquals(List.of(AddCommand.COMMAND_WORD, EditCommand.COMMAND_WORD, DeleteCommand.COMMAND_WORD,
                 FindCommand.COMMAND_WORD, RideAddCommand.COMMAND_WORD, RideEditCommand.COMMAND_WORD,
                 RideDeleteCommand.COMMAND_WORD,
-                RideRosterCommand.JOIN_COMMAND_WORD, RideRosterCommand.LEAVE_COMMAND_WORD, ListCommand.COMMAND_WORD,
+                RideRosterCommand.JOIN_COMMAND_WORD, RideRosterCommand.LEAVE_COMMAND_WORD,
+                RideListCommand.COMMAND_WORD, ListCommand.COMMAND_WORD,
                 ClearCommand.COMMAND_WORD, HelpCommand.COMMAND_WORD, ExitCommand.COMMAND_WORD), commandWords);
     }
 
@@ -174,6 +176,18 @@ public class CommandTemplatesTest {
     public void rosterTemplates_insertCommandAndTrailingSpaceOnly() {
         assertEquals("rideaddcyclist ", templateFor(RideRosterCommand.JOIN_COMMAND_WORD).insertText());
         assertEquals("ridedeletecyclist ", templateFor(RideRosterCommand.LEAVE_COMMAND_WORD).insertText());
+    }
+
+    @Test
+    public void rideListTemplate_hasExactFormatInsertionAndSingleEntry() {
+        CommandTemplates.Template template = templateFor(RideListCommand.COMMAND_WORD);
+        long occurrences = CommandTemplates.ALL.stream()
+                .filter(candidate -> candidate.insertText().trim().equals(RideListCommand.COMMAND_WORD))
+                .count();
+
+        assertEquals("ridelist ID", template.display());
+        assertEquals("ridelist ", template.insertText());
+        assertEquals(1, occurrences);
     }
 
     private static CommandTemplates.Template templateFor(String commandWord) {
