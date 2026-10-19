@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -140,6 +141,54 @@ public class LogicManagerTest {
                 String.format(RideDeleteCommand.MESSAGE_RIDE_NOT_FOUND, 999));
 
         assertEquals(savedData, Files.readString(addressBookFile));
+    }
+
+    @Test
+    public void execute_rideEdit_updatesObservableListAndPersistsChangedAndPreservedFields() throws Exception {
+        Ride firstDraft = new RideBuilder().withNotes("Bring lights").build();
+        Ride secondDraft = new RideBuilder().withName("Evening Spin").build();
+        logic.execute(RideUtil.getRideAddCommand(firstDraft));
+        logic.execute(RideUtil.getRideAddCommand(secondDraft));
+        List<Ride> observedRides = logic.getRideList();
+
+        logic.execute("rideedit 1 n/Night Ride");
+        logic.execute("rideedit 1 l/Punggol d/50.5 f/250 s/20");
+
+        Ride expectedFirst = new RideBuilder(firstDraft).withId(1).withName("Night Ride").withLocation("Punggol")
+                .withDistance("50.5").withMinimumPower("250").withMaxGroupSize("20").build();
+        Ride expectedSecond = new RideBuilder(secondDraft).withId(2).build();
+        assertEquals(List.of(expectedFirst, expectedSecond), observedRides);
+        assertEquals(3, model.getAddressBook().getNextRideId());
+        JsonAddressBookStorage reader = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        assertEquals(model.getAddressBook(), reader.readAddressBook().get());
+    }
+
+    @Test
+    public void execute_rideEditInvalidOneSidedPeriods_preservesModelAndSavedData() throws Exception {
+        logic.execute(RideUtil.getRideAddCommand(new RideBuilder().build()));
+        String savedData = Files.readString(temporaryFolder.resolve("addressBook.json"));
+
+        assertCommandException("rideedit 1 from/18-10-2026 1000", Ride.MESSAGE_INVALID_PERIOD);
+        assertEquals(savedData, Files.readString(temporaryFolder.resolve("addressBook.json")));
+        assertCommandException("rideedit 1 to/18-10-2026 0600", Ride.MESSAGE_INVALID_PERIOD);
+        assertEquals(savedData, Files.readString(temporaryFolder.resolve("addressBook.json")));
+    }
+
+    @Test
+    public void execute_rideEditClearsNotesAndPreservesRosterAcrossReload() throws Exception {
+        Ride storedRide = model.addRide(new RideBuilder().withNotes("Bring lights")
+                .withRoster("+65 91234567", "+65 92345678").build());
+        List<Ride> observedRides = logic.getRideList();
+
+        logic.execute("rideedit 1 notes/ n/NightRide");
+
+        Ride expectedRide = new RideBuilder().withId(storedRide.getId()).withName("NightRide")
+                .withRoster("+65 91234567", "+65 92345678").build();
+        assertEquals(List.of(expectedRide), observedRides);
+        JsonAddressBookStorage reader = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        ReadOnlyAddressBook reloaded = reader.readAddressBook().get();
+        assertEquals(List.of(expectedRide), reloaded.getRideList());
+        assertEquals(2, reloaded.getNextRideId());
     }
 
     @Test
