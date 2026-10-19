@@ -202,6 +202,31 @@ Examples:
 * `rideadd n/Sunday Sunrise Ride from/18-10-2026 0630 to/18-10-2026 0930 l/East Coast d/45 f/180 s/12 notes/Bring lights and a spare tube`
 * `rideadd n/Evening Spin from/20-10-2026 1800 to/20-10-2026 1930 l/Punggol d/30.5 f/150 s/8`
 
+### Finding group rides: `ridefind`
+
+Finds rides matching one or more supplied criteria and displays the matching rides in the Rides panel.
+
+Format: `ridefind [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] [l/LOCATION] [d/DISTANCE] [f/MINIMUM_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`
+
+At least one criterion is required. Different fields use AND matching, so a ride must satisfy every field supplied.
+The fields are matched as follows:
+
+* `n/NAME` matches the complete ride name, ignoring case.
+* `from/` matches rides starting at or after the supplied date and time.
+* `to/` matches rides ending at or before the supplied date and time.
+* `l/LOCATION`, `d/DISTANCE`, `s/MAX_GROUP_SIZE` and `notes/NOTES` use exact field matching; location matching ignores case.
+* `f/MINIMUM_POWER` matches rides whose minimum power is greater than or equal to the supplied value.
+
+The date and time format is `DD-MM-YYYY TTTT`, using the 24-hour clock. A date-only `from/` value means `0000`,
+while a date-only `to/` value means `2359`. When both bounds are supplied, `to/` cannot be earlier than `from/`.
+Both bounds are inclusive. Each prefix can be used only once.
+
+Examples:
+* `ridefind n/Sunday Sunrise Ride`
+* `ridefind from/18-10-2026 to/18-10-2026`
+* `ridefind l/Tampines f/200`
+* `ridefind from/18-10-2026 0630 to/18-10-2026 2000 l/East Coast d/45 f/180 s/12`
+
 ### Editing a group ride: `rideedit`
 
 Edits an existing group ride identified by its ride ID.
@@ -371,6 +396,7 @@ Action | Format, Examples
 **List** | `list`
 **Help** | `help`
 **Rideadd** | `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MINIMUM_POWER s/MAX_GROUP_SIZE [notes/NOTES]`<br> e.g., `rideadd n/Sunday Sunrise Ride from/18-10-2026 0630 to/18-10-2026 0930 l/East Coast d/45 f/180 s/12 notes/Bring lights`
+**Ridefind** | `ridefind [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] [l/LOCATION] [d/DISTANCE] [f/MINIMUM_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`<br> e.g., `ridefind from/18-10-2026 to/18-10-2026 f/180`
 **Rideedit** | `rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_FTP] [s/MAX_SIZE] [notes/NOTES]`<br> e.g., `rideedit 101 n/NightRide`, `rideedit 101 notes/`
 **Ridedelete** | `ridedelete ID`<br> e.g., `ridedelete 101`
 **Add cyclist to ride** | `rideaddcyclist ID PHONE`
