@@ -123,13 +123,30 @@ public class AddressBook implements ReadOnlyAddressBook {
     }
 
     /**
-     * Replaces an existing ride without changing its ID or position.
+     * Removes {@code ride} from the address book.
+     * {@code ride} must exist in the address book.
+     */
+    public void removeRide(Ride ride) {
+        requireNonNull(ride);
+        if (!rides.remove(ride)) {
+            throw new IllegalArgumentException("Ride must exist in the address book.");
+        }
+    }
+
+    /**
+     * Replaces the given ride {@code target} with {@code editedRide} without changing its ID or position.
+     * {@code target} must exist in the address book.
      */
     public void setRide(Ride target, Ride editedRide) {
+        requireNonNull(target);
         requireNonNull(editedRide);
+        if (target.getId() != editedRide.getId()) {
+            throw new IllegalArgumentException("An edited ride must preserve its ride ID.");
+        }
+
         int index = rides.indexOf(target);
-        if (index < 0 || target.getId() != editedRide.getId()) {
-            throw new IllegalArgumentException("Ride must exist and retain its ID.");
+        if (index == -1) {
+            throw new IllegalArgumentException("Target ride must exist in the address book.");
         }
         rides.set(index, editedRide);
     }

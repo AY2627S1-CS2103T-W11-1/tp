@@ -19,6 +19,8 @@ import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RideAddCommand;
+import seedu.address.logic.commands.RideDeleteCommand;
+import seedu.address.logic.commands.RideEditCommand;
 import seedu.address.logic.commands.RideListCommand;
 import seedu.address.logic.commands.RideRosterCommand;
 
@@ -29,6 +31,23 @@ public class HelpWindow extends UiPart<Stage> {
 
     public static final String USERGUIDE_URL = "https://se-education.org/addressbook-level3/UserGuide.html";
     public static final String HELP_MESSAGE = "Refer to the user guide: " + USERGUIDE_URL;
+
+    /** Additional Ride Edit guidance and executable examples shown after its command usage. */
+    public static final String RIDE_EDIT_HELP = RideEditCommand.MESSAGE_USAGE + "\n"
+            + "Supply at least one editable field. The ride ID, cyclist roster and unspecified fields stay "
+            + "unchanged. Omit notes/ to preserve notes, or use notes/ without a value to clear them. "
+            + "The minimum FTP cannot exceed any current roster member's FTP, and the maximum group size cannot "
+            + "be smaller than the current roster size. Invalid edits leave the ride unchanged.\n"
+            + "More examples:\n"
+            + "rideedit 101 n/NightRide\n"
+            + "rideedit 101 f/250\n"
+            + "rideedit 101 from/20-10-2026 1400 to/20-10-2026 1600\n"
+            + "rideedit 101 notes/";
+
+    private static final String RIDE_DELETE_DETAILS = "Use the ride's persistent ID. Deletion requires no "
+            + "confirmation. It removes the ride and its roster associations, but leaves cyclist records and "
+            + "other rides and their rosters unchanged. Remaining ride IDs are not renumbered, deleted IDs are "
+            + "not reused, and an unknown ID is rejected.";
     private static final String RIDE_LIST_GUIDANCE = RideListCommand.MESSAGE_USAGE + "\n"
             + "The ID is a persistent identifier, not a list position. The left-hand cyclist panel shows the "
             + "ride's registered cyclists using its existing alphabetically sorted cards; the Rides panel is "
@@ -48,6 +67,8 @@ public class HelpWindow extends UiPart<Stage> {
             DeleteCommand.MESSAGE_USAGE,
             FindCommand.MESSAGE_USAGE,
             RideAddCommand.MESSAGE_USAGE,
+            RIDE_EDIT_HELP,
+            RideDeleteCommand.MESSAGE_USAGE + "\n" + RIDE_DELETE_DETAILS,
             RideRosterCommand.MESSAGE_USAGE,
             RIDE_LIST_GUIDANCE,
             ListCommand.COMMAND_WORD + ": Lists all persons.\nExample: " + ListCommand.COMMAND_WORD,

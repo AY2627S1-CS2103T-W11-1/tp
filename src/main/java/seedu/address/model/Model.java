@@ -67,7 +67,14 @@ public interface Model {
     Ride addRide(Ride ride);
 
     /**
-     * Replaces an existing ride while preserving its ID and position.
+     * Deletes the given ride.
+     * The ride must exist in the address book.
+     */
+    void deleteRide(Ride target);
+
+    /**
+     * Replaces the given ride {@code target} with {@code editedRide}, preserving its ID and position.
+     * {@code target} must exist in the address book.
      */
     void setRide(Ride target, Ride editedRide);
 

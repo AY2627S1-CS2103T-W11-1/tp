@@ -2,6 +2,7 @@ package seedu.address.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
@@ -9,10 +10,12 @@ import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.jupiter.api.Test;
 
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.exceptions.DuplicatePersonException;
@@ -111,6 +114,32 @@ public class AddressBookTest {
     }
 
     @Test
+    public void removeRide_existingRide_removesRideAndNotifiesObservableList() {
+        Ride first = addressBook.addRide(new RideBuilder().build());
+        Ride second = addressBook.addRide(new RideBuilder().withName("Evening Spin").build());
+        int nextRideId = addressBook.getNextRideId();
+        AtomicBoolean listChanged = new AtomicBoolean();
+        addressBook.getRideList().addListener((ListChangeListener<Ride>) change -> listChanged.set(true));
+
+        addressBook.removeRide(first);
+
+        assertEquals(List.of(second), addressBook.getRideList());
+        assertEquals(nextRideId, addressBook.getNextRideId());
+        assertTrue(listChanged.get());
+    }
+
+    @Test
+    public void removeRide_invalidTarget_throwsException() {
+        Ride staleRide = addressBook.addRide(new RideBuilder().build());
+        addressBook.removeRide(staleRide);
+
+        assertThrows(NullPointerException.class, () -> addressBook.removeRide(null));
+        assertThrows(IllegalArgumentException.class, () -> addressBook.removeRide(staleRide));
+        assertThrows(IllegalArgumentException.class, () ->
+                addressBook.removeRide(new RideBuilder().withId(99).build()));
+    }
+
+    @Test
     public void getRideList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () ->
                 addressBook.getRideList().add(new RideBuilder().withId(1).build()));
@@ -145,6 +174,57 @@ public class AddressBookTest {
 
         assertEquals(5, addressBook.getNextRideId());
         assertEquals(5, addressBook.addRide(new RideBuilder().build()).getId());
+    }
+
+    @Test
+    public void setRide_validReplacement_preservesPositionOtherRidesAndNextId() {
+        Ride first = addressBook.addRide(new RideBuilder().withName("First Ride").build());
+        Ride target = addressBook.addRide(new RideBuilder().withName("Target Ride").build());
+        Ride third = addressBook.addRide(new RideBuilder().withName("Third Ride").build());
+        Ride replacement = new RideBuilder(target).withName("Edited Ride").build();
+        ObservableList<Ride> observedRides = addressBook.getRideList();
+
+        addressBook.setRide(target, replacement);
+
+        assertSame(observedRides, addressBook.getRideList());
+        assertEquals(List.of(first, replacement, third), observedRides);
+        assertEquals(4, addressBook.getNextRideId());
+    }
+
+    @Test
+    public void setRide_nullArguments_throwsNullPointerException() {
+        Ride target = addressBook.addRide(new RideBuilder().build());
+
+        assertThrows(NullPointerException.class, () -> addressBook.setRide(null, target));
+        assertThrows(NullPointerException.class, () -> addressBook.setRide(target, null));
+        assertEquals(List.of(target), addressBook.getRideList());
+    }
+
+    @Test
+    public void setRide_differentId_throwsIllegalArgumentExceptionAndLeavesDataUnchanged() {
+        Ride target = addressBook.addRide(new RideBuilder().build());
+        Ride replacement = new RideBuilder(target).withId(2).withName("Edited Ride").build();
+        AddressBook original = new AddressBook(addressBook);
+
+        assertThrows(IllegalArgumentException.class, () -> addressBook.setRide(target, replacement));
+        assertEquals(original, addressBook);
+    }
+
+    @Test
+    public void setRide_missingOrStaleTarget_throwsIllegalArgumentExceptionAndLeavesDataUnchanged() {
+        Ride storedRide = addressBook.addRide(new RideBuilder().build());
+        Ride missingRide = new RideBuilder(storedRide).withName("Missing Ride").build();
+        Ride replacement = new RideBuilder(storedRide).withName("Edited Ride").build();
+        AddressBook original = new AddressBook(addressBook);
+
+        assertThrows(IllegalArgumentException.class, () -> addressBook.setRide(missingRide, replacement));
+        assertEquals(original, addressBook);
+
+        addressBook.setRide(storedRide, replacement);
+        AddressBook afterReplacement = new AddressBook(addressBook);
+        Ride secondReplacement = new RideBuilder(storedRide).withName("Another Edit").build();
+        assertThrows(IllegalArgumentException.class, () -> addressBook.setRide(storedRide, secondReplacement));
+        assertEquals(afterReplacement, addressBook);
     }
 
     /**

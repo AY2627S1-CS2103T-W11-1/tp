@@ -23,7 +23,10 @@ import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RideAddCommand;
+import seedu.address.logic.commands.RideEditCommand;
+import seedu.address.logic.commands.RideEditCommand.EditRideDescriptor;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.PersonMatchesFindCriteriaPredicate;
 import seedu.address.model.person.Phone;
@@ -41,7 +44,7 @@ public class AddressBookParserTest {
     @Test
     public void isRecognisedCommand_identifiesCommandWordsRegardlessOfArgumentValidity() {
         for (String word : new String[] {"add", "edit", "delete", "clear", "find", "list", "exit", "help",
-            "rideadd"}) {
+            "rideadd", "rideedit"}) {
             assertTrue(parser.isRecognisedCommand("  " + word + "  "));
             assertTrue(parser.isRecognisedCommand(word + " invalid arguments"));
         }
@@ -117,6 +120,22 @@ public class AddressBookParserTest {
     public void parseCommand_rideAddWithInvalidArguments_throwsParseException() {
         assertThrows(ParseException.class, String.format(MESSAGE_INVALID_COMMAND_FORMAT,
                 RideAddCommand.MESSAGE_USAGE), () -> parser.parseCommand("rideadd"));
+    }
+
+    @Test
+    public void parseCommand_rideEdit() throws Exception {
+        EditRideDescriptor descriptor = new EditRideDescriptor();
+        descriptor.setName(new Name("Night Ride"));
+
+        RideEditCommand command = (RideEditCommand) parser.parseCommand("rideedit 101 n/Night Ride");
+
+        assertEquals(new RideEditCommand(101, descriptor), command);
+    }
+
+    @Test
+    public void parseCommand_rideEditWithInvalidArguments_throwsParseException() {
+        assertThrows(ParseException.class, RideEditCommand.MESSAGE_NOT_EDITED, () ->
+                parser.parseCommand("rideedit 101"));
     }
 
     @Test

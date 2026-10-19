@@ -24,6 +24,8 @@ import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RideAddCommand;
+import seedu.address.logic.commands.RideDeleteCommand;
+import seedu.address.logic.commands.RideEditCommand;
 import seedu.address.logic.commands.RideListCommand;
 import seedu.address.logic.commands.RideRosterCommand;
 
@@ -68,11 +70,20 @@ public class CommandTemplates {
             new Template(
                     RideAddCommand.COMMAND_WORD + " " + PREFIX_NAME + "NAME " + PREFIX_FROM + "FROM "
                             + PREFIX_TO + "TO " + PREFIX_LOCATION + "LOCATION " + PREFIX_DISTANCE + "DISTANCE "
-                            + PREFIX_FTP + "MINIMUM_POWER " + PREFIX_GROUP_SIZE + "MAX_GROUP_SIZE ["
+                            + PREFIX_FTP + "MIN_POWER " + PREFIX_GROUP_SIZE + "MAX_GROUP_SIZE ["
                             + PREFIX_NOTES + "NOTES]",
                     RideAddCommand.COMMAND_WORD + " " + PREFIX_NAME + " " + PREFIX_FROM + " " + PREFIX_TO + " "
                             + PREFIX_LOCATION + " " + PREFIX_DISTANCE + " " + PREFIX_FTP + " "
                             + PREFIX_GROUP_SIZE),
+            new Template(
+                    RideEditCommand.COMMAND_WORD + " ID [" + PREFIX_NAME + "NAME] [" + PREFIX_FROM + "START] ["
+                            + PREFIX_TO + "END] [" + PREFIX_LOCATION + "LOCATION] [" + PREFIX_DISTANCE
+                            + "DISTANCE] [" + PREFIX_FTP + "MIN_POWER] [" + PREFIX_GROUP_SIZE + "MAX_GROUP_SIZE] ["
+                            + PREFIX_NOTES + "NOTES]",
+                    RideEditCommand.COMMAND_WORD + " "),
+            new Template(
+                    RideDeleteCommand.COMMAND_WORD + " ID",
+                    RideDeleteCommand.COMMAND_WORD + " "),
             new Template("rideaddcyclist ID PHONE", RideRosterCommand.JOIN_COMMAND_WORD + " "),
             new Template("ridedeletecyclist ID PHONE", RideRosterCommand.LEAVE_COMMAND_WORD + " "),
             new Template(RideListCommand.COMMAND_WORD + " ID", RideListCommand.COMMAND_WORD + " "),
