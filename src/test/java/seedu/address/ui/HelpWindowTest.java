@@ -137,7 +137,10 @@ public class HelpWindowTest {
     public void commandList_rideListUsage_hasGuidanceAndExecutableExample() {
         assertTrue(HelpWindow.COMMAND_LIST.contains("persistent identifier, not a list position"));
         assertTrue(HelpWindow.COMMAND_LIST.contains("Rides panel is unchanged"));
+        assertTrue(HelpWindow.COMMAND_LIST.contains("roster additions and removals refresh this list automatically"));
+        assertTrue(HelpWindow.COMMAND_LIST.contains("Deleting the selected ride leaves the filter active"));
         assertTrue(HelpWindow.COMMAND_LIST.contains("Example: ridelist 101"));
+        assertFalse(HelpWindow.COMMAND_LIST.contains("Run ridelist again after roster changes"));
         assertFalse(RideListCommand.MESSAGE_USAGE.contains("[ID]"));
     }
 }

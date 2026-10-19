@@ -52,8 +52,9 @@ public class HelpWindow extends UiPart<Stage> {
             + "The ID is a persistent identifier, not a list position. The left-hand cyclist panel shows the "
             + "ride's registered cyclists using its existing alphabetically sorted cards; the Rides panel is "
             + "unchanged.\n"
-            + "An empty roster shows no cyclist cards. list restores all cyclists, while find or another ridelist "
-            + "replaces this one-time filter. Run ridelist again after roster changes.\n"
+            + "An empty roster shows no cyclist cards. Successful roster additions and removals refresh this list "
+            + "automatically. Deleting the selected ride leaves the filter active and shows no cyclists.\n"
+            + "list restores all cyclists, while find or another ridelist replaces the Ride List filter.\n"
             + "Invalid or unknown IDs and unresolved roster references are rejected without changing the previous "
             + "filter. This command does not modify ride or cyclist records.";
 

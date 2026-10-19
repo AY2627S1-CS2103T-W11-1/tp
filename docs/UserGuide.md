@@ -292,9 +292,13 @@ A successful non-empty selection reports `Showing registered cyclists for ride 1
 The selected cyclists use the existing cards and remain alphabetically sorted. The right-hand Rides panel
 does not change. An empty roster succeeds with `Ride 101 has no registered cyclists.` and shows no cyclist cards.
 
-Ride List replaces the current cyclist filter rather than combining with it. `list` restores every cyclist;
-`find` or another `ridelist` replaces the Ride List filter. This is a one-time selection: after roster membership
-changes, run `ridelist ID` again to refresh the displayed cyclists.
+Ride List replaces the current cyclist filter rather than combining with it. Successful `rideaddcyclist` and
+`ridedeletecyclist` commands automatically refresh the displayed cyclists when they change the selected ride.
+Changes to another ride do not change the selected ride. `list` restores every cyclist; `find` or another `ridelist`
+replaces the Ride List filter, and later roster changes do not reactivate it.
+
+If the selected ride is deleted, Ride List remains associated with that ride ID and the cyclist panel becomes empty.
+It does not switch to another ride. Use `list`, `find` or another `ridelist` to replace the filter.
 
 An unknown ride ID, such as `999999`, reports `Ride with ID 999999 cannot be found.` Malformed, missing, zero,
 negative, overflowing or extra arguments produce the invalid-command-format message and usage guidance. If a roster

@@ -55,7 +55,7 @@ public class RideListCommand extends Command {
             }
         }
 
-        model.updateFilteredPersonList(person -> ride.getRoster().contains(person.getPhone()));
+        model.updateFilteredPersonListForRide(targetId);
         String message = ride.getRoster().isEmpty() ? MESSAGE_EMPTY_ROSTER : MESSAGE_SUCCESS;
         return new CommandResult(String.format(message, targetId));
     }
