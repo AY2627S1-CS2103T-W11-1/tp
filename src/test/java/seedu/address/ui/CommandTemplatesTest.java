@@ -31,6 +31,7 @@ import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RideAddCommand;
 import seedu.address.logic.commands.RideDeleteCommand;
 import seedu.address.logic.commands.RideEditCommand;
+import seedu.address.logic.commands.RideFindCommand;
 import seedu.address.logic.commands.RideListCommand;
 import seedu.address.logic.commands.RideRosterCommand;
 
@@ -54,7 +55,7 @@ public class CommandTemplatesTest {
                 FindCommand.COMMAND_WORD, RideAddCommand.COMMAND_WORD, RideEditCommand.COMMAND_WORD,
                 RideDeleteCommand.COMMAND_WORD,
                 RideRosterCommand.JOIN_COMMAND_WORD, RideRosterCommand.LEAVE_COMMAND_WORD,
-                RideListCommand.COMMAND_WORD, ListCommand.COMMAND_WORD,
+                RideListCommand.COMMAND_WORD, RideFindCommand.COMMAND_WORD, ListCommand.COMMAND_WORD,
                 ClearCommand.COMMAND_WORD, HelpCommand.COMMAND_WORD, ExitCommand.COMMAND_WORD), commandWords);
     }
 

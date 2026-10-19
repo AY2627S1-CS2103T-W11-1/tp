@@ -84,6 +84,16 @@ public interface Model {
      */
     ObservableList<Person> getFilteredPersonList();
 
+    /** Returns the live view of rides matching the current ride filter. */
+    default ObservableList<Ride> getFilteredRideList() {
+        return getAddressBook().getRideList();
+    }
+
+    /** Updates the ride list filter to the given predicate. */
+    default void updateFilteredRideList(Predicate<Ride> predicate) {
+        throw new UnsupportedOperationException("Ride filtering is not supported by this model.");
+    }
+
     /**
      * Updates the filter of the filtered person list to filter by the given {@code predicate}.
      * @throws NullPointerException if {@code predicate} is null.

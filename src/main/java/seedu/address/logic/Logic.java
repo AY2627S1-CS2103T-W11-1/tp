@@ -27,6 +27,9 @@ public interface Logic {
     /** Returns an unmodifiable, live view of the list of rides, in the order they were added */
     ObservableList<Ride> getRideList();
 
+    /** Returns an unmodifiable view of the filtered list of rides. */
+    ObservableList<Ride> getFilteredRideList();
+
     /**
      * Returns the user prefs' GUI settings.
      */

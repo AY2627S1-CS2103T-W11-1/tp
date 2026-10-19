@@ -1,0 +1,30 @@
+package seedu.address.logic.commands;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.Optional;
+
+import org.junit.jupiter.api.Test;
+
+import seedu.address.model.ModelManager;
+import seedu.address.model.person.Name;
+import seedu.address.model.ride.RideMatchesFindCriteriaPredicate;
+import seedu.address.testutil.RideBuilder;
+
+public class RideFindCommandTest {
+
+    @Test
+    public void execute_updatesFilteredRideList() {
+        ModelManager model = new ModelManager();
+        model.addRide(new RideBuilder().withName("Sunday Sunrise Ride").build());
+        model.addRide(new RideBuilder().withName("Evening Loop").build());
+        RideMatchesFindCriteriaPredicate predicate = new RideMatchesFindCriteriaPredicate(
+                Optional.of(new Name("Evening Loop")), Optional.empty(), Optional.empty(),
+                Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+
+        new RideFindCommand(predicate).execute(model);
+
+        assertEquals(1, model.getFilteredRideList().size());
+        assertEquals("Evening Loop", model.getFilteredRideList().getFirst().getName().fullName);
+    }
+}
