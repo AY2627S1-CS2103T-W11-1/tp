@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
@@ -63,5 +64,44 @@ public class PersonMatchesFindCriteriaPredicateTest {
                 List.of(new Phone("+65 12345678"))).test(alice));
         assertFalse(new PersonMatchesFindCriteriaPredicate(List.of("carol"),
                 List.of(new Phone("+65 96320842"))).test(alice));
+    }
+
+    @Test
+    public void test_location_matchesCaseInsensitivelyAndAnyIsWildcard() {
+        Person punggolCyclist = new PersonBuilder(alice).withLocations("Punggol").build();
+        Person unrestrictedCyclist = new PersonBuilder(alice).withLocations("any").build();
+        Set<Location> punggol = Set.of(new Location("pUnGgOl"));
+
+        PersonMatchesFindCriteriaPredicate predicate = new PersonMatchesFindCriteriaPredicate(
+                List.of(), List.of(), List.of(), List.of(), punggol, null);
+        assertTrue(predicate.test(punggolCyclist));
+        assertTrue(predicate.test(unrestrictedCyclist));
+        assertTrue(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(), List.of(),
+                Set.of(new Location("any"), new Location("Punggol")), null).test(unrestrictedCyclist));
+        assertFalse(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(), List.of(),
+                Set.of(new Location("any")), null).test(punggolCyclist));
+        assertFalse(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(), List.of(),
+                Set.of(new Location("Tampines")), null).test(punggolCyclist));
+    }
+
+    @Test
+    public void test_experienceAndMinimumFtp_matchExpectedValues() {
+        Person cyclist = new PersonBuilder(alice).withExperienceLevel("Intermediate").withFtp("300").build();
+
+        assertTrue(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(),
+                List.of(new ExperienceLevel("intermediate")), Set.of(), new Ftp("250")).test(cyclist));
+        assertFalse(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(),
+                List.of(new ExperienceLevel("Beginner")), Set.of(), new Ftp("250")).test(cyclist));
+        assertFalse(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(),
+                List.of(new ExperienceLevel("Intermediate")), Set.of(), new Ftp("301")).test(cyclist));
+    }
+
+    @Test
+    public void equals_differentCyclingCriteria_returnsFalse() {
+        PersonMatchesFindCriteriaPredicate locationPredicate = new PersonMatchesFindCriteriaPredicate(
+                List.of(), List.of(), List.of(), List.of(), Set.of(new Location("Punggol")), null);
+        PersonMatchesFindCriteriaPredicate ftpPredicate = new PersonMatchesFindCriteriaPredicate(
+                List.of(), List.of(), List.of(), List.of(), Set.of(), new Ftp("250"));
+        assertFalse(locationPredicate.equals(ftpPredicate));
     }
 }

@@ -8,7 +8,11 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.logic.Messages;
 import seedu.address.logic.commands.FindCommand;
+import seedu.address.model.person.ExperienceLevel;
+import seedu.address.model.person.Ftp;
+import seedu.address.model.person.Location;
 import seedu.address.model.person.PersonMatchesFindCriteriaPredicate;
 import seedu.address.model.person.Phone;
 
@@ -57,6 +61,31 @@ public class FindCommandParserTest {
     public void parse_invalidPhone_throwsParseException() {
         assertParseFailure(parser, "p/+65 abc", Phone.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "p/", Phone.MESSAGE_MISSING_COUNTRY_CODE);
+    }
+
+    @Test
+    public void parse_cyclingCriteria_returnsFindCommand() {
+        FindCommand expected = new FindCommand(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(),
+                java.util.List.of(new ExperienceLevel("Intermediate")),
+                java.util.Set.of(new Location("Punggol")), new Ftp("250")));
+        assertParseSuccess(parser, "l/punggol x/intermediate f/250", expected);
+        FindCommand multipleExperienceLevels = new FindCommand(new PersonMatchesFindCriteriaPredicate(
+                List.of(), List.of(), List.of(), java.util.List.of(new ExperienceLevel("Beginner"),
+                        new ExperienceLevel("Intermediate")), java.util.Set.of(), null));
+        assertParseSuccess(parser, "x/beginner x/intermediate", multipleExperienceLevels);
+        FindCommand anyAndSpecificLocations = new FindCommand(new PersonMatchesFindCriteriaPredicate(
+                List.of(), List.of(), List.of(), java.util.List.of(),
+                java.util.Set.of(new Location("any"), new Location("Punggol")), null));
+        assertParseSuccess(parser, "l/any l/punggol", anyAndSpecificLocations);
+    }
+
+    @Test
+    public void parse_invalidCyclingCriteria_throwsParseException() {
+        assertParseFailure(parser, "f/0", Ftp.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "x/Expert", ExperienceLevel.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "l/", Location.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "f/300 x/Intermediate find l/Punggol f/300 x/Intermediate",
+                Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_FTP));
     }
 
 }
