@@ -130,14 +130,17 @@ Cyclist cards label emergency contact numbers as **SOS**. Older saved records wi
 
 ### Locating persons by name, phone or emergency number: `find`
 
-Finds persons by name keywords, phone numbers and emergency contact numbers.
+Finds persons by name keywords, phone numbers, emergency contact numbers, FTP, experience level and location.
 
-Format: `find [n/NAME_KEYWORD]… [p/PHONE]… [sos/EMERGENCY_PHONE]…` (at least one field is required)
+Format: `find [n/NAME_KEYWORD]… [p/PHONE]… [sos/EMERGENCY_PHONE]… [f/MIN_FTP] [x/EXPERIENCE]… [l/LOCATION]…`
+(at least one field is required)
 
 * Each `n/` takes one name keyword. Name matching is case-insensitive and requires a full word; for example, `n/hans` matches `Hans` but `n/Han` does not.
 * Each `p/` takes one complete phone number. Phone matching is exact; `p/+65 963` does not match `+65 96320842`.
 * Multiple values for the same field use `OR`: `find n/Hans n/Bo` returns people named `Hans Gruber` or `Bo Yang`.
 * Each `sos/` takes one complete emergency contact number and uses the same phone validation and exact matching as `p/`. Repeated `sos/` values match any of those numbers.
+* `f/MIN_FTP` matches cyclists whose FTP is at least the specified value in watts.
+* Each `x/` matches an experience level, and each `l/` matches a preferred location. Text matching is case-insensitive.
 * When multiple fields are supplied, a person must match every supplied field. Prefix order does not matter.
 * Name keywords, phone numbers and emergency contact numbers search only their respective fields.
 * `find sos/+65 99999999` lists cyclists with that emergency number.
@@ -147,6 +150,8 @@ Examples:
 * `find n/alex n/david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find n/alex n/david'](images/findAlexDavidResult.png)
 * `find n/alex p/+65 96320842` returns only people whose name contains `alex` and whose phone number is `+65 96320842`.
+* `find l/Punggol x/Intermediate f/250` returns cyclists whose preferred location is Punggol, experience is Intermediate,
+  and FTP is at least 250 W.
 
 ### Deleting a person: `delete`
 

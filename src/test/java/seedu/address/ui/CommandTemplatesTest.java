@@ -68,6 +68,17 @@ public class CommandTemplatesTest {
     }
 
     @Test
+    public void findTemplate_listsAllSearchFields() {
+        String display = CommandTemplates.ALL.stream()
+                .filter(template -> template.insertText().trim().startsWith(FindCommand.COMMAND_WORD))
+                .findFirst().orElseThrow().display();
+
+        assertTrue(display.contains("f/MIN_FTP"));
+        assertTrue(display.contains("x/EXPERIENCE"));
+        assertTrue(display.contains("l/LOCATION"));
+    }
+
+    @Test
     public void editTemplate_displayListsEveryEditableFieldAsOptional() {
         String display = CommandTemplates.ALL.get(1).display();
 

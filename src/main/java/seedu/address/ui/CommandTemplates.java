@@ -66,7 +66,9 @@ public class CommandTemplates {
                     DeleteCommand.COMMAND_WORD + " "),
             new Template(
                     FindCommand.COMMAND_WORD + " [" + PREFIX_NAME + "NAME_KEYWORD]... [" + PREFIX_PHONE
-                            + "PHONE]... [" + PREFIX_EMERGENCY_PHONE + "EMERGENCY_PHONE]...",
+                            + "PHONE]... [" + PREFIX_EMERGENCY_PHONE + "EMERGENCY_PHONE]... [" + PREFIX_FTP
+                            + "MIN_FTP] [" + PREFIX_EXPERIENCE_LEVEL + "EXPERIENCE]... [" + PREFIX_LOCATION
+                            + "LOCATION]...",
                     FindCommand.COMMAND_WORD + " "),
             new Template(
                     RideAddCommand.COMMAND_WORD + " " + PREFIX_NAME + "NAME " + PREFIX_FROM + "FROM "
