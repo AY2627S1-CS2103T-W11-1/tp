@@ -26,6 +26,7 @@ import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RideAddCommand;
 import seedu.address.logic.commands.RideDeleteCommand;
 import seedu.address.logic.commands.RideEditCommand;
+import seedu.address.logic.commands.RideFindCommand;
 import seedu.address.logic.commands.RideListCommand;
 import seedu.address.logic.commands.RideRosterCommand;
 
@@ -65,7 +66,9 @@ public class CommandTemplates {
                     DeleteCommand.COMMAND_WORD + " "),
             new Template(
                     FindCommand.COMMAND_WORD + " [" + PREFIX_NAME + "NAME_KEYWORD]... [" + PREFIX_PHONE
-                            + "PHONE]... [" + PREFIX_EMERGENCY_PHONE + "EMERGENCY_PHONE]...",
+                            + "PHONE]... [" + PREFIX_EMERGENCY_PHONE + "EMERGENCY_PHONE]... [" + PREFIX_FTP
+                            + "MIN_FTP] [" + PREFIX_EXPERIENCE_LEVEL + "EXPERIENCE]... [" + PREFIX_LOCATION
+                            + "LOCATION]...",
                     FindCommand.COMMAND_WORD + " "),
             new Template(
                     RideAddCommand.COMMAND_WORD + " " + PREFIX_NAME + "NAME " + PREFIX_FROM + "FROM "
@@ -87,6 +90,10 @@ public class CommandTemplates {
             new Template("rideaddcyclist ID PHONE", RideRosterCommand.JOIN_COMMAND_WORD + " "),
             new Template("ridedeletecyclist ID PHONE", RideRosterCommand.LEAVE_COMMAND_WORD + " "),
             new Template(RideListCommand.COMMAND_WORD + " ID", RideListCommand.COMMAND_WORD + " "),
+            new Template(RideFindCommand.COMMAND_WORD + " all OR " + RideFindCommand.COMMAND_WORD
+                    + " [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] "
+                    + "[l/LOCATION] [d/DISTANCE] [f/MINIMUM_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]",
+                    RideFindCommand.COMMAND_WORD + " "),
             new Template(ListCommand.COMMAND_WORD, ListCommand.COMMAND_WORD),
             new Template(ClearCommand.COMMAND_WORD, ClearCommand.COMMAND_WORD),
             new Template(HelpCommand.COMMAND_WORD, HelpCommand.COMMAND_WORD),

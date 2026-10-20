@@ -31,6 +31,7 @@ import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RideAddCommand;
 import seedu.address.logic.commands.RideDeleteCommand;
 import seedu.address.logic.commands.RideEditCommand;
+import seedu.address.logic.commands.RideFindCommand;
 import seedu.address.logic.commands.RideListCommand;
 import seedu.address.logic.commands.RideRosterCommand;
 
@@ -54,7 +55,7 @@ public class CommandTemplatesTest {
                 FindCommand.COMMAND_WORD, RideAddCommand.COMMAND_WORD, RideEditCommand.COMMAND_WORD,
                 RideDeleteCommand.COMMAND_WORD,
                 RideRosterCommand.JOIN_COMMAND_WORD, RideRosterCommand.LEAVE_COMMAND_WORD,
-                RideListCommand.COMMAND_WORD, ListCommand.COMMAND_WORD,
+                RideListCommand.COMMAND_WORD, RideFindCommand.COMMAND_WORD, ListCommand.COMMAND_WORD,
                 ClearCommand.COMMAND_WORD, HelpCommand.COMMAND_WORD, ExitCommand.COMMAND_WORD), commandWords);
     }
 
@@ -64,6 +65,24 @@ public class CommandTemplatesTest {
             String commandWord = template.insertText().trim().split(" ")[0];
             assertTrue(template.display().startsWith(commandWord));
         }
+    }
+
+    @Test
+    public void findTemplate_listsAllSearchFields() {
+        String display = CommandTemplates.ALL.stream()
+                .filter(template -> template.insertText().trim().startsWith(FindCommand.COMMAND_WORD))
+                .findFirst().orElseThrow().display();
+
+        assertTrue(display.contains("f/MIN_FTP"));
+        assertTrue(display.contains("x/EXPERIENCE"));
+        assertTrue(display.contains("l/LOCATION"));
+    }
+
+    @Test
+    public void rideFindTemplate_listsAllShortcut() {
+        String display = templateFor(RideFindCommand.COMMAND_WORD).display();
+
+        assertTrue(display.contains("ridefind all"));
     }
 
     @Test

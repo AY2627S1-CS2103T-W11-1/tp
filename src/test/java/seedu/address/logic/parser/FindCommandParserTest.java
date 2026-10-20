@@ -36,8 +36,8 @@ public class FindCommandParserTest {
         assertParseFailure(parser, "alex david",
                 String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
         assertParseFailure(parser, "n/", String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
-        assertParseFailure(parser, "n/alex david",
-                String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
+        assertParseSuccess(parser, "n/alex david", new FindCommand(
+                new PersonMatchesFindCriteriaPredicate(List.of("alex david"), List.of())));
     }
 
     @Test
@@ -46,6 +46,11 @@ public class FindCommandParserTest {
                 new FindCommand(new PersonMatchesFindCriteriaPredicate(List.of("Alice", "Bob"), List.of()));
         assertParseSuccess(parser, "n/Alice n/Bob", expectedFindCommand);
         assertParseSuccess(parser, " n/Alice  n/Bob ", expectedFindCommand);
+
+        assertParseSuccess(parser, "n/John Doe", new FindCommand(
+                new PersonMatchesFindCriteriaPredicate(List.of("John Doe"), List.of())));
+        assertParseSuccess(parser, "n/John Doe n/Jane Doe", new FindCommand(
+                new PersonMatchesFindCriteriaPredicate(List.of("John Doe", "Jane Doe"), List.of())));
 
         FindCommand phoneCommand = new FindCommand(new PersonMatchesFindCriteriaPredicate(
                 List.of(), List.of(new Phone("+65 96320842"))));

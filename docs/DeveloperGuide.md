@@ -720,7 +720,8 @@ Repeat the checks on each operating system supported by the release.
    `edit +65 96742165 l/`, and `edit +65 96742165 p/+65 111 p/+65 222`.
    Expected: Each command shows an error and leaves every contact field unchanged.
 1. Try add commands with missing required fields, `f/0`, `f/601`, `f/abc`, blank `l/`,
-   invalid email, invalid experience and phone numbers without a country code.
+   invalid email, invalid experience, and phone numbers without a country code, without a separating space,
+   with hyphens, with parentheses, or with fewer than three digits after the country code.
    Expected: Each command shows an error and adds no contact. FTP values 1 and 600 are accepted.
 
 ### Finding and listing people
@@ -733,8 +734,10 @@ Use John and Alice from the previous section.
 1. Enter `find n/john p/+65 91234567`. Expected: No contacts appear; both fields must match.
 1. Enter `find n/Jo` and `find p/+65 967`. Expected: No contacts appear; matches are exact
    phone numbers or full name words, rather than substrings.
-1. Try `find`, `find john alice`, `find n/John Doe`, and `find p/`.
-   Expected: Each shows an error without changing the current displayed list.
+1. Enter `find n/John Doe`. Expected: Only the cyclist with the complete full name `John Doe` appears,
+   ignoring case.
+1. Try `find`, `find john alice`, and `find p/`. Expected: Each shows an error without changing the current
+   displayed list.
 1. Enter `find n/john`, then `edit +65 91234567 n/Alice Updated`.
    Expected: The edit is rejected because Alice is outside the displayed list.
 1. Enter `edit +65 96742165 n/John Updated`. Expected: John's name changes and both contacts appear.
@@ -1088,3 +1091,28 @@ Use the valid ride and cyclists created in the preceding roster scenario, and no
    ride. Enter `list` or `find`; expected: it replaces the empty Ride List filter normally.
 1. Recheck the cyclist and ride details, roster cards and IDs. Expected: only the requested roster changes occurred.
    Restart Cyclique; expected: the same stored data returns.
+
+### Find and ridefind regression (manual testing)
+
+Use disposable cyclist and ride data. Record the original details before applying filters.
+
+1. Enter `list`. Expected: all cyclists appear in alphabetical order.
+1. Enter `find n/john`, then `find n/john p/+65 91234567`. Expected: the first command matches the name keyword,
+   and the second command matches both the name and phone fields.
+1. Enter `find n/john n/alice`. Expected: cyclists matching either name keyword appear.
+1. Enter `find n/nobody`. Expected: no cyclists appear and the result reports zero matches.
+1. Try `find`, `find john`, `find p/invalid` and an FTP value outside `1` to `600`.
+   Expected: each invalid command shows an error without changing the previous valid cyclist filter.
+1. Enter `list`. Expected: the full cyclist list is restored.
+1. Add at least three rides with different names, dates, locations, distances and minimum powers.
+1. Enter `ridefind n/Sunday Sunrise Ride`. Expected: only the ride with that complete name appears, ignoring case.
+1. Enter `ridefind from/18-10-2026 to/18-10-2026`. Expected: rides starting and ending within the inclusive date
+   bounds appear. Date-only `from/` and `to/` use `0000` and `2359` respectively.
+1. Enter `ridefind l/Tampines f/200`. Expected: only rides matching both the location and minimum-power criteria
+   appear; a ride with a lower minimum power is excluded.
+1. Enter `ridefind all`. Expected: every saved ride appears again, including rides hidden by the earlier filters.
+1. Try `ridefind`, `ridefind from/invalid`, `ridefind from/19-10-2026 to/18-10-2026`, duplicate prefixes,
+   and a distance, minimum power or group size outside its constraints. Expected: each invalid command shows an
+   error and leaves the previous ride filter unchanged.
+1. Restart Cyclique. Expected: filters do not alter saved cyclists or rides; all records remain available after
+   using `list` and `ridefind all`.

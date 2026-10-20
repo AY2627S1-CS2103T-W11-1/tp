@@ -27,6 +27,7 @@ public class ModelManager implements Model {
     private final AddressBook addressBook;
     private final UserPrefs userPrefs;
     private final FilteredList<Person> filteredPersons;
+    private final FilteredList<Ride> filteredRides;
     private final SortedList<Person> sortedPersons;
     /** Persistent ID of the ride whose roster is actively filtering persons, or null for another filter. */
     private Integer activeRideListId;
@@ -46,6 +47,7 @@ public class ModelManager implements Model {
         sortedPersons = new SortedList<>(filteredPersons,
                 Comparator.comparing((Person person) -> person.getName().fullName, String.CASE_INSENSITIVE_ORDER)
                         .thenComparingInt(person -> this.addressBook.getPersonList().indexOf(person)));
+        filteredRides = new FilteredList<>(this.addressBook.getRideList());
         this.addressBook.getRideList().addListener(
                 (ListChangeListener<Ride>) change -> refreshRideListFilter());
     }
@@ -137,6 +139,16 @@ public class ModelManager implements Model {
     @Override
     public ObservableList<Person> getFilteredPersonList() {
         return sortedPersons;
+    }
+
+    @Override
+    public ObservableList<Ride> getFilteredRideList() {
+        return filteredRides;
+    }
+
+    @Override
+    public void updateFilteredRideList(Predicate<Ride> predicate) {
+        filteredRides.setPredicate(predicate);
     }
 
     @Override

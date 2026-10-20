@@ -2,6 +2,9 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.logging.Logger;
+
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.model.Model;
@@ -22,18 +25,20 @@ public class FindCommand extends Command {
             + "f/MIN_FTP matches cyclists with FTP at least the specified value in watts.\n"
             + "Example: " + COMMAND_WORD + " l/Punggol x/Intermediate f/250";
 
+    private static final Logger logger = LogsCenter.getLogger(FindCommand.class);
     private final PersonMatchesFindCriteriaPredicate predicate;
 
     public FindCommand(PersonMatchesFindCriteriaPredicate predicate) {
-        this.predicate = predicate;
+        this.predicate = requireNonNull(predicate);
     }
 
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
         model.updateFilteredPersonList(predicate);
-        return new CommandResult(
-                String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, model.getFilteredPersonList().size()));
+        int matchingPersons = model.getFilteredPersonList().size();
+        logger.fine("Find command matched " + matchingPersons + " person(s).");
+        return new CommandResult(String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, matchingPersons));
     }
 
     @Override

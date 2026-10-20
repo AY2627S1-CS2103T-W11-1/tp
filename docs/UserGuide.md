@@ -90,14 +90,19 @@ Adds a person to the address book.
 
 Format: `add n/NAME p/PHONE sos/EMERGENCY_PHONE e/EMAIL f/FTP_LEVEL x/EXPERIENCE_LEVEL l/LOCATION [l/LOCATION]…`
 
-The emergency contact number (`sos/`) is required for new cyclists and follows the same validation as `p/`: a `+`, a country code of 1–3 digits, exactly one space, and a number of at least 3 digits. Blank values, parentheses and hyphens are rejected. Emergency numbers may be shared and do not determine duplicate cyclists.
+Field | Meaning and rules
+------|------------------
+`n/NAME` | The cyclist's name. It may contain letters, numbers and spaces, but must not be blank.
+`p/PHONE` | A unique phone number using a `+`, a 1–3 digit country code, one space and at least 3 digits, such as `+65 98765432`. Parentheses, hyphens and blank values are rejected. The number must not belong to another contact, including contacts hidden by a filter.
+`sos/EMERGENCY_PHONE` | Required for new cyclists. It follows the same format as `p/` but may be shared by multiple cyclists and does not determine duplicate cyclists.
+`e/EMAIL` | A valid email address. Email addresses are compared case-insensitively when checking for duplicates.
+`f/FTP_LEVEL` | A whole number from 1 to 600, in watts.
+`x/EXPERIENCE_LEVEL` | `Beginner`, `Intermediate` or `Advanced`, ignoring case.
+`l/LOCATION` | A preferred cycling location. At least one is required. Repeat `l/` for multiple locations, or use `l/any` alone.
 
-The phone number must include a country code and one separating space, for example `+65 98765432`.
-It must not belong to another contact, including contacts hidden by a filter.
-FTP must be a whole number from 1 to 600.
-At least one preferred location is required. Repeat `l/` for multiple locations, or use `l/any` alone.
-
-`EXPERIENCE_LEVEL` must be one of `Beginner`, `Intermediate` or `Advanced` (case-insensitive).
+All fields are required, and `l/` may be repeated. Prefixes
+can be entered in any order. Existing records remain unchanged when validation fails or when the phone number or
+email address duplicates another contact.
 
 Examples:
 * `add n/John Doe p/+65 98765432 sos/+65 99999999 e/johnd@example.com f/300 x/Beginner l/any`
@@ -105,9 +110,16 @@ Examples:
 
 ### Listing all persons: `list`
 
-Shows a list of all persons in the address book.
+Shows every cyclist currently stored in the address book.
 
 Format: `list`
+
+* Removes any active `find` or ride-roster cyclist filter and restores all cyclists.
+* Displays cyclist cards alphabetically by full name, ignoring case. Names that are identical ignoring case retain
+  their stored order.
+* Each card shows the cyclist's name, phone number, SOS number, email, FTP, experience level and preferred locations.
+  A missing SOS number is shown as **Not provided**.
+* If there are no cyclists, the cyclist panel is empty and the result explains that there are no cyclists.
 
 ### Editing a person: `edit`
 
@@ -119,6 +131,10 @@ Format: `edit PHONE [n/NAME] [p/PHONE] [sos/EMERGENCY_PHONE] [e/EMAIL] [f/FTP] [
 * The resulting phone number must not belong to another contact anywhere in the book. An unchanged phone number is allowed when it is already unique.
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
+* The target phone number must use the same country-code and spacing format as `add`, and must remain unique across
+  the address book. Other supplied fields use the same validation rules as `add`.
+* Only supplied fields are replaced. Unspecified fields, including preferred locations when `l/` is omitted, remain
+  unchanged.
 
 Examples:
 * `edit +65 98765432 p/+65 91111111 e/johndoe@example.com` updates the identified contact's phone and email.
@@ -128,25 +144,57 @@ Examples:
 
 Cyclist cards label emergency contact numbers as **SOS**. Older saved records without an emergency number load normally and show **Not provided**. Use `edit PHONE sos/EMERGENCY_PHONE` to supply one; other edits preserve its absence. Numbers are saved automatically and retained after restarting.
 
+After a successful edit, the updated cyclist card is shown in the correct alphabetical position. Invalid edits leave
+the cyclist and all other records unchanged. Editing a name can therefore change the visible card order; editing FTP,
+experience or preferred locations updates the corresponding card fields.
+
 ### Locating persons by name, phone or emergency number: `find`
 
-Finds persons by name keywords, phone numbers and emergency contact numbers.
+Finds persons by name keywords, phone numbers, emergency contact numbers, FTP, experience level and preferred location.
 
-Format: `find [n/NAME_KEYWORD]… [p/PHONE]… [sos/EMERGENCY_PHONE]…` (at least one field is required)
+Format: `find [n/NAME_KEYWORD]… [p/PHONE]… [sos/EMERGENCY_PHONE]… [f/MIN_FTP] [x/EXPERIENCE]… [l/LOCATION]…`
+(at least one field is required)
 
-* Each `n/` takes one name keyword. Name matching is case-insensitive and requires a full word; for example, `n/hans` matches `Hans` but `n/Han` does not.
-* Each `p/` takes one complete phone number. Phone matching is exact; `p/+65 963` does not match `+65 96320842`.
-* Multiple values for the same field use `OR`: `find n/Hans n/Bo` returns people named `Hans Gruber` or `Bo Yang`.
-* Each `sos/` takes one complete emergency contact number and uses the same phone validation and exact matching as `p/`. Repeated `sos/` values match any of those numbers.
-* When multiple fields are supplied, a person must match every supplied field. Prefix order does not matter.
-* Name keywords, phone numbers and emergency contact numbers search only their respective fields.
-* `find sos/+65 99999999` lists cyclists with that emergency number.
+Field | Meaning and rules
+------|------------------
+`n/NAME_KEYWORD` | A single name word or a complete full name. Single-word matching is case-insensitive and requires a full word; `n/hans` matches `Hans` but `n/Han` does not. A multi-word value such as `n/John Doe` matches the complete full name, ignoring case.
+`p/PHONE` | A complete phone number using a `+`, a 1–3 digit country code, one space and at least 3 digits. Matching is exact; `p/+65 963` does not match `+65 96320842`.
+`sos/EMERGENCY_PHONE` | A complete emergency contact number using the same validation and exact matching as `p/`. Cyclists without an emergency number do not match this criterion.
+`f/MIN_FTP` | A whole number from 1 to 600. Matches cyclists whose FTP is greater than or equal to the supplied value in watts.
+`x/EXPERIENCE` | `Beginner`, `Intermediate` or `Advanced`, ignoring case. Repeat `x/` to match any of the supplied experience levels.
+`l/LOCATION` | A preferred location, ignoring case. Repeat `l/` to match any supplied location. A cyclist with `l/any` matches every location criterion.
+
+At least one criterion is required. Each prefix may be repeated except `f/`, which accepts only one value. Values
+within the same field use `OR`, while different fields use `AND`; for example, `find n/Hans n/Bo f/250` matches
+cyclists named `Hans` or `Bo` whose FTP is at least 250 W. Prefix order does not matter. Text after a prefix belongs
+to that field until the next recognised prefix, so full names and locations containing spaces can be entered normally.
+
+The command filters only the displayed cyclist list and does not change saved records. Matching cyclists remain in
+alphabetical order, ignoring case. The result message reports how many cyclists match; an empty result is valid and
+leaves the cyclist panel empty. Use `list` to remove the current filter and display all cyclists again.
+
+Invalid phone numbers, FTP values, experience levels, preferred locations, name values and duplicate `f/` prefixes
+are rejected without changing the current displayed list. A name or phone criterion searches only the corresponding
+field; emergency contact numbers are not treated as the cyclist's own phone number.
 
 Examples:
 * `find n/John` returns `john` and `John Doe`
+* `find n/John Doe` returns only the cyclist with the complete full name `John Doe`, ignoring case.
 * `find n/alex n/david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find n/alex n/david'](images/findAlexDavidResult.png)
 * `find n/alex p/+65 96320842` returns only people whose name contains `alex` and whose phone number is `+65 96320842`.
+* `find l/Punggol x/Intermediate f/250` returns cyclists whose preferred location is Punggol, experience level is Intermediate,
+  and FTP is at least 250 W.
+* `find sos/+65 99999999` returns cyclists with that emergency contact number.
+* `find x/Beginner x/Intermediate` returns cyclists with either experience level.
+
+Common failures include:
+
+* `find` with no criteria is rejected with the command usage instructions.
+* `find n/John Doe n/Jane Doe` is valid and matches either complete full name.
+* `find John Doe` is rejected because name values must use the `n/` prefix.
+* A phone number, FTP value, experience level or location that does not follow the constraints above is rejected
+  without changing the current filter.
 
 ### Deleting a person: `delete`
 
@@ -201,6 +249,45 @@ The ride is shown in the result box when it is added, and it is saved with your 
 Examples:
 * `rideadd n/Sunday Sunrise Ride from/18-10-2026 0630 to/18-10-2026 0930 l/East Coast d/45 f/180 s/12 notes/Bring lights and a spare tube`
 * `rideadd n/Evening Spin from/20-10-2026 1800 to/20-10-2026 1930 l/Punggol d/30.5 f/150 s/8`
+
+### Finding group rides: `ridefind`
+
+Finds rides matching one or more supplied criteria and displays the matching rides in the Rides panel.
+
+Format: `ridefind [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] [l/LOCATION] [d/DISTANCE] [f/MINIMUM_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`
+
+To list every ride, use `ridefind all`.
+
+At least one criterion is required unless the special `all` argument is used. Different fields use AND matching, so a ride must satisfy every field supplied. `ridefind all` clears the current ride filter and displays every saved ride in the Rides panel.
+The fields are matched as follows:
+
+* `n/NAME` matches the complete ride name, ignoring case.
+* `from/` matches rides starting at or after the supplied date and time.
+* `to/` matches rides ending at or before the supplied date and time.
+* `l/LOCATION` matches the ride location, ignoring case.
+* `d/DISTANCE` and `s/MAX_GROUP_SIZE` use exact numeric matching.
+* `f/MINIMUM_POWER` matches rides whose minimum power is greater than or equal to the supplied value.
+* `notes/NOTES` matches rides with the supplied notes. Rides without notes do not match a notes criterion.
+
+The date and time format is `DD-MM-YYYY TTTT`, using the 24-hour clock. A date-only `from/` value means `0000`,
+while a date-only `to/` value means `2359`. When both bounds are supplied, `to/` cannot be earlier than `from/`.
+Both bounds are inclusive. Each prefix can be used only once. Distances are positive numbers with at most two decimal places, minimum power is a whole number from 1 to 600, and maximum group size is a positive whole number. Dates must be real calendar dates and times must be between `0000` and `2359`.
+
+The command updates only the displayed ride list; it does not change or delete saved rides. If no ride matches, the Rides panel is empty and the result message reports `0 ride(s) listed!`. Invalid criteria are rejected without changing the current ride filter.
+
+Examples:
+* `ridefind n/Sunday Sunrise Ride`
+* `ridefind from/18-10-2026 to/18-10-2026`
+* `ridefind l/Tampines f/200`
+* `ridefind from/18-10-2026 0630 to/18-10-2026 2000 l/East Coast d/45 f/180 s/12`
+* `ridefind all` displays all rides, including rides hidden by an earlier search.
+
+Common failures include:
+
+* `ridefind` with no criteria is rejected with the command usage instructions; use `ridefind all` to show all rides.
+* A date-only `from/` or `to/` value is expanded to the start or end of that day respectively.
+* A `to/` value earlier than `from/`, an invalid date or time, or a value outside the numeric constraints is rejected without changing the displayed rides.
+* Supplying the same prefix twice is rejected. For example, use only one `f/` criterion.
 
 ### Editing a group ride: `rideedit`
 
@@ -367,10 +454,11 @@ Action | Format, Examples
 **Clear** | `clear`
 **Delete** | `delete PHONE`, then `y`/`yes` to confirm or `n`/`no` to cancel (case-insensitive)<br> e.g., `delete +65 22224444`, then `yes`
 **Edit** | `edit PHONE [n/NAME] [p/PHONE] [sos/EMERGENCY_PHONE] [e/EMAIL] [f/FTP] [x/EXPERIENCE] [l/LOCATION]…`<br> e.g., `edit +65 22224444 n/James Lee e/jameslee@example.com`
-**Find** | `find [n/NAME_KEYWORD]… [p/PHONE]… [sos/EMERGENCY_PHONE]…`<br> e.g., `find n/James n/Jake`, `find n/James p/+65 96320842`
+**Find** | `find [n/NAME_KEYWORD]… [p/PHONE]… [sos/EMERGENCY_PHONE]… [f/MIN_FTP] [x/EXPERIENCE]… [l/LOCATION]…`<br> e.g., `find n/James n/Jake`, `find n/James p/+65 96320842`
 **List** | `list`
 **Help** | `help`
 **Rideadd** | `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MINIMUM_POWER s/MAX_GROUP_SIZE [notes/NOTES]`<br> e.g., `rideadd n/Sunday Sunrise Ride from/18-10-2026 0630 to/18-10-2026 0930 l/East Coast d/45 f/180 s/12 notes/Bring lights`
+**Ridefind** | `ridefind all` or `ridefind [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] [l/LOCATION] [d/DISTANCE] [f/MINIMUM_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`<br> e.g., `ridefind all`, `ridefind from/18-10-2026 to/18-10-2026 f/180`
 **Rideedit** | `rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_FTP] [s/MAX_SIZE] [notes/NOTES]`<br> e.g., `rideedit 101 n/NightRide`, `rideedit 101 notes/`
 **Ridedelete** | `ridedelete ID`<br> e.g., `ridedelete 101`
 **Add cyclist to ride** | `rideaddcyclist ID PHONE`

@@ -16,6 +16,7 @@ import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RideAddCommand;
 import seedu.address.logic.commands.RideDeleteCommand;
 import seedu.address.logic.commands.RideEditCommand;
+import seedu.address.logic.commands.RideFindCommand;
 import seedu.address.logic.commands.RideListCommand;
 import seedu.address.logic.commands.RideRosterCommand;
 
@@ -55,7 +56,8 @@ public class HelpWindowTest {
             AddCommand.COMMAND_WORD, EditCommand.COMMAND_WORD, DeleteCommand.COMMAND_WORD,
             FindCommand.COMMAND_WORD, ListCommand.COMMAND_WORD, ClearCommand.COMMAND_WORD,
             HelpCommand.COMMAND_WORD, ExitCommand.COMMAND_WORD, RideAddCommand.COMMAND_WORD,
-            RideEditCommand.COMMAND_WORD, RideDeleteCommand.COMMAND_WORD, RideListCommand.COMMAND_WORD
+            RideEditCommand.COMMAND_WORD, RideDeleteCommand.COMMAND_WORD, RideListCommand.COMMAND_WORD,
+            RideFindCommand.COMMAND_WORD
         };
 
         for (String commandWord : commandWords) {
@@ -74,6 +76,7 @@ public class HelpWindowTest {
         assertTrue(HelpWindow.COMMAND_LIST.contains(RideEditCommand.MESSAGE_USAGE));
         assertTrue(HelpWindow.COMMAND_LIST.contains(RideDeleteCommand.MESSAGE_USAGE));
         assertTrue(HelpWindow.COMMAND_LIST.contains(RideListCommand.MESSAGE_USAGE));
+        assertTrue(HelpWindow.COMMAND_LIST.contains(RideFindCommand.MESSAGE_USAGE));
     }
 
     @Test

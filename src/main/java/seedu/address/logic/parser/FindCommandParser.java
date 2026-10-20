@@ -1,5 +1,6 @@
 package seedu.address.logic.parser;
 
+import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMERGENCY_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EXPERIENCE_LEVEL;
@@ -32,6 +33,7 @@ public class FindCommandParser implements Parser<FindCommand> {
      * @throws ParseException if the user input does not conform to the expected format
      */
     public FindCommand parse(String args) throws ParseException {
+        requireNonNull(args);
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(" " + args.trim(), PREFIX_NAME, PREFIX_PHONE,
                 PREFIX_EMERGENCY_PHONE, PREFIX_FTP, PREFIX_EXPERIENCE_LEVEL, PREFIX_LOCATION);
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_FTP);
@@ -43,7 +45,7 @@ public class FindCommandParser implements Parser<FindCommand> {
                 || (nameKeywords.isEmpty() && phoneValues.isEmpty() && emergencyPhoneValues.isEmpty()
                 && locationValues.isEmpty() && argMultimap.getValue(PREFIX_FTP).isEmpty()
                 && argMultimap.getValue(PREFIX_EXPERIENCE_LEVEL).isEmpty())
-                || nameKeywords.stream().anyMatch(keyword -> keyword.isEmpty() || keyword.matches(".*\\s+.*"))) {
+                || nameKeywords.stream().anyMatch(String::isEmpty)) {
             throw new ParseException(
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
         }
