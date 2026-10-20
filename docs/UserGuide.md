@@ -90,14 +90,19 @@ Adds a person to the address book.
 
 Format: `add n/NAME p/PHONE sos/EMERGENCY_PHONE e/EMAIL f/FTP_LEVEL x/EXPERIENCE_LEVEL l/LOCATION [l/LOCATION]…`
 
-The emergency contact number (`sos/`) is required for new cyclists and follows the same validation as `p/`: a `+`, a country code of 1–3 digits, exactly one space, and a number of at least 3 digits. Blank values, parentheses and hyphens are rejected. Emergency numbers may be shared and do not determine duplicate cyclists.
+Field | Meaning and rules
+------|------------------
+`n/NAME` | The cyclist's name. It may contain letters, numbers and spaces, but must not be blank.
+`p/PHONE` | A unique phone number using a `+`, a 1–3 digit country code, one space and at least 3 digits, such as `+65 98765432`. Parentheses, hyphens and blank values are rejected. The number must not belong to another contact, including contacts hidden by a filter.
+`sos/EMERGENCY_PHONE` | Required for new cyclists. It follows the same format as `p/` but may be shared by multiple cyclists and does not determine duplicate cyclists.
+`e/EMAIL` | A valid email address. Email addresses are compared case-insensitively when checking for duplicates.
+`f/FTP_LEVEL` | A whole number from 1 to 600, in watts.
+`x/EXPERIENCE_LEVEL` | `Beginner`, `Intermediate` or `Advanced`, ignoring case.
+`l/LOCATION` | A preferred cycling location. At least one is required. Repeat `l/` for multiple locations, or use `l/any` alone.
 
-The phone number must include a country code and one separating space, for example `+65 98765432`.
-It must not belong to another contact, including contacts hidden by a filter.
-FTP must be a whole number from 1 to 600.
-At least one preferred location is required. Repeat `l/` for multiple locations, or use `l/any` alone.
-
-`EXPERIENCE_LEVEL` must be one of `Beginner`, `Intermediate` or `Advanced` (case-insensitive).
+All fields are required, and `l/` may be repeated. Prefixes
+can be entered in any order. Existing records remain unchanged when validation fails or when the phone number or
+email address duplicates another contact.
 
 Examples:
 * `add n/John Doe p/+65 98765432 sos/+65 99999999 e/johnd@example.com f/300 x/Beginner l/any`
@@ -105,9 +110,16 @@ Examples:
 
 ### Listing all persons: `list`
 
-Shows a list of all persons in the address book.
+Shows every cyclist currently stored in the address book.
 
 Format: `list`
+
+* Removes any active `find` or ride-roster cyclist filter and restores all cyclists.
+* Displays cyclist cards alphabetically by full name, ignoring case. Names that are identical ignoring case retain
+  their stored order.
+* Each card shows the cyclist's name, phone number, SOS number, email, FTP, experience level and preferred locations.
+  A missing SOS number is shown as **Not provided**.
+* If there are no cyclists, the cyclist panel is empty and the result explains that there are no cyclists.
 
 ### Editing a person: `edit`
 
@@ -119,6 +131,10 @@ Format: `edit PHONE [n/NAME] [p/PHONE] [sos/EMERGENCY_PHONE] [e/EMAIL] [f/FTP] [
 * The resulting phone number must not belong to another contact anywhere in the book. An unchanged phone number is allowed when it is already unique.
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
+* The target phone number must use the same country-code and spacing format as `add`, and must remain unique across
+  the address book. Other supplied fields use the same validation rules as `add`.
+* Only supplied fields are replaced. Unspecified fields, including preferred locations when `l/` is omitted, remain
+  unchanged.
 
 Examples:
 * `edit +65 98765432 p/+65 91111111 e/johndoe@example.com` updates the identified contact's phone and email.
@@ -127,6 +143,10 @@ Examples:
 * `edit +65 98765432 sos/+65 98888888` updates only the emergency number. Omitting `sos/` retains its current value; blank `sos/` is rejected.
 
 Cyclist cards label emergency contact numbers as **SOS**. Older saved records without an emergency number load normally and show **Not provided**. Use `edit PHONE sos/EMERGENCY_PHONE` to supply one; other edits preserve its absence. Numbers are saved automatically and retained after restarting.
+
+After a successful edit, the updated cyclist card is shown in the correct alphabetical position. Invalid edits leave
+the cyclist and all other records unchanged. Editing a name can therefore change the visible card order; editing FTP,
+experience or preferred locations updates the corresponding card fields.
 
 ### Locating persons by name, phone or emergency number: `find`
 

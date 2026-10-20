@@ -720,7 +720,8 @@ Repeat the checks on each operating system supported by the release.
    `edit +65 96742165 l/`, and `edit +65 96742165 p/+65 111 p/+65 222`.
    Expected: Each command shows an error and leaves every contact field unchanged.
 1. Try add commands with missing required fields, `f/0`, `f/601`, `f/abc`, blank `l/`,
-   invalid email, invalid experience and phone numbers without a country code.
+   invalid email, invalid experience, and phone numbers without a country code, without a separating space,
+   with hyphens, with parentheses, or with fewer than three digits after the country code.
    Expected: Each command shows an error and adds no contact. FTP values 1 and 600 are accepted.
 
 ### Finding and listing people
