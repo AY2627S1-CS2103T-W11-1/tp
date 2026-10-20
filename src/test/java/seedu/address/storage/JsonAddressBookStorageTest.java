@@ -96,7 +96,7 @@ public class JsonAddressBookStorageTest {
         Path filePath = testFolder.resolve("RidesAddressBook.json");
         AddressBook original = getTypicalAddressBook();
         original.addRide(new RideBuilder().withNotes("Bring lights").build());
-        original.addRide(new RideBuilder().withName("Evening Spin").withRoster("+65 91234567").build());
+        original.addRide(new RideBuilder().withName("Evening Spin").withRoster(ALICE.getPhone().value).build());
         JsonAddressBookStorage jsonAddressBookStorage = new JsonAddressBookStorage(filePath);
 
         jsonAddressBookStorage.saveAddressBook(original, filePath);

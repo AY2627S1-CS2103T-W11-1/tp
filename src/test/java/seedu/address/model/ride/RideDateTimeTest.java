@@ -10,6 +10,20 @@ import org.junit.jupiter.api.Test;
 public class RideDateTimeTest {
 
     @Test
+    public void isValidRideDateTime_calendarAndClockBoundaryNeighbours() {
+        for (String value : java.util.List.of("28-02-1900 2359", "01-03-1900 0000", "29-02-2000 0000",
+                "28-02-2027 2359", "01-03-2027 0000", "29-02-2028 2359", "30-04-2026 2359",
+                "01-05-2026 0000", "31-12-9999 2359", "01-01-0001 0000")) {
+            assertTrue(RideDateTime.isValidRideDateTime(value), value);
+        }
+        for (String value : java.util.List.of("29-02-1900 0000", "29-02-2100 0000", "31-04-2026 0000",
+                "01-00-2026 0000", "01-13-2026 0000", "32-12-2026 0000", "18-10-2026 23560",
+                "18-10-2026 2360", "18-10-2026 2400", "01-01-10000 0000")) {
+            assertFalse(RideDateTime.isValidRideDateTime(value), value);
+        }
+    }
+
+    @Test
     public void constructor_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new RideDateTime(null));
     }

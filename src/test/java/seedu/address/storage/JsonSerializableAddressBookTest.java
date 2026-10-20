@@ -29,6 +29,35 @@ public class JsonSerializableAddressBookTest {
     private static final Path DUPLICATE_PERSON_FILE = TEST_DATA_FOLDER.resolve("duplicatePersonAddressBook.json");
 
     @Test
+    public void toModelType_missingOrNullCyclistData_throwsIllegalValueException() throws Exception {
+        for (String json : List.of("{}", "{\"persons\":null}")) {
+            JsonSerializableAddressBook data = JsonUtil.fromJsonString(json, JsonSerializableAddressBook.class);
+            assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_MISSING_PERSONS,
+                    data::toModelType);
+        }
+        JsonSerializableAddressBook nullEntry = JsonUtil.fromJsonString("{\"persons\":[null]}",
+                JsonSerializableAddressBook.class);
+        assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_NULL_PERSON,
+                nullEntry::toModelType);
+    }
+
+    @Test
+    public void toModelType_maximumRideId_throwsIllegalValueException() {
+        JsonSerializableAddressBook data = createSerializableAddressBook(
+                List.of(new RideBuilder().withId(Integer.MAX_VALUE).build()), null);
+        assertThrows(IllegalValueException.class, AddressBook.MESSAGE_INVALID_RIDE_IDS, data::toModelType);
+    }
+
+    @Test
+    public void toModelType_exhaustedCounter_roundTripPreservesCounter() throws Exception {
+        AddressBook original = new AddressBook();
+        original.setRides(List.of(new RideBuilder().withId(Integer.MAX_VALUE - 1).build()), Integer.MAX_VALUE);
+        String json = JsonUtil.toJsonString(new JsonSerializableAddressBook(original));
+        JsonSerializableAddressBook data = JsonUtil.fromJsonString(json, JsonSerializableAddressBook.class);
+        assertEquals(original, data.toModelType());
+    }
+
+    @Test
     public void toModelType_typicalPersonsFile_success() throws Exception {
         JsonSerializableAddressBook dataFromFile = JsonUtil.readJsonFile(TYPICAL_PERSONS_FILE,
                 JsonSerializableAddressBook.class).get();
@@ -187,7 +216,7 @@ public class JsonSerializableAddressBookTest {
     public void constructorFromAddressBook_roundTripKeepsRidesAndNextRideId() throws Exception {
         AddressBook original = new AddressBook();
         original.addPerson(ALICE);
-        original.addRide(new RideBuilder().withNotes("Bring lights").withRoster("+65 91234567").build());
+        original.addRide(new RideBuilder().withNotes("Bring lights").withRoster(ALICE.getPhone().value).build());
         original.addRide(new RideBuilder().withName("Evening Spin").build());
 
         AddressBook roundTripped = new JsonSerializableAddressBook(original).toModelType();

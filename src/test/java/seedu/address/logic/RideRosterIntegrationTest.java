@@ -55,6 +55,14 @@ public class RideRosterIntegrationTest {
     }
 
     @Test
+    public void execute_tabSeparatedRideEdit_updatesBothFields() throws Exception {
+        logic.execute("rideedit 1 notes/Bring lights\ts/2");
+        assertEquals("2", currentRide().getMaxGroupSize().value);
+        assertEquals("Bring lights", currentRide().getNotes().orElseThrow().value);
+        assertSavedState();
+    }
+
+    @Test
     public void execute_fullNames_updatesRosterAndPersists() throws Exception {
         model.updateFilteredPersonList(person -> false);
         Ride original = model.getAddressBook().getRideList().get(0);

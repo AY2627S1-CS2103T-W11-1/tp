@@ -28,6 +28,36 @@ public class AddressBookTest {
     private final AddressBook addressBook = new AddressBook();
 
     @Test
+    public void setRides_invalidIds_leavesRidesAndCounterUnchanged() {
+        Ride original = addressBook.addRide(new RideBuilder().build());
+        List<List<Ride>> invalidLists = List.of(
+                List.of(new RideBuilder().withId(0).build()),
+                List.of(new RideBuilder().withId(Integer.MAX_VALUE).build()),
+                List.of(original, new RideBuilder().withId(original.getId()).withName("Duplicate ID").build()));
+        for (List<Ride> invalidRides : invalidLists) {
+            assertThrows(IllegalArgumentException.class, () -> addressBook.setRides(invalidRides, 100));
+            assertEquals(List.of(original), addressBook.getRideList());
+            assertEquals(2, addressBook.getNextRideId());
+        }
+        assertThrows(NullPointerException.class, () ->
+                addressBook.setRides(java.util.Arrays.asList(original, null), 100));
+        assertEquals(List.of(original), addressBook.getRideList());
+        assertEquals(2, addressBook.getNextRideId());
+    }
+
+    @Test
+    public void addRide_lastAvailableId_thenRejectsWithoutMutation() {
+        addressBook.setRides(List.of(), Integer.MAX_VALUE - 1);
+        Ride last = addressBook.addRide(new RideBuilder().build());
+        assertEquals(Integer.MAX_VALUE - 1, last.getId());
+        assertEquals(Integer.MAX_VALUE, addressBook.getNextRideId());
+        assertThrows(IllegalStateException.class, AddressBook.MESSAGE_RIDE_IDS_EXHAUSTED, () ->
+                addressBook.addRide(new RideBuilder().build()));
+        assertEquals(List.of(last), addressBook.getRideList());
+        assertEquals(Integer.MAX_VALUE, addressBook.getNextRideId());
+    }
+
+    @Test
     public void constructor() {
         assertEquals(List.of(), addressBook.getPersonList());
     }

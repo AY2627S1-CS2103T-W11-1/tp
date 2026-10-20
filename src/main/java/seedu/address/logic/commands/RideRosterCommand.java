@@ -3,7 +3,9 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
@@ -25,6 +27,8 @@ public class RideRosterCommand extends Command {
     public static final String MESSAGE_NOT_JOINED = "Cyclist is not on this ride's roster.";
     public static final String MESSAGE_FULL = "Ride has reached its maximum group size.";
     public static final String MESSAGE_LOW_POWER = "Cyclist's FTP is below the ride's minimum power.";
+
+    private static final Logger logger = LogsCenter.getLogger(RideRosterCommand.class);
 
     private final int rideId;
     private final Phone phone;
@@ -63,7 +67,12 @@ public class RideRosterCommand extends Command {
         } else if (!roster.remove(phone)) {
             throw new CommandException(MESSAGE_NOT_JOINED);
         }
+        assert roster.contains(phone) == isJoining : "Roster membership must match the requested operation.";
+        assert roster.size() == ride.getRoster().size() + (isJoining ? 1 : -1)
+                : "A roster operation must add or remove exactly one cyclist.";
         model.setRide(ride, ride.withRoster(roster));
+        logger.fine(() -> "Completed roster " + (isJoining ? "addition" : "removal")
+                + " for ride ID " + rideId + "; roster size: " + roster.size() + ".");
         return new CommandResult(String.format("Cyclist %s %s ride %d.", phone,
                 isJoining ? "added to" : "removed from", rideId));
     }
