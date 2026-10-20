@@ -49,6 +49,8 @@ public class FindCommandParserTest {
 
         assertParseSuccess(parser, "n/John Doe", new FindCommand(
                 new PersonMatchesFindCriteriaPredicate(List.of("John Doe"), List.of())));
+        assertParseSuccess(parser, "n/John Doe n/Jane Doe", new FindCommand(
+                new PersonMatchesFindCriteriaPredicate(List.of("John Doe", "Jane Doe"), List.of())));
 
         FindCommand phoneCommand = new FindCommand(new PersonMatchesFindCriteriaPredicate(
                 List.of(), List.of(new Phone("+65 96320842"))));

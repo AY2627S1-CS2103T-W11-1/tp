@@ -105,6 +105,17 @@ public class FindCommandTest {
     }
 
     @Test
+    public void execute_multipleFullNames_matchesEitherFullName() {
+        PersonMatchesFindCriteriaPredicate predicate = new PersonMatchesFindCriteriaPredicate(
+                List.of(ALICE.getName().fullName, CARL.getName().fullName), List.of());
+        FindCommand command = new FindCommand(predicate);
+        expectedModel.updateFilteredPersonList(predicate);
+
+        assertCommandSuccess(command, model, String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 2), expectedModel);
+        assertEquals(List.of(ALICE, CARL), model.getFilteredPersonList());
+    }
+
+    @Test
     public void execute_exactPhone_returnsOnlyMatchingCyclist() {
         Person personWithSameName = new PersonBuilder(ALICE).withPhone("+65 80000000")
                 .withEmail("other.alice@example.com").build();
