@@ -15,6 +15,21 @@ public class ArgumentTokenizerTest {
     private final Prefix hatQ = new Prefix("^Q");
 
     @Test
+    public void tokenize_whitespaceSeparators_recognisesPrefixesWithoutSplittingValues() {
+        for (String separator : java.util.List.of(" ", "  ", "\t", "\n", "\r\n")) {
+            ArgumentMultimap arguments = ArgumentTokenizer.tokenize(
+                    separator + "p/first" + separator + "-tsecond", pSlash, dashT);
+            assertPreambleEmpty(arguments);
+            assertArgumentPresent(arguments, pSlash, "first");
+            assertArgumentPresent(arguments, dashT, "second");
+        }
+        assertPreamblePresent(ArgumentTokenizer.tokenize(" untouched ", new Prefix("")), "untouched");
+        ArgumentMultimap embedded = ArgumentTokenizer.tokenize(" p/first-tsecond", pSlash, dashT);
+        assertArgumentPresent(embedded, pSlash, "first-tsecond");
+        assertArgumentAbsent(embedded, dashT);
+    }
+
+    @Test
     public void tokenize_emptyArgsString_noValues() {
         String argsString = "  ";
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(argsString, pSlash);

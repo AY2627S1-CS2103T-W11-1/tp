@@ -2,11 +2,15 @@ package seedu.address.model;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.logging.Logger;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.UniquePersonList;
@@ -18,6 +22,12 @@ import seedu.address.model.ride.Ride;
  * Rides are identified by their ID, so rides with the same details are allowed.
  */
 public class AddressBook implements ReadOnlyAddressBook {
+
+    public static final String MESSAGE_INVALID_RIDE_IDS =
+            "Stored ride IDs must be unique and between 1 and 2147483646.";
+    public static final String MESSAGE_RIDE_IDS_EXHAUSTED = "No more ride IDs are available.";
+
+    private static final Logger logger = LogsCenter.getLogger(AddressBook.class);
 
     private final UniquePersonList persons = new UniquePersonList();
     private final ObservableList<Ride> rides = FXCollections.observableArrayList();
@@ -47,11 +57,22 @@ public class AddressBook implements ReadOnlyAddressBook {
     /**
      * Replaces the contents of the ride list with {@code rides} and sets the ID that the next added ride receives.
      * The next ride ID is raised if needed so that it is always higher than every ID in {@code rides}.
+     *
+     * @throws IllegalArgumentException if ride IDs are duplicate, unassigned, or leave no room for a counter.
+     * @throws NullPointerException if the list or any ride is null.
      */
     public void setRides(List<Ride> rides, int nextRideId) {
         requireNonNull(rides);
-        int lowestSafeId = rides.stream().mapToInt(Ride::getId).max().orElse(0) + 1;
-        this.rides.setAll(rides);
+        List<Ride> validatedRides = List.copyOf(rides);
+        Set<Integer> rideIds = new HashSet<>();
+        for (Ride ride : validatedRides) {
+            if (ride.getId() <= Ride.UNASSIGNED_ID || ride.getId() == Integer.MAX_VALUE
+                    || !rideIds.add(ride.getId())) {
+                throw new IllegalArgumentException(MESSAGE_INVALID_RIDE_IDS);
+            }
+        }
+        int lowestSafeId = validatedRides.stream().mapToInt(Ride::getId).max().orElse(0) + 1;
+        this.rides.setAll(validatedRides);
         this.nextRideId = Math.max(Math.max(nextRideId, lowestSafeId), 1);
     }
 
@@ -93,8 +114,13 @@ public class AddressBook implements ReadOnlyAddressBook {
 
         persons.setPerson(target, editedPerson);
         if (!target.getPhone().equals(editedPerson.getPhone())) {
+            long affectedRosterCount = rides.stream()
+                    .filter(ride -> ride.getRoster().contains(target.getPhone())).count();
             rides.replaceAll(ride -> ride.withRoster(ride.getRoster().stream()
                     .map(phone -> phone.equals(target.getPhone()) ? editedPerson.getPhone() : phone).toList()));
+            assert rides.stream().noneMatch(ride -> ride.getRoster().contains(target.getPhone()))
+                    : "No roster should retain the replaced phone number.";
+            logger.fine(() -> "Updated phone references in " + affectedRosterCount + " ride roster(s).");
         }
     }
 
@@ -104,8 +130,13 @@ public class AddressBook implements ReadOnlyAddressBook {
      */
     public void removePerson(Person key) {
         persons.remove(key);
+        long affectedRosterCount = rides.stream()
+                .filter(ride -> ride.getRoster().contains(key.getPhone())).count();
         rides.replaceAll(ride -> ride.withRoster(ride.getRoster().stream()
                 .filter(phone -> !phone.equals(key.getPhone())).toList()));
+        assert rides.stream().noneMatch(ride -> ride.getRoster().contains(key.getPhone()))
+                : "No roster should retain a deleted cyclist's phone number.";
+        logger.fine(() -> "Removed cyclist references from " + affectedRosterCount + " ride roster(s).");
     }
 
     //// ride-level operations
@@ -113,12 +144,20 @@ public class AddressBook implements ReadOnlyAddressBook {
     /**
      * Adds a ride to the address book and returns it with the next free ride ID.
      * IDs go up in the order rides are added and are never reused.
+     *
+     * @throws IllegalStateException if no more IDs can be assigned without overflowing the counter.
      */
     public Ride addRide(Ride ride) {
         requireNonNull(ride);
+        if (nextRideId == Integer.MAX_VALUE) {
+            throw new IllegalStateException(MESSAGE_RIDE_IDS_EXHAUSTED);
+        }
         Ride storedRide = ride.withId(nextRideId);
         nextRideId++;
         rides.add(storedRide);
+        assert storedRide.getId() > Ride.UNASSIGNED_ID : "An added ride must have a positive ID.";
+        assert storedRide.getId() < nextRideId : "The next ride ID must exceed the assigned ID.";
+        logger.fine(() -> "Added ride with ID " + storedRide.getId() + ".");
         return storedRide;
     }
 

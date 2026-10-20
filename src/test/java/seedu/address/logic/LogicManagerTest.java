@@ -61,6 +61,16 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void constructor_nullDependencies_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new LogicManager(null, null));
+        assertThrows(NullPointerException.class, () -> new LogicManager(model, null));
+        StorageManager storage = new StorageManager(
+                new JsonAddressBookStorage(temporaryFolder.resolve("book.json")),
+                new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json")));
+        assertThrows(NullPointerException.class, () -> new LogicManager(null, storage));
+    }
+
+    @Test
     public void execute_invalidCommandFormat_throwsParseException() {
         String invalidCommand = "uicfhmowqewca";
         assertParseException(invalidCommand, MESSAGE_UNKNOWN_COMMAND);
@@ -204,6 +214,8 @@ public class LogicManagerTest {
 
     @Test
     public void execute_rideEditClearsNotesAndPreservesRosterAcrossReload() throws Exception {
+        model.addPerson(new PersonBuilder().withPhone("+65 91234567").build());
+        model.addPerson(new PersonBuilder().withPhone("+65 92345678").withEmail("second@example.com").build());
         Ride storedRide = model.addRide(new RideBuilder().withNotes("Bring lights")
                 .withRoster("+65 91234567", "+65 92345678").build());
         List<Ride> observedRides = logic.getRideList();

@@ -9,6 +9,18 @@ import org.junit.jupiter.api.Test;
 public class PhoneTest {
 
     @Test
+    public void isValidPhone_countryCodeAndSubscriberLengthBoundaries() {
+        // Country-code partitions: missing, 1, 2, 3, and 4 digits.
+        for (String code : java.util.List.of("1", "12", "123")) {
+            assertFalse(Phone.isValidPhone("+" + code + " 12"));
+            assertTrue(Phone.isValidPhone("+" + code + " 123"));
+            assertTrue(Phone.isValidPhone("+" + code + " 1234"));
+        }
+        assertFalse(Phone.isValidPhone("+ 123"));
+        assertFalse(Phone.isValidPhone("+1234 123"));
+    }
+
+    @Test
     public void constructor_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new Phone(null));
     }

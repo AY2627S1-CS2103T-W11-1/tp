@@ -12,6 +12,8 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.Messages;
+import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
@@ -21,6 +23,17 @@ import seedu.address.testutil.RideBuilder;
 public class RideAddCommandTest {
 
     private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+
+    @Test
+    public void execute_exhaustedRideIds_throwsCommandExceptionWithoutMutation() {
+        AddressBook exhausted = new AddressBook();
+        exhausted.setRides(List.of(), Integer.MAX_VALUE);
+        Model exhaustedModel = new ModelManager(exhausted, new UserPrefs());
+        RideAddCommand command = new RideAddCommand(new RideBuilder().build());
+        assertThrows(CommandException.class, AddressBook.MESSAGE_RIDE_IDS_EXHAUSTED, () ->
+                command.execute(exhaustedModel));
+        assertEquals(exhausted, exhaustedModel.getAddressBook());
+    }
 
     @Test
     public void constructor_nullRide_throwsNullPointerException() {

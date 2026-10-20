@@ -1116,3 +1116,46 @@ Use disposable cyclist and ride data. Record the original details before applyin
    error and leaves the previous ride filter unchanged.
 1. Restart Cyclique. Expected: filters do not alter saved cyclists or rides; all records remain available after
    using `list` and `ridefind all`.
+
+
+### Defensive loading and ride ID boundaries
+
+Use JDK 25, a disposable folder and a copy of the release JAR. Enable assertions with
+`java -ea -jar cyclique.jar`. Close the application before each saved-file edit.
+
+1. Test saved books containing `{}`, `{"persons":null}` and `{"persons":[null]}` separately.
+   Expected: startup handles the loading failure and opens an empty book; the log explains the invalid data.
+1. Start with `{"persons":[],"rides":[],"nextRideId":2147483646}` and add a valid ride.
+   Expected: the assigned ID is `2147483646`. Try adding another ride.
+   Expected: `No more ride IDs are available.` appears, and no second ride is added.
+1. Restart and repeat the add attempt. Expected: the same error and unchanged saved ride.
+1. Change the saved ride ID to `2147483647` and restart.
+   Expected: startup handles the loading failure; the log explains the invalid ride ID.
+1. Run the **Deletion confirmation regression** with assertions enabled.
+   Expected: valid confirmation, cancellation and replacement requests complete without assertion failures.
+
+
+### Ride boundary and corrupt-data regression
+
+Use JDK 25 and a disposable folder with a copy of the release JAR. Launch with
+`java -ea -jar cyclique.jar`. Back up disposable fixtures before corruption checks;
+the existing recovery behaviour starts with an empty book after a loading failure.
+
+1. Create `rideadd n/Boundary from/18-10-2026 0000 to/18-10-2026 2359 l/East Coast d/0.01 f/1 s/1`.
+   Expected: a positive ID, the exact period and distance appear on the ride card.
+1. Run `ridefind from/18-10-2026 to/18-10-2026`. Expected: the ride is included.
+   Run `ridefind from/18-10-2026 0001`, then `ridefind to/18-10-2026 2358`.
+   Expected: the ride is excluded in both cases. `ridefind all` restores it.
+1. Enter `rideedit ID notes/Bring lights<TAB>s/2`, replacing `<TAB>` with a literal tab.
+   Expected: notes read `Bring lights`, and maximum group size becomes 2. Restart and check both fields.
+1. Try edits with distance 0, power 0 and 601, group size 0, an end one minute before the start,
+   and notes containing 11 words. Expected: each reports an error and preserves the previous data.
+   Exactly 10 words are accepted; an empty `notes/` edit clears notes.
+1. Run the **Ride roster regression**, **Ride list regression**, and **Find and ridefind regression**
+   scenarios for roster changes, live filters, persistence and layout.
+1. Close the application, replace the disposable `data/addressbook.json` contents with `null` and relaunch.
+   Expected: a loading warning is logged and startup reaches the empty-book UI without an uncaught exception.
+1. Restore a valid fixture with a cyclist on a ride. Close before each edit. Separately duplicate the phone
+   in its saved roster, add a valid-format phone with no corresponding cyclist, and set maximum group size
+   below the saved roster size. Relaunch each fixture.
+   Expected: each corrupted book is rejected with a specific loading warning; no invalid roster is displayed.

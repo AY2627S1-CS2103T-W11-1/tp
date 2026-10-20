@@ -50,6 +50,21 @@ public class EditCommandParserTest {
     private EditCommandParser parser = new EditCommandParser();
 
     @Test
+    public void parse_emergencyPhoneCountryCodeBoundaries_success() {
+        for (String phone : java.util.List.of("+1 123", "+12 123", "+123 123", "+123 1234")) {
+            EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withEmergencyPhone(phone).build();
+            assertParseSuccess(parser, TARGET_PHONE + " sos/" + phone, new EditCommand(TARGET_PHONE, descriptor));
+        }
+    }
+
+    @Test
+    public void parse_emergencyPhoneOutsideLengthBoundaries_failure() {
+        for (String phone : java.util.List.of("+ 123", "+1234 123", "+1 12", "+12 12", "+123 12")) {
+            assertParseFailure(parser, TARGET_PHONE + " sos/" + phone, Phone.MESSAGE_CONSTRAINTS);
+        }
+    }
+
+    @Test
     public void parse_emergencyPhoneOnly_successAndRejectsDuplicates() {
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()
                 .withEmergencyPhone("+65 99999999").build();

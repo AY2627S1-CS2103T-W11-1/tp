@@ -1,8 +1,10 @@
 package seedu.address.storage;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -25,6 +27,9 @@ class JsonAdaptedRide {
 
     public static final String MISSING_FIELD_MESSAGE_FORMAT = "Ride's %s field is missing.";
     public static final String MESSAGE_INVALID_ID = "Ride's id should be a positive whole number.";
+
+    public static final String MESSAGE_DUPLICATE_ROSTER_MEMBER = "Ride roster contains duplicate cyclists.";
+    public static final String MESSAGE_ROSTER_TOO_LARGE = "Ride roster exceeds its maximum group size.";
 
     private final Integer id;
     private final String name;
@@ -149,12 +154,20 @@ class JsonAdaptedRide {
             modelNotes = Optional.of(new Notes(notes));
         }
 
+        if (roster.size() > Integer.parseInt(modelGroupSize.value)) {
+            throw new IllegalValueException(MESSAGE_ROSTER_TOO_LARGE);
+        }
         final List<Phone> modelRoster = new ArrayList<>();
+        Set<Phone> uniquePhones = new HashSet<>();
         for (String phone : roster) {
             if (phone == null || !Phone.isValidPhone(phone)) {
                 throw new IllegalValueException(Phone.MESSAGE_CONSTRAINTS);
             }
-            modelRoster.add(new Phone(phone));
+            Phone modelPhone = new Phone(phone);
+            if (!uniquePhones.add(modelPhone)) {
+                throw new IllegalValueException(MESSAGE_DUPLICATE_ROSTER_MEMBER);
+            }
+            modelRoster.add(modelPhone);
         }
 
         return new Ride(id, modelName, modelFrom, modelTo, modelLocation, modelDistance, modelMinimumPower,

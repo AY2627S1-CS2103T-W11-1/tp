@@ -12,6 +12,8 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_TO;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
+import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ride.Ride;
 
@@ -60,9 +62,12 @@ public class RideAddCommand extends Command {
     }
 
     @Override
-    public CommandResult execute(Model model) {
+    public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
 
+        if (model.getAddressBook().getNextRideId() == Integer.MAX_VALUE) {
+            throw new CommandException(AddressBook.MESSAGE_RIDE_IDS_EXHAUSTED);
+        }
         Ride addedRide = model.addRide(toAdd);
         return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.formatRide(addedRide)));
     }

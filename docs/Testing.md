@@ -98,3 +98,41 @@ capacity and FTP boundaries, invalid input, rejected commands without mutation,
 phone edits, confirmed/cancelled contact deletion, JSON readback and removal after reload.
 `HelpWindowTest` verifies both roster command formats and dropdown starters. Run the
 Developer Guide's **Ride roster regression (manual testing)** after roster changes.
+
+`AddressBookTest` checks that invalid stored ride IDs leave the ride list and counter unchanged,
+and that ID exhaustion cannot overflow the counter. `RideAddCommandTest` checks the corresponding
+command error without mutation. `JsonSerializableAddressBookTest` rejects missing/null cyclist lists,
+null cyclist entries and stored ride IDs that leave no room for the counter, and preserves an
+exhausted counter across JSON reload. `LogicManagerTest` rejects null dependencies;
+`DeletionConfirmationTest` exercises the deletion-state assertions with assertions enabled.
+Run the Developer Guide's **Defensive loading and ride ID boundaries** manual scenario after these changes.
+
+`RideRosterIntegrationTest` exercises roster membership and size postconditions, and the
+absence of old phone references after cyclist edits and confirmed deletion. `AddressBookTest`
+exercises the assigned-ID postconditions, including the final available ID.
+`DeletionConfirmationTest` covers request creation, both cancellation paths, confirmation
+and changed-target rejection. These operations now emit `FINE` diagnostics using operation
+names, ride IDs and counts without adding cyclist details to these log messages.
+
+
+## Ride feature boundary and partition audit
+
+See [Bug testing report](BugTestingReport.md) for reproduced defects, deferred minor findings,
+coverage and manual-check limitations. The cases follow the Week 10 equivalence-partitioning
+and boundary-value approach: test distinct valid/invalid classes and adjacent values at limits.
+
+`RideBoundaryIntegrationTest` exercises creation, editing, deletion, roster membership, listing,
+find filters and JSON readback through real logic and storage. Its rejected-command checks compare
+the whole book, both visible lists and saved JSON. It covers numeric and date boundaries, blank
+and duplicate criteria, invalid and overflowing IDs, notes limits, capacity, FTP eligibility,
+non-reused IDs and live roster filters. `RideDataIntegrityTest` checks invalid saved roster
+partitions and JSON null roots through actual file loading, plus the valid at-capacity boundary.
+Existing ride command/model/parser tests cover the remaining individual field and command cases.
+
+`PhoneTest` and `EditCommandParserTest` explicitly cover country-code lengths 0, 1, 2, 3 and 4,
+and subscriber lengths 2, 3 and 4. Thus `+12 123` and `+123 123` are both tested as valid.
+`RideDateTimeTest` adds century leap-year rules, month ends and clock boundaries.
+`ArgumentTokenizerTest` covers spaces, tabs, line breaks and embedded prefix-like text;
+`RideRosterIntegrationTest` verifies a tab-separated edit persists both supplied fields.
+
+Run **Ride boundary and corrupt-data regression** in the Developer Guide after these changes.

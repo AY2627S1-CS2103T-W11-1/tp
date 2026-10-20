@@ -1,7 +1,10 @@
 package seedu.address.logic;
 
+import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
+
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
@@ -42,6 +45,7 @@ public class LogicManager implements Logic {
      * Constructs a {@code LogicManager} with the given {@code Model} and {@code Storage}.
      */
     public LogicManager(Model model, Storage storage) {
+        requireAllNonNull(model, storage);
         this.model = model;
         this.storage = storage;
         addressBookParser = new AddressBookParser();
@@ -49,6 +53,8 @@ public class LogicManager implements Logic {
 
     @Override
     public CommandResult execute(String commandText) throws CommandException, ParseException {
+        assert (pendingDeletion == null) == (pendingCyclist == null)
+                : "Pending deletion and cyclist must be present or absent together.";
         logger.info("----------------[USER COMMAND][" + commandText + "]");
 
         boolean cancelledDeletion = false;
@@ -59,6 +65,7 @@ public class LogicManager implements Logic {
             }
             if (reply.equalsIgnoreCase("n") || reply.equalsIgnoreCase("no")) {
                 cancelDeletion();
+                logger.fine("Pending deletion cancelled by user reply.");
                 return new CommandResult(DeleteCommand.MESSAGE_DELETE_CANCELLED);
             }
             if (!addressBookParser.isRecognisedCommand(commandText)) {
@@ -66,6 +73,7 @@ public class LogicManager implements Logic {
                         Messages.format(pendingCyclist)));
             }
             cancelDeletion();
+            logger.fine("Pending deletion cancelled by a subsequent command.");
             cancelledDeletion = true;
         }
 
@@ -76,6 +84,7 @@ public class LogicManager implements Logic {
                 Person cyclist = deletion.getPersonToDelete(model);
                 pendingDeletion = deletion;
                 pendingCyclist = cyclist;
+                logger.fine("Deletion confirmation requested.");
                 result = new CommandResult(String.format(DeleteCommand.MESSAGE_CONFIRM_DELETE,
                         Messages.format(cyclist)));
             } else {
@@ -103,13 +112,17 @@ public class LogicManager implements Logic {
      * Consumes the request before execution so a failed save cannot replay the deletion.
      */
     private CommandResult confirmDeletion() throws CommandException {
+        assert pendingDeletion != null : "A deletion request must exist before confirmation.";
+        assert pendingCyclist != null : "A cyclist snapshot must exist before confirmation.";
         DeleteCommand deletion = pendingDeletion;
         Person cyclist = pendingCyclist;
         cancelDeletion();
         if (!deletion.getPersonToDelete(model).equals(cyclist)) {
+            logger.fine("Deletion confirmation rejected because the target changed.");
             throw new CommandException(DeleteCommand.MESSAGE_TARGET_CHANGED);
         }
         CommandResult result = deletion.execute(model);
+        logger.fine("Confirmed deletion executed; saving the updated address book.");
         saveAddressBook();
         return result;
     }
@@ -136,8 +149,10 @@ public class LogicManager implements Logic {
         try {
             storage.saveAddressBook(model.getAddressBook());
         } catch (AccessDeniedException e) {
+            logger.log(Level.WARNING, "Permission denied saving data to " + storage.getAddressBookFilePath(), e);
             throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage()), e);
         } catch (IOException ioe) {
+            logger.log(Level.WARNING, "Failed to save data to " + storage.getAddressBookFilePath(), ioe);
             throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
         }
     }

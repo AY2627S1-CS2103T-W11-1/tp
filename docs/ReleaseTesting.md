@@ -354,3 +354,56 @@ selection appends the arguments correctly, confirming command-box focus and the
 caret at the end; no prefixes or placeholders are inserted. Existing `add` and
 `list` entries still insert their expected starter text. Clicking **Full help...**
 opens the Help window. No roster commands were executed.
+
+## Defensive programming additions (20 October 2026)
+
+Enable assertions for Gradle run and test tasks. Add deletion-state assertions,
+null dependency checks, save-failure warning logs with exceptions, checked loading
+errors for missing/null cyclist data, and ride ID validation before mutation.
+Guard ride ID exhaustion in both the model and command layer.
+
+Temurin JDK 25.0.4.1: `./gradlew check coverage shadowJar` passes. All 694 tests
+pass, both Checkstyle tasks pass, and line coverage is 83.08%.
+
+Launch the built JAR with `-ea` in `/private/tmp/cyclique-defensive-ui`, using an
+empty book with nextRideId 2147483646. Startup logs confirm successful loading
+and UI initialisation. Manual interaction remains incomplete: the computer-use
+app inventory does not expose the standalone Java window, and selecting the
+Java executable is rejected as an invalid app. Stop the test process afterwards.
+The Developer Guide's **Defensive loading and ride ID boundaries** and
+**Deletion confirmation regression** scenarios still require interactive checks.
+
+### Additional approved assertions and diagnostics
+
+Add roster membership/size and assigned-ID postconditions, plus assertions that
+phone edits and deletions leave no old roster references. Add FINE logs for
+roster operations, assigned ride IDs, affected roster counts and deletion
+confirmation transitions. Confirmation logs distinguish a performed deletion
+from its subsequent persistence, so a failed save is not reported as saved.
+
+Temurin JDK 25.0.4.1: `./gradlew check coverage` passes with 694 tests and
+both Checkstyle tasks. Line coverage is 83.19%. Existing roster, ID boundary
+and deletion-confirmation tests exercise the added assertions. No new
+user-visible behaviour is introduced by these additional diagnostics. The
+previously recorded interactive UI checks remain incomplete.
+
+## Ride feature bug audit (20 October 2026)
+
+See [Bug testing report](BugTestingReport.md) for scope, five reproduced and fixed
+defects, equivalence partitions, boundary cases and deferred minor findings.
+The audit adds 20 test methods, including end-to-end rejection/persistence
+matrices, and updates invalid old roster fixtures.
+
+Temurin JDK 25.0.4.1: `./gradlew check coverage shadowJar` passes. All 714
+tests pass with 0 failures/errors and 0 skips; both Checkstyle tasks pass.
+Line coverage is 83.31% (1987/2385), exceeding the 50% target.
+`git diff --check` passes.
+
+Launch the rebuilt JAR with `-ea` in `/private/tmp/cyclique-bug-audit`, using
+a saved file containing `null`. Startup logs confirm a controlled loading
+warning and UI initialisation. Stop the disposable test process afterwards.
+Interactive UI checks remain incomplete because the computer-use tool cannot
+attach to the standalone Java window, including via the installed JDK bundle ID.
+The Developer Guide documents the affected roster/list/find and corrupt-data
+manual scenarios; visual layout, focus and cross-platform behaviour remain
+unverified manually.
