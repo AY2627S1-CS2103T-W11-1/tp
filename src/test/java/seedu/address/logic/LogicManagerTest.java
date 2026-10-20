@@ -106,6 +106,17 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void getRideList_afterRideFind_returnsAllRides() throws Exception {
+        logic.execute(RideUtil.getRideAddCommand(new RideBuilder().withName("Morning Ride").build()));
+        logic.execute(RideUtil.getRideAddCommand(new RideBuilder().withName("Evening Ride").build()));
+
+        logic.execute("ridefind n/Morning Ride");
+
+        assertEquals(2, logic.getRideList().size());
+        assertEquals(1, logic.getFilteredRideList().size());
+    }
+
+    @Test
     public void execute_clearThenRideAdd_doesNotReuseRideIdsAndSavesCounter() throws Exception {
         Ride draft = new RideBuilder().build();
         logic.execute(RideUtil.getRideAddCommand(draft));

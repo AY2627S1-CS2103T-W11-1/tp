@@ -130,7 +130,7 @@ Cyclist cards label emergency contact numbers as **SOS**. Older saved records wi
 
 ### Locating persons by name, phone or emergency number: `find`
 
-Finds persons by name keywords, phone numbers, emergency contact numbers, FTP, experience level and location.
+Finds persons by name keywords, phone numbers, emergency contact numbers, FTP, experience level and preferred location.
 
 Format: `find [n/NAME_KEYWORD]… [p/PHONE]… [sos/EMERGENCY_PHONE]… [f/MIN_FTP] [x/EXPERIENCE]… [l/LOCATION]…`
 (at least one field is required)
@@ -146,7 +146,7 @@ The fields are matched as follows:
 * When multiple fields are supplied, a person must match every supplied field. Prefix order does not matter.
 * Name keywords, phone numbers and emergency contact numbers search only their respective fields.
 
-Each prefix may be repeated except `f/`, which accepts only one value. At least one criterion is required. Invalid phone numbers, FTP values, experience levels, locations or name keywords are rejected without changing the current displayed list. Text after a prefix belongs to that field until the next recognised prefix, so values containing spaces can be entered normally.
+Each prefix may be repeated except `f/`, which accepts only one value. At least one criterion is required. Invalid phone numbers, FTP values, experience levels, preferred locations or name keywords are rejected without changing the current displayed list. Text after a prefix belongs to that field until the next recognised prefix, so values containing spaces can be entered normally.
 
 Use `list` to remove the current filter and display all cyclists again. The result message reports how many cyclists match; an empty result is valid and leaves the cyclist panel empty.
 
@@ -155,7 +155,7 @@ Examples:
 * `find n/alex n/david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find n/alex n/david'](images/findAlexDavidResult.png)
 * `find n/alex p/+65 96320842` returns only people whose name contains `alex` and whose phone number is `+65 96320842`.
-* `find l/Punggol x/Intermediate f/250` returns cyclists whose preferred location is Punggol, experience is Intermediate,
+* `find l/Punggol x/Intermediate f/250` returns cyclists whose preferred location is Punggol, experience level is Intermediate,
   and FTP is at least 250 W.
 
 Common failures include:

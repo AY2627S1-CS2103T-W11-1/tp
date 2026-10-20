@@ -2,6 +2,7 @@ package seedu.address.model.ride;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -53,5 +54,28 @@ public class RideMatchesFindCriteriaPredicate implements Predicate<Ride> {
                         >= Integer.parseInt(value.value)).orElse(true)
                 && maxGroupSize.map(value -> ride.getMaxGroupSize().equals(value)).orElse(true)
                 && notes.map(value -> ride.getNotes().map(value::equals).orElse(false)).orElse(true);
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other == this) {
+            return true;
+        }
+        if (!(other instanceof RideMatchesFindCriteriaPredicate otherPredicate)) {
+            return false;
+        }
+        return name.equals(otherPredicate.name)
+                && from.equals(otherPredicate.from)
+                && to.equals(otherPredicate.to)
+                && location.equals(otherPredicate.location)
+                && distance.equals(otherPredicate.distance)
+                && minimumPower.equals(otherPredicate.minimumPower)
+                && maxGroupSize.equals(otherPredicate.maxGroupSize)
+                && notes.equals(otherPredicate.notes);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, from, to, location, distance, minimumPower, maxGroupSize, notes);
     }
 }

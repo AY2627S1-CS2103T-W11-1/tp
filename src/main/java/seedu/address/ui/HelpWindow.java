@@ -21,6 +21,7 @@ import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RideAddCommand;
 import seedu.address.logic.commands.RideDeleteCommand;
 import seedu.address.logic.commands.RideEditCommand;
+import seedu.address.logic.commands.RideFindCommand;
 import seedu.address.logic.commands.RideListCommand;
 import seedu.address.logic.commands.RideRosterCommand;
 
@@ -72,6 +73,7 @@ public class HelpWindow extends UiPart<Stage> {
             RideDeleteCommand.MESSAGE_USAGE + "\n" + RIDE_DELETE_DETAILS,
             RideRosterCommand.MESSAGE_USAGE,
             RIDE_LIST_GUIDANCE,
+            RideFindCommand.MESSAGE_USAGE,
             ListCommand.COMMAND_WORD + ": Lists all persons.\nExample: " + ListCommand.COMMAND_WORD,
             ClearCommand.COMMAND_WORD + ": Clears all entries.\nExample: " + ClearCommand.COMMAND_WORD,
             HelpCommand.MESSAGE_USAGE,

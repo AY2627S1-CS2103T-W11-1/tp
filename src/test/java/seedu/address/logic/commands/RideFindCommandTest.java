@@ -1,6 +1,8 @@
 package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Optional;
 
@@ -38,5 +40,25 @@ public class RideFindCommandTest {
         new RideFindCommand(new RideMatchesFindCriteriaPredicate()).execute(model);
 
         assertEquals(2, model.getFilteredRideList().size());
+    }
+
+    @Test
+    public void equals_sameCriteria_returnsTrue() {
+        RideMatchesFindCriteriaPredicate first = new RideMatchesFindCriteriaPredicate();
+        RideMatchesFindCriteriaPredicate second = new RideMatchesFindCriteriaPredicate();
+
+        assertEquals(first, second);
+        assertEquals(first.hashCode(), second.hashCode());
+        assertTrue(new RideFindCommand(first).equals(new RideFindCommand(second)));
+    }
+
+    @Test
+    public void equals_differentCriteria_returnsFalse() {
+        RideMatchesFindCriteriaPredicate first = new RideMatchesFindCriteriaPredicate();
+        RideMatchesFindCriteriaPredicate second = new RideMatchesFindCriteriaPredicate(
+                Optional.of(new Name("Evening Loop")), Optional.empty(), Optional.empty(),
+                Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+
+        assertNotEquals(first, second);
     }
 }

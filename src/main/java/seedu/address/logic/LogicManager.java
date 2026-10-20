@@ -149,7 +149,7 @@ public class LogicManager implements Logic {
 
     @Override
     public ObservableList<Ride> getRideList() {
-        return model.getFilteredRideList();
+        return model.getAddressBook().getRideList();
     }
 
     @Override
