@@ -68,8 +68,11 @@ Error-message regressions check identical edit/delete errors for hidden and unkn
 phone targets, full stops in invalid-field and duplicate-prefix errors, and the
 `Invalid command format.` heading. The Developer Guide's **Error message consistency**
 scenario covers the corresponding command-box checks.
-Run the Developer Guide's **Alphabetical display regression** manual scenario to verify
+Run the Developer Guide’s **Alphabetical display regression** manual scenario to verify
 visible card indexes after reordering and filtering, and startup ordering after a restart.
+
+Run the Developer Guide’s **Find and ridefind regression** manual scenario after changing
+search criteria, ride filtering, command validation or the ride display panel.
 
 Run the Developer Guide's **Tag removal compatibility regression** after tag-related changes.
 `JsonAdaptedPersonTest` checks legacy tags (including empty, null and obsolete invalid values)

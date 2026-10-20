@@ -1,5 +1,7 @@
 package seedu.address.model.ride;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -17,6 +19,12 @@ public class RideMatchesFindCriteriaPredicate implements Predicate<Ride> {
     private final Optional<GroupSize> maxGroupSize;
     private final Optional<Notes> notes;
 
+    /** Creates a predicate that matches every ride. */
+    public RideMatchesFindCriteriaPredicate() {
+        this(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.empty(), Optional.empty(), Optional.empty());
+    }
+
     /** Creates a predicate using the supplied optional ride criteria. */
     public RideMatchesFindCriteriaPredicate(Optional<Name> name, Optional<RideDateTime> from,
             Optional<RideDateTime> to, Optional<Location> location, Optional<Distance> distance,
@@ -33,6 +41,8 @@ public class RideMatchesFindCriteriaPredicate implements Predicate<Ride> {
 
     @Override
     public boolean test(Ride ride) {
+        requireNonNull(ride);
+        assert ride.getName() != null : "Ride name must be present when matching criteria.";
         boolean matchesFrom = from.isEmpty() || !ride.getFrom().isBefore(from.get());
         boolean matchesTo = to.isEmpty() || !to.get().isBefore(ride.getTo());
         return matchesFrom && matchesTo

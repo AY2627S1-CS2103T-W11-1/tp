@@ -28,6 +28,11 @@ public class RideFindCommandParserTest {
     }
 
     @Test
+    public void parse_all_success() {
+        assertDoesNotThrow(() -> parser.parse("all"));
+    }
+
+    @Test
     public void parse_toBeforeFrom_failure() {
         assertThrows(ParseException.class, () -> parser.parse(
                 "from/19-10-2026 0000 to/18-10-2026 2359"));

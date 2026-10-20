@@ -1,5 +1,7 @@
 package seedu.address.model.person;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -47,6 +49,8 @@ public class PersonMatchesFindCriteriaPredicate implements Predicate<Person> {
 
     @Override
     public boolean test(Person person) {
+        requireNonNull(person);
+        assert person.getName() != null : "Person name must be present when matching criteria.";
         boolean matchesName = nameKeywords.isEmpty() || nameKeywords.stream()
                 .anyMatch(keyword -> StringUtil.containsWordIgnoreCase(person.getName().fullName, keyword));
         boolean matchesPhone = phones.isEmpty() || phones.contains(person.getPhone());

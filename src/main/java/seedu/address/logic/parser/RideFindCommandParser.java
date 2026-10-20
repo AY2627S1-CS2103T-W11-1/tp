@@ -1,5 +1,6 @@
 package seedu.address.logic.parser;
 
+import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_DISTANCE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_FROM;
@@ -31,6 +32,11 @@ public class RideFindCommandParser implements Parser<RideFindCommand> {
 
     @Override
     public RideFindCommand parse(String args) throws ParseException {
+        requireNonNull(args);
+        if (args.trim().equals("all")) {
+            return new RideFindCommand(new RideMatchesFindCriteriaPredicate());
+        }
+
         ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" " + args.trim(), PREFIX_NAME, PREFIX_FROM, PREFIX_TO,
                 PREFIX_LOCATION, PREFIX_DISTANCE, PREFIX_FTP, PREFIX_GROUP_SIZE, PREFIX_NOTES);
         arguments.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_FROM, PREFIX_TO, PREFIX_LOCATION,

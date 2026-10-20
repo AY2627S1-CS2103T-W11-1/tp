@@ -27,4 +27,16 @@ public class RideFindCommandTest {
         assertEquals(1, model.getFilteredRideList().size());
         assertEquals("Evening Loop", model.getFilteredRideList().getFirst().getName().fullName);
     }
+
+    @Test
+    public void execute_allPredicate_listsAllRides() {
+        ModelManager model = new ModelManager();
+        model.addRide(new RideBuilder().withName("Sunday Sunrise Ride").build());
+        model.addRide(new RideBuilder().withName("Evening Loop").build());
+        model.updateFilteredRideList(ride -> ride.getName().fullName.equals("Evening Loop"));
+
+        new RideFindCommand(new RideMatchesFindCriteriaPredicate()).execute(model);
+
+        assertEquals(2, model.getFilteredRideList().size());
+    }
 }

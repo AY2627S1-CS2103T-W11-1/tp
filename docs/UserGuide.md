@@ -135,15 +135,20 @@ Finds persons by name keywords, phone numbers, emergency contact numbers, FTP, e
 Format: `find [n/NAME_KEYWORD]… [p/PHONE]… [sos/EMERGENCY_PHONE]… [f/MIN_FTP] [x/EXPERIENCE]… [l/LOCATION]…`
 (at least one field is required)
 
+The fields are matched as follows:
+
 * Each `n/` takes one name keyword. Name matching is case-insensitive and requires a full word; for example, `n/hans` matches `Hans` but `n/Han` does not.
 * Each `p/` takes one complete phone number. Phone matching is exact; `p/+65 963` does not match `+65 96320842`.
+* Each `sos/` takes one complete emergency contact number and uses the same phone validation and exact matching as `p/`. Cyclists without an emergency number do not match an `sos/` criterion.
+* `f/MIN_FTP` matches cyclists whose FTP is at least the specified value in watts. FTP values must be whole numbers from 1 to 600.
+* Each `x/` matches an experience level, and each `l/` matches a preferred location. Text matching is case-insensitive. A cyclist with `l/any` matches any location criterion.
 * Multiple values for the same field use `OR`: `find n/Hans n/Bo` returns people named `Hans Gruber` or `Bo Yang`.
-* Each `sos/` takes one complete emergency contact number and uses the same phone validation and exact matching as `p/`. Repeated `sos/` values match any of those numbers.
-* `f/MIN_FTP` matches cyclists whose FTP is at least the specified value in watts.
-* Each `x/` matches an experience level, and each `l/` matches a preferred location. Text matching is case-insensitive.
 * When multiple fields are supplied, a person must match every supplied field. Prefix order does not matter.
 * Name keywords, phone numbers and emergency contact numbers search only their respective fields.
-* `find sos/+65 99999999` lists cyclists with that emergency number.
+
+Each prefix may be repeated except `f/`, which accepts only one value. At least one criterion is required. Invalid phone numbers, FTP values, experience levels, locations or name keywords are rejected without changing the current displayed list. Text after a prefix belongs to that field until the next recognised prefix, so values containing spaces can be entered normally.
+
+Use `list` to remove the current filter and display all cyclists again. The result message reports how many cyclists match; an empty result is valid and leaves the cyclist panel empty.
 
 Examples:
 * `find n/John` returns `john` and `John Doe`
@@ -152,6 +157,12 @@ Examples:
 * `find n/alex p/+65 96320842` returns only people whose name contains `alex` and whose phone number is `+65 96320842`.
 * `find l/Punggol x/Intermediate f/250` returns cyclists whose preferred location is Punggol, experience is Intermediate,
   and FTP is at least 250 W.
+
+Common failures include:
+
+* `find` with no criteria is rejected with the command usage instructions.
+* `find n/John Doe` is rejected because a name criterion accepts one keyword at a time; use `find n/John n/Doe` if both words are required.
+* A phone number or FTP value that does not follow the constraints above is rejected without changing the current filter.
 
 ### Deleting a person: `delete`
 
@@ -213,24 +224,38 @@ Finds rides matching one or more supplied criteria and displays the matching rid
 
 Format: `ridefind [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] [l/LOCATION] [d/DISTANCE] [f/MINIMUM_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`
 
-At least one criterion is required. Different fields use AND matching, so a ride must satisfy every field supplied.
+To list every ride, use `ridefind all`.
+
+At least one criterion is required unless the special `all` argument is used. Different fields use AND matching, so a ride must satisfy every field supplied. `ridefind all` clears the current ride filter and displays every saved ride in the Rides panel.
 The fields are matched as follows:
 
 * `n/NAME` matches the complete ride name, ignoring case.
 * `from/` matches rides starting at or after the supplied date and time.
 * `to/` matches rides ending at or before the supplied date and time.
-* `l/LOCATION`, `d/DISTANCE`, `s/MAX_GROUP_SIZE` and `notes/NOTES` use exact field matching; location matching ignores case.
+* `l/LOCATION` matches the ride location, ignoring case.
+* `d/DISTANCE` and `s/MAX_GROUP_SIZE` use exact numeric matching.
 * `f/MINIMUM_POWER` matches rides whose minimum power is greater than or equal to the supplied value.
+* `notes/NOTES` matches rides with the supplied notes. Rides without notes do not match a notes criterion.
 
 The date and time format is `DD-MM-YYYY TTTT`, using the 24-hour clock. A date-only `from/` value means `0000`,
 while a date-only `to/` value means `2359`. When both bounds are supplied, `to/` cannot be earlier than `from/`.
-Both bounds are inclusive. Each prefix can be used only once.
+Both bounds are inclusive. Each prefix can be used only once. Distances are positive numbers with at most two decimal places, minimum power is a whole number from 1 to 600, and maximum group size is a positive whole number. Dates must be real calendar dates and times must be between `0000` and `2359`.
+
+The command updates only the displayed ride list; it does not change or delete saved rides. If no ride matches, the Rides panel is empty and the result message reports `0 ride(s) listed!`. Invalid criteria are rejected without changing the current ride filter.
 
 Examples:
 * `ridefind n/Sunday Sunrise Ride`
 * `ridefind from/18-10-2026 to/18-10-2026`
 * `ridefind l/Tampines f/200`
 * `ridefind from/18-10-2026 0630 to/18-10-2026 2000 l/East Coast d/45 f/180 s/12`
+* `ridefind all` displays all rides, including rides hidden by an earlier search.
+
+Common failures include:
+
+* `ridefind` with no criteria is rejected with the command usage instructions; use `ridefind all` to show all rides.
+* A date-only `from/` or `to/` value is expanded to the start or end of that day respectively.
+* A `to/` value earlier than `from/`, an invalid date or time, or a value outside the numeric constraints is rejected without changing the displayed rides.
+* Supplying the same prefix twice is rejected. For example, use only one `f/` criterion.
 
 ### Editing a group ride: `rideedit`
 
@@ -397,11 +422,11 @@ Action | Format, Examples
 **Clear** | `clear`
 **Delete** | `delete PHONE`, then `y`/`yes` to confirm or `n`/`no` to cancel (case-insensitive)<br> e.g., `delete +65 22224444`, then `yes`
 **Edit** | `edit PHONE [n/NAME] [p/PHONE] [sos/EMERGENCY_PHONE] [e/EMAIL] [f/FTP] [x/EXPERIENCE] [l/LOCATION]…`<br> e.g., `edit +65 22224444 n/James Lee e/jameslee@example.com`
-**Find** | `find [n/NAME_KEYWORD]… [p/PHONE]… [sos/EMERGENCY_PHONE]…`<br> e.g., `find n/James n/Jake`, `find n/James p/+65 96320842`
+**Find** | `find [n/NAME_KEYWORD]… [p/PHONE]… [sos/EMERGENCY_PHONE]… [f/MIN_FTP] [x/EXPERIENCE]… [l/LOCATION]…`<br> e.g., `find n/James n/Jake`, `find n/James p/+65 96320842`
 **List** | `list`
 **Help** | `help`
 **Rideadd** | `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MINIMUM_POWER s/MAX_GROUP_SIZE [notes/NOTES]`<br> e.g., `rideadd n/Sunday Sunrise Ride from/18-10-2026 0630 to/18-10-2026 0930 l/East Coast d/45 f/180 s/12 notes/Bring lights`
-**Ridefind** | `ridefind [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] [l/LOCATION] [d/DISTANCE] [f/MINIMUM_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`<br> e.g., `ridefind from/18-10-2026 to/18-10-2026 f/180`
+**Ridefind** | `ridefind all` or `ridefind [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] [l/LOCATION] [d/DISTANCE] [f/MINIMUM_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`<br> e.g., `ridefind all`, `ridefind from/18-10-2026 to/18-10-2026 f/180`
 **Rideedit** | `rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_FTP] [s/MAX_SIZE] [notes/NOTES]`<br> e.g., `rideedit 101 n/NightRide`, `rideedit 101 notes/`
 **Ridedelete** | `ridedelete ID`<br> e.g., `ridedelete 101`
 **Add cyclist to ride** | `rideaddcyclist ID PHONE`
