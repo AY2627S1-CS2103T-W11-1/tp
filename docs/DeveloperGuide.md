@@ -733,8 +733,10 @@ Use John and Alice from the previous section.
 1. Enter `find n/john p/+65 91234567`. Expected: No contacts appear; both fields must match.
 1. Enter `find n/Jo` and `find p/+65 967`. Expected: No contacts appear; matches are exact
    phone numbers or full name words, rather than substrings.
-1. Try `find`, `find john alice`, `find n/John Doe`, and `find p/`.
-   Expected: Each shows an error without changing the current displayed list.
+1. Enter `find n/John Doe`. Expected: Only the cyclist with the complete full name `John Doe` appears,
+   ignoring case.
+1. Try `find`, `find john alice`, and `find p/`. Expected: Each shows an error without changing the current
+   displayed list.
 1. Enter `find n/john`, then `edit +65 91234567 n/Alice Updated`.
    Expected: The edit is rejected because Alice is outside the displayed list.
 1. Enter `edit +65 96742165 n/John Updated`. Expected: John's name changes and both contacts appear.
@@ -1098,7 +1100,7 @@ Use disposable cyclist and ride data. Record the original details before applyin
    and the second command matches both the name and phone fields.
 1. Enter `find n/john n/alice`. Expected: cyclists matching either name keyword appear.
 1. Enter `find n/nobody`. Expected: no cyclists appear and the result reports zero matches.
-1. Try `find`, `find john`, `find n/John Doe`, `find p/invalid` and an FTP value outside `1` to `600`.
+1. Try `find`, `find john`, `find p/invalid` and an FTP value outside `1` to `600`.
    Expected: each invalid command shows an error without changing the previous valid cyclist filter.
 1. Enter `list`. Expected: the full cyclist list is restored.
 1. Add at least three rides with different names, dates, locations, distances and minimum powers.

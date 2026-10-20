@@ -137,7 +137,9 @@ Format: `find [n/NAME_KEYWORD]… [p/PHONE]… [sos/EMERGENCY_PHONE]… [f/MIN_F
 
 The fields are matched as follows:
 
-* Each `n/` takes one name keyword. Name matching is case-insensitive and requires a full word; for example, `n/hans` matches `Hans` but `n/Han` does not.
+* Each `n/` takes a name or full name. Single-word matching is case-insensitive and requires a full word;
+  for example, `n/hans` matches `Hans` but `n/Han` does not. A multi-word value such as `n/John Doe` matches
+  the complete full name, ignoring case.
 * Each `p/` takes one complete phone number. Phone matching is exact; `p/+65 963` does not match `+65 96320842`.
 * Each `sos/` takes one complete emergency contact number and uses the same phone validation and exact matching as `p/`. Cyclists without an emergency number do not match an `sos/` criterion.
 * `f/MIN_FTP` matches cyclists whose FTP is at least the specified value in watts. FTP values must be whole numbers from 1 to 600.
@@ -161,7 +163,8 @@ Examples:
 Common failures include:
 
 * `find` with no criteria is rejected with the command usage instructions.
-* `find n/John Doe` is rejected because a name criterion accepts one keyword at a time; use `find n/John n/Doe` if both words are required.
+* `find n/John Doe` matches only the complete full name `John Doe`; use repeated `n/` values such as
+  `find n/John n/Alice` when either name should match.
 * A phone number or FTP value that does not follow the constraints above is rejected without changing the current filter.
 
 ### Deleting a person: `delete`

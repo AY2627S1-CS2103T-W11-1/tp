@@ -52,7 +52,7 @@ public class PersonMatchesFindCriteriaPredicate implements Predicate<Person> {
         requireNonNull(person);
         assert person.getName() != null : "Person name must be present when matching criteria.";
         boolean matchesName = nameKeywords.isEmpty() || nameKeywords.stream()
-                .anyMatch(keyword -> StringUtil.containsWordIgnoreCase(person.getName().fullName, keyword));
+                .anyMatch(keyword -> matchesName(person, keyword));
         boolean matchesPhone = phones.isEmpty() || phones.contains(person.getPhone());
         boolean matchesEmergencyPhone = emergencyPhones.isEmpty()
                 || person.getEmergencyPhone().filter(emergencyPhones::contains).isPresent();
@@ -65,6 +65,13 @@ public class PersonMatchesFindCriteriaPredicate implements Predicate<Person> {
                 || Integer.parseInt(person.getFtp().value) >= Integer.parseInt(minimumFtp.value);
         return matchesName && matchesPhone && matchesEmergencyPhone && matchesExperience
                 && matchesLocation && matchesFtp;
+    }
+
+    private boolean matchesName(Person person, String keyword) {
+        String trimmedKeyword = keyword.trim();
+        return trimmedKeyword.contains(" ")
+                ? person.getName().fullName.equalsIgnoreCase(trimmedKeyword)
+                : StringUtil.containsWordIgnoreCase(person.getName().fullName, trimmedKeyword);
     }
 
     @Override

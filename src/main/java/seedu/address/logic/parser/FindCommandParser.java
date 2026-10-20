@@ -45,7 +45,7 @@ public class FindCommandParser implements Parser<FindCommand> {
                 || (nameKeywords.isEmpty() && phoneValues.isEmpty() && emergencyPhoneValues.isEmpty()
                 && locationValues.isEmpty() && argMultimap.getValue(PREFIX_FTP).isEmpty()
                 && argMultimap.getValue(PREFIX_EXPERIENCE_LEVEL).isEmpty())
-                || nameKeywords.stream().anyMatch(keyword -> keyword.isEmpty() || keyword.matches(".*\\s+.*"))) {
+                || nameKeywords.stream().anyMatch(String::isEmpty)) {
             throw new ParseException(
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
         }

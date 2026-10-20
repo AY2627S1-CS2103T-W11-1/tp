@@ -334,7 +334,7 @@ public class ReleaseCommandIntegrationTest {
         logic.execute(ADD_JOHN);
         String savedData = Files.readString(storage.getAddressBookFilePath());
         String[] invalidCommands = {
-            "delete 1", "delete +65 12", "edit +65 98765432", "find n/John Doe",
+            "delete 1", "delete +65 12", "edit +65 98765432", "find John Doe",
             "edit +65 98765432 n/John Updated f/601", "edit +65 98765432 l/",
             "edit +65 98765432 p/+65 111 p/+65 222"
         };
