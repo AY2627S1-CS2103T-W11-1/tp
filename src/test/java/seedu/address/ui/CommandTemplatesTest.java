@@ -79,6 +79,13 @@ public class CommandTemplatesTest {
     }
 
     @Test
+    public void rideFindTemplate_listsAllShortcut() {
+        String display = templateFor(RideFindCommand.COMMAND_WORD).display();
+
+        assertTrue(display.contains("ridefind all"));
+    }
+
+    @Test
     public void editTemplate_displayListsEveryEditableFieldAsOptional() {
         String display = CommandTemplates.ALL.get(1).display();
 
