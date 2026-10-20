@@ -43,6 +43,15 @@ public class RideFindCommandTest {
     }
 
     @Test
+    public void execute_allPredicate_emptyList() {
+        ModelManager model = new ModelManager();
+
+        new RideFindCommand(new RideMatchesFindCriteriaPredicate()).execute(model);
+
+        assertEquals(0, model.getFilteredRideList().size());
+    }
+
+    @Test
     public void equals_sameCriteria_returnsTrue() {
         RideMatchesFindCriteriaPredicate first = new RideMatchesFindCriteriaPredicate();
         RideMatchesFindCriteriaPredicate second = new RideMatchesFindCriteriaPredicate();
