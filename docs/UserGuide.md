@@ -135,37 +135,46 @@ Finds persons by name keywords, phone numbers, emergency contact numbers, FTP, e
 Format: `find [n/NAME_KEYWORD]… [p/PHONE]… [sos/EMERGENCY_PHONE]… [f/MIN_FTP] [x/EXPERIENCE]… [l/LOCATION]…`
 (at least one field is required)
 
-The fields are matched as follows:
+Field | Meaning and rules
+------|------------------
+`n/NAME_KEYWORD` | A single name word or a complete full name. Single-word matching is case-insensitive and requires a full word; `n/hans` matches `Hans` but `n/Han` does not. A multi-word value such as `n/John Doe` matches the complete full name, ignoring case.
+`p/PHONE` | A complete phone number using a `+`, a 1–3 digit country code, one space and at least 3 digits. Matching is exact; `p/+65 963` does not match `+65 96320842`.
+`sos/EMERGENCY_PHONE` | A complete emergency contact number using the same validation and exact matching as `p/`. Cyclists without an emergency number do not match this criterion.
+`f/MIN_FTP` | A whole number from 1 to 600. Matches cyclists whose FTP is greater than or equal to the supplied value in watts.
+`x/EXPERIENCE` | `Beginner`, `Intermediate` or `Advanced`, ignoring case. Repeat `x/` to match any of the supplied experience levels.
+`l/LOCATION` | A preferred location, ignoring case. Repeat `l/` to match any supplied location. A cyclist with `l/any` matches every location criterion.
 
-* Each `n/` takes a name or full name. Single-word matching is case-insensitive and requires a full word;
-  for example, `n/hans` matches `Hans` but `n/Han` does not. A multi-word value such as `n/John Doe` matches
-  the complete full name, ignoring case.
-* Each `p/` takes one complete phone number. Phone matching is exact; `p/+65 963` does not match `+65 96320842`.
-* Each `sos/` takes one complete emergency contact number and uses the same phone validation and exact matching as `p/`. Cyclists without an emergency number do not match an `sos/` criterion.
-* `f/MIN_FTP` matches cyclists whose FTP is at least the specified value in watts. FTP values must be whole numbers from 1 to 600.
-* Each `x/` matches an experience level, and each `l/` matches a preferred location. Text matching is case-insensitive. A cyclist with `l/any` matches any location criterion.
-* Multiple values for the same field use `OR`: `find n/Hans n/Bo` returns people named `Hans Gruber` or `Bo Yang`.
-* When multiple fields are supplied, a person must match every supplied field. Prefix order does not matter.
-* Name keywords, phone numbers and emergency contact numbers search only their respective fields.
+At least one criterion is required. Each prefix may be repeated except `f/`, which accepts only one value. Values
+within the same field use `OR`, while different fields use `AND`; for example, `find n/Hans n/Bo f/250` matches
+cyclists named `Hans` or `Bo` whose FTP is at least 250 W. Prefix order does not matter. Text after a prefix belongs
+to that field until the next recognised prefix, so full names and locations containing spaces can be entered normally.
 
-Each prefix may be repeated except `f/`, which accepts only one value. At least one criterion is required. Invalid phone numbers, FTP values, experience levels, preferred locations or name keywords are rejected without changing the current displayed list. Text after a prefix belongs to that field until the next recognised prefix, so values containing spaces can be entered normally.
+The command filters only the displayed cyclist list and does not change saved records. Matching cyclists remain in
+alphabetical order, ignoring case. The result message reports how many cyclists match; an empty result is valid and
+leaves the cyclist panel empty. Use `list` to remove the current filter and display all cyclists again.
 
-Use `list` to remove the current filter and display all cyclists again. The result message reports how many cyclists match; an empty result is valid and leaves the cyclist panel empty.
+Invalid phone numbers, FTP values, experience levels, preferred locations, name values and duplicate `f/` prefixes
+are rejected without changing the current displayed list. A name or phone criterion searches only the corresponding
+field; emergency contact numbers are not treated as the cyclist's own phone number.
 
 Examples:
 * `find n/John` returns `john` and `John Doe`
+* `find n/John Doe` returns only the cyclist with the complete full name `John Doe`, ignoring case.
 * `find n/alex n/david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find n/alex n/david'](images/findAlexDavidResult.png)
 * `find n/alex p/+65 96320842` returns only people whose name contains `alex` and whose phone number is `+65 96320842`.
 * `find l/Punggol x/Intermediate f/250` returns cyclists whose preferred location is Punggol, experience level is Intermediate,
   and FTP is at least 250 W.
+* `find sos/+65 99999999` returns cyclists with that emergency contact number.
+* `find x/Beginner x/Intermediate` returns cyclists with either experience level.
 
 Common failures include:
 
 * `find` with no criteria is rejected with the command usage instructions.
-* `find n/John Doe` matches only the complete full name `John Doe`; use repeated `n/` values such as
-  `find n/John n/Alice` when either name should match.
-* A phone number or FTP value that does not follow the constraints above is rejected without changing the current filter.
+* `find n/John Doe n/Jane Doe` is valid and matches either complete full name.
+* `find John Doe` is rejected because name values must use the `n/` prefix.
+* A phone number, FTP value, experience level or location that does not follow the constraints above is rejected
+  without changing the current filter.
 
 ### Deleting a person: `delete`
 
