@@ -39,20 +39,33 @@ retain their original assertions about ride details, notes, IDs and persistence.
 
 ## Equivalence partitions and boundary values
 
-| Area | Selected partitions and boundaries | Evidence |
-| --- | --- | --- |
-| Country code and subscriber length | Country-code lengths 0, 1, 2, 3, 4; subscriber lengths 2, 3, 4. Accept `+12 123` and `+123 123`; reject `+1234 123` and `+123 12`. | `PhoneTest`, `EditCommandParserTest` |
-| Distance | Non-numeric, negative, zero, positive, excessive precision and excessive whole digits. Valid 0.01/0.02 and 999999.98/999999.99; invalid 0, -0.01, 0.001 and 1000000. | `RideBoundaryIntegrationTest`, existing `DistanceTest` |
-| Minimum power | Below, within and above 1–600; valid 1/2/599/600, invalid 0/601, fractions and integer overflow. | `RideBoundaryIntegrationTest`, existing minimum-power tests |
-| Maximum group size | Valid 1/2/999999998/999999999; invalid 0/1000000000 and fractions. | `RideBoundaryIntegrationTest`, existing `GroupSizeTest` |
-| Notes | Missing optional notes, empty edit to clear, 1/9/10 words, 11 words; blank supplied creation notes remain invalid. | `RideBoundaryIntegrationTest`, existing `NotesTest` |
-| Calendar and clock | Century leap-year exceptions (1900/2000/2100), normal leap years, month ends, day/month overflow, 0000/2359/2360/2400 and year-width limits. | `RideDateTimeTest` |
-| Ride periods | End one minute before, equal to and one minute after start; an edit must compare against the preserved endpoint. | `RideBoundaryIntegrationTest` |
-| Find date ranges | One minute below/equal/above each boundary; date-only midnight/2359; both bounds inclusive; inverted ranges; no match and reset with `all`. | `RideBoundaryIntegrationTest`, existing predicate/parser tests |
-| Criteria and identifiers | Missing criteria, blank fields, duplicate prefixes, valid-but-unknown IDs, 0, negative IDs and integer overflow. | `RideBoundaryIntegrationTest`, existing ride parser tests |
-| Roster state | Empty/non-empty/full, duplicate/not joined, unknown cyclist/ride, FTP 179/180/181 against minimum 180, valid saved roster at capacity and invalid saved rosters. | `RideBoundaryIntegrationTest`, `RideDataIntegrityTest`, existing roster integration tests |
-| Filters and ID lifecycle | Delete a selected roster's ride, add a later ride without reusing the ID, update selected roster live, preserve independent ride filters. | `RideBoundaryIntegrationTest`, existing `RideListIntegrationTest` |
-| Rejected-operation state | Preserve complete book, current cyclist list, current ride list and saved bytes for rejected syntax and semantic partitions. | Shared helper in `RideBoundaryIntegrationTest`; 63 field-rejection combinations plus identifier and command-state cases |
+The table separates inputs expected to be accepted from those expected to be rejected.
+Validity depends on the operation: empty notes are valid when clearing an edit but invalid when
+supplied during creation. A valid find query may return no matches; that is not invalid input.
+
+| Area | Valid partitions and boundary values (accepted) | Invalid partitions and boundary values (rejected) | Evidence |
+| --- | --- | --- | --- |
+| Country code and subscriber length | Country-code lengths 1, 2 and 3; subscriber lengths 3 and 4. Examples: `+1 123`, `+12 123`, `+123 123`, `+123 1234`. | Country-code lengths 0 and 4; subscriber length 2. Examples: `+ 123`, `+1234 123`, `+123 12`. | `PhoneTest`, `EditCommandParserTest` |
+| Distance | Positive numbers within the precision and digit limits: 0.01/0.02 and 999999.98/999999.99. | Non-numeric, negative, zero, excessive precision and excessive whole digits: `NaN`, `1e2`, -0.01, 0, 0.001 and 1000000. | `RideBoundaryIntegrationTest`, existing `DistanceTest` |
+| Minimum power | Whole numbers within 1–600: 1/2/599/600. | Below/above the range, fractions and integer overflow: 0/601, 1.5 and 2147483648. | `RideBoundaryIntegrationTest`, existing minimum-power tests |
+| Maximum group size | Positive whole numbers up to nine digits: 1/2/999999998/999999999. | Zero, more than nine digits and fractions: 0/1000000000 and 1.5. | `RideBoundaryIntegrationTest`, existing `GroupSizeTest` |
+| Notes | Missing optional notes; empty edit to clear notes; 1/9/10 words. | 11 words; blank notes explicitly supplied during creation. | `RideBoundaryIntegrationTest`, existing `NotesTest` |
+| Calendar and clock | Real dates, including 29-02-2000 and 29-02-2028; valid month ends; times 0000/2359; four-digit year endpoints 0001/9999. | Non-leap-century dates 29-02-1900 and 29-02-2100; 31 April; day 32; months 00/13; times 2360/2400 and five-digit time; five-digit year 10000. | `RideDateTimeTest` |
+| Ride periods | End equal to or one minute after start; edits that remain consistent with the preserved endpoint. | End one minute before start, including edits whose supplied endpoint conflicts with the preserved endpoint. | `RideBoundaryIntegrationTest` |
+| Find date ranges | Ordered or equal bounds; date-only defaults of 0000/2359; `all` to reset. For valid queries, rides exactly on the bounds match; those one minute outside do not. Empty results are valid. | Inverted ranges, with `to/` earlier than `from/`. Malformed dates/times are rejected as listed above. | `RideBoundaryIntegrationTest`, existing predicate/parser tests |
+| Criteria and identifiers | At least one valid criterion; positive existing ride IDs. The value 2147483647 is syntactically valid but is tested as an unknown ID at execution. | Missing criteria, required blank fields, duplicate prefixes, ID 0, negative IDs and integer overflow. Syntactically valid but unknown IDs are rejected at execution. | `RideBoundaryIntegrationTest`, existing ride parser tests |
+| Roster state | Add an eligible cyclist to a roster with space; remove a joined cyclist; saved roster exactly at capacity. FTP 180/181 meets minimum 180; empty and full rosters are valid states. | Duplicate additions, removal of a cyclist who has not joined, unknown cyclist/ride, addition to a full roster and FTP 179 against minimum 180. Saved duplicate members, over-capacity rosters and missing cyclist references are rejected. | `RideBoundaryIntegrationTest`, `RideDataIntegrityTest`, existing roster integration tests |
+
+Two further groups check state transitions rather than classifying individual values:
+
+* **Filters and ID lifecycle:** deleting the selected roster's ride empties its cyclist display;
+  a later ride receives a new ID; selected roster changes update the display live; independent
+  ride filters are preserved. Evidence: `RideBoundaryIntegrationTest` and existing
+  `RideListIntegrationTest`.
+* **Rejected-operation state:** invalid syntax and invalid command-state combinations must leave
+  the complete book, current cyclist list, current ride list and saved bytes unchanged. Evidence:
+  the shared helper in `RideBoundaryIntegrationTest`, used for 63 field-rejection combinations
+  plus identifier and command-state cases.
 
 Numeric valid-boundary edits are reloaded from JSON. Invalid field partitions run through creation,
 editing and finding; invalid period edits correctly use command errors rather than parser errors
