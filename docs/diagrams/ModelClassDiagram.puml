@@ -37,23 +37,26 @@ AddressBook .up.|> ReadOnlyAddressBook
 UserPrefs .up.|> ReadOnlyUserPrefs
 Model ..> ReadOnlyAddressBook
 Model ..> ReadOnlyUserPrefs
-ModelManager --> "1" AddressBook
-ModelManager --> "1" UserPrefs
-AddressBook *--> "1" UniquePersonList
-AddressBook --> "rides\n0..* {ordered}" Ride
-UniquePersonList --> "0..* {ordered}" Person : contains
+' Label padding keeps multiplicity text clear of arrowheads and line segments.
+ModelManager --> "1\n" AddressBook
+ModelManager --> "1\n" UserPrefs
+AddressBook *--> "1    " UniquePersonList
+AddressBook -up-> "rides    \n0..*    " Ride
+Ride -[hidden]right-> ReadOnlyAddressBook
+UniquePersonList --> Person : \n\ncontains\n0..*
 
 Person --> Name
 ' Longer links place Phone on a separate row so both roles remain readable.
-Person ----> "phone\n1" Phone
-Person ----> "emergencyPhone\n0..1" Phone
+Person ----> "phone    \n1    " Phone
+Person ----> "emergencyPhone    \n0..1    " Phone
 Person --> Email
 Person --> Ftp
 Person --> ExperienceLevel
-Person --> "locations\n0..* {unique}" Location
+Person -up-> "locations    \n0..*    " Location
+Location -[hidden]right-> UniquePersonList
 
-ModelManager --> "1" SortedPersons
-UniquePersonList -right-> "1" StoredPersons
+ModelManager --> "1\n" SortedPersons
+UniquePersonList -right-> "1\n" StoredPersons
 FilteredPersons -up-> StoredPersons
 SortedPersons -up-> FilteredPersons
 
