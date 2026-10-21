@@ -55,7 +55,8 @@ The *Sequence Diagram* below shows a confirmed cyclist deletion. The user first 
 `delete +65 91234567`, then enters `yes` through the same command box. `LogicManager`
 resolves the displayed cyclist and holds the pending request without changing or saving
 data. Only confirmation consumes the request, revalidates the target, deletes the cyclist
-and saves the updated address book, including any affected ride rosters.
+and saves the updated address book, including any affected ride rosters. The
+lifelines below represent components; their internal object calls are omitted.
 
 <img src="images/ArchitectureSequenceDiagram.png" width="800" />
 
@@ -106,6 +107,9 @@ Here's a (partial) class diagram of the `Logic` component:
 The sequence diagram below illustrates the two inputs for cyclist deletion:
 `execute("delete +65 91234567")`, followed by `execute("yes")` or `execute("no")`.
 The example assumes that exactly one displayed cyclist has that phone number.
+The `alt` frame distinguishes confirmation from cancellation; the nested `opt`
+frame shows deletion and saving only after successful target revalidation.
+Error responses are described below rather than expanded in the diagram.
 
 <img src="images/DeleteSequenceDiagram.png" width="1000" alt="Logic interactions for a phone-based deletion request and its confirmation or cancellation" />
 
@@ -158,6 +162,9 @@ The `Model` component,
   tie-breaker. Names that are identical ignoring case retain their relative order,
   including after additions, edits and filtering. Filtering and sorting leave the
   stored list and JSON order unchanged; edit and delete target the cyclist's own phone.
+  The transformation arrows point towards their underlying source lists: the
+  stored-order view feeds the filtered view, which feeds the sorted view.
+  `ModelManager` returns `sortedPersons` through the `Model` API.
 * stores an ordered ride collection and `nextRideId` in `AddressBook`.
   `AddressBook#addRide` assigns persistent IDs that increase and are never reused;
   these IDs are independent of displayed positions. `ModelManager` also maintains
@@ -206,8 +213,8 @@ through the same command box. The sequence diagram in the
 missing/hidden-target and ambiguous-target errors before a prompt is shown.
 It stores the pending command and an immutable snapshot of that cyclist in memory,
 in `pendingDeletion` and `pendingCyclist`, then returns a confirmation request to
-the existing result panel without executing or saving the deletion. The command box accepts the next reply through the same
-`Logic.execute` entry point.
+the existing result panel without executing or saving the deletion. The command
+box accepts the next reply through the same `Logic.execute` entry point.
 
 Replies are trimmed and compared ignoring case. `y`/`yes` executes the pending
 `DeleteCommand` and saves the book; `n`/`no` clears the request without changing the

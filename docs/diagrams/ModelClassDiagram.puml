@@ -6,6 +6,7 @@ skinparam arrowColor MODEL_COLOR
 skinparam classBackgroundColor MODEL_COLOR
 skinparam classAttributeFontColor #FFFFFF
 skinparam classAttributeIconSize 0
+skinparam minClassWidth 110
 
 package Model as ModelPackage <<Rectangle>> {
 class "<<interface>>\nModel" as Model
@@ -20,12 +21,13 @@ class UserPrefs
 class UniquePersonList
 class Person
 class Name
-class Phone
 class Email
 class Ftp
+class Phone
 class ExperienceLevel
 class Location
 class Ride
+class "ObservableList<Person>" as StoredPersons
 class "FilteredList<Person>" as FilteredPersons
 class "SortedList<Person>" as SortedPersons
 }
@@ -37,27 +39,28 @@ Model ..> ReadOnlyAddressBook
 Model ..> ReadOnlyUserPrefs
 ModelManager --> "1" AddressBook
 ModelManager --> "1" UserPrefs
-AddressBook *--> "1" UniquePersonList : persons
-AddressBook --> "0..*" Ride : rides {ordered}
-UniquePersonList --> "0..*" Person : stored cyclists {ordered}
+AddressBook *--> "1" UniquePersonList
+AddressBook --> "rides\n0..* {ordered}" Ride
+UniquePersonList --> "0..* {ordered}" Person : contains
 
-Person --> "1" Name : name
-Person --> "1" Phone : phone (own)
-Person --> "0..1" Phone : emergencyPhone\nOptional<Phone>
-Person --> "1" Email : email
-Person --> "1" Ftp : ftp
-Person --> "1" ExperienceLevel : experienceLevel
-Person --> "0..*" Location : locations {set}
+Person --> Name
+' Longer links place Phone on a separate row so both roles remain readable.
+Person ----> "phone\n1" Phone
+Person ----> "emergencyPhone\n0..1" Phone
+Person --> Email
+Person --> Ftp
+Person --> ExperienceLevel
+Person --> "locations\n0..* {unique}" Location
 
-ModelManager --> "1" FilteredPersons : filteredPersons
-ModelManager --> "1" SortedPersons : sortedPersons
-UniquePersonList ..> FilteredPersons : source via AddressBook\n.getPersonList()
-FilteredPersons ..> SortedPersons : source
-Model ..> SortedPersons : getFilteredPersonList()\nreturns sorted view
+ModelManager --> "1" SortedPersons
+UniquePersonList -right-> "1" StoredPersons
+FilteredPersons -up-> StoredPersons
+SortedPersons -up-> FilteredPersons
 
-note bottom of SortedPersons
-  Alphabetical by full name, ignoring case.
-  Ties retain stored order.
-  Filtering and sorting leave stored order unchanged.
-end note
+
+legend bottom
+  Display pipeline: stored view -> filtered view -> sorted view.
+  ModelManager.getFilteredPersonList() exposes sortedPersons.
+  Own phone is required; emergencyPhone is Optional<Phone>.
+endlegend
 @enduml

@@ -3,45 +3,42 @@
 skinparam ArrowFontStyle plain
 
 actor User as user USER_COLOR
-participant ":Ui" as ui UI_COLOR
-participant ":Logic" as logic LOGIC_COLOR
-participant ":Model" as model MODEL_COLOR
-participant ":Storage" as storage STORAGE_COLOR
+participant Ui as ui UI_COLOR
+participant Logic as logic LOGIC_COLOR
+participant Model as model MODEL_COLOR
+participant Storage as storage STORAGE_COLOR
 
-user -> ui : "delete +65 91234567"
-activate ui
+user -> ui : Enter delete +65 91234567
 ui -> logic : execute("delete +65 91234567")
 activate logic
 logic -> model : getFilteredPersonList()
 model --> logic : displayed cyclists
-note over logic : Resolve target; store pending\ncommand and cyclist snapshot.
-logic --> ui : CommandResult: confirmation prompt
+note over logic : Resolve target and retain pending request.
+logic --> ui : Confirmation prompt
 deactivate logic
-ui --> user : Ask for y/yes or n/no
-deactivate ui
-note over model, storage : Requesting confirmation does not change or save data.
+ui --> user : Display confirmation prompt
+note over model, storage : No model change or save at the request stage.
 
-user -> ui : "yes"
-activate ui
+user -> ui : Enter yes
 ui -> logic : execute("yes")
 activate logic
-note over logic : Consume pending request.
 logic -> model : getFilteredPersonList()
 model --> logic : displayed cyclists
-note over logic, model : Revalidate target against snapshot before deletion.\nRepeated lookups within Logic are omitted.
+note over logic : Consume pending request and revalidate target.\nThe confirmed, unchanged-target path is shown.
 logic -> model : deletePerson(person)
-activate model
-note right of model : Remove cyclist and their\nphone from ride rosters.
 model --> logic
-deactivate model
 logic -> model : getAddressBook()
 model --> logic : addressBook
 logic -> storage : saveAddressBook(addressBook)
 activate storage
 storage --> logic
 deactivate storage
-logic --> ui : CommandResult: deletion success
+logic --> ui : Deletion success
 deactivate logic
-ui --> user : Show deletion success
-deactivate ui
+ui --> user : Display deletion success
+
+legend bottom
+  Lifelines represent components; internal object calls are omitted.
+  Solid arrows show requests; dashed arrows show responses.
+endlegend
 @enduml

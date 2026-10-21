@@ -1,7 +1,7 @@
 @startuml
 !include style.puml
 skinparam ArrowFontStyle plain
-skinparam maxMessageSize 170
+skinparam maxMessageSize 190
 !pragma sequenceMessageSpan true
 
 box Logic LOGIC_COLOR_T1
@@ -14,7 +14,6 @@ participant "m:Model" as Model MODEL_COLOR
 participant ":Storage" as Storage STORAGE_COLOR
 
 [-> LogicManager : execute("delete +65 91234567")
-activate LogicManager
 LogicManager -> Parser : parseCommand("delete +65 91234567")
 activate Parser
 create DeleteParser
@@ -30,51 +29,47 @@ deactivate Parser
 LogicManager -> DeleteCommand : getPersonToDelete(m)
 activate DeleteCommand
 DeleteCommand -> Model : getFilteredPersonList()
-Model --> DeleteCommand : sorted displayed cyclists
+Model --> DeleteCommand : displayedPersons
 DeleteCommand --> LogicManager : person
 deactivate DeleteCommand
-LogicManager -> LogicManager : pendingDeletion = d\npendingCyclist = person
-note over LogicManager : Request only: no deletion and no save.
-[<-- LogicManager : CommandResult: confirmation prompt
-deactivate LogicManager
+note over LogicManager
+  pendingDeletion = d
+  pendingCyclist = person
+  No deletion and no save.
+end note
+[<-- LogicManager : confirmationResult
 
 [-> LogicManager : execute(reply)
-activate LogicManager
-alt reply is "yes" (or "y"), ignoring case
-    LogicManager -> LogicManager : confirmDeletion()
-    activate LogicManager
-    LogicManager -> LogicManager : copy pending command and snapshot\ncancelDeletion()
+alt reply is y or yes
+    note over LogicManager : Consume pending command and snapshot.
     LogicManager -> DeleteCommand : getPersonToDelete(m)
     activate DeleteCommand
     DeleteCommand -> Model : getFilteredPersonList()
-    Model --> DeleteCommand : sorted displayed cyclists
-    DeleteCommand --> LogicManager : current person
+    Model --> DeleteCommand : displayedPersons
+    DeleteCommand --> LogicManager : currentPerson
     deactivate DeleteCommand
-    note over LogicManager, Model
-      Continue only if the target is still displayed
-      and equals the saved snapshot; otherwise report an error.
-      Pending state has already been consumed.
-    end note
-    LogicManager -> DeleteCommand : execute(m)
-    activate DeleteCommand
-    DeleteCommand -> DeleteCommand : getPersonToDelete(m)
-    DeleteCommand -> Model : getFilteredPersonList()
-    Model --> DeleteCommand : sorted displayed cyclists
-    DeleteCommand -> Model : deletePerson(person)
-    Model --> DeleteCommand
-    DeleteCommand --> LogicManager : CommandResult: deletion success
-    deactivate DeleteCommand
-    LogicManager -> LogicManager : saveAddressBook()
-    LogicManager -> Model : getAddressBook()
-    Model --> LogicManager : addressBook
-    LogicManager -> Storage : saveAddressBook(addressBook)
-    Storage --> LogicManager
-    deactivate LogicManager
-    [<-- LogicManager : CommandResult: deletion success
-else reply is "no" (or "n"), ignoring case
-    LogicManager -> LogicManager : cancelDeletion()
-    note over LogicManager : Clear pending state; no deletion and no save.
-    [<-- LogicManager : CommandResult: deletion cancelled
+    opt target is still displayed and equals the snapshot
+        LogicManager -> DeleteCommand : execute(m)
+        activate DeleteCommand
+        note over DeleteCommand : Resolve displayed target again.
+        DeleteCommand -> Model : deletePerson(person)
+        Model --> DeleteCommand
+        DeleteCommand --> LogicManager : deletionResult
+        deactivate DeleteCommand
+        LogicManager -> Model : getAddressBook()
+        Model --> LogicManager : addressBook
+        LogicManager -> Storage : saveAddressBook(addressBook)
+        Storage --> LogicManager
+        [<-- LogicManager : deletionResult
+    end
+else reply is n or no
+    note over LogicManager : Clear pending request; no deletion or save.
+    [<-- LogicManager : cancellationResult
 end
-deactivate LogicManager
+
+legend bottom
+  Replies ignore case and surrounding spaces.
+  Returned results are CommandResult objects.
+  Revalidation errors return without deletion or saving.
+endlegend
 @enduml
