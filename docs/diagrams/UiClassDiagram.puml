@@ -13,8 +13,13 @@ Class HelpWindow
 Class ResultDisplay
 Class PersonListPanel
 Class PersonCard
+Class RideListPanel
+Class RideCard
 Class StatusBarFooter
 Class CommandBox
+Class CommandTemplates
+Class "<<record>>\nTemplate" as Template
+Class ArtworkScreen
 }
 
 package Model <<Rectangle>> {
@@ -33,10 +38,12 @@ UiManager -down-> "1" MainWindow
 MainWindow *-down->  "1" CommandBox
 MainWindow *-down-> "1" ResultDisplay
 MainWindow *-down-> "1" PersonListPanel
+MainWindow *-down-> "1" RideListPanel
 MainWindow *-down-> "1" StatusBarFooter
 MainWindow --> "0..1" HelpWindow
 
 PersonListPanel -down-> "*" PersonCard
+RideListPanel -down-> "*" RideCard
 
 MainWindow -left-|> UiPart
 
@@ -44,12 +51,22 @@ ResultDisplay --|> UiPart
 CommandBox --|> UiPart
 PersonListPanel --|> UiPart
 PersonCard --|> UiPart
+RideListPanel --|> UiPart
+RideCard --|> UiPart
 StatusBarFooter --|> UiPart
 HelpWindow --|> UiPart
 
+MainWindow .down.> CommandTemplates
+CommandTemplates *-down-> "*" Template
+
+UiManager .left.> ArtworkScreen
+MainWindow .up.> ArtworkScreen
+
 PersonCard ..> Model
+RideCard ..> Model
 UiManager -right-> Logic
 MainWindow -left-> Logic
+HelpWindow ..> Logic
 
 PersonListPanel -[hidden]left- HelpWindow
 HelpWindow -[hidden]left- CommandBox
