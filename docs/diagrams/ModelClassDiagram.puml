@@ -1,51 +1,63 @@
 @startuml
 !include style.puml
+!pragma layout smetana
 skinparam arrowThickness 1.1
 skinparam arrowColor MODEL_COLOR
 skinparam classBackgroundColor MODEL_COLOR
+skinparam classAttributeFontColor #FFFFFF
+skinparam classAttributeIconSize 0
 
-Package Model as ModelPackage <<Rectangle>>{
-Class "<<interface>>\nReadOnlyAddressBook" as ReadOnlyAddressBook
-Class "<<interface>>\nReadOnlyUserPrefs" as ReadOnlyUserPrefs
-Class "<<interface>>\nModel" as Model
-Class AddressBook
-Class ModelManager
-Class UserPrefs
-
-Class UniquePersonList
-Class Person
-Class Email
-Class Name
-Class Phone
-Class Tag
-
-Class I #FFFFFF
+package Model as ModelPackage <<Rectangle>> {
+class "<<interface>>\nModel" as Model
+class "<<interface>>\nReadOnlyAddressBook" as ReadOnlyAddressBook
+class "<<interface>>\nReadOnlyUserPrefs" as ReadOnlyUserPrefs
+class ModelManager
+class AddressBook {
+    - nextRideId : int
+}
+show AddressBook fields
+class UserPrefs
+class UniquePersonList
+class Person
+class Name
+class Phone
+class Email
+class Ftp
+class ExperienceLevel
+class Location
+class Ride
+class "FilteredList<Person>" as FilteredPersons
+class "SortedList<Person>" as SortedPersons
 }
 
-Class HiddenOutside #FFFFFF
-HiddenOutside ..> Model
-
-AddressBook .up.|> ReadOnlyAddressBook
-
 ModelManager .up.|> Model
-Model .right.> ReadOnlyUserPrefs
-Model .left.> ReadOnlyAddressBook
-ModelManager -left-> "1" AddressBook
-ModelManager -right-> "1" UserPrefs
+AddressBook .up.|> ReadOnlyAddressBook
 UserPrefs .up.|> ReadOnlyUserPrefs
+Model ..> ReadOnlyAddressBook
+Model ..> ReadOnlyUserPrefs
+ModelManager --> "1" AddressBook
+ModelManager --> "1" UserPrefs
+AddressBook *--> "1" UniquePersonList : persons
+AddressBook --> "0..*" Ride : rides {ordered}
+UniquePersonList --> "0..*" Person : stored cyclists {ordered}
 
-AddressBook *--> "1" UniquePersonList
-UniquePersonList --> Person : ~* all
-Person *--> Name
-Person *--> Phone
-Person *--> Email
-Person *--> "*" Tag
+Person --> "1" Name : name
+Person --> "1" Phone : phone (own)
+Person --> "0..1" Phone : emergencyPhone\nOptional<Phone>
+Person --> "1" Email : email
+Person --> "1" Ftp : ftp
+Person --> "1" ExperienceLevel : experienceLevel
+Person --> "0..*" Location : locations {set}
 
-Person -[hidden]up--> I
-UniquePersonList -[hidden]right-> I
+ModelManager --> "1" FilteredPersons : filteredPersons
+ModelManager --> "1" SortedPersons : sortedPersons
+UniquePersonList ..> FilteredPersons : source via AddressBook\n.getPersonList()
+FilteredPersons ..> SortedPersons : source
+Model ..> SortedPersons : getFilteredPersonList()\nreturns sorted view
 
-Name -[hidden]right-> Phone
-Phone -[hidden]right-> Email
-
-ModelManager --> Person : ~* filtered
+note bottom of SortedPersons
+  Alphabetical by full name, ignoring case.
+  Ties retain stored order.
+  Filtering and sorting leave stored order unchanged.
+end note
 @enduml

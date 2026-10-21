@@ -1,70 +1,80 @@
 @startuml
 !include style.puml
 skinparam ArrowFontStyle plain
+skinparam maxMessageSize 170
+!pragma sequenceMessageSpan true
 
 box Logic LOGIC_COLOR_T1
 participant ":LogicManager" as LogicManager LOGIC_COLOR
-participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
-participant ":DeleteCommandParser" as DeleteCommandParser LOGIC_COLOR
+participant ":AddressBookParser" as Parser LOGIC_COLOR
+participant ":DeleteCommandParser" as DeleteParser LOGIC_COLOR
 participant "d:DeleteCommand" as DeleteCommand LOGIC_COLOR
-participant "r:CommandResult" as CommandResult LOGIC_COLOR
 end box
-
-box Model MODEL_COLOR_T1
 participant "m:Model" as Model MODEL_COLOR
-end box
+participant ":Storage" as Storage STORAGE_COLOR
 
-[-> LogicManager : execute("delete 1")
+[-> LogicManager : execute("delete +65 91234567")
 activate LogicManager
-
-LogicManager -> AddressBookParser : parseCommand("delete 1")
-activate AddressBookParser
-
-create DeleteCommandParser
-AddressBookParser -> DeleteCommandParser
-activate DeleteCommandParser
-
-DeleteCommandParser --> AddressBookParser
-deactivate DeleteCommandParser
-
-AddressBookParser -> DeleteCommandParser : parse("1")
-activate DeleteCommandParser
-
+LogicManager -> Parser : parseCommand("delete +65 91234567")
+activate Parser
+create DeleteParser
+Parser -> DeleteParser : new
+Parser -> DeleteParser : parse(" +65 91234567")
+activate DeleteParser
 create DeleteCommand
-DeleteCommandParser -> DeleteCommand
+DeleteParser -> DeleteCommand : new(phone)
+DeleteParser --> Parser : d
+deactivate DeleteParser
+Parser --> LogicManager : d
+deactivate Parser
+LogicManager -> DeleteCommand : getPersonToDelete(m)
 activate DeleteCommand
-
-DeleteCommand --> DeleteCommandParser :
+DeleteCommand -> Model : getFilteredPersonList()
+Model --> DeleteCommand : sorted displayed cyclists
+DeleteCommand --> LogicManager : person
 deactivate DeleteCommand
+LogicManager -> LogicManager : pendingDeletion = d\npendingCyclist = person
+note over LogicManager : Request only: no deletion and no save.
+[<-- LogicManager : CommandResult: confirmation prompt
+deactivate LogicManager
 
-DeleteCommandParser --> AddressBookParser : d
-deactivate DeleteCommandParser
-'Hidden arrow to position the destroy marker below the end of the activation bar.
-DeleteCommandParser -[hidden]-> AddressBookParser
-destroy DeleteCommandParser
-
-AddressBookParser --> LogicManager : d
-deactivate AddressBookParser
-
-LogicManager -> DeleteCommand : execute(m)
-activate DeleteCommand
-
-DeleteCommand -> Model : deletePerson(1)
-activate Model
-
-Model --> DeleteCommand
-deactivate Model
-
-create CommandResult
-DeleteCommand -> CommandResult
-activate CommandResult
-
-CommandResult --> DeleteCommand
-deactivate CommandResult
-
-DeleteCommand --> LogicManager : r
-deactivate DeleteCommand
-
-[<--LogicManager
+[-> LogicManager : execute(reply)
+activate LogicManager
+alt reply is "yes" (or "y"), ignoring case
+    LogicManager -> LogicManager : confirmDeletion()
+    activate LogicManager
+    LogicManager -> LogicManager : copy pending command and snapshot\ncancelDeletion()
+    LogicManager -> DeleteCommand : getPersonToDelete(m)
+    activate DeleteCommand
+    DeleteCommand -> Model : getFilteredPersonList()
+    Model --> DeleteCommand : sorted displayed cyclists
+    DeleteCommand --> LogicManager : current person
+    deactivate DeleteCommand
+    note over LogicManager, Model
+      Continue only if the target is still displayed
+      and equals the saved snapshot; otherwise report an error.
+      Pending state has already been consumed.
+    end note
+    LogicManager -> DeleteCommand : execute(m)
+    activate DeleteCommand
+    DeleteCommand -> DeleteCommand : getPersonToDelete(m)
+    DeleteCommand -> Model : getFilteredPersonList()
+    Model --> DeleteCommand : sorted displayed cyclists
+    DeleteCommand -> Model : deletePerson(person)
+    Model --> DeleteCommand
+    DeleteCommand --> LogicManager : CommandResult: deletion success
+    deactivate DeleteCommand
+    LogicManager -> LogicManager : saveAddressBook()
+    LogicManager -> Model : getAddressBook()
+    Model --> LogicManager : addressBook
+    LogicManager -> Storage : saveAddressBook(addressBook)
+    Storage --> LogicManager
+    deactivate LogicManager
+    [<-- LogicManager : CommandResult: deletion success
+else reply is "no" (or "n"), ignoring case
+    LogicManager -> LogicManager : cancelDeletion()
+    note over LogicManager : Clear pending state; no deletion and no save.
+    [<-- LogicManager : CommandResult: deletion cancelled
+end
 deactivate LogicManager
 @enduml
