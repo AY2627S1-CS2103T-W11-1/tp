@@ -1,38 +1,67 @@
 @startuml
 !include style.puml
+set separator none
 skinparam arrowThickness 1.1
 skinparam arrowColor LOGIC_COLOR_T4
 skinparam classBackgroundColor LOGIC_COLOR
+skinparam classAttributeFontColor #FFFFFF
+skinparam classAttributeIconSize 0
+hide empty members
 
-Class "{abstract}\nCommand" as Command
-Class XYZCommand
-
-package "Parser classes"{
-Class "<<interface>>\nParser" as Parser
-Class AddressBookParser
-Class XYZCommandParser
-Class CliSyntax
-Class ParserUtil
-Class ArgumentMultimap
-Class ArgumentTokenizer
-Class Prefix
+package "logic.parser" {
+    interface Parser
+    class AddressBookParser
+    class FindCommandParser
+    class RideFindCommandParser
+    class ParserUtil
+    class ArgumentMultimap
+    class ArgumentTokenizer
+    class Prefix
+    class CliSyntax
 }
 
-Class HiddenOutside #FFFFFF
-HiddenOutside ..> AddressBookParser
+package "logic.commands" {
+    abstract class Command
+    class FindCommand {
+        - predicate : PersonMatchesFindCriteriaPredicate
+    }
+    class RideFindCommand {
+        - predicate : RideMatchesFindCriteriaPredicate
+    }
+}
+show FindCommand fields
+show RideFindCommand fields
 
-AddressBookParser .down.> XYZCommandParser: <<create>>
+package "model.person" {
+    class PersonMatchesFindCriteriaPredicate MODEL_COLOR
+}
 
-XYZCommandParser ..> XYZCommand : <<create>>
-AddressBookParser ..> Command : <<use>>
-XYZCommandParser .up.|> Parser
-XYZCommandParser ..> ArgumentMultimap
-XYZCommandParser ..> ArgumentTokenizer
-ArgumentTokenizer .left.> ArgumentMultimap
-XYZCommandParser ..> CliSyntax
-CliSyntax ..> Prefix
-XYZCommandParser ..> ParserUtil
-ParserUtil .down.> Prefix
-ArgumentTokenizer .down.> Prefix
-XYZCommand -up-|> Command
+package "model.ride" {
+    class RideMatchesFindCriteriaPredicate MODEL_COLOR
+}
+
+AddressBookParser ..> FindCommandParser : <<create>>
+AddressBookParser ..> RideFindCommandParser : <<create>>
+Parser <|.. FindCommandParser
+Parser <|.. RideFindCommandParser
+FindCommandParser .left.> FindCommand : <<create>>
+RideFindCommandParser .left.> RideFindCommand : <<create>>
+Command <|-- FindCommand
+Command <|-- RideFindCommand
+FindCommandParser .down.> PersonMatchesFindCriteriaPredicate : <<create>>
+RideFindCommandParser .down.> RideMatchesFindCriteriaPredicate : <<create>>
+
+FindCommandParser ..> ArgumentTokenizer
+RideFindCommandParser ..> ArgumentTokenizer
+ArgumentTokenizer ..> ArgumentMultimap : <<create>>
+ArgumentTokenizer ..> Prefix : recognises
+FindCommandParser .up.> ParserUtil
+RideFindCommandParser .down.> ParserUtil
+CliSyntax ..> Prefix : defines
+
+legend bottom
+  Both parsers tokenise with ArgumentTokenizer and validate with ParserUtil.
+  They read ArgumentMultimap values and use CliSyntax prefixes.
+  Only the search-related classes and relationships are shown.
+endlegend
 @enduml
