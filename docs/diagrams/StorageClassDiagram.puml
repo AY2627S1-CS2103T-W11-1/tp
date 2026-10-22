@@ -3,6 +3,7 @@
 skinparam arrowThickness 1.1
 skinparam arrowColor STORAGE_COLOR
 skinparam classBackgroundColor STORAGE_COLOR
+skinparam classAttributeIconSize 0
 
 package Storage as StoragePackage {
 
@@ -15,9 +16,15 @@ Class JsonUserPrefsStorage
 
 package "AddressBook Storage" #F4F6F6{
 Class JsonAddressBookStorage
-Class JsonSerializableAddressBook
-Class JsonAdaptedPerson
-Class JsonAdaptedTag
+Class JsonSerializableAddressBook {
+nextRideId
+}
+Class JsonAdaptedPerson {
+emergencyPhone
+}
+Class JsonAdaptedRide {
+roster : List<String>
+}
 }
 
 }
@@ -31,6 +38,13 @@ StorageManager -down-> "1" JsonAddressBookStorage
 
 JsonAddressBookStorage ..> JsonSerializableAddressBook
 JsonSerializableAddressBook --> "*" JsonAdaptedPerson
-JsonAdaptedPerson --> "*" JsonAdaptedTag
+JsonSerializableAddressBook --> "*" JsonAdaptedRide
+
+note right of JsonAdaptedRide : Each roster entry is a\ncyclist's phone number
+
+' style.puml hides members; show only the persisted state that matters here.
+show JsonSerializableAddressBook fields
+show JsonAdaptedPerson fields
+show JsonAdaptedRide fields
 
 @enduml
