@@ -21,13 +21,13 @@ Logic -> Parser : parseCommand(commandText)
 activate Parser
 create RosterParser
 Parser -> RosterParser : new(isJoining)
-note over Parser, RosterParser
+note right of RosterParser
   rideaddcyclist: isJoining = true
   ridedeletecyclist: isJoining = false
 end note
 Parser -> RosterParser : parse(arguments)
 activate RosterParser
-note over RosterParser : Parse positive ride ID and complete phone number.
+note right of RosterParser : Parse positive ride ID\nand complete phone number.
 create Command
 RosterParser -> Command : new(rideId, phone, isJoining)
 RosterParser --> Parser : c
@@ -39,7 +39,7 @@ Logic -> Command : execute(m)
 activate Command
 Command -> Model : getAddressBook()
 Model --> Command : addressBook
-note over Command, Model
+note right of Command
   Search addressBook.getRideList() for
   candidate.getId() == rideId (persistent ID).
 end note
@@ -51,9 +51,9 @@ Command -> Roster : new(currentRoster)
 alt isJoining == true (addition)
     Command -> Model : getAddressBook()
     Model --> Command : addressBook
-    note over Command, Model
-      Resolve cyclist by phone in addressBook.getPersonList(),
-      including cyclists hidden by the current filter.
+    note right of Command
+      Resolve cyclist in addressBook.getPersonList()
+      by phone, including filtered-out cyclists.
       Then check, in order:
       1. roster does not already contain phone
       2. roster size < ride.getMaxGroupSize()
@@ -64,28 +64,30 @@ alt isJoining == true (addition)
 else isJoining == false (removal)
     Command -> Roster : remove(phone)
     Roster --> Command : true
-    note over Command
-      remove(phone) checks membership and changes only the copy.
-      A false return causes CommandException (MESSAGE_NOT_JOINED);
+    note right of Command
+      remove(phone) checks membership
+      and changes only the copy.
+      A false return causes CommandException
+      (MESSAGE_NOT_JOINED);
       the cyclist record is retained.
     end note
 end
 
-note over Command, Model
+note right of Command
   Parsing or validation failures throw before setRide;
-  no stored roster change or save occurs on these failures.
+  no stored roster change or save occurs.
   The successful continuation is shown below.
 end note
 Command -> Ride : withRoster(roster)
 activate Ride
-note over Ride, Storage : Construct a replacement Ride;\npreserve ID and other details.
+note right of Ride : Construct a replacement Ride;\npreserve ID and other details.
 Ride --> Command : replacement
 deactivate Ride
 Command -> Model : setRide(ride, replacement)
 activate Model
-note over Model, Storage
-  ModelManager delegates to AddressBook.setRide(...).
-  Replace the observable list entry at the same
+note right of Model
+  Delegate to AddressBook.setRide(...).
+  Replace the observable entry at the same
   position; preserve ID and next-ID counter.
 end note
 Model --> Command
@@ -98,7 +100,7 @@ Logic -> Model : getAddressBook()
 Model --> Logic : addressBook
 Logic -> Storage : saveAddressBook(addressBook)
 activate Storage
-note over Model, Storage : Save cyclists and rides to the existing JSON file.
+note right of Storage : Save cyclists and rides\nto the existing JSON file.
 Storage --> Logic
 deactivate Storage
 deactivate Logic
