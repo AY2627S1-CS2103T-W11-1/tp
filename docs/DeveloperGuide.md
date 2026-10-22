@@ -214,12 +214,16 @@ This section describes some noteworthy details on how certain features are imple
 
 The `find` command accepts `n/` for name, `p/` for the cyclist's own phone, `sos/` for an
 emergency phone, `f/` for a minimum FTP, `x/` for experience level and `l/` for preferred
-location. At least one criterion is required. Repeating a supported field gives OR matching
-within that field, while different fields are combined with AND. Names match complete words
-case-insensitively; a name containing spaces is matched as a complete full name. For example,
+location. At least one criterion is required. The `n/`, `p/`, `sos/`, `x/` and `l/` prefixes
+can each be repeated: values within one field use OR matching, while different fields use
+AND. The `f/` prefix accepts only one minimum FTP value, and a cyclist matches when their
+FTP is greater than or equal to that value. Names match complete words case-insensitively;
+a name containing spaces is matched as a complete full name. For example,
 `find l/Punggol x/Intermediate f/250` finds intermediate cyclists who prefer Punggol and have
-an FTP of at least 250 watts. A cyclist whose preferred locations include `any` matches every
-location criterion. Emergency-phone matching checks the optional emergency contact, not the
+an FTP of at least 250 watts. Preferred locations match case-insensitively against any
+supplied `l/` value. A cyclist whose stored preferred location is `any` matches every
+location criterion; searching for `l/any` alone matches only cyclists with that stored
+preference. Emergency-phone matching checks the optional emergency contact, not the
 cyclist's own phone.
 
 `find` applies its predicate to the model's person filter. The filtered person view is then
@@ -228,7 +232,8 @@ list displayed by the cyclist panel.
 
 The `ridefind` command accepts one value for each of `n/` (name), `from/`, `to/`, `l/`
 (location), `d/` (distance), `f/` (minimum power), `s/` (maximum group size) and `notes/`.
-The special input `ridefind all` clears the ride criteria. Date-only boundaries expand to
+Each prefix may appear only once, and all supplied ride criteria must match. The special
+input `ridefind all` clears the ride criteria. Date-only boundaries expand to
 0000 for `from/` and 2359 for `to/`; when both are supplied, the end must not be earlier than
 the start. For example, `ridefind l/Tampines f/200` lists rides at Tampines whose minimum
 power is at least 200 watts. Unlike cyclist `find`, ridefind does not compare a ride's
