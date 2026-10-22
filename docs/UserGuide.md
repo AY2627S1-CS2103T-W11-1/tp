@@ -42,11 +42,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
 ## Features
 
-Cyclists are displayed alphabetically by their full name, ignoring letter case, on startup
-and after `list`, `find` or `ridelist`. Adding a cyclist places them in the correct alphabetical position;
-editing their name updates their position. Names that are identical ignoring case retain
-their relative stored order. The visible indexes run consecutively from 1 within the current
-display, including filtered results. Use phone numbers to target `edit` and `delete` as usual.
+Cyclists are displayed alphabetically by their full name, ignoring letter case, on startup and after `list`, `find` or `ridelist`. Adding a cyclist places them in the correct alphabetical position; editing their name updates their position. Names that are identical ignoring case retain their relative stored order. The visible indexes run consecutively from 1 within the current display, including filtered results. Use phone numbers to target `edit` and `delete` as usual.
 
 <div markdown="block" class="alert alert-info">
 
@@ -76,28 +72,19 @@ Cyclique gives you help in two places: the **Help** menu in the menu bar, and th
 
 **The Help menu**
 
-Click **Help** in the menu bar to see every command with its format, followed by **Full help...** at the bottom.
-The commands are listed in this order: `add`, `edit`, `delete`, `find`, `rideadd`, `rideedit`, `ridedelete`,
-`rideaddcyclist`, `ridedeletecyclist`, `ridelist`, `ridefind`, `list`, `clear`, `help` and `exit`.
+Click **Help** in the menu bar to see every command with its format, followed by **Full help...** at the bottom. The commands are listed in this order: `add`, `edit`, `delete`, `find`, `rideadd`, `rideedit`, `ridedelete`, `rideaddcyclist`, `ridedeletecyclist`, `ridelist`, `ridefind`, `list`, `clear`, `help` and `exit`.
 
 ![Help menu](images/helpDropdown.png)
 
-Choosing a command from the menu does **not** run it. It places the start of that command in the command box for
-you to complete, and then you press Enter as usual:
+Choosing a command from the menu does **not** run it. It places the start of that command in the command box for you to complete, and then you press Enter as usual:
 
 * For most commands, the command word followed by a space is inserted, for example `rideedit `.
-* For `add` and `rideadd`, the command word is followed by every required prefix, for example
-  `rideadd n/ from/ to/ l/ d/ f/ s/`. Type a value straight after each prefix. Optional parameters such as `notes/`
-  are not inserted, so type them yourself if you need them.
-* `ID` and `PHONE` in `rideaddcyclist ID PHONE` and `ridedeletecyclist ID PHONE` are typed after the command name
-  without a prefix, so no `p/` is inserted.
+* For `add` and `rideadd`, the command word is followed by every required prefix, for example `rideadd n/ from/ to/ l/ d/ f/ s/`. Type a value straight after each prefix. Optional parameters such as `notes/` are not inserted, so type them yourself if you need them.
+* `ID` and `PHONE` in `rideaddcyclist ID PHONE` and `ridedeletecyclist ID PHONE` are typed after the command name without a prefix, so no `p/` is inserted.
 
 **The Full help window**
 
-Choose **Help → Full help...**, press `F1`, or enter `help` to open the Full help window. It lists the usage,
-parameters and an example for every command. At the bottom it shows a link to the user guide and a **Copy URL**
-button that copies the link to your clipboard. After you enter `help`, the result box shows `Opened help window.`
-If the window is already open, Cyclique focuses it instead of opening a second one.
+Choose **Help → Full help...**, press `F1`, or enter `help` to open the Full help window. It lists the usage, parameters and an example for every command. At the bottom it shows a link to the user guide and a **Copy URL** button that copies the link to your clipboard. After you enter `help`, the result box shows `Opened help window.` If the window is already open, Cyclique focuses it instead of opening a second one.
 
 ![Full help window](images/helpMessage.png)
 
@@ -134,13 +121,10 @@ Shows every cyclist currently stored in the address book.
 
 Format: `list`
 
-* Removes any active `find` or [`ridelist`](#listing-cyclists-registered-for-a-ride-ridelist) filter and restores
-  all cyclists. The result box shows `Listed all persons.`
+* Removes any active `find` or [`ridelist`](#listing-cyclists-registered-for-a-ride-ridelist) filter and restores all cyclists. The result box shows `Listed all persons.`
 * Affects only the cyclist panel. It does not change the Rides panel; use `ridefind all` to show every ride again.
-* Displays cyclist cards alphabetically by full name, ignoring case. Names that are identical ignoring case retain
-  their stored order.
-* Each card shows the cyclist's name, phone number, SOS number, email, FTP, experience level and preferred locations.
-  A missing SOS number is shown as **Not provided**.
+* Displays cyclist cards alphabetically by full name, ignoring case. Names that are identical ignoring case retain their stored order.
+* Each card shows the cyclist's name, phone number, SOS number, email, FTP, experience level and preferred locations. A missing SOS number is shown as **Not provided**.
 * If there are no cyclists, the cyclist panel is empty and the result still shows `Listed all persons.`
 
 ### Editing a person: `edit`
@@ -389,38 +373,29 @@ For example: `rideaddcyclist 1 +65 91234567`, then `ridedeletecyclist 1 +65 9123
 
 ### Listing cyclists registered for a ride: `ridelist`
 
-Shows the cyclists registered for one ride in the left-hand cyclist panel, so that you can see who is on that ride.
-No ride or cyclist records are changed.
+Shows the cyclists registered for one ride in the left-hand cyclist panel, so that you can see who is on that ride. No ride or cyclist records are changed.
 
 Format: `ridelist ID`
 
 Example: `ridelist 101`
 
-* `ID` is the persistent ride ID shown on the ride card, not the ride's position in the Rides panel.
-  Use a whole number from 1 to 2147483647.
+* `ID` is the persistent ride ID shown on the ride card, not the ride's position in the Rides panel. Use a whole number from 1 to 2147483647.
 * The cyclists appear on the usual cyclist cards, sorted alphabetically. The Rides panel on the right does not change.
 * On success, Cyclique reports `Showing registered cyclists for ride 101 in the left panel.`
-* If nobody is registered for the ride, Cyclique reports `Ride 101 has no registered cyclists.` and the cyclist
-  panel is empty.
+* If nobody is registered for the ride, Cyclique reports `Ride 101 has no registered cyclists.` and the cyclist panel is empty.
 
 **How the selection behaves**
 
-* `ridelist` replaces the current cyclist filter instead of combining with it. For example, if `find` was hiding some
-  cyclists, `ridelist` still shows everyone registered for the ride.
-* The panel refreshes by itself when `rideaddcyclist` or `ridedeletecyclist` changes the selected ride. Changes to other
-  rides do not affect it.
-* The selection ends when you run `list`, `find`, `clear`, another `ridelist`, or a successful `edit`, because each of
-  these replaces the cyclist filter. Later roster changes do not bring the old selection back.
-* If you delete the selected ride with `ridedelete`, the cyclist panel becomes empty and does not switch to another
-  ride. Use `list`, `find` or another `ridelist` to show cyclists again.
+* `ridelist` replaces the current cyclist filter instead of combining with it. For example, if `find` was hiding some cyclists, `ridelist` still shows everyone registered for the ride.
+* The panel refreshes by itself when `rideaddcyclist` or `ridedeletecyclist` changes the selected ride. Changes to other rides do not affect it.
+* The selection ends when you run `list`, `find`, `clear`, another `ridelist`, or a successful `edit`, because each of these replaces the cyclist filter. Later roster changes do not bring the old selection back.
+* If you delete the selected ride with `ridedelete`, the cyclist panel becomes empty and does not switch to another ride. Use `list`, `find` or another `ridelist` to show cyclists again.
 
 **If something goes wrong**
 
 * An unknown ride ID, such as `999999`, reports `Ride with ID 999999 cannot be found.`
-* A missing, malformed, zero, negative, overflowing or extra argument produces the invalid-command-format message
-  with the command usage.
-* If a phone number on the roster no longer matches any cyclist, Cyclique reports
-  `Cannot list ride: a registered cyclist cannot be found.`
+* A missing, malformed, zero, negative, overflowing or extra argument produces the invalid-command-format message with the command usage.
+* If a phone number on the roster no longer matches any cyclist, Cyclique reports `Cannot list ride: a registered cyclist cannot be found.`
 
 After any of these errors, the previous filter and all ride and cyclist data stay unchanged.
 
@@ -430,11 +405,8 @@ Deletes **every cyclist and every ride** from Cyclique.
 
 Format: `clear`
 
-* Cyclique does **not** ask you to confirm, and there is no undo. The change is saved automatically, so the data file
-  is emptied as well. Keep a copy of your data file first if you might need the data again
-  (see [Saving the data](#saving-the-data)).
-* Ride IDs are never reused. After `clear`, the next ride you add receives the next unused ID instead of starting
-  again from 1.
+* Cyclique does **not** ask you to confirm, and there is no undo. The change is saved automatically, so the data file is emptied as well. Keep a copy of your data file first if you might need the data again (see [Saving the data](#saving-the-data)).
+* Ride IDs are never reused. After `clear`, the next ride you add receives the next unused ID instead of starting again from 1.
 * Any cyclist filter, including a [`ridelist`](#listing-cyclists-registered-for-a-ride-ridelist) selection, is reset.
 * On success, the result box shows `Address book has been cleared!`
 
