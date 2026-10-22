@@ -861,6 +861,8 @@ Use a disposable book with John and Alice from the adding/editing scenario.
 1. Try `delete +65 99999999`, `delete`, `delete 1`, `delete +65 12`, and `delete x`.
    Expected: An error appears and no contact is deleted.
 1. Enter `clear` twice. Expected: The list remains empty and each command succeeds.
+1. Add a cyclist, then enter `clear 1` and `clear n/Alex`. Expected: Each is rejected with `Invalid command format.`
+   and the `clear` usage, and the cyclist and any rides remain. Then enter `clear`. Expected: Everything is deleted.
 
 ### Alphabetical display regression
 
