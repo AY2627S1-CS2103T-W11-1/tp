@@ -51,9 +51,14 @@ The bulk of the app's work is done by the following four components:
 
 **How the architecture components interact with each other**
 
-The *Sequence Diagram* below shows how the components interact with each other for the scenario where the user issues the command `delete 1`.
+The *Sequence Diagram* below shows a confirmed cyclist deletion. The user first enters
+`delete +65 91234567`, then enters `yes` through the same command box. `LogicManager`
+resolves the displayed cyclist and holds the pending request without changing or saving
+data. Only confirmation consumes the request, revalidates the target, deletes the cyclist
+and saves the updated address book, including any affected ride rosters. The
+lifelines below represent components; their internal object calls are omitted.
 
-<img src="images/ArchitectureSequenceDiagram.png" width="574" />
+<img src="images/ArchitectureSequenceDiagram.png" width="800" />
 
 Each of the four main components (also shown in the diagram above),
 
@@ -72,7 +77,7 @@ The **API** of this component is specified in [`Ui.java`](https://github.com/se-
 
 ![Structure of the UI Component](images/UiClassDiagram.png)
 
-The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
+The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, `RideListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
 
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
 
@@ -83,6 +88,14 @@ The `UI` component,
 * keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
 * depends on some classes in the `Model` component because it displays `Person` objects from the model.
 
+The cyclist panel observes `Logic#getFilteredPersonList()` and numbers cards from 1
+using their current displayed positions. The read-only `RideListPanel` occupies the
+right-hand 30% of the main window and observes `Logic#getFilteredRideList()`, so
+`ridefind` changes which ride cards are displayed. It builds one `RideCard` (laid out
+by `RideListCard.fxml`) for each matching ride. Ride cards show persistent IDs rather
+than displayed positions. `RideCard` keeps its text formatting in small static methods
+so that it can be unit tested without the GUI.
+
 ### Logic component
 
 **API** : [`Logic.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/logic/Logic.java)
@@ -91,20 +104,37 @@ Here's a (partial) class diagram of the `Logic` component:
 
 <img src="images/LogicClassDiagram.png" width="550"/>
 
-The sequence diagram below illustrates the interactions within the `Logic` component, taking `execute("delete 1")` API call as an example.
+The sequence diagram below illustrates the two inputs for cyclist deletion:
+`execute("delete +65 91234567")`, followed by `execute("yes")` or `execute("no")`.
+The example assumes that exactly one displayed cyclist has that phone number.
+The `alt` frame distinguishes confirmation from cancellation; the nested `opt`
+frame shows deletion and saving only after successful target revalidation.
+Error responses are described below rather than expanded in the diagram.
 
-![Interactions Inside the Logic Component for the `delete 1` Command](images/DeleteSequenceDiagram.png)
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** The lifeline for `DeleteCommandParser` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
-</div>
+<img src="images/DeleteSequenceDiagram.png" width="1000" alt="Logic interactions for a phone-based deletion request and its confirmation or cancellation" />
 
 How the `Logic` component works:
 
-1. When `Logic` is called upon to execute a command, the command is passed to an `AddressBookParser` object, which in turn creates a parser that matches the command (e.g., `DeleteCommandParser`) and uses it to parse the command.
-1. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteCommand`) which is executed by the `LogicManager`.
-1. The command can communicate with the `Model` when it is executed (e.g. to delete a person).<br>
-   Note that although this is shown as a single step in the diagram above for simplicity, the code can require several interactions between the command object and the `Model` to complete the operation.
-1. The result of the command execution is encapsulated as a `CommandResult` object which is returned from `Logic`.
+1. `LogicManager` passes a new command to `AddressBookParser`, which uses the matching
+   parser (for example, `DeleteCommandParser`) to create a `Command` object.
+1. Most commands execute immediately against the `Model`, after which `LogicManager`
+   saves the address book and returns a `CommandResult`.
+1. For `DeleteCommand`, `LogicManager` instead calls `getPersonToDelete(model)` to
+   resolve the cyclist from the sorted displayed list. It stores `pendingDeletion`
+   and the immutable `pendingCyclist` snapshot, then returns a confirmation prompt.
+   This first input neither deletes a cyclist nor saves data.
+1. The next input enters the same `Logic.execute` method. A `yes` reply consumes the
+   pending request, resolves the target again and compares it with the snapshot.
+   If the cyclist is still displayed and unchanged, the command executes
+   `deletePerson(person)` and `LogicManager` saves the address book. A `no` reply
+   clears the request and returns cancellation feedback without changing or saving data.
+
+Replies are trimmed and accept `y`/`yes` or `n`/`no`, ignoring case. Invalid replies
+retain the request. Another recognised command cancels it before normal parsing,
+even if that command's arguments are invalid. See
+[Cyclist deletion confirmation](#cyclist-deletion-confirmation) for the error and
+cancellation behaviour. Ride deletion executes immediately and does not use this
+confirmation flow.
 
 Here are the other classes in `Logic` (omitted from the class diagram above) that are used for parsing a user command:
 
@@ -117,23 +147,36 @@ How the parsing works:
 ### Model component
 **API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
 
-<img src="images/ModelClassDiagram.png" width="450" />
-
+<img src="images/ModelClassDiagram.png" width="1000" alt="Model relationships, cyclist value fields and the filtered then sorted display pipeline" />
 
 The `Model` component,
 
-* stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
-* stores all `Ride` objects in the order they were added, together with the ID the next ride will receive. `AddressBook#addRide` assigns IDs, so they only go up and are never reused. Rides are not filtered or sorted. The UI shows them as cards in a read-only `RideListPanel` in the right-hand 30% of the main window. The panel observes `Logic#getRideList()` and builds one `RideCard` (laid out by `RideListCard.fxml`) for each ride, in the same way that `PersonListPanel` builds `PersonCard`s. `RideCard` keeps its text formatting in small static methods so that they can be unit tested without the GUI.
-* selects matching `Person` objects using a `FilteredList`, then exposes a live, unmodifiable `SortedList` through `getFilteredPersonList()`. It sorts by the full displayed name with `String.CASE_INSENSITIVE_ORDER`, using each person's stored position as the tie-breaker. This preserves the relative order of names that are identical ignoring case, including after additions, edits and filtering. The stored list and JSON order remain unchanged. The UI observes this view and numbers cards from 1 using their current displayed index. Phone-number targeting retains its existing rules.
-* stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
-* does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** The following diagram illustrates a historical model design. Cyclique no longer stores tags. Diagram updates are deferred to a later increment.<br>
-
-<img src="images/BetterModelClassDiagram.png" width="450" />
-
-</div>
-
+* stores cyclists as `Person` objects in an `AddressBook` containing a `UniquePersonList`.
+  Each cyclist has a `Name`, their own `Phone`, an `Email`, an `Ftp`, an
+  `ExperienceLevel` and a set of preferred cycling `Location` values. The separate
+  emergency contact is an `Optional<Phone>`: one own phone is required, while the
+  emergency phone may be absent for legacy records. Cyclists no longer have tags.
+* selects matching cyclists using `FilteredList<Person>`, then exposes a live,
+  unmodifiable `SortedList<Person>` through `getFilteredPersonList()`. It sorts by
+  full name using `String.CASE_INSENSITIVE_ORDER`, with stored position as the
+  tie-breaker. Names that are identical ignoring case retain their relative order,
+  including after additions, edits and filtering. Filtering and sorting leave the
+  stored list and JSON order unchanged; edit and delete target the cyclist's own phone.
+  The transformation arrows point towards their underlying source lists: the
+  stored-order view feeds the filtered view, which feeds the sorted view.
+  `ModelManager` returns `sortedPersons` through the `Model` API.
+* stores an ordered ride collection and `nextRideId` in `AddressBook`.
+  `AddressBook#addRide` assigns persistent IDs that increase and are never reused;
+  these IDs are independent of displayed positions. `ModelManager` also maintains
+  a `FilteredList<Ride>` for `ridefind`, preserving stored ride order among matches.
+  Rides are immutable, so changes replace the stored ride. A roster contains cyclist
+  `Phone` values rather than direct `Person` references. `ridelist ID` filters the
+  cyclist view to that ride's roster, still using the alphabetical display pipeline.
+  Rides and cyclists are saved in the same address-book JSON file.
+* stores a `UserPrefs` object representing the user's preferences (currently, the GUI
+  settings), exposed through `ReadOnlyUserPrefs`.
+* does not depend on the UI, Logic or Storage components; its domain entities make
+  sense independently of those components.
 
 ### Storage component
 
@@ -160,13 +203,18 @@ This section describes some noteworthy details on how certain features are imple
 
 ### Cyclist deletion confirmation
 
+Cyclist deletion is a two-input interaction: for example, enter
+`delete +65 91234567`, inspect the confirmation prompt, then enter `yes` or `no`
+through the same command box. The sequence diagram in the
+[Logic component](#logic-component) shows both inputs.
+
 `LogicManager` resolves `delete PHONE` against the displayed list using
 `DeleteCommand.getPersonToDelete`. This preserves the existing invalid-phone,
 missing/hidden-target and ambiguous-target errors before a prompt is shown.
 It stores the pending command and an immutable snapshot of that cyclist in memory,
-then returns a confirmation request to the existing result panel without executing
-or saving the deletion. The command box accepts the next reply through the same
-`Logic.execute` entry point.
+in `pendingDeletion` and `pendingCyclist`, then returns a confirmation request to
+the existing result panel without executing or saving the deletion. The command
+box accepts the next reply through the same `Logic.execute` entry point.
 
 Replies are trimmed and compared ignoring case. `y`/`yes` executes the pending
 `DeleteCommand` and saves the book; `n`/`no` clears the request without changing the
@@ -179,19 +227,24 @@ An unrecognised reply reports an error and retains the request. A supported comm
 word, including one with invalid arguments, cancels the request before normal
 parsing/execution. Cancellation feedback is prepended to the new output or error;
 Help and Exit flags are preserved. `AddressBookParser.isRecognisedCommand` makes
-this distinction using the same case-sensitive command words. Another delete
-replaces the pending request after validating its own phone target. Pending requests
-are never serialised and disappear when the application closes or restarts.
+this distinction using the same case-sensitive command words. A subsequent `delete`
+cancels the previous request first and creates a new request only if its own phone
+target is valid. Pending requests are never serialised and disappear when the application closes or restarts.
+
 ### Emergency contact implementation
 
-`Person` stores an `Optional<Phone>` emergency contact as a data field. New `add` commands require `sos/`; `edit` optionally replaces it and otherwise preserves it. All supplied numbers reuse `ParserUtil.parsePhone`, including repeated `sos/` find criteria. Find uses OR within each field and AND across supplied fields. Emergency contacts do not participate in cyclist identity because riders may share a contact. Edit and delete still target the cyclist’s own phone number.
+`Person` stores an `Optional<Phone>` emergency contact as a data field, shown as
+the separate `emergencyPhone` relationship with multiplicity `0..1` in the
+[model class diagram](#model-component). The cyclist's own `phone` relationship
+has multiplicity `1`. New `add` commands require `sos/`; `edit` optionally replaces it and otherwise preserves it. All supplied numbers reuse `ParserUtil.parsePhone`, including repeated `sos/` find criteria. Find uses OR within each field and AND across supplied fields. Emergency contacts do not participate in cyclist identity because riders may share a contact. Edit and delete still target the cyclist’s own phone number.
 
 `JsonAdaptedPerson` saves the `emergencyPhone` property. Missing or null values load as `Optional.empty()` for backwards compatibility, while supplied invalid values reject the record. `PersonCard` shows the number in a labelled SOS row, or **Not provided** for legacy records. Help formats and dropdown templates include the new prefix.
 
 ### Group ride creation (`rideadd`)
 
 `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MINIMUM_POWER s/MAX_GROUP_SIZE [notes/NOTES]`
-creates a group ride. The diagrams are not updated for rides yet and are deferred to a later increment.
+creates a group ride. The [model class diagram](#model-component) shows the ride
+collection and ID counter at an overview level; the ride value classes are described below.
 
 **Model.** A `Ride` (package `seedu.address.model.ride`) is immutable and holds an `int` ID, a `Name`, two
 `RideDateTime` values (`from` and `to`), a `Location`, a `Distance`, a `MinimumPower`, a `GroupSize`, an
