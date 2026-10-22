@@ -57,7 +57,7 @@ Cyclists are displayed alphabetically by their full name, ignoring letter case, 
 * Items followed by `…`​ can appear zero or more times.<br>
   For example, `[l/LOCATION]…` in `edit` may be omitted, or written as `l/Punggol` or `l/Punggol l/Marina Bay`.
 
-* Parameters can be in any order.<br>
+* Parameters with prefixes can be in any order. Positional arguments must follow the order shown in the command format.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
 * Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
@@ -352,24 +352,88 @@ A missing, malformed, non-positive, overflowing or additional argument produces 
 by the command usage. For example, an unknown ID of 101 reports `Ride with ID 101 cannot be found.` Failed
 deletions do not change ride or cyclist data.
 
-### Adding and removing cyclists from a ride
+### Adding a cyclist to a ride: `rideaddcyclist`
 
-Use `rideaddcyclist ID PHONE` to add a saved cyclist to a ride.
-Use `ridedeletecyclist ID PHONE` to remove them from that ride only.
-For example: `rideaddcyclist 1 +65 91234567`, then `ridedeletecyclist 1 +65 91234567`.
+Adds one saved cyclist to an existing ride's roster.
 
-* `ID` is the positive ride ID shown on the card, rather than a position in the list.
-  Use a whole number from 1 to 2147483647. Command names are case-sensitive.
-* `PHONE` includes the country code and one space, as in cyclist commands. Do not add `p/`.
-* Cyclists can be added even when hidden by `find`. They must exist in the address book,
-  meet the ride's minimum power and fit within its maximum group size.
-* A cyclist cannot join the same ride twice. Removing a cyclist who is absent reports an error.
-* Removing a cyclist from a ride keeps their contact record and other ride memberships.
-* Ride cards show roster phone numbers, or `No cyclists` when empty. Changes are saved automatically.
-* Editing a cyclist's phone updates all their ride memberships. Confirming deletion of their
-  contact removes them from all ride rosters; cancelling deletion preserves those memberships.
-* Both commands appear in Help. Entering either while a contact deletion is pending cancels
-  that pending deletion and runs the roster command.
+Format: `rideaddcyclist ID PHONE`
+
+Example: `rideaddcyclist 1 +65 91234567`
+
+* `ID` is the persistent ride ID shown on its card, not its position in the Rides panel.
+  Enter a positive whole number from 1 to 2147483647 without leading zeroes. It must identify
+  an existing ride; filtering rides with `ridefind` does not prevent you from targeting a hidden ride.
+* `PHONE` is the cyclist's own saved phone number, not their SOS number. Enter `+`, a 1–3 digit
+  country code, exactly one space and at least three digits, for example `+65 91234567`.
+  Do not add `p/`, brackets or hyphens. Put the ride ID before the phone number.
+* The cyclist must already exist in Cyclique, but can be hidden by `find` or a `ridelist` selection.
+* The cyclist must not already be on that ride's roster, the ride must have a free place, and
+  the cyclist's FTP must be at least the ride's minimum power. FTP equal to the minimum is accepted.
+* One cyclist may join several rides. This command changes only the selected ride's roster;
+  it does not create or edit a cyclist record.
+
+For the example above, successful addition reports `Cyclist +65 91234567 added to ride 1.`
+The ride card's roster includes the phone number and the change is saved automatically.
+If `ridelist 1` is active, the cyclist also appears in the left panel in alphabetical order.
+Otherwise, the current cyclist filter is retained.
+
+**If something goes wrong**
+
+Situation | Result message
+----------|---------------
+The ride ID does not exist | `Ride ID cannot be found.`
+The phone number does not identify a saved cyclist | `Cyclist with this phone number cannot be found.`
+The cyclist is already registered for that ride | `Cyclist is already on this ride's roster.`
+The roster has reached the ride's maximum group size | `Ride has reached its maximum group size.`
+The cyclist's FTP is below the ride's minimum power | `Cyclist's FTP is below the ride's minimum power.`
+
+Checks run in the order shown; only the first failure is reported. These errors leave all
+cyclist records and ride rosters unchanged. See the shared input rules below for format errors.
+
+### Removing a cyclist from a ride: `ridedeletecyclist`
+
+Removes one cyclist from one ride's roster. The cyclist's contact record and memberships of
+other rides are retained.
+
+Format: `ridedeletecyclist ID PHONE`
+
+Example: `ridedeletecyclist 1 +65 91234567`
+
+Use the same ID and phone format as [`rideaddcyclist`](#adding-a-cyclist-to-a-ride-rideaddcyclist),
+with the ID first and no `p/` prefix. The phone must be registered for that ride. Removal is
+immediate and does not ask for confirmation.
+
+For the example above, successful removal reports `Cyclist +65 91234567 removed from ride 1.`
+The phone disappears from that ride card's roster; an empty roster shows `No cyclists`.
+The change is saved automatically. If `ridelist 1` is active, the cyclist disappears from the
+left panel too. Removing the last member leaves that panel empty. Other cyclist filters
+and the current `ridefind` filter are retained.
+
+An unknown ride reports `Ride ID cannot be found.` A phone that is not on the selected ride's
+roster reports `Cyclist is not on this ride's roster.` These errors leave all cyclist records
+and ride rosters unchanged. Removal does not require a free place or check the cyclist's FTP.
+
+#### Shared roster command input and behaviour
+
+* Both commands require an ID followed by a complete phone number. For example, `rideaddcyclist 1`
+  reports `Invalid command format.` followed by usage instructions for both roster commands.
+* An invalid ID, such as `0`, `-1`, `01`, `abc` or `2147483648`, reports
+  `Ride ID should be a positive whole number no larger than 2147483647.` when a phone argument is supplied.
+* An invalid phone, including a `p/` prefix or extra text after the phone, reports a phone-format
+  error. Enter the complete phone number exactly as saved. Invalid inputs do not change rosters.
+* Command names are case-sensitive. Both commands appear in the **Help** menu; choosing one inserts
+  the command word and a space for you to complete, without running it.
+* Entering either supported command while cyclist deletion is awaiting confirmation cancels that
+  pending deletion, then processes the roster command. Cancellation is reported even if its input is invalid.
+* Editing a cyclist's phone updates their memberships in every ride. Use the new phone for later
+  roster commands. Confirming deletion of their cyclist record removes them from every roster;
+  requesting or cancelling deletion preserves those memberships.
+
+To try both commands, first save a cyclist with phone `+65 91234567` and FTP of at least 180,
+then create a ride with minimum power 180 and a free place. Use that ride's assigned ID in
+`rideaddcyclist ID +65 91234567`, followed by `ridelist ID` to see its cyclists. Enter
+`ridedeletecyclist ID +65 91234567` to remove the membership, and `list` to see that the cyclist
+record is still saved. Replace each `ID` with the actual number; do not type the placeholder.
 
 ### Listing cyclists registered for a ride: `ridelist`
 
@@ -473,6 +537,6 @@ Action | Format, Examples
 **Ridefind** | `ridefind all` or `ridefind [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] [l/LOCATION] [d/DISTANCE] [f/MINIMUM_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`<br> e.g., `ridefind all`, `ridefind from/18-10-2026 to/18-10-2026 f/180`
 **Rideedit** | `rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_FTP] [s/MAX_SIZE] [notes/NOTES]`<br> e.g., `rideedit 101 n/NightRide`, `rideedit 101 notes/`
 **Ridedelete** | `ridedelete ID`<br> e.g., `ridedelete 101`
-**Add cyclist to ride** | `rideaddcyclist ID PHONE`
-**Remove cyclist from ride** | `ridedeletecyclist ID PHONE`
+**Add cyclist to ride** | `rideaddcyclist ID PHONE`<br> e.g., `rideaddcyclist 1 +65 91234567`
+**Remove cyclist from ride** | `ridedeletecyclist ID PHONE`<br> e.g., `ridedeletecyclist 1 +65 91234567`
 **List cyclists in ride** | `ridelist ID`<br> e.g., `ridelist 101`
