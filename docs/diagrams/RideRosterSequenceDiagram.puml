@@ -12,6 +12,7 @@ participant "c:RideRosterCommand" as Command LOGIC_COLOR
 end box
 participant "m:Model" as Model MODEL_COLOR
 participant "ride:Ride" as Ride MODEL_COLOR
+participant "roster:ArrayList<Phone>" as Roster MODEL_COLOR
 participant ":Storage" as Storage STORAGE_COLOR
 
 [-> Logic : execute(commandText)
@@ -44,7 +45,8 @@ note over Command, Model
 end note
 Command -> Ride : getRoster()
 Ride --> Command : currentRoster
-note over Command : Copy currentRoster into a local ArrayList<Phone> roster.
+create Roster
+Command -> Roster : new(currentRoster)
 
 alt isJoining == true (addition)
     Command -> Model : getAddressBook()
@@ -56,13 +58,16 @@ alt isJoining == true (addition)
       1. roster does not already contain phone
       2. roster size < ride.getMaxGroupSize()
       3. cyclist.getFtp() >= ride.getMinimumPower()
-      Add phone to the local roster.
     end note
+    Command -> Roster : add(phone)
+    Roster --> Command : true
 else isJoining == false (removal)
+    Command -> Roster : remove(phone)
+    Roster --> Command : true
     note over Command
-      roster.remove(phone) must return true.
-      This checks membership and removes the phone
-      from the local copy; the cyclist record is retained.
+      remove(phone) checks membership and changes only the copy.
+      A false return causes CommandException (MESSAGE_NOT_JOINED);
+      the cyclist record is retained.
     end note
 end
 
