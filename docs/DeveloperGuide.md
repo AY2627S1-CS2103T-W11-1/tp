@@ -92,7 +92,7 @@ The `UI` component,
 
 `MainWindow` is split into two columns. The left 70% holds the `CommandBox`, the `ResultDisplay` and the cyclist panel (`PersonListPanel`). The right 30% holds the ride panel (`RideListPanel`).
 
-Each panel is given an `ObservableList` by `MainWindow` and builds one card for every item in it: `PersonListPanel` shows a `PersonCard` for each `Person` from `Logic#getFilteredPersonList()`, and `RideListPanel` shows a `RideCard` (laid out by `RideListCard.fxml`) for each `Ride` from `Logic#getFilteredRideList()`. Because the panels observe these lists, they refresh by themselves when cyclists or rides are added, edited, deleted or filtered. `RideCard` keeps its text formatting in small static methods so that they can be unit tested without the GUI.
+Each panel is given an `ObservableList` by `MainWindow` and builds one card for every item in it: `PersonListPanel` shows a `PersonCard` for each `Person` from `Logic#getFilteredPersonList()`, and `RideListPanel` shows a `RideCard` (laid out by `RideListCard.fxml`) for each `Ride` from `Logic#getFilteredRideList()`. Because the panels observe these lists, they refresh by themselves when cyclists or rides are added, edited, deleted or filtered. `RideCard` keeps its text formatting in small static methods so that they can be unit tested without the GUI. The cards keep values such as phone numbers, distances, powers and dates on one line by replacing their spaces with no-break spaces (`DisplayText#keepTogether`), so a label can only wrap between whole values. The ride card shows the roster across its full width, because a phone number is too wide for the narrow value column. The main window has a minimum width of 720 so that the Rides panel cannot become too narrow for these values.
 
 The two panels are filtered independently of each other:
 
@@ -937,8 +937,10 @@ Check the panel after each step, and check the saved file `data/addressbook.json
    Expected: The ride is added, because the end time may equal the start time.
 1. Enter `rideadd n/The Extraordinarily Long Weekend Charity Fundraiser Century Ride For Everyone from/31-12-2026 2300 to/01-01-2027 0100 l/Marina Bay Sands Waterfront Promenade and Gardens d/160.75 f/250 s/150 notes/Bring plenty of water and snacks for the whole day`.
    Expected: The ride appears as a card whose long name, location and notes wrap onto further lines inside the card.
-   Make the window as narrow as it allows. Expected: The Rides panel shows no horizontal scrollbar and every card
-   stays inside the column.
+   Make the window as narrow as it allows (it cannot go below 720 pixels wide). Expected: The Rides panel shows no
+   horizontal scrollbar and every card stays inside the column. Each date and time, the distance, the minimum power
+   and each roster phone number stays on one line instead of breaking in the middle, and the location wraps only
+   between words.
 1. Enter `rideadd n/Any Place Ride from/21-10-2026 0600 to/21-10-2026 0800 l/any d/20 f/100 s/5`.
    Expected: The card's Location line shows `Any`, and the card has no Notes line.
 1. Click a ride card. Expected: The card is highlighted with a yellow border.

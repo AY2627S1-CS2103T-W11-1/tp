@@ -25,8 +25,8 @@
     </HBox>
     <GridPane hgap="10" maxWidth="1.7976931348623157E308">
       <columnConstraints>
-        <ColumnConstraints percentWidth="40" hgrow="ALWAYS" />
-        <ColumnConstraints percentWidth="60" hgrow="ALWAYS" />
+        <ColumnConstraints percentWidth="50" hgrow="ALWAYS" />
+        <ColumnConstraints percentWidth="50" hgrow="ALWAYS" />
       </columnConstraints>
       <VBox maxWidth="1.7976931348623157E308" spacing="2" GridPane.hgrow="ALWAYS">
         <Label styleClass="person-section-heading" text="Contact" />
