@@ -1,11 +1,30 @@
+# Cyclique
+
 [![CI Status](https://github.com/AY2627S1-CS2103T-W11-1/tp/actions/workflows/gradle.yml/badge.svg)](https://github.com/AY2627S1-CS2103T-W11-1/tp/actions/workflows/gradle.yml)
 
-![Ui](docs/images/Ui.png)
+**Cyclique is a desktop application for organisers of recreational cycling groups in Singapore.** It combines typed commands with a graphical interface, keeping cyclist profiles, emergency contact numbers, group rides and ride rosters in one place.
 
-* Cyclique is a **desktop app for organisers of recreational cycling groups in Singapore**, optimised for use through a Command Line Interface (CLI) while still giving you the benefits of a Graphical User Interface (GUI).
-* Organisers often have their riders' contact and information scattered across chats, spreadsheets, and memory, making it hard to tell who's actually suitable for a given ride. Cyclique keeps this information in one place and helps you quickly find which riders suit a ride, based on experience, location, availability, and preferences.
-  * It's built for organisers who need to manage a significant number of cyclists, quickly access cyclists' contact and emergency information, and identify available cyclists by factors such as preferred cycling location, FTP, and experience level.
-* If you're comfortable typing and using CLI apps, Cyclique can help you manage and match cyclists faster than a typical GUI app.
-* For the detailed documentation of this project, see the **[Cyclique Product Website](https://ay2627s1-cs2103t-w11-1.github.io/tp/)**.
+![Cyclique showing cyclist profiles and the Rides panel](docs/images/release-v1.4/cyclists-and-rides.png)
 
-* This project is based on the [AddressBook-Level3](https://github.com/se-edu/addressbook-level3) project created by the [SE-EDU initiative](https://se-education.org/).
+## Features
+
+* **Manage cyclist profiles:** Keep contact and emergency numbers, Functional Threshold Power (FTP), experience levels and preferred cycling locations. Find cyclists by supported profile fields and view results alphabetically.
+* **Plan group rides:** Add, edit, find and delete rides with dates, locations, distances, minimum power and maximum group sizes. Each ride has a persistent ID.
+* **Manage ride rosters:** Add eligible cyclists, remove memberships and list a ride's registered cyclists. Cyclique checks duplicate membership, capacity and minimum power before adding a cyclist.
+* **Keep data between sessions:** Cyclist records and rides are saved automatically in the same local JSON file. Cyclist deletion asks for confirmation; ride deletion is immediate.
+
+## Get started
+
+Install Java 25, download the JAR from [Cyclique releases](https://github.com/AY2627S1-CS2103T-W11-1/tp/releases), and follow the [User Guide](https://ay2627s1-cs2103t-w11-1.github.io/tp/UserGuide.html#quick-start) for launch instructions and command examples.
+
+## Project documentation
+
+* [Product website](https://ay2627s1-cs2103t-w11-1.github.io/tp/)
+* [User Guide](docs/UserGuide.md) — commands, examples and troubleshooting.
+* [Developer Guide](docs/DeveloperGuide.md) — architecture and implementation.
+* [Setting up](docs/SettingUp.md) and [Testing guide](docs/Testing.md) — contributing to the project.
+* [About Us](docs/AboutUs.md) — the CS2103T project team.
+
+## Acknowledgements
+
+Cyclique is based on [AddressBook-Level3](https://github.com/se-edu/addressbook-level3), created by the [SE-EDU initiative](https://se-education.org/).
