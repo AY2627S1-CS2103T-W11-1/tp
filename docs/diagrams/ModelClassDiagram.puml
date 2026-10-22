@@ -1,51 +1,69 @@
 @startuml
 !include style.puml
+!pragma layout smetana
 skinparam arrowThickness 1.1
 skinparam arrowColor MODEL_COLOR
 skinparam classBackgroundColor MODEL_COLOR
+skinparam classAttributeFontColor #FFFFFF
+skinparam classAttributeIconSize 0
+skinparam minClassWidth 110
 
-Package Model as ModelPackage <<Rectangle>>{
-Class "<<interface>>\nReadOnlyAddressBook" as ReadOnlyAddressBook
-Class "<<interface>>\nReadOnlyUserPrefs" as ReadOnlyUserPrefs
-Class "<<interface>>\nModel" as Model
-Class AddressBook
-Class ModelManager
-Class UserPrefs
-
-Class UniquePersonList
-Class Person
-Class Email
-Class Name
-Class Phone
-Class Tag
-
-Class I #FFFFFF
+package Model as ModelPackage <<Rectangle>> {
+class "<<interface>>\nModel" as Model
+class "<<interface>>\nReadOnlyAddressBook" as ReadOnlyAddressBook
+class "<<interface>>\nReadOnlyUserPrefs" as ReadOnlyUserPrefs
+class ModelManager
+class AddressBook {
+    - nextRideId : int
+}
+show AddressBook fields
+class UserPrefs
+class UniquePersonList
+class Person
+class Name
+class Email
+class Ftp
+class Phone
+class ExperienceLevel
+class Location
+class Ride
+class "ObservableList<Person>" as StoredPersons
+class "FilteredList<Person>" as FilteredPersons
+class "SortedList<Person>" as SortedPersons
 }
 
-Class HiddenOutside #FFFFFF
-HiddenOutside ..> Model
-
-AddressBook .up.|> ReadOnlyAddressBook
-
 ModelManager .up.|> Model
-Model .right.> ReadOnlyUserPrefs
-Model .left.> ReadOnlyAddressBook
-ModelManager -left-> "1" AddressBook
-ModelManager -right-> "1" UserPrefs
+AddressBook .up.|> ReadOnlyAddressBook
 UserPrefs .up.|> ReadOnlyUserPrefs
+Model ..> ReadOnlyAddressBook
+Model ..> ReadOnlyUserPrefs
+' Label padding keeps multiplicity text clear of arrowheads and line segments.
+ModelManager --> "1\n" AddressBook
+ModelManager --> "1\n" UserPrefs
+AddressBook *--> "1    " UniquePersonList
+AddressBook -up-> "rides    \n0..*    " Ride
+Ride -[hidden]right-> ReadOnlyAddressBook
+UniquePersonList --> Person : \n\ncontains\n0..*
 
-AddressBook *--> "1" UniquePersonList
-UniquePersonList --> Person : ~* all
-Person *--> Name
-Person *--> Phone
-Person *--> Email
-Person *--> "*" Tag
+Person --> Name
+' Longer links place Phone on a separate row so both roles remain readable.
+Person ----> "phone    \n1    " Phone
+Person ----> "emergencyPhone    \n0..1    " Phone
+Person --> Email
+Person --> Ftp
+Person --> ExperienceLevel
+Person -up-> "locations    \n0..*    " Location
+Location -[hidden]right-> UniquePersonList
 
-Person -[hidden]up--> I
-UniquePersonList -[hidden]right-> I
+ModelManager --> "1\n" SortedPersons
+UniquePersonList -right-> "1\n" StoredPersons
+FilteredPersons -up-> StoredPersons
+SortedPersons -up-> FilteredPersons
 
-Name -[hidden]right-> Phone
-Phone -[hidden]right-> Email
 
-ModelManager --> Person : ~* filtered
+legend bottom
+  Display pipeline: stored view -> filtered view -> sorted view.
+  ModelManager.getFilteredPersonList() exposes sortedPersons.
+  Own phone is required; emergencyPhone is Optional<Phone>.
+endlegend
 @enduml
