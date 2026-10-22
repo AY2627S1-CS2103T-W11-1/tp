@@ -146,4 +146,16 @@ public class HelpWindowTest {
         assertFalse(HelpWindow.COMMAND_LIST.contains("Run ridelist again after roster changes"));
         assertFalse(RideListCommand.MESSAGE_USAGE.contains("[ID]"));
     }
+
+    @Test
+    public void ftpParameter_isNamedFtpInEveryHelpFormat() {
+        // The add usage (Full help), the add menu entry and the add error message must all call it f/FTP.
+        assertTrue(AddCommand.MESSAGE_USAGE.contains("f/FTP "));
+        assertTrue(CommandTemplates.ALL.get(0).display().contains("f/FTP "));
+        assertTrue(AddCommand.MESSAGE_MISSING_FTP.endsWith("f/FTP."));
+        assertTrue(EditCommand.MESSAGE_USAGE.contains("[f/FTP]"));
+        assertTrue(CommandTemplates.ALL.get(1).display().contains("[f/FTP]"));
+        assertFalse(HelpWindow.COMMAND_LIST.contains("FTP_LEVEL"));
+        assertFalse(AddCommand.MESSAGE_MISSING_FTP.contains("FTP_LEVEL"));
+    }
 }

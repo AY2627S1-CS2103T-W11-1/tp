@@ -95,7 +95,7 @@ Format: `help`
 
 Adds a person to the address book.
 
-Format: `add n/NAME p/PHONE sos/EMERGENCY_PHONE e/EMAIL f/FTP_LEVEL x/EXPERIENCE_LEVEL l/LOCATION [l/LOCATION]…`
+Format: `add n/NAME p/PHONE sos/EMERGENCY_PHONE e/EMAIL f/FTP x/EXPERIENCE_LEVEL l/LOCATION [l/LOCATION]…`
 
 Field | Meaning and rules
 ------|------------------
@@ -103,7 +103,7 @@ Field | Meaning and rules
 `p/PHONE` | A unique phone number using a `+`, a 1–3 digit country code, one space and at least 3 digits, such as `+65 98765432`. Parentheses, hyphens and blank values are rejected. The number must not belong to another contact, including contacts hidden by a filter.
 `sos/EMERGENCY_PHONE` | Required for new cyclists. It follows the same format as `p/` but may be shared by multiple cyclists and does not determine duplicate cyclists.
 `e/EMAIL` | A valid email address. Email addresses are compared case-insensitively when checking for duplicates.
-`f/FTP_LEVEL` | A whole number from 1 to 600, in watts.
+`f/FTP` | A whole number from 1 to 600, in watts.
 `x/EXPERIENCE_LEVEL` | `Beginner`, `Intermediate` or `Advanced`, ignoring case.
 `l/LOCATION` | A preferred cycling location. At least one is required. Repeat `l/` for multiple locations, or use `l/any` alone.
 
@@ -462,7 +462,7 @@ _Details coming soon ..._
 
 Action | Format, Examples
 --------|------------------
-**Add** | `add n/NAME p/PHONE sos/EMERGENCY_PHONE e/EMAIL f/FTP_LEVEL x/EXPERIENCE_LEVEL l/LOCATION [l/LOCATION]…` <br> e.g., `add n/James Ho p/+65 22224444 sos/+65 99999999 e/jamesho@example.com f/300 x/Intermediate l/any`
+**Add** | `add n/NAME p/PHONE sos/EMERGENCY_PHONE e/EMAIL f/FTP x/EXPERIENCE_LEVEL l/LOCATION [l/LOCATION]…` <br> e.g., `add n/James Ho p/+65 22224444 sos/+65 99999999 e/jamesho@example.com f/300 x/Intermediate l/any`
 **Clear** | `clear`
 **Delete** | `delete PHONE`, then `y`/`yes` to confirm or `n`/`no` to cancel (case-insensitive)<br> e.g., `delete +65 22224444`, then `yes`
 **Edit** | `edit PHONE [n/NAME] [p/PHONE] [sos/EMERGENCY_PHONE] [e/EMAIL] [f/FTP] [x/EXPERIENCE] [l/LOCATION]…`<br> e.g., `edit +65 22224444 n/James Lee e/jameslee@example.com`

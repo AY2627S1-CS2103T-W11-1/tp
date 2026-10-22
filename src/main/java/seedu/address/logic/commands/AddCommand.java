@@ -29,7 +29,7 @@ public class AddCommand extends Command {
             + PREFIX_PHONE + "PHONE "
             + PREFIX_EMERGENCY_PHONE + "EMERGENCY_PHONE "
             + PREFIX_EMAIL + "EMAIL "
-            + PREFIX_FTP + "FTP_LEVEL "
+            + PREFIX_FTP + "FTP "
             + PREFIX_EXPERIENCE_LEVEL + "EXPERIENCE_LEVEL "
             + PREFIX_LOCATION + "LOCATION [" + PREFIX_LOCATION + "LOCATION]...\n"
             + "Example: " + COMMAND_WORD + " "
@@ -43,7 +43,7 @@ public class AddCommand extends Command {
 
     public static final String MESSAGE_SUCCESS = "New person added: %1$s";
     public static final String MESSAGE_MISSING_FTP =
-            "FTP is required. Please include f/FTP_LEVEL.";
+            "FTP is required. Please include f/FTP.";
     public static final String MESSAGE_MISSING_LOCATION =
             "Location is required. Please include l/LOCATION.";
     public static final String MESSAGE_DUPLICATE_PERSON = "Another cyclist already has this phone number or email.";
