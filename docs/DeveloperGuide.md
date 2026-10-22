@@ -205,7 +205,11 @@ The `Model` component,
 
 The `Storage` component,
 * can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
-* saves group rides in a `rides` array and the ID counter in `nextRideId`, both in the same file as the cyclists. Both are optional when reading, so older files load with no rides, and invalid ride data makes the whole file invalid in the same way as invalid cyclist data.
+* saves cyclists and group rides in the same JSON file. `JsonSerializableAddressBook` holds a collection of `JsonAdaptedPerson` objects (the cyclists), a collection of `JsonAdaptedRide` objects (the rides) and the `nextRideId` counter. There is no separate ride storage file or class.
+* saves the ride ID counter, `nextRideId`, so that ride IDs keep increasing and are never reused, even after rides are deleted or the address book is cleared. If the counter is missing when reading, numbering continues after the highest saved ride ID.
+* saves a ride's roster in `JsonAdaptedRide` as a list of cyclist phone numbers (strings), not as `Person` objects. When reading, every roster phone must belong to a saved cyclist, and a roster must not contain duplicates or exceed the ride's maximum group size.
+* saves a cyclist's optional emergency number in `JsonAdaptedPerson` as `emergencyPhone`.
+* remains compatible with older files. `rides` and `nextRideId` are optional when reading, so files saved before rides existed load with no rides, a ride without a `roster` loads with an empty roster, and a cyclist without `emergencyPhone` loads with no emergency number. Invalid ride data makes the whole file invalid in the same way as invalid cyclist data.
 * ignores the retired `tags` property in cyclist JSON records without validating its contents. New saves omit it. Supported cyclist fields retain their existing validation and legacy defaults.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
@@ -301,11 +305,7 @@ parsed by a `ParserUtil` method that throws the field's own message. Values are 
 `to`, location, distance, minimum power, group size and notes, and only the first error is reported. The check
 that `to/` is not earlier than `from/` runs after every field is valid.
 
-**Storage.** Rides are saved in the same `data/addressbook.json`, in a `rides` array, with a `nextRideId` number.
-`JsonAdaptedRide` mirrors `Ride` and validates each field when loading, throwing an `IllegalValueException` with the
-field's message. `rides` and `nextRideId` are optional when reading, so files saved before rides existed load with
-no rides and `nextRideId` 1. Duplicate ride IDs or a non-positive `nextRideId` make the file invalid. If
-`nextRideId` is missing, numbering continues after the highest saved ID.
+**Storage.** Rides are saved in the same `data/addressbook.json`, in a `rides` array, with a `nextRideId` number. `JsonAdaptedRide` mirrors `Ride`, including its roster as a list of cyclist phone numbers, and validates each field when loading, throwing an `IllegalValueException` with the field's message. `rides` and `nextRideId` are optional when reading, so files saved before rides existed load with no rides and `nextRideId` 1. Duplicate ride IDs or a non-positive `nextRideId` make the file invalid. If `nextRideId` is missing, numbering continues after the highest saved ID. See the [Storage component](#storage-component) for how these classes fit together.
 
 **Design considerations.**
 
