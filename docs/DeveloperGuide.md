@@ -320,8 +320,11 @@ no rides and `nextRideId` 1. Duplicate ride IDs or a non-positive `nextRideId` m
 ### Group ride editing (`rideedit`)
 
 `rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_FTP] [s/MAX_SIZE] [notes/NOTES]`
-edits an existing ride without changing its identity or roster. The diagrams are not updated for Ride Edit in this
-increment.
+edits an existing ride without changing its identity or roster. The sequence diagram below shows parsing,
+validation, replacement and saving. Internal validation and immutable object construction are summarised in notes;
+the parsing-success path is expanded, while execution failures are distinguished from successful replacement.
+
+<img src="images/RideEditSequenceDiagram.png" width="1000" alt="Ride Edit parsing, validation before stored replacement, and saving through LogicManager" />
 
 **Parsing.** `RideEditCommandParser` separates the positive ride ID from the prefixed fields and builds an
 `EditRideDescriptor`. Each supplied value is parsed by the same `ParserUtil` method used by `rideadd`, while
@@ -331,17 +334,19 @@ it.
 
 **Replacement and validation.** `RideEditCommand` finds the target by its unique ID and combines the descriptor
 with the existing ride. It validates the complete resulting period, so changing only `from/` or `to/` cannot
-produce an end time earlier than the start time. When minimum power or maximum group size is edited, the command
-also checks the proposed value against the existing roster. It resolves roster phone numbers through the address
-book, rejects a maximum below the roster count before checking cyclists' FTP, and rejects a minimum above any
-member's FTP. The proposed replacement is immutable and retains the same ID and roster. Only after every validation
-succeeds does the command call `Model#setRide`. `AddressBook#setRide` replaces the target at its current list
-position, preserving other rides and the next ride ID counter. Failed parsing, a missing target or an invalid
-resulting ride therefore leaves the model unchanged.
+produce an end time earlier than the start time; equal start and end times are accepted. After the period check,
+`createEditedRide` constructs the proposed immutable `Ride`, retaining the same ID and roster. Next,
+`validateRosterEligibility` checks an edited maximum group size against the roster count before checking an edited
+minimum FTP. Only when minimum FTP is supplied does it resolve each roster phone against all cyclists, rejecting
+an unresolved phone or a minimum above any member's FTP. An unrelated edit does not resolve roster phones.
+Only after every validation succeeds does the command call `Model#setRide`. `ModelManager` delegates to
+`AddressBook#setRide`, which replaces the target at its current list position, preserving other rides and the next
+ride ID counter. Failed parsing, a missing target or an invalid resulting ride therefore leaves the model unchanged.
 
-The address book's observable ride list emits the replacement, allowing the existing Rides panel to refresh. A
-successful command returns through `LogicManager`, which saves the updated address book using the existing JSON
-storage path. No separate Ride Edit storage format is required.
+The address book's observable ride list emits the replacement, allowing the existing Rides panel to refresh.
+Cyclist records are unchanged, and Ride Edit requires no confirmation. A successful command returns through
+`LogicManager`, which saves the updated address book using the existing JSON storage path. No separate Ride Edit
+storage format is required.
 
 ### Group ride deletion (`ridedelete`)
 
@@ -375,23 +380,40 @@ UML diagram updates are deferred to a later increment. Invalid requests throw be
 
 ### Ride roster display (`ridelist`)
 
+`ridelist ID` displays registered cyclists in the left-hand cyclist panel. The sequence diagram below shows the
+initial selection and a later successful roster change. A labelled `«notification»` arrow and explanatory notes
+distinguish JavaFX observable notifications and display updates from synchronous method calls; the later roster
+command's parsing and saving calls are omitted.
+
+<img src="images/RideListSequenceDiagram.png" width="1000" alt="Ride List validation and cyclist filtering, followed by listener-based automatic roster refresh" />
+
 `RideListCommandParser` accepts exactly one positive integer ID. `RideListCommand` finds the ride using
 `Ride#getId()`, so the ID is persistent and is not a displayed position. Its roster contains `Phone` objects;
 before filtering, the command resolves every phone against the complete person list rather than the currently
 filtered view. An unknown ride or unresolved phone throws before the existing filter changes.
 
-For a valid ride, `Model#updateFilteredPersonListForRide()` stores the selected persistent ID and selects people whose
-phones occur in its current roster. `ModelManager` registers one listener on the existing observable ride list. Ride
-replacement events refresh the predicate from the latest roster, so successful roster additions and removals update
-the left panel automatically. The existing `SortedList` keeps results alphabetical, and the unchanged
-`PersonListPanel` and `PersonCard` display them. The independent Rides panel is not filtered.
+For a valid ride, `Model#updateFilteredPersonListForRide(ID)` stores `activeRideListId` in `ModelManager` and calls
+`refreshRideListFilter()`. This retrieves the latest roster by persistent ID and sets the `FilteredList<Person>`
+predicate to match its phone references. The existing `SortedList<Person>` takes that filtered view and orders it
+by full name, ignoring case, with stored position as the tie-breaker. `PersonListPanel` observes the sorted view
+through its `ListView` and displays the matching `PersonCard` objects. An empty roster produces an empty cyclist
+view and an empty-roster command result. The right-hand Rides panel has an independent filter and is unchanged.
+
+`ModelManager` registers one listener on the existing observable ride list in its constructor, before commands
+execute. A successful `RideRosterCommand` calls `Ride#withRoster` to construct an immutable replacement, then calls
+`Model#setRide`. `ModelManager` delegates to `AddressBook#setRide`, whose list replacement notifies the existing
+listener. Its lambda invokes `refreshRideListFilter()` during replacement, replacing the cyclist predicate from
+the latest roster. The observable filtering and sorting pipeline refreshes the left panel automatically, without
+another `ridelist`, a new listener or a direct call from the roster command to `RideListCommand` or the panel.
 
 The selected ID, rather than a `Ride` object, remains active across immutable ride replacements. If that ride is
 deleted, refreshing with an absent ID produces an empty cyclist list without selecting another ride. A generic
 `Model#updateFilteredPersonList()` call clears the selected ID before applying its predicate, so `find` and `list`
-replace Ride List filtering and later ride events cannot reactivate it.
+replace Ride List filtering and later ride events cannot reactivate it. Another successful `ridelist` selects its
+own persistent ID. `ModelManager#setAddressBook()` cancels the active selection before resetting the data, while
+retaining the existing observable lists and listener.
 
-The command does not mutate cyclist or ride data. `LogicManager` may still save the unchanged address book after a
+The command does not mutate cyclist or ride data. `LogicManager` still saves the unchanged address book after a
 successful command through its existing execution path. Validation finishes before the filter update, preserving
 the previous filter on failure.
 
