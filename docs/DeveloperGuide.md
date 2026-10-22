@@ -79,14 +79,33 @@ The **API** of this component is specified in [`Ui.java`](https://github.com/se-
 
 The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, `RideListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
 
-The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
+The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java). The exception is `ArtworkScreen`, which is not a `UiPart` and has no `.fxml` file (see [Opening and closing artwork](#opening-and-closing-artwork)).
 
 The `UI` component,
 
 * executes user commands using the `Logic` component.
 * listens for changes to `Model` data so that the UI can be updated with the modified data.
 * keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
-* depends on some classes in the `Model` component because it displays `Person` objects from the model.
+* depends on some classes in the `Model` component because it displays `Person` and `Ride` objects from the model.
+
+#### Cyclist panel and ride panel
+
+`MainWindow` is split into two columns. The left 70% holds the `CommandBox`, the `ResultDisplay` and the cyclist panel (`PersonListPanel`). The right 30% holds the ride panel (`RideListPanel`).
+
+Each panel is given an `ObservableList` by `MainWindow` and builds one card for every item in it: `PersonListPanel` shows a `PersonCard` for each `Person` from `Logic#getFilteredPersonList()`, and `RideListPanel` shows a `RideCard` (laid out by `RideListCard.fxml`) for each `Ride` from `Logic#getFilteredRideList()`. Because the panels observe these lists, they refresh by themselves when cyclists or rides are added, edited, deleted or filtered. `RideCard` keeps its text formatting in small static methods so that they can be unit tested without the GUI.
+
+The two panels are filtered independently of each other:
+
+* `find`, `list` and `ridelist ID` change only the cyclist panel. In particular, `ridelist ID` shows the cyclists registered for that ride in the cyclist panel; it does not change the ride panel.
+* `ridefind` changes only the ride panel, and `ridefind all` shows every ride again.
+
+#### Help menu templates
+
+`CommandTemplates` holds a list of `Template` records, one for each command. Each `Template` has the text shown in the Help menu and the starter text for the command box. When `MainWindow` is set up, it adds one menu item per `Template` to the top of the **Help** menu, above **Full help...**. Choosing an item calls `CommandBox#setCommandText(...)` with that template's starter text. The command is only placed in the command box for the user to complete; it is not executed. The **Full help...** window (`HelpWindow`) lists the usage of every command, reusing the usage messages defined by the command classes in `Logic`, so `HelpWindow` depends on `Logic`.
+
+#### Opening and closing artwork
+
+`ArtworkScreen` shows a short, timed splash screen with a caption. It is drawn in code, so it is a plain class rather than a `UiPart`. `UiManager` shows the opening artwork before the main window appears, and `MainWindow` shows the closing artwork when the application exits. For this reason both classes depend on `ArtworkScreen`.
 
 The cyclist panel observes `Logic#getFilteredPersonList()` and numbers cards from 1
 using their current displayed positions. The read-only `RideListPanel` occupies the
