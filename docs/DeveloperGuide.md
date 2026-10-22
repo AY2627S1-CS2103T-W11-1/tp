@@ -753,7 +753,8 @@ Repeat the checks on each operating system supported by the release.
 ### Launch and shutdown
 
 1. Launch in a folder without `preferences.json` or `data/addressbook.json`.
-   Expected: The opening artwork is followed by the main window and sample contacts.
+   Expected: The opening artwork is followed by the main window with Alex Tan, Bernice Lee and Chloe Lim,
+   each with an SOS number, and Sunday Sunrise Ride (ID 1) and Evening Spin (ID 2) with empty rosters.
    Contact cards show labelled phone, SOS, email, FTP, experience and location fields.
 1. Resize and move the window, then enter `exit`.
    Expected: The closing artwork appears and the application closes.

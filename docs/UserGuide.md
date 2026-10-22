@@ -3,7 +3,7 @@ layout: page
 title: User Guide
 ---
 
-AddressBook Level 3 (AB3) is a **desktop application for managing contacts, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). If you type quickly, AB3 can help you manage contacts faster than traditional GUI applications.
+Cyclique is a **desktop application for organisers of recreational cycling groups in Singapore**, optimised for use through a Command Line Interface (CLI) while retaining the benefits of a Graphical User Interface (GUI). Manage cyclists, their emergency contact details and cycling profiles, and group rides by typing commands.
 
 * Table of Contents
 {:toc}
@@ -12,25 +12,25 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
 ## Quick start
 
-1. Ensure that Java `25` or later is installed on your computer.<br>
-   **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
+1. Ensure that JDK `25` is installed on your computer.<br>
+   Run `java -version` in a terminal to check that the active version is `25`.
 
-1. Download the latest `.jar` file from [here](https://github.com/se-edu/addressbook-level3/releases).
+1. Download `cyclique.jar` from the [Cyclique releases page](https://github.com/AY2627S1-CS2103T-W11-1/tp/releases).
 
-1. Copy the file to the folder you want to use as the _home folder_ for your AddressBook.
+1. Copy the file to the folder you want to use as the _home folder_ for Cyclique.
 
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar cyclique.jar`.<br>
-   A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
-   ![Ui](images/Ui.png)
+   The main window should appear after the opening artwork. When no saved data file exists, Cyclique starts with Alex Tan, Bernice Lee and Chloe Lim, and two example group rides with empty rosters, as shown below. If you already have saved data, Cyclique loads it instead.<br>
+   ![Cyclique main window showing three cyclists with SOS numbers and two group rides](images/ug-main-window.png)
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
    Some example commands you can try:
 
    * `list` : Shows all cyclists.
 
-   * `add n/John Doe p/+65 98765432 sos/+65 99999999 e/johnd@example.com f/300 x/Beginner l/any` : Adds a contact named `John Doe` to the Address Book.
+   * `add n/John Doe p/+65 98765432 sos/+65 99999999 e/johnd@example.com f/300 x/Beginner l/any` : Adds a cyclist named `John Doe`, including an emergency contact number supplied using `sos/`.
 
-   * `delete +65 98765432` : Requests deletion of the contact with this phone number. Enter `yes` to confirm or `no` to cancel.
+   * `delete +65 98765432` : Requests deletion of the cyclist with this phone number. Enter `yes` to confirm or `no` to cancel.
 
    * `clear` : Deletes all cyclists and all rides.
 
@@ -52,12 +52,12 @@ Cyclists are displayed alphabetically by their full name, ignoring letter case, 
   For example, in `add n/NAME`, replace `NAME` with a value such as `John Doe`.
 
 * Items in square brackets are optional.<br>
-  For example, `edit PHONE [n/NAME] [f/FTP]` can be used as `edit +65 91234567 n/John Doe` or `edit +65 91234567 f/300`.
+  For example, `edit PHONE [n/NAME] [f/FTP_LEVEL]` can be used as `edit +65 91234567 n/John Doe` or `edit +65 91234567 f/300`.
 
 * Items followed by `…`​ can appear zero or more times.<br>
   For example, `[l/LOCATION]…` in `edit` may be omitted, or written as `l/Punggol` or `l/Punggol l/Marina Bay`.
 
-* Parameters can be in any order.<br>
+* Prefixed fields can be in any order. Put positional arguments, such as the target `PHONE` in `edit`, before the prefixed fields.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
 * Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
@@ -91,29 +91,42 @@ Choose **Help → Full help...**, press `F1`, or enter `help` to open the Full h
 Format: `help`
 
 
-### Adding a person: `add`
+### Adding a cyclist: `add`
 
-Adds a person to the address book.
+Adds a cyclist to Cyclique.
 
 Format: `add n/NAME p/PHONE sos/EMERGENCY_PHONE e/EMAIL f/FTP_LEVEL x/EXPERIENCE_LEVEL l/LOCATION [l/LOCATION]…`
 
 Field | Meaning and rules
 ------|------------------
 `n/NAME` | The cyclist's name. It may contain letters, numbers and spaces, but must not be blank.
-`p/PHONE` | A unique phone number using a `+`, a 1–3 digit country code, one space and at least 3 digits, such as `+65 98765432`. Parentheses, hyphens and blank values are rejected. The number must not belong to another contact, including contacts hidden by a filter.
-`sos/EMERGENCY_PHONE` | Required for new cyclists. It follows the same format as `p/` but may be shared by multiple cyclists and does not determine duplicate cyclists.
-`e/EMAIL` | A valid email address. Email addresses are compared case-insensitively when checking for duplicates.
-`f/FTP_LEVEL` | A whole number from 1 to 600, in watts.
+`p/PHONE` | A unique phone number using a `+`, a 1–3 digit country code, one space and at least 3 digits, such as `+65 98765432`. Parentheses, hyphens and blank values are rejected. The number must not belong to another cyclist, including cyclists hidden by a filter.
+`sos/EMERGENCY_PHONE` | The cyclist's emergency contact phone number, displayed as **SOS** on their card. Required for new cyclists. It follows the same format as `p/` but may be shared by multiple cyclists and does not determine duplicate cyclists.
+`e/EMAIL` | A valid email address, such as `johnd@example.com`. It must be unique across all cyclists, including those hidden by a filter; comparisons ignore letter case.
+`f/FTP_LEVEL` | Functional Threshold Power (FTP): a whole number from 1 to 600, in watts.
 `x/EXPERIENCE_LEVEL` | `Beginner`, `Intermediate` or `Advanced`, ignoring case.
-`l/LOCATION` | A preferred cycling location. At least one is required. Repeat `l/` for multiple locations, or use `l/any` alone.
+`l/LOCATION` | A non-blank preferred cycling location containing only letters, numbers, spaces, hyphens or apostrophes. At least one is required. Repeat `l/` for multiple locations, or use `l/any` alone to indicate no location preference. `any` ignores case and cannot be combined with another location.
 
-All fields are required, and `l/` may be repeated. Prefixes
-can be entered in any order. Existing records remain unchanged when validation fails or when the phone number or
-email address duplicates another contact.
+All fields are required. Only `l/` may be repeated; repeating any other prefix is rejected.
+Prefixes can be entered in any order. Cyclists may share a name or emergency contact number,
+but their own phone numbers and email addresses must be unique.
 
-Examples:
-* `add n/John Doe p/+65 98765432 sos/+65 99999999 e/johnd@example.com f/300 x/Beginner l/any`
-* `add n/Betsy Crowe sos/+65 99999999 e/betsycrowe@example.com p/+65 91234567 f/250 x/Advanced l/Punggol`
+On success, the result box shows `New person added:` followed by the cyclist's details, including
+`Emergency phone:`. The new card shows the number as **SOS**. Cyclique restores the full cyclist
+list, places the new card in alphabetical order and saves the data automatically.
+
+Examples (use phone numbers and email addresses that are not already stored):
+
+* `add n/John Doe p/+65 98765432 sos/+65 99999999 e/johnd@example.com f/300 x/Beginner l/any` adds John with an FTP of 300 W, Beginner experience and no location preference.
+* `add n/Betsy Crowe sos/+65 99999999 e/betsycrowe@example.com p/+65 91234567 f/250 x/Advanced l/Punggol l/Seletar` adds Betsy with two preferred locations. Sharing John's emergency contact number is allowed.
+
+![Add success showing John Doe's SOS number and cycling profile alongside the existing cyclists and rides](images/ug-add-success.png)
+
+*After the first example, John appears after Chloe in the alphabetical list. The two existing rides are unchanged.*
+
+Missing required fields, blank values, invalid values and repeated single-valued prefixes are rejected.
+A phone or email conflict reports `Another cyclist already has this phone number or email.`
+These rejected commands leave existing records unchanged and do not add a cyclist.
 
 ### Listing all persons: `list`
 
@@ -127,32 +140,41 @@ Format: `list`
 * Each card shows the cyclist's name, phone number, SOS number, email, FTP, experience level and preferred locations. A missing SOS number is shown as **Not provided**.
 * If there are no cyclists, the cyclist panel is empty and the result still shows `Listed all persons.`
 
-### Editing a person: `edit`
+### Editing a cyclist: `edit`
 
-Edits an existing person in the address book.
+Updates an existing cyclist's contact details or cycling profile.
 
-Format: `edit PHONE [n/NAME] [p/PHONE] [sos/EMERGENCY_PHONE] [e/EMAIL] [f/FTP] [x/EXPERIENCE] [l/LOCATION]…`
+Format: `edit PHONE [n/NAME] [p/PHONE] [sos/EMERGENCY_PHONE] [e/EMAIL] [f/FTP_LEVEL] [x/EXPERIENCE_LEVEL] [l/LOCATION]…`
 
-* Edits the person with the specified phone number in the displayed list. Exactly one displayed contact must match.
-* The resulting phone number must not belong to another contact anywhere in the book. An unchanged phone number is allowed when it is already unique.
-* At least one of the optional fields must be provided.
-* Existing values will be updated to the input values.
-* The target phone number must use the same country-code and spacing format as `add`, and must remain unique across
-  the address book. Other supplied fields use the same validation rules as `add`.
-* Only supplied fields are replaced. Unspecified fields, including preferred locations when `l/` is omitted, remain
-  unchanged.
+* The unprefixed `PHONE` identifies the cyclist to edit. It must match exactly one cyclist in the **displayed list**. Use `list` first if a filter hides the cyclist. Card indexes cannot be used as the target.
+* `p/PHONE`, if supplied, is the cyclist's **replacement** phone number. For example, `edit +65 98765432 p/+65 91111111` targets the old number and replaces it with the new number.
+* Supply at least one optional field. Otherwise, Cyclique reports `At least one field to edit must be provided.`
+* Supplied fields follow the [Add field rules](#adding-a-cyclist-add). Only `l/` may be repeated. Phone numbers and email addresses must remain unique across all cyclists, including hidden records; email comparisons ignore case. Keeping the cyclist's own current phone or email is allowed.
+* Omitted fields remain unchanged. Supplying one or more `l/` fields replaces the **entire** preferred location set; it does not append locations. Blank `l/` is invalid. Use `l/any` alone for no location preference.
+* Omitting `sos/` preserves the existing emergency contact number. Blank `sos/` is invalid and cannot remove the number.
 
-Examples:
-* `edit +65 98765432 p/+65 91111111 e/johndoe@example.com` updates the identified contact's phone and email.
-* `edit +65 91234567 n/Betsy Crower` updates Betsy's name.
+On success, the result box shows `Edited person:` followed by the updated details. Cyclique restores
+all cyclists in alphabetical order and saves the changes. A name edit may move a card to a different
+position. Changing the cyclist's own phone number also updates that number in every ride roster
+they belong to, preserving their memberships.
 
-* `edit +65 98765432 sos/+65 98888888` updates only the emergency number. Omitting `sos/` retains its current value; blank `sos/` is rejected.
+Examples, starting with John from the Add example:
 
-Cyclist cards label emergency contact numbers as **SOS**. Older saved records without an emergency number load normally and show **Not provided**. Use `edit PHONE sos/EMERGENCY_PHONE` to supply one; other edits preserve its absence. Numbers are saved automatically and retained after restarting.
+* `edit +65 98765432 sos/+65 98888888 f/350 x/Intermediate l/East Coast Park l/Punggol` updates John's emergency number, FTP and experience, and replaces `any` with two preferred locations. His name, own phone number and email remain unchanged.
+* `edit +65 98765432 sos/+65 98888888` updates only the emergency number; all other fields remain unchanged. This can also be used independently of the previous example.
+* `edit +65 98765432 p/+65 91111111 e/johndoe@example.com` changes John's own phone and email. Subsequent edits or deletion must target `+65 91111111`.
 
-After a successful edit, the updated cyclist card is shown in the correct alphabetical position. Invalid edits leave
-the cyclist and all other records unchanged. Editing a name can therefore change the visible card order; editing FTP,
-experience or preferred locations updates the corresponding card fields.
+![Edit success showing John Doe with SOS number +65 98888888, FTP 350 W, Intermediate experience and two preferred locations](images/ug-edit-success.png)
+
+*After the first example, John's updated card remains after Chloe. The deletion examples below continue from this state, without changing John's own phone number.*
+
+Older saved records without an emergency contact number load normally and show **Not provided**
+in the SOS field. Use `edit PHONE sos/EMERGENCY_PHONE` to supply one; edits to other fields preserve
+its absence. Emergency numbers are retained after restarting.
+
+Invalid edits, duplicate phone numbers or emails, and targets hidden by a filter are rejected without
+changing cyclist records, ride rosters or the current filter. Phone or email conflicts report
+`Another cyclist already has this phone number or email.`
 
 ### Locating persons by name, phone or emergency number: `find`
 
@@ -202,32 +224,57 @@ Common failures include:
 * A phone number, FTP value, experience level or location that does not follow the constraints above is rejected
   without changing the current filter.
 
-### Deleting a person: `delete`
+### Deleting a cyclist: `delete`
 
-Requests confirmation before deleting the specified cyclist from the address book.
+Deletes a cyclist only after you check their details and confirm in the command box.
 
-Format: `delete PHONE`, followed by a confirmation reply in the command box.
+Format: `delete PHONE`, then enter a separate confirmation or cancellation reply.
 
-* Shows the details of the cyclist with the specified `PHONE` number in the result panel. No cyclist is removed until you confirm.
-* Enter `y` or `yes` to confirm, or `n` or `no` to cancel. Replies ignore letter case, so `Y`, `YES`, `yEs`, `N` and `NO` are accepted. Leading and trailing spaces are ignored.
-* Cancellation displays `Deletion cancelled.` and leaves cyclist records, the current filter and saved data unchanged.
-* An unrecognised reply, such as `maybe` or `yes please`, shows an error and keeps waiting for a valid reply.
-* Entering another supported command cancels the pending deletion and executes that command. The result panel shows `Deletion cancelled.` followed by the command’s usual output or error. Another `delete PHONE` starts a fresh confirmation for its target. Commands retain their usual case-sensitive spelling.
-* Closing or restarting Cyclique discards any pending confirmation. A confirmation reply has no effect when no deletion is pending.
-* A cyclist hidden by a filter cannot be deleted. Use `list` or change the `find` criteria to display the intended cyclist first.
-* If more than one displayed contact has that number, deletion is rejected.
-* Use a complete number with country code and one space, for example `+65 96742165`;
-  the number after the space must contain at least three digits.
+* Use the cyclist's own complete phone number, including country code and exactly one space, for example `+65 98765432`. The country code contains 1–3 digits; the number after the space contains at least 3 digits. Do not use a card index or the `p/` prefix.
+* The number must identify exactly one cyclist in the **displayed list**. A cyclist hidden by a filter cannot be deleted; use `list` to show all cyclists first. Multiple displayed matches are rejected.
+* The result panel shows `Delete this cyclist?` followed by the target's details, including their emergency number, and warns `This also removes them from all ride rosters.` No cyclist, roster or saved data changes at this stage.
+* Enter `y` or `yes` to confirm, or `n` or `no` to cancel. Replies ignore letter case and surrounding spaces, so `YeS` and ` NO ` are accepted.
+* Cancellation shows `Deletion cancelled.` and preserves cyclist records, ride rosters, the current filter and saved data.
+* An invalid reply, such as `maybe`, `yes please` or an unknown command, reports `Invalid confirmation.` and keeps waiting for a valid reply. It does not cancel the request or change data.
+* A recognised command cancels the pending deletion and then runs. The result shows `Deletion cancelled.` followed by that command's usual output or error, even if its arguments are invalid. Another valid `delete PHONE` starts a fresh request. Command names remain case-sensitive: `list` cancels, but `LIST` is an invalid reply.
+* Closing or restarting Cyclique discards any pending request. Without a pending request, `yes` and `no` report `Unknown command.`
 
-Examples:
-* Enter `delete +65 96742165`, check the displayed cyclist details, then enter `yes` to delete that cyclist.
-* Enter `delete +65 96742165`, then `no` to keep the cyclist.
-* Enter `delete +65 96742165`, then `list` to cancel the deletion and list all cyclists. Both messages appear in the result panel.
+Confirmation shows `Deleted person:` followed by the deleted cyclist's details. Their card disappears,
+and their phone number is removed from **all ride rosters**. The rides themselves, other cyclists and
+their memberships remain. The change is saved automatically. There is no undo command.
+
+**Example: check, cancel, then confirm John's deletion**
+
+These screenshots continue from the first Edit example: John has SOS `+65 98888888`, FTP 350 W,
+Intermediate experience and two preferred locations. Before the deletion request, Alex and John
+have been registered for Sunday Sunrise Ride using `rideaddcyclist 1 +65 91234561` and
+`rideaddcyclist 1 +65 98765432` (where `1` is that ride's ID).
+
+1. Enter `delete +65 98765432`. Check that the result panel identifies John. His card and both roster numbers remain visible while confirmation is pending.
+
+   ![Pending deletion identifying John Doe with confirmation instructions while John and Alex remain on the ride roster](images/ug-delete-confirmation.png)
+
+   *The request shows John's identity, the roster-removal warning and the accepted replies. Scroll horizontally in the result box if needed to read the remaining details.*
+
+1. Enter `no`. The result shows `Deletion cancelled.` John remains in the cyclist list and on the ride roster.
+
+   ![Deletion cancelled with John Doe still present and both cyclists retained on Sunday Sunrise Ride's roster](images/ug-delete-cancelled.png)
+
+   *Cancellation keeps John's record and ride membership.*
+
+1. Enter `delete +65 98765432` again, then enter `yes`. The result starts `Deleted person: John Doe; Phone: +65 98765432`. John disappears, and only Alex's number remains on Sunday Sunrise Ride's roster. Evening Spin remains unchanged.
+
+   ![Successful deletion of John Doe with his card removed and only Alex's phone number remaining on the ride roster](images/ug-delete-success.png)
+
+   *Confirmation removes John and his roster memberships while keeping both rides.*
+
+Alternatively, enter `delete +65 98765432`, then `list` before confirming. The result shows
+`Deletion cancelled.` followed by `Listed all persons.` John is retained and all cyclists are displayed.
 
 Both `edit` and `delete` report the same error when the target is absent from the displayed list:
 `Cyclist with phone number PHONE cannot be found in the displayed list. Use list to show all cyclists.`
-Here, `PHONE` is replaced with the number you entered. Error sentences end with full stops;
-command syntax and usage examples retain their original format so you can copy them directly.
+Here, `PHONE` is replaced with the number entered. Invalid or missing phone arguments show the
+command usage without changing records.
 
 ### Adding a group ride: `rideadd`
 
@@ -418,7 +465,7 @@ Format: `exit`
 
 ### Saving the data
 
-AddressBook automatically saves data after every command. You do not need to save manually.
+Cyclique saves successful additions, edits and confirmed deletions automatically; you do not need to save manually. It also saves after other successfully executed commands, including commands that only change the display. A deletion request, an explicit cancellation reply (`n`/`no`) or an invalid confirmation reply does not write the data file. When another recognised command cancels a pending deletion, that command follows its normal saving behaviour. Rejected commands do not save changes.
 
 ### Repairing duplicate phone numbers in an existing book
 
@@ -431,11 +478,10 @@ email addresses are unique.
 
 ### Editing the data file
 
-AddressBook data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Older data files may contain `address` or `tags` fields; Cyclique ignores them and omits them when saving, while retaining all supported cyclist details. Group rides are saved in the same file under `rides`, together with a `nextRideId` number that stops ride IDs from being reused; data files saved before rides existed still load, with no rides. Advanced users are welcome to update data directly by editing that data file.
+Cyclique stores data in `data/addressbook.json`, relative to the folder from which you launch the application. Following the Quick start steps places it in your chosen home folder. Older cyclist records without an `emergencyPhone` field load with **SOS: Not provided**; adding an emergency number through `edit` saves it for future sessions. Group rides are saved in the same file under `rides`, together with a `nextRideId` number that stops ride IDs from being reused; data files saved before rides existed still load, with no rides. Advanced users are welcome to update data directly by editing that data file.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If your changes make the data file invalid, AddressBook starts with an empty address book at the next run. The invalid file remains on disk until you run a command (AddressBook saves after every command). Still, we recommend backing up the file before editing it.<br>
-Furthermore, certain edits can cause the AddressBook to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
+Close Cyclique and back up the file before editing it. If your changes make the file invalid, Cyclique starts with an empty directory at the next launch. A subsequent successful command that saves data can overwrite the invalid file with that empty directory. Restore or repair your backup before entering commands. Direct edits must follow the supported data format and field constraints.
 </div>
 
 ### Archiving data files `[coming in v2.0]`
@@ -447,14 +493,14 @@ _Details coming soon ..._
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous AddressBook home folder.
+**A**: Install JDK 25 and Cyclique on the other computer. Close Cyclique on both computers, then copy `data/addressbook.json` from the original home folder into the new home folder's `data` directory, backing up any existing file first. Launch Cyclique from the new home folder to load the cyclists and rides.
 
 --------------------------------------------------------------------------------------------------------------------
 
 ## Known issues
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
-2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
+2. **If you minimise the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimised, and no new Help Window will appear. The remedy is to manually restore the minimised Help Window.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -462,10 +508,10 @@ _Details coming soon ..._
 
 Action | Format, Examples
 --------|------------------
-**Add** | `add n/NAME p/PHONE sos/EMERGENCY_PHONE e/EMAIL f/FTP_LEVEL x/EXPERIENCE_LEVEL l/LOCATION [l/LOCATION]…` <br> e.g., `add n/James Ho p/+65 22224444 sos/+65 99999999 e/jamesho@example.com f/300 x/Intermediate l/any`
+**Add** | `add n/NAME p/PHONE sos/EMERGENCY_PHONE e/EMAIL f/FTP_LEVEL x/EXPERIENCE_LEVEL l/LOCATION [l/LOCATION]…` <br> e.g., `add n/John Doe p/+65 98765432 sos/+65 99999999 e/johnd@example.com f/300 x/Beginner l/any`
 **Clear** | `clear`
-**Delete** | `delete PHONE`, then `y`/`yes` to confirm or `n`/`no` to cancel (case-insensitive)<br> e.g., `delete +65 22224444`, then `yes`
-**Edit** | `edit PHONE [n/NAME] [p/PHONE] [sos/EMERGENCY_PHONE] [e/EMAIL] [f/FTP] [x/EXPERIENCE] [l/LOCATION]…`<br> e.g., `edit +65 22224444 n/James Lee e/jameslee@example.com`
+**Delete** | `delete PHONE`, then `y`/`yes` to confirm or `n`/`no` to cancel (case-insensitive)<br> e.g., `delete +65 98765432`, then `yes`
+**Edit** | `edit PHONE [n/NAME] [p/PHONE] [sos/EMERGENCY_PHONE] [e/EMAIL] [f/FTP_LEVEL] [x/EXPERIENCE_LEVEL] [l/LOCATION]…`<br> e.g., `edit +65 98765432 sos/+65 98888888 f/350 x/Intermediate l/East Coast Park l/Punggol`
 **Find** | `find [n/NAME_KEYWORD]… [p/PHONE]… [sos/EMERGENCY_PHONE]… [f/MIN_FTP] [x/EXPERIENCE]… [l/LOCATION]…`<br> e.g., `find n/James n/Jake`, `find n/James p/+65 96320842`
 **List** | `list`
 **Help** | `help`<br> or press `F1`, or choose **Help → Full help...**
