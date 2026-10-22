@@ -9,7 +9,7 @@ skinparam classAttributeIconSize 0
 hide empty members
 
 package "logic.parser" {
-    interface Parser
+    interface Parser <<interface>>
     class AddressBookParser
     class FindCommandParser
     class RideFindCommandParser
