@@ -53,7 +53,7 @@ public class MainWindow extends UiPart<Stage> {
     private RideListPanel rideListPanel;
     private ResultDisplay resultDisplay;
     private HelpWindow helpWindow;
-    private final List<Label> helpMenuLabels = new ArrayList<>();
+    private int helpMenuCommandItemCount;
 
     @FXML
     private MenuBar menuBar;
@@ -163,39 +163,50 @@ public class MainWindow extends UiPart<Stage> {
      * Adds one item per command to the top of the Help menu, followed by a separator, so that the
      * list of commands appears as soon as the menu is opened. Clicking an item places that
      * command's starter text in {@code commandBox}; the existing "Full help..." item stays at the bottom.
-     * Each item wraps its text to the width of the window, see {@link #fitHelpMenuToWindow()}.
+     * The items are built again each time the menu opens, see {@link #refreshHelpMenuCommands(CommandBox, double)}.
      */
     private void addCommandsToHelpMenu(CommandBox commandBox) {
+        refreshHelpMenuCommands(commandBox, Double.MAX_VALUE);
+        // The window can be resized at any time, so fit the items to its current width whenever the menu opens.
+        helpMenu.setOnShowing(event -> refreshHelpMenuCommands(commandBox, currentHelpMenuLabelWidth()));
+    }
+
+    /**
+     * Replaces the command items at the top of the Help menu with new ones that are at most {@code labelWidth}
+     * wide. A long command format therefore wraps onto further lines instead of making the menu wider than the
+     * window. The items are created again, instead of resized, because a label that has already been shown keeps
+     * its old text layout when its width changes and would cut its text off with "...".
+     */
+    private void refreshHelpMenuCommands(CommandBox commandBox, double labelWidth) {
+        helpMenu.getItems().remove(0, helpMenuCommandItemCount);
+
         List<MenuItem> commandItems = new ArrayList<>();
         for (CommandTemplates.Template template : CommandTemplates.ALL) {
             // A wrapping label, unlike plain menu text, can be made to fit the window.
             Label commandLabel = new BoundedLabel(CommandTemplates.keepOptionalGroupsTogether(template.display()));
             commandLabel.setWrapText(true);
-            helpMenuLabels.add(commandLabel);
+            commandLabel.setMaxWidth(labelWidth);
             CustomMenuItem commandItem = new CustomMenuItem(commandLabel);
             commandItem.setOnAction(event -> commandBox.setCommandText(template.insertText()));
             commandItems.add(commandItem);
         }
         commandItems.add(new SeparatorMenuItem());
-        helpMenu.getItems().addAll(0, commandItems);
 
-        // The window can be resized at any time, so fit the items to its current width whenever the menu opens.
-        helpMenu.setOnShowing(event -> fitHelpMenuToWindow());
+        helpMenu.getItems().addAll(0, commandItems);
+        helpMenuCommandItemCount = commandItems.size();
     }
 
     /**
-     * Limits the width of every command item in the Help menu to the room left between the Help menu and the
-     * right edge of the window, so that long command formats wrap onto further lines instead of making the menu
-     * wider than the window. A wider window gives a wider menu, and a narrower window a narrower one.
+     * Returns the width that a Help menu item may take now: the room between the Help menu and the right edge of
+     * the window. A wider window gives a wider menu, and a narrower window a narrower one.
      */
-    private void fitHelpMenuToWindow() {
+    private double currentHelpMenuLabelWidth() {
         double menuLeft = menuBar.lookupAll(".menu").stream()
                 .filter(node -> node instanceof MenuButton button && helpMenu.getText().equals(button.getText()))
                 .findFirst()
                 .map(this::leftEdgeInScene)
                 .orElse(0.0);
-        double labelWidth = helpMenuLabelWidth(menuBar.getScene().getWidth(), menuLeft);
-        helpMenuLabels.forEach(label -> label.setMaxWidth(labelWidth));
+        return helpMenuLabelWidth(menuBar.getScene().getWidth(), menuLeft);
     }
 
     /**
