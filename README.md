@@ -1,6 +1,6 @@
 # Cyclique
 
-[![CI Status](https://github.com/AY2627S1-CS2103T-W11-1/tp/actions/workflows/gradle.yml/badge.svg)](https://github.com/AY2627S1-CS2103T-W11-1/tp/actions/workflows/gradle.yml)
+[![CI Status](https://github.com/AY2627S1-CS2103T-W11-1/tp/actions/workflows/gradle.yml/badge.svg)](https://ay2627s1-cs2103t-w11-1.github.io/tp/DevOps.html)
 [![codecov](https://codecov.io/gh/AY2627S1-CS2103T-W11-1/tp/branch/master/graph/badge.svg)](https://codecov.io/gh/AY2627S1-CS2103T-W11-1/tp)
 
 **Cyclique is a desktop application for organisers of recreational cycling groups in Singapore.** Manage cyclist profiles and group rides through typed commands, with cyclist cards and a separate Rides panel showing your data at a glance.
@@ -17,20 +17,19 @@
 
 ## Start using Cyclique
 
-You will need Java 25. Download the JAR from [Cyclique releases](https://github.com/AY2627S1-CS2103T-W11-1/tp/releases), then follow the [Quick start](docs/UserGuide.md#quick-start) instructions to launch the app. The [User Guide](docs/UserGuide.md) explains the commands and their validation rules.
+You will need Java 25. Follow the [Quick start](https://ay2627s1-cs2103t-w11-1.github.io/tp/UserGuide.html#quick-start) instructions to download and launch the app. The [User Guide](https://ay2627s1-cs2103t-w11-1.github.io/tp/UserGuide.html) explains the commands and their validation rules.
 
 ## Explore the project
 
-* [User Guide](docs/UserGuide.md) — commands, examples and troubleshooting.
+* [User Guide](https://ay2627s1-cs2103t-w11-1.github.io/tp/UserGuide.html) — commands, examples and troubleshooting.
 * [Product website](https://ay2627s1-cs2103t-w11-1.github.io/tp/) — browse the published documentation.
-* [Developer Guide](docs/DeveloperGuide.md) — architecture, implementation and manual testing.
-* [Setting up](docs/SettingUp.md) — prepare a development environment.
-* [Testing guide](docs/Testing.md) — run automated checks.
-* [About Us](docs/AboutUs.md) — meet the CS2103T project team.
-* [Source code and issue tracker](https://github.com/AY2627S1-CS2103T-W11-1/tp) — browse the repository or report a problem.
+* [Developer Guide](https://ay2627s1-cs2103t-w11-1.github.io/tp/DeveloperGuide.html) — architecture, implementation and manual testing.
+* [Setting up](https://ay2627s1-cs2103t-w11-1.github.io/tp/SettingUp.html) — prepare a development environment.
+* [Testing guide](https://ay2627s1-cs2103t-w11-1.github.io/tp/Testing.html) — run automated checks.
+* [About Us](https://ay2627s1-cs2103t-w11-1.github.io/tp/AboutUs.html) — meet the CS2103T project team.
 
 ## Acknowledgements
 
-Cyclique is based on [AddressBook-Level3](https://github.com/se-edu/addressbook-level3), created by the [SE-EDU initiative](https://se-education.org/).
+Cyclique is based on [AddressBook-Level3](https://se-education.org/addressbook-level3/), created by the [SE-EDU initiative](https://se-education.org/).
 
-Libraries used include [JavaFX](https://openjfx.io/), [Jackson](https://github.com/FasterXML/jackson) and [JUnit 5](https://github.com/junit-team/junit5).
+Libraries used include [JavaFX](https://openjfx.io/), [Jackson](https://javadoc.io/doc/com.fasterxml.jackson.core/jackson-databind) and [JUnit 5](https://junit.org/junit5/).
