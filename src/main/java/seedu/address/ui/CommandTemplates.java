@@ -45,28 +45,19 @@ public class CommandTemplates {
      */
     public record Template(String display, String insertText) {}
 
-    /**
-     * Starts a new line, indented, inside a menu label. The longest command formats are split into several lines
-     * so that a menu item stays narrower than the application window at its default size.
-     */
-    public static final String CONTINUATION = "\n    ";
-
-    /**
-     * All commands, in the order they appear in the Help menu. A format that would make the menu wider than the
-     * window is split into indented lines with {@link #CONTINUATION}, never in the middle of a parameter.
-     */
+    /** All commands, in the order they appear in the Help menu. */
     public static final List<Template> ALL = List.of(
             new Template(
                     AddCommand.COMMAND_WORD + " " + PREFIX_NAME + "NAME " + PREFIX_PHONE + "PHONE "
                             + PREFIX_EMERGENCY_PHONE + "EMERGENCY_PHONE "
-                            + PREFIX_EMAIL + "EMAIL" + CONTINUATION + PREFIX_FTP + "FTP " + PREFIX_EXPERIENCE_LEVEL
+                            + PREFIX_EMAIL + "EMAIL " + PREFIX_FTP + "FTP " + PREFIX_EXPERIENCE_LEVEL
                             + "EXPERIENCE_LEVEL " + PREFIX_LOCATION + "LOCATION [" + PREFIX_LOCATION + "LOCATION]...",
                     AddCommand.COMMAND_WORD + " " + PREFIX_NAME + " " + PREFIX_PHONE + " "
                             + PREFIX_EMERGENCY_PHONE + " " + PREFIX_EMAIL + " "
                             + PREFIX_FTP + " " + PREFIX_EXPERIENCE_LEVEL + " " + PREFIX_LOCATION),
             new Template(
                     EditCommand.COMMAND_WORD + " PHONE [" + PREFIX_NAME + "NAME] [" + PREFIX_PHONE + "PHONE] ["
-                            + PREFIX_EMERGENCY_PHONE + "EMERGENCY_PHONE]" + CONTINUATION + "["
+                            + PREFIX_EMERGENCY_PHONE + "EMERGENCY_PHONE] ["
                             + PREFIX_EMAIL + "EMAIL] [" + PREFIX_FTP + "FTP] [" + PREFIX_EXPERIENCE_LEVEL
                             + "EXPERIENCE_LEVEL] [" + PREFIX_LOCATION + "LOCATION]...",
                     EditCommand.COMMAND_WORD + " "),
@@ -75,15 +66,13 @@ public class CommandTemplates {
                     DeleteCommand.COMMAND_WORD + " "),
             new Template(
                     FindCommand.COMMAND_WORD + " [" + PREFIX_NAME + "NAME_KEYWORD]... [" + PREFIX_PHONE
-                            + "PHONE]... [" + PREFIX_EMERGENCY_PHONE + "EMERGENCY_PHONE]..."
-                            + CONTINUATION + "[" + PREFIX_FTP
+                            + "PHONE]... [" + PREFIX_EMERGENCY_PHONE + "EMERGENCY_PHONE]... [" + PREFIX_FTP
                             + "MIN_FTP] [" + PREFIX_EXPERIENCE_LEVEL + "EXPERIENCE]... [" + PREFIX_LOCATION
                             + "LOCATION]...",
                     FindCommand.COMMAND_WORD + " "),
             new Template(
                     RideAddCommand.COMMAND_WORD + " " + PREFIX_NAME + "NAME " + PREFIX_FROM + "FROM "
-                            + PREFIX_TO + "TO " + PREFIX_LOCATION + "LOCATION"
-                            + CONTINUATION + PREFIX_DISTANCE + "DISTANCE "
+                            + PREFIX_TO + "TO " + PREFIX_LOCATION + "LOCATION " + PREFIX_DISTANCE + "DISTANCE "
                             + PREFIX_FTP + "MIN_POWER " + PREFIX_GROUP_SIZE + "MAX_GROUP_SIZE ["
                             + PREFIX_NOTES + "NOTES]",
                     RideAddCommand.COMMAND_WORD + " " + PREFIX_NAME + " " + PREFIX_FROM + " " + PREFIX_TO + " "
@@ -91,8 +80,7 @@ public class CommandTemplates {
                             + PREFIX_GROUP_SIZE),
             new Template(
                     RideEditCommand.COMMAND_WORD + " ID [" + PREFIX_NAME + "NAME] [" + PREFIX_FROM + "START] ["
-                            + PREFIX_TO + "END] [" + PREFIX_LOCATION + "LOCATION]"
-                            + CONTINUATION + "[" + PREFIX_DISTANCE
+                            + PREFIX_TO + "END] [" + PREFIX_LOCATION + "LOCATION] [" + PREFIX_DISTANCE
                             + "DISTANCE] [" + PREFIX_FTP + "MIN_POWER] [" + PREFIX_GROUP_SIZE + "MAX_GROUP_SIZE] ["
                             + PREFIX_NOTES + "NOTES]",
                     RideEditCommand.COMMAND_WORD + " "),
@@ -103,15 +91,35 @@ public class CommandTemplates {
             new Template("ridedeletecyclist ID PHONE", RideRosterCommand.LEAVE_COMMAND_WORD + " "),
             new Template(RideListCommand.COMMAND_WORD + " ID", RideListCommand.COMMAND_WORD + " "),
             new Template(RideFindCommand.COMMAND_WORD + " all OR " + RideFindCommand.COMMAND_WORD
-                    + " [n/NAME] [from/DATE [TIME]]" + CONTINUATION
-                    + "[to/DATE [TIME]] [l/LOCATION] [d/DISTANCE]" + CONTINUATION
-                    + "[f/MINIMUM_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]",
+                    + " [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] "
+                    + "[l/LOCATION] [d/DISTANCE] [f/MINIMUM_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]",
                     RideFindCommand.COMMAND_WORD + " "),
             new Template(ListCommand.COMMAND_WORD, ListCommand.COMMAND_WORD),
             new Template(ClearCommand.COMMAND_WORD, ClearCommand.COMMAND_WORD),
             new Template(HelpCommand.COMMAND_WORD, HelpCommand.COMMAND_WORD),
             new Template(ExitCommand.COMMAND_WORD, ExitCommand.COMMAND_WORD));
 
+    private static final char NO_BREAK_SPACE = '\u00A0';
+
     private CommandTemplates() {} // prevents instantiation
+
+    /**
+     * Returns {@code format} with every space that is inside square brackets replaced by a no-break space, so that
+     * a menu item which wraps to the window width breaks only between parameters, never inside an optional group
+     * such as {@code [from/DATE [TIME]]}.
+     */
+    static String keepOptionalGroupsTogether(String format) {
+        StringBuilder result = new StringBuilder();
+        int depth = 0;
+        for (char character : format.toCharArray()) {
+            if (character == '[') {
+                depth++;
+            } else if (character == ']' && depth > 0) {
+                depth--;
+            }
+            result.append(character == ' ' && depth > 0 ? NO_BREAK_SPACE : character);
+        }
+        return result.toString();
+    }
 
 }

@@ -7,7 +7,12 @@ import java.util.logging.Logger;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
+import javafx.scene.control.CustomMenuItem;
+import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextInputControl;
@@ -32,6 +37,11 @@ public class MainWindow extends UiPart<Stage> {
     private static final String FXML = "MainWindow.fxml";
     private static final Duration CLOSING_SCREEN_DURATION = Duration.seconds(1.5);
 
+    /** The narrowest a Help menu item may be made, so that it stays readable in a very narrow window. */
+    private static final double HELP_MENU_MIN_LABEL_WIDTH = 200;
+    /** Space kept free at the right of the window: the menu's padding and shadow plus a small gap. */
+    private static final double HELP_MENU_RIGHT_MARGIN = 48;
+
     private final Logger logger = LogsCenter.getLogger(getClass());
 
     private Stage primaryStage;
@@ -43,6 +53,10 @@ public class MainWindow extends UiPart<Stage> {
     private RideListPanel rideListPanel;
     private ResultDisplay resultDisplay;
     private HelpWindow helpWindow;
+    private final List<Label> helpMenuLabels = new ArrayList<>();
+
+    @FXML
+    private MenuBar menuBar;
 
     @FXML
     private StackPane commandBoxPlaceholder;
@@ -149,18 +163,54 @@ public class MainWindow extends UiPart<Stage> {
      * Adds one item per command to the top of the Help menu, followed by a separator, so that the
      * list of commands appears as soon as the menu is opened. Clicking an item places that
      * command's starter text in {@code commandBox}; the existing "Full help..." item stays at the bottom.
+     * Each item wraps its text to the width of the window, see {@link #fitHelpMenuToWindow()}.
      */
     private void addCommandsToHelpMenu(CommandBox commandBox) {
         List<MenuItem> commandItems = new ArrayList<>();
         for (CommandTemplates.Template template : CommandTemplates.ALL) {
-            MenuItem commandItem = new MenuItem(template.display());
-            // Otherwise JavaFX hides the first underscore (e.g. in EXPERIENCE_LEVEL) as a shortcut marker.
-            commandItem.setMnemonicParsing(false);
+            // A wrapping label, unlike plain menu text, can be made to fit the window.
+            Label commandLabel = new BoundedLabel(CommandTemplates.keepOptionalGroupsTogether(template.display()));
+            commandLabel.setWrapText(true);
+            helpMenuLabels.add(commandLabel);
+            CustomMenuItem commandItem = new CustomMenuItem(commandLabel);
             commandItem.setOnAction(event -> commandBox.setCommandText(template.insertText()));
             commandItems.add(commandItem);
         }
         commandItems.add(new SeparatorMenuItem());
         helpMenu.getItems().addAll(0, commandItems);
+
+        // The window can be resized at any time, so fit the items to its current width whenever the menu opens.
+        helpMenu.setOnShowing(event -> fitHelpMenuToWindow());
+    }
+
+    /**
+     * Limits the width of every command item in the Help menu to the room left between the Help menu and the
+     * right edge of the window, so that long command formats wrap onto further lines instead of making the menu
+     * wider than the window. A wider window gives a wider menu, and a narrower window a narrower one.
+     */
+    private void fitHelpMenuToWindow() {
+        double menuLeft = menuBar.lookupAll(".menu").stream()
+                .filter(node -> node instanceof MenuButton button && helpMenu.getText().equals(button.getText()))
+                .findFirst()
+                .map(this::leftEdgeInScene)
+                .orElse(0.0);
+        double labelWidth = helpMenuLabelWidth(menuBar.getScene().getWidth(), menuLeft);
+        helpMenuLabels.forEach(label -> label.setMaxWidth(labelWidth));
+    }
+
+    /**
+     * Returns the distance from the left edge of the window to the left edge of {@code node}.
+     */
+    private double leftEdgeInScene(Node node) {
+        return node.localToScene(node.getBoundsInLocal()).getMinX();
+    }
+
+    /**
+     * Returns the width that a Help menu item may take, given the {@code windowWidth} and the distance
+     * {@code menuLeft} from the left edge of the window to the Help menu. Never less than a readable minimum.
+     */
+    static double helpMenuLabelWidth(double windowWidth, double menuLeft) {
+        return Math.max(HELP_MENU_MIN_LABEL_WIDTH, windowWidth - menuLeft - HELP_MENU_RIGHT_MARGIN);
     }
 
     /**
@@ -233,6 +283,31 @@ public class MainWindow extends UiPart<Stage> {
             logger.info("An error occurred while executing command: " + commandText);
             resultDisplay.setFeedbackToUser(e.getMessage());
             throw e;
+        }
+    }
+
+    /**
+     * A label whose preferred width is its text width, but never more than its maximum width. A menu sizes its
+     * items by their preferred width and ignores their maximum width, so without this a long label would make
+     * the menu wider than the window instead of wrapping.
+     */
+    private static class BoundedLabel extends Label {
+        BoundedLabel(String text) {
+            super(text);
+        }
+
+        @Override
+        protected double computePrefWidth(double height) {
+            return Math.min(super.computePrefWidth(height), getMaxWidth());
+        }
+
+        /**
+         * A menu asks for the height without giving the width, so use the width this label will get. Otherwise the
+         * label is only one line tall and cuts off wrapped text.
+         */
+        @Override
+        protected double computePrefHeight(double width) {
+            return super.computePrefHeight(width < 0 ? computePrefWidth(-1) : width);
         }
     }
 }

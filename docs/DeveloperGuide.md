@@ -101,7 +101,7 @@ The two panels are filtered independently of each other:
 
 #### Help menu templates
 
-`CommandTemplates` holds a list of `Template` records, one for each command. Each `Template` has the text shown in the Help menu and the starter text for the command box. The longest command formats are split into short, indented lines (using `CommandTemplates.CONTINUATION`, never in the middle of a parameter), so that no menu item is wider than the application window at its default size. A slightly smaller menu font and tighter padding in `DarkTheme.css` keep the height of the whole menu inside the window too. When `MainWindow` is set up, it adds one menu item per `Template` to the top of the **Help** menu, above **Full help...**. Choosing an item calls `CommandBox#setCommandText(...)` with that template's starter text. The command is only placed in the command box for the user to complete; it is not executed. The **Full help...** window (`HelpWindow`) lists the usage of every command, reusing the usage messages defined by the command classes in `Logic`, so `HelpWindow` depends on `Logic`.
+`CommandTemplates` holds a list of `Template` records, one for each command. Each `Template` has the text shown in the Help menu and the starter text for the command box. Each menu item is a wrapping label. Whenever the **Help** menu opens, `MainWindow` limits the width of the items to the room between the **Help** menu and the right edge of the window, so a long command format wraps onto further lines instead of making the menu wider than the window. A wider window gives a wider menu, and a narrower window a narrower one. Lines wrap only between parameters, because spaces inside an optional group such as `[from/DATE [TIME]]` are replaced by no-break spaces (`CommandTemplates#keepOptionalGroupsTogether`). The menu font and padding in `DarkTheme.css` are kept small so that the height of the menu also stays inside the window. When `MainWindow` is set up, it adds one menu item per `Template` to the top of the **Help** menu, above **Full help...**. Choosing an item calls `CommandBox#setCommandText(...)` with that template's starter text. The command is only placed in the command box for the user to complete; it is not executed. The **Full help...** window (`HelpWindow`) lists the usage of every command, reusing the usage messages defined by the command classes in `Logic`, so `HelpWindow` depends on `Logic`.
 
 #### Opening and closing artwork
 
@@ -1009,8 +1009,11 @@ Use disposable test data and note the number of cyclist records before starting.
 ### Help dropdown and Full help for ride commands
 
 1. Launch Cyclique without resizing the window, then click the **Help** menu. Expected: The whole dropdown fits
-   inside the window, with no entry cut off at the right edge. Long formats such as `rideedit` and `ridefind` are
-   split over two or three indented lines. The dropdown lists `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE
+   inside the window, with no entry cut off at the right or bottom edge. Long formats such as `rideedit` and
+   `ridefind` wrap onto further lines between parameters. Close the menu and make the window wider, then open the
+   menu again. Expected: The menu is wider and fewer entries wrap. Make the window as narrow as it allows and open
+   the menu again. Expected: The menu is narrower, every entry is still fully readable, and it still fits inside
+   the window. The dropdown lists `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE
    f/MIN_POWER s/MAX_GROUP_SIZE [notes/NOTES]` after `find`. It then lists `rideedit ID [n/NAME] [from/START]
    [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`, followed by
    `ridedelete ID` before the roster commands and `list`.
