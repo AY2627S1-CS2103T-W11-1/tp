@@ -358,20 +358,26 @@ the existing JSON storage path. Ride deletion is immediate and does not use cycl
 
 ### Ride roster management
 
-`rideaddcyclist ID PHONE` and `ridedeletecyclist ID PHONE` share
-`RideRosterCommandParser` and `RideRosterCommand`. The parser separates the first token
-as a positive integer ride ID and validates the remaining text as a complete phone number.
-The command resolves the ride by ID, independently of cyclist filtering. Addition requires
-an existing cyclist, no duplicate membership, a free place and sufficient FTP. Removal
-requires membership and leaves the cyclist record intact. Validation finishes before mutation.
+`rideaddcyclist ID PHONE` and `ridedeletecyclist ID PHONE` share `RideRosterCommandParser` and `RideRosterCommand`. The parser separates the first token as a positive integer ride ID and validates the remaining text as a complete phone number. `AddressBookParser` selects `isJoining = true` for addition and `false` for removal; the shared parser passes this flag to the command.
 
-`Ride#withRoster` creates an immutable replacement. `Model#setRide` delegates to
-`AddressBook#setRide`, preserving the ride's ID, position and next-ID counter. The observable
-list replacement refreshes its ride card. `LogicManager` saves through the existing JSON
-path; the roster phone list already has storage support. Phone edits replace roster references
-across rides, and confirmed cyclist deletion removes them. The deletion prompt explains this effect.
+The sequence diagram below shows either roster operation succeeding, with no pending cyclist deletion. Local validation and collection operations are summarised in notes to keep the diagram focused on parsing, immutable replacement and saving.
 
-UML diagram updates are deferred to a later increment. Invalid requests throw before `setRide`.
+<div style="overflow-x: auto;">
+  <img src="images/RideRosterSequenceDiagram.png" alt="Adding or removing a cyclist from a ride"
+       style="max-width: none;" />
+</div>
+
+*Ride roster command sequence. Scroll horizontally on narrow screens, or [open the full-size diagram](images/RideRosterSequenceDiagram.png).*
+
+The command searches the complete ride collection by persistent ID, rather than a displayed position, so `ridefind` does not restrict which ride can be changed. A roster stores `Phone` objects, not direct `Person` references. The command first copies the selected ride's roster into a local `ArrayList<Phone>`.
+
+For addition, it resolves the phone against `Model#getAddressBook().getPersonList()`, including cyclists hidden by `find` or `ridelist`. It then checks duplicate membership, maximum group size and the cyclist's FTP against the ride's minimum power, in that order, before adding the phone to the copy. For removal, `roster.remove(phone)` both removes the phone from the copy and checks membership: a `false` result causes a `CommandException`. Removal leaves the cyclist record intact. Parsing and validation failures occur before the stored ride is replaced, and do not reach the save step.
+
+`Ride#withRoster(...)` constructs an immutable replacement with the same ID and other details. `ModelManager#setRide(...)` implements `Model#setRide(...)` and delegates to `AddressBook#setRide(...)`, preserving the ride's list position and next-ID counter. Replacing the observable list entry refreshes its ride card within the current `ridefind` view. If `ridelist ID` is active for that ride, the model's ride-list listener also refreshes the cyclist filter from the new roster; the existing sorted view keeps those cyclists alphabetical.
+
+The command returns a `CommandResult` to `LogicManager`, which calls its `saveAddressBook()` helper before returning the result to the UI. The helper passes the complete address book to `Storage#saveAddressBook(...)`; cyclists, rides and roster phone lists share the existing JSON file. A storage failure reports an error after the in-memory replacement; it does not roll back that replacement.
+
+Cyclist phone edits use `AddressBook#setPerson(...)` to replace the old phone in every ride roster. Confirmed cyclist deletion reaches `AddressBook#removePerson(...)`, which removes the phone from every roster. Both operations construct replacement rides with `withRoster(...)` and save through the existing logic path. The cyclist deletion prompt explains this effect; requesting or cancelling deletion leaves the rosters unchanged.
 
 ### Ride roster display (`ridelist`)
 
@@ -1104,7 +1110,7 @@ Use a disposable data directory for these checks.
 
 The roster dropdown templates are provided by `CommandTemplates`. The existing `MainWindow#addCommandsToHelpMenu`
 creates the menu items and passes their starter text to `CommandBox#setCommandText`.
-The Full help window reuses `RideRosterCommand#MESSAGE_USAGE`. UML updates are deferred to a later increment.
+The Full help window reuses `RideRosterCommand#MESSAGE_USAGE`.
 
 1. Open Help. Expected: after `rideadd`, `rideedit` and `ridedelete`, the dropdown shows
    `rideaddcyclist ID PHONE` followed by `ridedeletecyclist ID PHONE`.
