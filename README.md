@@ -1,30 +1,35 @@
 # Cyclique
 
-[![CI Status](https://github.com/AY2627S1-CS2103T-W11-1/tp/actions/workflows/gradle.yml/badge.svg)](https://github.com/AY2627S1-CS2103T-W11-1/tp/actions/workflows/gradle.yml)
+[![CI Status](https://github.com/AY2627S1-CS2103T-W11-1/tp/actions/workflows/gradle.yml/badge.svg)](https://ay2627s1-cs2103t-w11-1.github.io/tp/DevOps.html)
+[![codecov](https://codecov.io/gh/AY2627S1-CS2103T-W11-1/tp/branch/master/graph/badge.svg)](https://codecov.io/gh/AY2627S1-CS2103T-W11-1/tp)
 
-**Cyclique is a desktop application for organisers of recreational cycling groups in Singapore.** It combines typed commands with a graphical interface, keeping cyclist profiles, emergency contact numbers, group rides and ride rosters in one place.
+**Cyclique is a desktop application for organisers of recreational cycling groups in Singapore.** Manage cyclist profiles and group rides through typed commands, with cyclist cards and a separate Rides panel showing your data at a glance.
 
 ![Cyclique showing cyclist profiles and the Rides panel](docs/images/release-v1.4/cyclists-and-rides.png)
 
-## Features
+## What you can do
 
-* **Manage cyclist profiles:** Keep contact and emergency numbers, Functional Threshold Power (FTP), experience levels and preferred cycling locations. Find cyclists by supported profile fields and view results alphabetically.
-* **Plan group rides:** Add, edit, find and delete rides with dates, locations, distances, minimum power and maximum group sizes. Each ride has a persistent ID.
-* **Manage ride rosters:** Add eligible cyclists, remove memberships and list a ride's registered cyclists. Cyclique checks duplicate membership, capacity and minimum power before adding a cyclist.
-* **Keep data between sessions:** Cyclist records and rides are saved automatically in the same local JSON file. Cyclist deletion asks for confirmation; ride deletion is immediate.
+* Store cyclists' contact and emergency numbers, Functional Threshold Power (FTP), experience levels and preferred cycling locations.
+* Find cyclists by supported profile fields and view matching cyclist cards alphabetically.
+* Create, edit, find and delete group rides with dates, locations, distances, minimum power and maximum group sizes.
+* Add eligible cyclists to a ride, remove them from its roster and display its registered cyclists. Duplicate membership, capacity and minimum-power checks help you manage registrations.
+* Keep cyclist and ride data between sessions through automatic saving to a local JSON file.
 
-## Get started
+## Start using Cyclique
 
-Install Java 25, download the JAR from [Cyclique releases](https://github.com/AY2627S1-CS2103T-W11-1/tp/releases), and follow the [User Guide](https://ay2627s1-cs2103t-w11-1.github.io/tp/UserGuide.html#quick-start) for launch instructions and command examples.
+You will need Java 25. Follow the [Quick start](https://ay2627s1-cs2103t-w11-1.github.io/tp/UserGuide.html#quick-start) instructions to download and launch the app. The [User Guide](https://ay2627s1-cs2103t-w11-1.github.io/tp/UserGuide.html) explains the commands and their validation rules.
 
-## Project documentation
+## Explore the project
 
-* [Product website](https://ay2627s1-cs2103t-w11-1.github.io/tp/)
-* [User Guide](docs/UserGuide.md) — commands, examples and troubleshooting.
-* [Developer Guide](docs/DeveloperGuide.md) — architecture and implementation.
-* [Setting up](docs/SettingUp.md) and [Testing guide](docs/Testing.md) — contributing to the project.
-* [About Us](docs/AboutUs.md) — the CS2103T project team.
+* [User Guide](https://ay2627s1-cs2103t-w11-1.github.io/tp/UserGuide.html) — commands, examples and troubleshooting.
+* [Product website](https://ay2627s1-cs2103t-w11-1.github.io/tp/) — browse the published documentation.
+* [Developer Guide](https://ay2627s1-cs2103t-w11-1.github.io/tp/DeveloperGuide.html) — architecture, implementation and manual testing.
+* [Setting up](https://ay2627s1-cs2103t-w11-1.github.io/tp/SettingUp.html) — prepare a development environment.
+* [Testing guide](https://ay2627s1-cs2103t-w11-1.github.io/tp/Testing.html) — run automated checks.
+* [About Us](https://ay2627s1-cs2103t-w11-1.github.io/tp/AboutUs.html) — meet the CS2103T project team.
 
 ## Acknowledgements
 
-Cyclique is based on [AddressBook-Level3](https://github.com/se-edu/addressbook-level3), created by the [SE-EDU initiative](https://se-education.org/).
+Cyclique is based on [AddressBook-Level3](https://se-education.org/addressbook-level3/), created by the [SE-EDU initiative](https://se-education.org/).
+
+Libraries used include [JavaFX](https://openjfx.io/), [Jackson](https://javadoc.io/doc/com.fasterxml.jackson.core/jackson-databind) and [JUnit 5](https://junit.org/junit5/).
