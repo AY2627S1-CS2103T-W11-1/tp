@@ -68,6 +68,52 @@ public class CommandTemplatesTest {
     }
 
     @Test
+    public void all_displayLines_areShortEnoughToFitTheDefaultWindow() {
+        // 70 characters is about 520 pixels in the menu font, which leaves room inside the 740 pixel window.
+        int maxLineLength = 70;
+        for (CommandTemplates.Template template : CommandTemplates.ALL) {
+            for (String line : template.display().split("\n")) {
+                assertTrue(line.length() <= maxLineLength,
+                        "Help menu line is too long (" + line.length() + " characters): " + line);
+            }
+        }
+    }
+
+    @Test
+    public void all_continuationLinesAreIndented_andStarterTextIsOneLine() {
+        for (CommandTemplates.Template template : CommandTemplates.ALL) {
+            String[] lines = template.display().split("\n");
+            for (int i = 1; i < lines.length; i++) {
+                assertTrue(lines[i].startsWith("    "), "Continuation line should be indented: " + lines[i]);
+            }
+            assertFalse(template.insertText().contains("\n"));
+        }
+    }
+
+    @Test
+    public void longFormats_splitIntoLinesWithoutChangingTheirText() {
+        String addFormat = "add n/NAME p/PHONE sos/EMERGENCY_PHONE e/EMAIL f/FTP x/EXPERIENCE_LEVEL "
+                + "l/LOCATION [l/LOCATION]...";
+        String rideEditFormat = "rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] "
+                + "[f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]";
+        String rideFindFormat = "ridefind all OR ridefind [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] "
+                + "[l/LOCATION] [d/DISTANCE] [f/MINIMUM_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]";
+
+        // joining the lines back together gives the original one-line format, so nothing was lost or reworded
+        assertEquals(addFormat, displayOf("add").replace(CommandTemplates.CONTINUATION, " "));
+        assertEquals(rideEditFormat, displayOf("rideedit").replace(CommandTemplates.CONTINUATION, " "));
+        assertEquals(rideFindFormat, displayOf("ridefind").replace(CommandTemplates.CONTINUATION, " "));
+        assertTrue(displayOf("rideedit").contains("\n"));
+        assertTrue(displayOf("ridefind").contains("\n"));
+    }
+
+    private static String displayOf(String commandWord) {
+        return CommandTemplates.ALL.stream()
+                .filter(template -> template.insertText().trim().split(" ")[0].equals(commandWord))
+                .findFirst().orElseThrow().display();
+    }
+
+    @Test
     public void findTemplate_listsAllSearchFields() {
         String display = CommandTemplates.ALL.stream()
                 .filter(template -> template.insertText().trim().startsWith(FindCommand.COMMAND_WORD))
@@ -109,8 +155,9 @@ public class CommandTemplatesTest {
     public void rideAddTemplate_displayShowsCompulsoryPrefixesAndNotesAsOptional() {
         String display = templateFor(RideAddCommand.COMMAND_WORD).display();
 
+        // the format is split over lines to fit the window; joined back together it is the original format
         assertEquals("rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MIN_POWER s/MAX_GROUP_SIZE"
-                + " [notes/NOTES]", display);
+                + " [notes/NOTES]", display.replace(CommandTemplates.CONTINUATION, " "));
         for (Object prefix : new Object[] {PREFIX_NAME, PREFIX_FROM, PREFIX_TO, PREFIX_LOCATION, PREFIX_DISTANCE,
             PREFIX_FTP, PREFIX_GROUP_SIZE}) {
             assertTrue(display.contains(" " + prefix) || display.contains(prefix.toString()));
@@ -142,8 +189,9 @@ public class CommandTemplatesTest {
     public void rideEditTemplate_displayListsEveryEditableFieldAsOptional() {
         String display = templateFor(RideEditCommand.COMMAND_WORD).display();
 
+        // the format is split over lines to fit the window; joined back together it is the original format
         assertEquals("rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER]"
-                + " [s/MAX_GROUP_SIZE] [notes/NOTES]", display);
+                + " [s/MAX_GROUP_SIZE] [notes/NOTES]", display.replace(CommandTemplates.CONTINUATION, " "));
         for (Object prefix : new Object[] {PREFIX_NAME, PREFIX_FROM, PREFIX_TO, PREFIX_LOCATION, PREFIX_DISTANCE,
             PREFIX_FTP, PREFIX_GROUP_SIZE, PREFIX_NOTES}) {
             assertTrue(display.contains("[" + prefix), "Ride Edit format should list optional " + prefix);

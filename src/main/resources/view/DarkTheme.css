@@ -218,6 +218,18 @@
     -fx-text-fill: white;
 }
 
+/*
+ * The Help menu lists every command format, some over several lines. A slightly smaller font and tighter
+ * padding keep the whole menu inside the window at its default size.
+ */
+.context-menu .menu-item {
+    -fx-padding: 2 10 2 10;
+}
+
+.context-menu .menu-item .label {
+    -fx-font-size: 12pt;
+}
+
 .menu-bar {
     -fx-background-color: #1a1a1a;
 }

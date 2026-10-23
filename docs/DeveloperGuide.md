@@ -101,7 +101,7 @@ The two panels are filtered independently of each other:
 
 #### Help menu templates
 
-`CommandTemplates` holds a list of `Template` records, one for each command. Each `Template` has the text shown in the Help menu and the starter text for the command box. When `MainWindow` is set up, it adds one menu item per `Template` to the top of the **Help** menu, above **Full help...**. Choosing an item calls `CommandBox#setCommandText(...)` with that template's starter text. The command is only placed in the command box for the user to complete; it is not executed. The **Full help...** window (`HelpWindow`) lists the usage of every command, reusing the usage messages defined by the command classes in `Logic`, so `HelpWindow` depends on `Logic`.
+`CommandTemplates` holds a list of `Template` records, one for each command. Each `Template` has the text shown in the Help menu and the starter text for the command box. The longest command formats are split into short, indented lines (using `CommandTemplates.CONTINUATION`, never in the middle of a parameter), so that no menu item is wider than the application window at its default size. A slightly smaller menu font and tighter padding in `DarkTheme.css` keep the height of the whole menu inside the window too. When `MainWindow` is set up, it adds one menu item per `Template` to the top of the **Help** menu, above **Full help...**. Choosing an item calls `CommandBox#setCommandText(...)` with that template's starter text. The command is only placed in the command box for the user to complete; it is not executed. The **Full help...** window (`HelpWindow`) lists the usage of every command, reusing the usage messages defined by the command classes in `Logic`, so `HelpWindow` depends on `Logic`.
 
 #### Opening and closing artwork
 
@@ -1008,7 +1008,9 @@ Use disposable test data and note the number of cyclist records before starting.
 
 ### Help dropdown and Full help for ride commands
 
-1. Click the **Help** menu. Expected: The dropdown lists `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE
+1. Launch Cyclique without resizing the window, then click the **Help** menu. Expected: The whole dropdown fits
+   inside the window, with no entry cut off at the right edge. Long formats such as `rideedit` and `ridefind` are
+   split over two or three indented lines. The dropdown lists `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE
    f/MIN_POWER s/MAX_GROUP_SIZE [notes/NOTES]` after `find`. It then lists `rideedit ID [n/NAME] [from/START]
    [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`, followed by
    `ridedelete ID` before the roster commands and `list`.
