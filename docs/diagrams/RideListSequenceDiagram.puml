@@ -33,7 +33,12 @@ create ListParser
 Parser -> ListParser : new()
 Parser -> ListParser : parse(arguments)
 activate ListParser
-note over ListParser : Require exactly one positive integer ID.\nParseException stops execution and saving.
+note right of ListParser
+  Require exactly one positive integer ID.
+  Use the persistent ride ID.
+  Invalid parsing throws ParseException;
+  no execution or saving.
+end note
 create Command
 ListParser -> Command : new(targetId)
 ListParser --> Parser : c
@@ -82,8 +87,8 @@ alt valid
     deactivate Model
     Command --> Logic : result (success or empty roster)
 else invalid
+    note left of Logic : On command failure:\nno filter change or save.
     Command --> Logic : throws CommandException
-    note left of Logic : No filter change.\nNo save.
 end
 deactivate Command
 note left of Logic

@@ -104,8 +104,8 @@ end
 alt result
     Command --> Logic : result
 else exception
+    note left of Logic : On command failure:\nno save.
     Command --> Logic : throws CommandException
-    note left of Logic : No save after failure.
 end
 deactivate Command
 
@@ -122,8 +122,12 @@ opt result
     alt written
         Storage --> Logic : saved
     else I/O error
+        note left of Logic
+          StorageManager throws IOException;
+          LogicManager's saveAddressBook()
+          converts it to CommandException.
+        end note
         Storage --> Logic : throws IOException
-        note left of Logic : Convert I/O error in\nsaveAddressBook() to\nCommandException.
     end
     deactivate Storage
 end
