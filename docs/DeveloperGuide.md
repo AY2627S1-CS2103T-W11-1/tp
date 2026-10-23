@@ -155,13 +155,22 @@ even if that command's arguments are invalid. See
 cancellation behaviour. Ride deletion executes immediately and does not use this
 confirmation flow.
 
-Here are the other classes in `Logic` (omitted from the class diagram above) that are used for parsing a user command:
+The following partial class diagram shows how the `find` and `ridefind` commands are parsed.
+It omits unrelated command parsers and validation classes.
 
-<img src="images/ParserClasses.png" width="600"/>
+<img src="images/ParserClasses.png" width="1000" alt="Class relationships for parsing cyclist and ride search" />
 
 How the parsing works:
-* When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
-* All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
+* `AddressBookParser` selects the concrete parser for the command word. For cyclist search,
+  `FindCommandParser` tokenises prefixes, validates each value with `ParserUtil`, creates a
+  `PersonMatchesFindCriteriaPredicate`, and places it in a `FindCommand`. For ride search,
+  `RideFindCommandParser` performs the equivalent work for ride fields and creates a
+  `RideMatchesFindCriteriaPredicate` held by `RideFindCommand`.
+* Both concrete parsers implement `Parser`, and both use `ArgumentTokenizer`,
+  `ArgumentMultimap`, `Prefix` and the validation helpers shown in the diagram. A dashed
+  line with a hollow triangle pointing to `Parser` shows interface implementation. A dashed
+  arrow labelled `«create»` points to a class whose object is constructed by the class at
+  the arrow's tail.
 
 ### Model component
 **API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
@@ -223,6 +232,45 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 ## **Implementation**
 
 This section describes some noteworthy details on how certain features are implemented.
+
+### Cyclist and ride filtering
+
+The `find` command accepts `n/` for name, `p/` for the cyclist's own phone, `sos/` for an
+emergency phone, `f/` for a minimum FTP, `x/` for experience level and `l/` for preferred
+location. At least one criterion is required. The `n/`, `p/`, `sos/`, `x/` and `l/` prefixes
+can each be repeated: values within one field use OR matching, while different fields use
+AND. The `f/` prefix accepts only one minimum FTP value, and a cyclist matches when their
+FTP is greater than or equal to that value. Names match complete words case-insensitively;
+a name containing spaces is matched as a complete full name. For example,
+`find l/Punggol x/Intermediate f/250` finds intermediate cyclists who prefer Punggol and have
+an FTP of at least 250 watts. Preferred locations match case-insensitively against any
+supplied `l/` value. A cyclist whose stored preferred location is `any` matches every
+location criterion; searching for `l/any` alone matches only cyclists with that stored
+preference. Emergency-phone matching checks the optional emergency contact, not the
+cyclist's own phone.
+
+`find` applies its predicate to the model's person filter. The filtered person view is then
+sorted alphabetically by full name before `getFilteredPersonList()` supplies the observable
+list displayed by the cyclist panel.
+
+The `ridefind` command accepts one value for each of `n/` (name), `from/`, `to/`, `l/`
+(location), `d/` (distance), `f/` (minimum power), `s/` (maximum group size) and `notes/`.
+Each prefix may appear only once, and all supplied ride criteria must match. The special
+input `ridefind all` clears the ride criteria. Date-only boundaries expand to
+0000 for `from/` and 2359 for `to/`; when both are supplied, the end must not be earlier than
+the start. A ride matches only if it starts at or after `from/` and ends at or before `to/`.
+The `n/` value matches the complete ride name case-insensitively, while `d/`, `s/` and
+`notes/` compare their respective field values for equality. For example,
+`ridefind l/Tampines f/200` lists rides at Tampines whose minimum
+power is at least 200 watts. Unlike cyclist `find`, ridefind does not compare a ride's
+minimum power with a cyclist's FTP: its `f/` value is compared directly with the ride's
+`MinimumPower`, and a ride matches when its stored value is greater than or equal to the
+criterion.
+
+`ridefind` applies `RideMatchesFindCriteriaPredicate` to the model's filtered ride list. The
+ride panel observes that list and refreshes its displayed ride cards; it does not change the
+cyclist panel. Conversely, `ridelist ID` is the command that filters the cyclist panel to the
+selected ride's roster.
 
 ### Cyclist deletion confirmation
 
