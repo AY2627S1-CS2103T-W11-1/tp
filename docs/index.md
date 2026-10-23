@@ -20,7 +20,7 @@ title: Cyclique
 
 ## Start using Cyclique
 
-You will need Java 25. Download the JAR from [Cyclique releases](https://github.com/AY2627S1-CS2103T-W11-1/tp/releases), then follow the [Quick start](UserGuide.html#quick-start) instructions to launch the app. The [User Guide](UserGuide.html) explains the commands and their validation rules.
+You will need Java 25. Follow the [Quick start](UserGuide.html#quick-start) instructions to download and launch the app. The [User Guide](UserGuide.html) explains the commands and their validation rules.
 
 ## Explore the project
 
