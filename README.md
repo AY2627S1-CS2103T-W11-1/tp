@@ -21,8 +21,8 @@ You will need Java 25. Follow the [Quick start](https://ay2627s1-cs2103t-w11-1.g
 
 ## Explore the project
 
-* [User Guide](https://ay2627s1-cs2103t-w11-1.github.io/tp/UserGuide.html) — commands, examples and troubleshooting.
 * [Product website](https://ay2627s1-cs2103t-w11-1.github.io/tp/) — browse the published documentation.
+* [User Guide](https://ay2627s1-cs2103t-w11-1.github.io/tp/UserGuide.html) — commands, examples and troubleshooting.
 * [Developer Guide](https://ay2627s1-cs2103t-w11-1.github.io/tp/DeveloperGuide.html) — architecture, implementation and manual testing.
 * [Setting up](https://ay2627s1-cs2103t-w11-1.github.io/tp/SettingUp.html) — prepare a development environment.
 * [Testing guide](https://ay2627s1-cs2103t-w11-1.github.io/tp/Testing.html) — run automated checks.
