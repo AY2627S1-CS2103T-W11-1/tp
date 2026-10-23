@@ -21,6 +21,7 @@ You will need Java 25. Download the JAR from [Cyclique releases](https://github.
 
 ## Explore the project
 
+* [User Guide](docs/UserGuide.md) — commands, examples and troubleshooting.
 * [Product website](https://ay2627s1-cs2103t-w11-1.github.io/tp/) — browse the published documentation.
 * [Developer Guide](docs/DeveloperGuide.md) — architecture, implementation and manual testing.
 * [Setting up](docs/SettingUp.md) — prepare a development environment.

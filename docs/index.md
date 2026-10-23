@@ -24,6 +24,7 @@ You will need Java 25. Download the JAR from [Cyclique releases](https://github.
 
 ## Explore the project
 
+* [User Guide](UserGuide.html) — commands, examples and troubleshooting.
 * [Developer Guide](DeveloperGuide.html) — architecture, implementation and manual testing.
 * [Setting up](SettingUp.html) — prepare a development environment.
 * [Testing guide](Testing.html) — run automated checks.
