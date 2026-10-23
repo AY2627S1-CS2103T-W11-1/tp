@@ -29,11 +29,13 @@ Parser -> EditParser : new()
 Parser -> EditParser : parse(arguments)
 activate EditParser
 ' RideEditCommandParser.java:33-46,55-87: internal calls/construction abstracted in a note.
-note over EditParser
-  Validate positive ID; reject duplicate prefixes.
+note right of EditParser
+  Validate positive ID;
+  reject duplicate prefixes.
   Construct EditRideDescriptor; parse fields.
   Require at least one edited field.
-  ParseException prevents execution and saving.
+  ParseException prevents
+  execution and saving.
 end note
 create Command
 EditParser -> Command : new(targetId, descriptor)

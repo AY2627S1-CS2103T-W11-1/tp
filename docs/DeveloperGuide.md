@@ -319,7 +319,7 @@ no rides and `nextRideId` 1. Duplicate ride IDs or a non-positive `nextRideId` m
 
 ### Group ride editing (`rideedit`)
 
-`rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_FTP] [s/MAX_SIZE] [notes/NOTES]`
+`rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`
 edits an existing ride without changing its identity or roster. The sequence diagram below shows parsing,
 validation, replacement and saving. Internal validation and immutable object construction are summarised in notes;
 the parsing-success path is expanded, while execution failures are distinguished from successful replacement.
