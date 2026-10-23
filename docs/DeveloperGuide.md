@@ -155,13 +155,22 @@ even if that command's arguments are invalid. See
 cancellation behaviour. Ride deletion executes immediately and does not use this
 confirmation flow.
 
-Here are the other classes in `Logic` (omitted from the class diagram above) that are used for parsing a user command:
+The following partial class diagram shows how the `find` and `ridefind` commands are parsed.
+It omits unrelated command parsers and validation classes.
 
-<img src="images/ParserClasses.png" width="600"/>
+<img src="images/ParserClasses.png" width="1000" alt="Class relationships for parsing cyclist and ride search" />
 
 How the parsing works:
-* When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
-* All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
+* `AddressBookParser` selects the concrete parser for the command word. For cyclist search,
+  `FindCommandParser` tokenises prefixes, validates each value with `ParserUtil`, creates a
+  `PersonMatchesFindCriteriaPredicate`, and places it in a `FindCommand`. For ride search,
+  `RideFindCommandParser` performs the equivalent work for ride fields and creates a
+  `RideMatchesFindCriteriaPredicate` held by `RideFindCommand`.
+* Both concrete parsers implement `Parser`, and both use `ArgumentTokenizer`,
+  `ArgumentMultimap`, `Prefix` and the validation helpers shown in the diagram. A dashed
+  line with a hollow triangle pointing to `Parser` shows interface implementation. A dashed
+  arrow labelled `«create»` points to a class whose object is constructed by the class at
+  the arrow's tail.
 
 ### Model component
 **API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
@@ -205,7 +214,11 @@ The `Model` component,
 
 The `Storage` component,
 * can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
-* saves group rides in a `rides` array and the ID counter in `nextRideId`, both in the same file as the cyclists. Both are optional when reading, so older files load with no rides, and invalid ride data makes the whole file invalid in the same way as invalid cyclist data.
+* saves cyclists and group rides in the same JSON file. `JsonSerializableAddressBook` holds a collection of `JsonAdaptedPerson` objects (the cyclists), a collection of `JsonAdaptedRide` objects (the rides) and the `nextRideId` counter. There is no separate ride storage file or class.
+* saves the ride ID counter, `nextRideId`, so that ride IDs keep increasing and are never reused, even after rides are deleted or the address book is cleared. If the counter is missing when reading, numbering continues after the highest saved ride ID.
+* saves a ride's roster in `JsonAdaptedRide` as a list of cyclist phone numbers (strings), not as `Person` objects. When reading, every roster phone must belong to a saved cyclist, and a roster must not contain duplicates or exceed the ride's maximum group size.
+* saves a cyclist's optional emergency number in `JsonAdaptedPerson` as `emergencyPhone`.
+* remains compatible with older files. `rides` and `nextRideId` are optional when reading, so files saved before rides existed load with no rides, a ride without a `roster` loads with an empty roster, and a cyclist without `emergencyPhone` loads with no emergency number. Invalid ride data makes the whole file invalid in the same way as invalid cyclist data.
 * ignores the retired `tags` property in cyclist JSON records without validating its contents. New saves omit it. Supported cyclist fields retain their existing validation and legacy defaults.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
@@ -219,6 +232,45 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 ## **Implementation**
 
 This section describes some noteworthy details on how certain features are implemented.
+
+### Cyclist and ride filtering
+
+The `find` command accepts `n/` for name, `p/` for the cyclist's own phone, `sos/` for an
+emergency phone, `f/` for a minimum FTP, `x/` for experience level and `l/` for preferred
+location. At least one criterion is required. The `n/`, `p/`, `sos/`, `x/` and `l/` prefixes
+can each be repeated: values within one field use OR matching, while different fields use
+AND. The `f/` prefix accepts only one minimum FTP value, and a cyclist matches when their
+FTP is greater than or equal to that value. Names match complete words case-insensitively;
+a name containing spaces is matched as a complete full name. For example,
+`find l/Punggol x/Intermediate f/250` finds intermediate cyclists who prefer Punggol and have
+an FTP of at least 250 watts. Preferred locations match case-insensitively against any
+supplied `l/` value. A cyclist whose stored preferred location is `any` matches every
+location criterion; searching for `l/any` alone matches only cyclists with that stored
+preference. Emergency-phone matching checks the optional emergency contact, not the
+cyclist's own phone.
+
+`find` applies its predicate to the model's person filter. The filtered person view is then
+sorted alphabetically by full name before `getFilteredPersonList()` supplies the observable
+list displayed by the cyclist panel.
+
+The `ridefind` command accepts one value for each of `n/` (name), `from/`, `to/`, `l/`
+(location), `d/` (distance), `f/` (minimum power), `s/` (maximum group size) and `notes/`.
+Each prefix may appear only once, and all supplied ride criteria must match. The special
+input `ridefind all` clears the ride criteria. Date-only boundaries expand to
+0000 for `from/` and 2359 for `to/`; when both are supplied, the end must not be earlier than
+the start. A ride matches only if it starts at or after `from/` and ends at or before `to/`.
+The `n/` value matches the complete ride name case-insensitively, while `d/`, `s/` and
+`notes/` compare their respective field values for equality. For example,
+`ridefind l/Tampines f/200` lists rides at Tampines whose minimum
+power is at least 200 watts. Unlike cyclist `find`, ridefind does not compare a ride's
+minimum power with a cyclist's FTP: its `f/` value is compared directly with the ride's
+`MinimumPower`, and a ride matches when its stored value is greater than or equal to the
+criterion.
+
+`ridefind` applies `RideMatchesFindCriteriaPredicate` to the model's filtered ride list. The
+ride panel observes that list and refreshes its displayed ride cards; it does not change the
+cyclist panel. Conversely, `ridelist ID` is the command that filters the cyclist panel to the
+selected ride's roster.
 
 ### Cyclist deletion confirmation
 
@@ -301,11 +353,7 @@ parsed by a `ParserUtil` method that throws the field's own message. Values are 
 `to`, location, distance, minimum power, group size and notes, and only the first error is reported. The check
 that `to/` is not earlier than `from/` runs after every field is valid.
 
-**Storage.** Rides are saved in the same `data/addressbook.json`, in a `rides` array, with a `nextRideId` number.
-`JsonAdaptedRide` mirrors `Ride` and validates each field when loading, throwing an `IllegalValueException` with the
-field's message. `rides` and `nextRideId` are optional when reading, so files saved before rides existed load with
-no rides and `nextRideId` 1. Duplicate ride IDs or a non-positive `nextRideId` make the file invalid. If
-`nextRideId` is missing, numbering continues after the highest saved ID.
+**Storage.** Rides are saved in the same `data/addressbook.json`, in a `rides` array, with a `nextRideId` number. `JsonAdaptedRide` mirrors `Ride`, including its roster as a list of cyclist phone numbers, and validates each field when loading, throwing an `IllegalValueException` with the field's message. `rides` and `nextRideId` are optional when reading, so files saved before rides existed load with no rides and `nextRideId` 1. Duplicate ride IDs or a non-positive `nextRideId` make the file invalid. If `nextRideId` is missing, numbering continues after the highest saved ID. See the [Storage component](#storage-component) for how these classes fit together.
 
 **Design considerations.**
 
@@ -358,20 +406,26 @@ the existing JSON storage path. Ride deletion is immediate and does not use cycl
 
 ### Ride roster management
 
-`rideaddcyclist ID PHONE` and `ridedeletecyclist ID PHONE` share
-`RideRosterCommandParser` and `RideRosterCommand`. The parser separates the first token
-as a positive integer ride ID and validates the remaining text as a complete phone number.
-The command resolves the ride by ID, independently of cyclist filtering. Addition requires
-an existing cyclist, no duplicate membership, a free place and sufficient FTP. Removal
-requires membership and leaves the cyclist record intact. Validation finishes before mutation.
+`rideaddcyclist ID PHONE` and `ridedeletecyclist ID PHONE` share `RideRosterCommandParser` and `RideRosterCommand`. The parser separates the first token as a positive integer ride ID and validates the remaining text as a complete phone number. `AddressBookParser` selects `isJoining = true` for addition and `false` for removal; the shared parser passes this flag to the command.
 
-`Ride#withRoster` creates an immutable replacement. `Model#setRide` delegates to
-`AddressBook#setRide`, preserving the ride's ID, position and next-ID counter. The observable
-list replacement refreshes its ride card. `LogicManager` saves through the existing JSON
-path; the roster phone list already has storage support. Phone edits replace roster references
-across rides, and confirmed cyclist deletion removes them. The deletion prompt explains this effect.
+The sequence diagram below shows either roster operation succeeding, with no pending cyclist deletion. Local validation and collection operations are summarised in notes to keep the diagram focused on parsing, immutable replacement and saving.
 
-UML diagram updates are deferred to a later increment. Invalid requests throw before `setRide`.
+<div style="overflow-x: auto;">
+  <img src="images/RideRosterSequenceDiagram.png" alt="Adding or removing a cyclist from a ride"
+       style="max-width: none;" />
+</div>
+
+*Ride roster command sequence. Scroll horizontally on narrow screens, or [open the full-size diagram](images/RideRosterSequenceDiagram.png).*
+
+The command searches the complete ride collection by persistent ID, rather than a displayed position, so `ridefind` does not restrict which ride can be changed. A roster stores `Phone` objects, not direct `Person` references. The command first copies the selected ride's roster into a local `ArrayList<Phone>`.
+
+For addition, it resolves the phone against `Model#getAddressBook().getPersonList()`, including cyclists hidden by `find` or `ridelist`. It then checks duplicate membership, maximum group size and the cyclist's FTP against the ride's minimum power, in that order, before adding the phone to the copy. For removal, `roster.remove(phone)` both removes the phone from the copy and checks membership: a `false` result causes a `CommandException`. Removal leaves the cyclist record intact. Parsing and validation failures occur before the stored ride is replaced, and do not reach the save step.
+
+`Ride#withRoster(...)` constructs an immutable replacement with the same ID and other details. `ModelManager#setRide(...)` implements `Model#setRide(...)` and delegates to `AddressBook#setRide(...)`, preserving the ride's list position and next-ID counter. Replacing the observable list entry refreshes its ride card within the current `ridefind` view. If `ridelist ID` is active for that ride, the model's ride-list listener also refreshes the cyclist filter from the new roster; the existing sorted view keeps those cyclists alphabetical.
+
+The command returns a `CommandResult` to `LogicManager`, which calls its `saveAddressBook()` helper before returning the result to the UI. The helper passes the complete address book to `Storage#saveAddressBook(...)`; cyclists, rides and roster phone lists share the existing JSON file. A storage failure reports an error after the in-memory replacement; it does not roll back that replacement.
+
+Cyclist phone edits use `AddressBook#setPerson(...)` to replace the old phone in every ride roster. Confirmed cyclist deletion reaches `AddressBook#removePerson(...)`, which removes the phone from every roster. Both operations construct replacement rides with `withRoster(...)` and save through the existing logic path. The cyclist deletion prompt explains this effect; requesting or cancelling deletion leaves the rosters unchanged.
 
 ### Ride roster display (`ridelist`)
 
@@ -1105,7 +1159,7 @@ Use a disposable data directory for these checks.
 
 The roster dropdown templates are provided by `CommandTemplates`. The existing `MainWindow#addCommandsToHelpMenu`
 creates the menu items and passes their starter text to `CommandBox#setCommandText`.
-The Full help window reuses `RideRosterCommand#MESSAGE_USAGE`. UML updates are deferred to a later increment.
+The Full help window reuses `RideRosterCommand#MESSAGE_USAGE`.
 
 1. Open Help. Expected: after `rideadd`, `rideedit` and `ridedelete`, the dropdown shows
    `rideaddcyclist ID PHONE` followed by `ridedeletecyclist ID PHONE`.
