@@ -1,30 +1,35 @@
 # Cyclique
 
 [![CI Status](https://github.com/AY2627S1-CS2103T-W11-1/tp/actions/workflows/gradle.yml/badge.svg)](https://github.com/AY2627S1-CS2103T-W11-1/tp/actions/workflows/gradle.yml)
+[![codecov](https://codecov.io/gh/AY2627S1-CS2103T-W11-1/tp/branch/master/graph/badge.svg)](https://codecov.io/gh/AY2627S1-CS2103T-W11-1/tp)
 
-**Cyclique is a desktop application for organisers of recreational cycling groups in Singapore.** It combines typed commands with a graphical interface, keeping cyclist profiles, emergency contact numbers, group rides and ride rosters in one place.
+**Cyclique is a desktop application for organisers of recreational cycling groups in Singapore.** Manage cyclist profiles and group rides through typed commands, with cyclist cards and a separate Rides panel showing your data at a glance.
 
 ![Cyclique showing cyclist profiles and the Rides panel](docs/images/release-v1.4/cyclists-and-rides.png)
 
-## Features
+## What you can do
 
-* **Manage cyclist profiles:** Keep contact and emergency numbers, Functional Threshold Power (FTP), experience levels and preferred cycling locations. Find cyclists by supported profile fields and view results alphabetically.
-* **Plan group rides:** Add, edit, find and delete rides with dates, locations, distances, minimum power and maximum group sizes. Each ride has a persistent ID.
-* **Manage ride rosters:** Add eligible cyclists, remove memberships and list a ride's registered cyclists. Cyclique checks duplicate membership, capacity and minimum power before adding a cyclist.
-* **Keep data between sessions:** Cyclist records and rides are saved automatically in the same local JSON file. Cyclist deletion asks for confirmation; ride deletion is immediate.
+* Store cyclists' contact and emergency numbers, Functional Threshold Power (FTP), experience levels and preferred cycling locations.
+* Find cyclists by supported profile fields and view matching cyclist cards alphabetically.
+* Create, edit, find and delete group rides with dates, locations, distances, minimum power and maximum group sizes.
+* Add eligible cyclists to a ride, remove them from its roster and display its registered cyclists. Duplicate membership, capacity and minimum-power checks help you manage registrations.
+* Keep cyclist and ride data between sessions through automatic saving to a local JSON file.
 
-## Get started
+## Start using Cyclique
 
-Install Java 25, download the JAR from [Cyclique releases](https://github.com/AY2627S1-CS2103T-W11-1/tp/releases), and follow the [User Guide](https://ay2627s1-cs2103t-w11-1.github.io/tp/UserGuide.html#quick-start) for launch instructions and command examples.
+You will need Java 25. Download the JAR from [Cyclique releases](https://github.com/AY2627S1-CS2103T-W11-1/tp/releases), then follow the [Quick start](docs/UserGuide.md#quick-start) instructions to launch the app. The [User Guide](docs/UserGuide.md) explains the commands and their validation rules.
 
-## Project documentation
+## Explore the project
 
-* [Product website](https://ay2627s1-cs2103t-w11-1.github.io/tp/)
-* [User Guide](docs/UserGuide.md) — commands, examples and troubleshooting.
-* [Developer Guide](docs/DeveloperGuide.md) — architecture and implementation.
-* [Setting up](docs/SettingUp.md) and [Testing guide](docs/Testing.md) — contributing to the project.
-* [About Us](docs/AboutUs.md) — the CS2103T project team.
+* [Product website](https://ay2627s1-cs2103t-w11-1.github.io/tp/) — browse the published documentation.
+* [Developer Guide](docs/DeveloperGuide.md) — architecture, implementation and manual testing.
+* [Setting up](docs/SettingUp.md) — prepare a development environment.
+* [Testing guide](docs/Testing.md) — run automated checks.
+* [About Us](docs/AboutUs.md) — meet the CS2103T project team.
+* [Source code and issue tracker](https://github.com/AY2627S1-CS2103T-W11-1/tp) — browse the repository or report a problem.
 
 ## Acknowledgements
 
 Cyclique is based on [AddressBook-Level3](https://github.com/se-edu/addressbook-level3), created by the [SE-EDU initiative](https://se-education.org/).
+
+Libraries used include [JavaFX](https://openjfx.io/), [Jackson](https://github.com/FasterXML/jackson) and [JUnit 5](https://github.com/junit-team/junit5).
