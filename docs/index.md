@@ -1,19 +1,37 @@
 ---
 layout: page
-title: AddressBook Level 3
+title: Cyclique
 ---
 
-[![CI Status](https://github.com/se-edu/addressbook-level3/workflows/Java%20CI/badge.svg)](https://github.com/se-edu/addressbook-level3/actions)
-[![codecov](https://codecov.io/gh/se-edu/addressbook-level3/branch/master/graph/badge.svg)](https://codecov.io/gh/se-edu/addressbook-level3)
+[![CI Status](https://github.com/AY2627S1-CS2103T-W11-1/tp/actions/workflows/gradle.yml/badge.svg)](https://github.com/AY2627S1-CS2103T-W11-1/tp/actions/workflows/gradle.yml)
+[![codecov](https://codecov.io/gh/AY2627S1-CS2103T-W11-1/tp/branch/master/graph/badge.svg)](https://codecov.io/gh/AY2627S1-CS2103T-W11-1/tp)
 
-![Ui](images/Ui.png)
+**Cyclique is a desktop application for organisers of recreational cycling groups in Singapore.** Manage cyclist profiles and group rides through typed commands, with cyclist cards and a separate Rides panel showing your data at a glance.
 
-**AddressBook is a desktop application for managing your contact details.** While it has a GUI, most of the user interactions happen using a CLI (Command Line Interface).
+![Cyclique showing cyclist profiles and the Rides panel](images/release-v1.4/cyclists-and-rides.png)
 
-* If you are interested in using AddressBook, head over to the [_Quick Start_ section of the **User Guide**](UserGuide.html#quick-start).
-* If you are interested in developing AddressBook, the [**Developer Guide**](DeveloperGuide.html) is a good place to start.
+## What you can do
 
+* Store cyclists' contact and emergency numbers, Functional Threshold Power (FTP), experience levels and preferred cycling locations.
+* Find cyclists by supported profile fields and view matching cyclist cards alphabetically.
+* Create, edit, find and delete group rides with dates, locations, distances, minimum power and maximum group sizes.
+* Add eligible cyclists to a ride, remove them from its roster and display its registered cyclists. Duplicate membership, capacity and minimum-power checks help you manage registrations.
+* Keep cyclist and ride data between sessions through automatic saving to a local JSON file.
 
-**Acknowledgements**
+## Start using Cyclique
 
-* Libraries used: [JavaFX](https://openjfx.io/), [Jackson](https://github.com/FasterXML/jackson), [JUnit5](https://github.com/junit-team/junit5)
+You will need Java 25. Download the JAR from [Cyclique releases](https://github.com/AY2627S1-CS2103T-W11-1/tp/releases), then follow the [Quick start](UserGuide.html#quick-start) instructions to launch the app. The [User Guide](UserGuide.html) explains the commands and their validation rules.
+
+## Explore the project
+
+* [Developer Guide](DeveloperGuide.html) — architecture, implementation and manual testing.
+* [Setting up](SettingUp.html) — prepare a development environment.
+* [Testing guide](Testing.html) — run automated checks.
+* [About Us](AboutUs.html) — meet the CS2103T project team.
+* [Source code and issue tracker](https://github.com/AY2627S1-CS2103T-W11-1/tp) — browse the repository or report a problem.
+
+## Acknowledgements
+
+Cyclique is based on [AddressBook-Level3](https://github.com/se-edu/addressbook-level3), created by the [SE-EDU initiative](https://se-education.org/).
+
+Libraries used include [JavaFX](https://openjfx.io/), [Jackson](https://github.com/FasterXML/jackson) and [JUnit 5](https://github.com/junit-team/junit5).
