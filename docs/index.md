@@ -4,6 +4,7 @@ title: Cyclique
 ---
 
 [![CI Status](https://github.com/AY2627S1-CS2103T-W11-1/tp/actions/workflows/gradle.yml/badge.svg)](https://github.com/AY2627S1-CS2103T-W11-1/tp/actions/workflows/gradle.yml)
+[![codecov](https://codecov.io/gh/AY2627S1-CS2103T-W11-1/tp/branch/master/graph/badge.svg)](https://codecov.io/gh/AY2627S1-CS2103T-W11-1/tp)
 
 **Cyclique is a desktop application for organisers of recreational cycling groups in Singapore.** Manage cyclist profiles and group rides through typed commands, with cyclist cards and a separate Rides panel showing your data at a glance.
 
