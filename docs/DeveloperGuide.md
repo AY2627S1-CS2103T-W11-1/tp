@@ -1210,6 +1210,12 @@ Use a separate data directory or back up your data first.
    Expected: minimum-power error. An unknown cyclist or ride ID also reports an error.
 1. Enter `rideaddcyclist 0 +65 91234567`, `rideaddcyclist 1`, and `rideaddcyclist 1 p/+65 91234567`.
    Expected: invalid-input errors with no data changes.
+1. Enter `ridedeletecyclist` and `ridedeletecyclist 1`, then `rideaddcyclist` and `rideaddcyclist 1`.
+   Expected: each missing-argument error includes only that command's syntax and matching example.
+   The removal example is `ridedeletecyclist 1 +65 91234567`; the addition example uses `rideaddcyclist`.
+   Enter `ridedeletecyclist abc +65 91234567` and `ridedeletecyclist 1 91234567`.
+   Expected: the specific ride-ID and phone validation messages still appear, with no data changes.
+   Open Full help. Expected: both roster command syntaxes and both matching examples appear.
 1. Add the first cyclist again. Run `list`, edit their phone to `+65 91111111`.
    Expected: the roster shows the new phone. Restart; expected: membership is preserved.
 1. Delete that contact and cancel. Expected: roster unchanged. Delete again and confirm.
