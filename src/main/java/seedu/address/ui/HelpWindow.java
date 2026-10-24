@@ -75,7 +75,7 @@ public class HelpWindow extends UiPart<Stage> {
             RIDE_LIST_GUIDANCE,
             RideFindCommand.MESSAGE_USAGE,
             ListCommand.COMMAND_WORD + ": Lists all persons.\nExample: " + ListCommand.COMMAND_WORD,
-            ClearCommand.COMMAND_WORD + ": Clears all entries.\nExample: " + ClearCommand.COMMAND_WORD,
+            ClearCommand.MESSAGE_USAGE,
             HelpCommand.MESSAGE_USAGE,
             ExitCommand.COMMAND_WORD + ": Exits the program.\nExample: " + ExitCommand.COMMAND_WORD);
 

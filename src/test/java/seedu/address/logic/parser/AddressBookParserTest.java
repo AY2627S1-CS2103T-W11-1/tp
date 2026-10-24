@@ -63,7 +63,17 @@ public class AddressBookParserTest {
     @Test
     public void parseCommand_clear() throws Exception {
         assertTrue(parser.parseCommand(ClearCommand.COMMAND_WORD) instanceof ClearCommand);
-        assertTrue(parser.parseCommand(ClearCommand.COMMAND_WORD + " 3") instanceof ClearCommand);
+        // surrounding whitespace is not extra text
+        assertTrue(parser.parseCommand("  " + ClearCommand.COMMAND_WORD + "   ") instanceof ClearCommand);
+    }
+
+    @Test
+    public void parseCommand_clearWithExtraText_throwsParseException() {
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClearCommand.MESSAGE_USAGE);
+        for (String extraText : new String[] {" 3", " 1", " n/Alex", " x", " yes", " +65 91234567"}) {
+            assertThrows(ParseException.class, expectedMessage, () ->
+                    parser.parseCommand(ClearCommand.COMMAND_WORD + extraText));
+        }
     }
 
     @Test
