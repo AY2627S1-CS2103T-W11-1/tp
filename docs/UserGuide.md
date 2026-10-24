@@ -444,7 +444,7 @@ Format: `rideaddcyclist ID PHONE`
 
 Example: `rideaddcyclist 1 +65 91234567`
 
-* `ID` is the persistent ride ID shown on its card, not its position in the Rides panel. Enter a positive whole number from 1 to 2147483647 without leading zeroes. It must identify an existing ride; filtering rides with `ridefind` does not prevent you from targeting a hidden ride.
+* `ID` is the persistent ride ID shown on its card, not its position in the Rides panel. Enter a positive whole number from 1 to 2147483647. Leading zeroes are accepted: `01` and `1` identify the same ride, consistently with `ridelist`, `rideedit` and `ridedelete`. It must identify an existing ride; filtering rides with `ridefind` does not prevent you from targeting a hidden ride.
 * `PHONE` is the cyclist's own saved phone number, not their SOS number. Enter `+`, a 1–3 digit country code, exactly one space and at least three digits, for example `+65 91234567`. Do not add `p/`, brackets or hyphens. Put the ride ID before the phone number.
 * The cyclist must already exist in Cyclique, but can be hidden by `find` or a `ridelist` selection.
 * The cyclist must not already be on that ride's roster, the ride must have a free place, and the cyclist's FTP must be at least the ride's minimum power. FTP equal to the minimum is accepted.
@@ -481,7 +481,7 @@ An unknown ride reports `Ride ID cannot be found.` A phone that is not on the se
 #### Shared roster command input and behaviour
 
 * Both commands require an ID followed by a complete phone number. For example, `rideaddcyclist 1` reports `Invalid command format.` followed by usage instructions for both roster commands.
-* An invalid ID, such as `0`, `-1`, `01`, `abc` or `2147483648`, reports `Ride ID should be a positive whole number no larger than 2147483647.` when a phone argument is supplied.
+* An invalid ID, such as `0`, `00`, `-1`, `+1`, `abc` or `2147483648`, reports `Ride ID should be a positive whole number no larger than 2147483647.` when a phone argument is supplied.
 * An invalid phone, including a `p/` prefix or extra text after the phone, reports a phone-format error. Enter the complete phone number exactly as saved. Invalid inputs do not change rosters.
 * Command names are case-sensitive. Both commands appear in the **Help** menu; choosing one inserts the command word and a space for you to complete, without running it.
 * Entering either supported command while cyclist deletion is awaiting confirmation cancels that pending deletion, then processes the roster command. Cancellation is reported even if its input is invalid.

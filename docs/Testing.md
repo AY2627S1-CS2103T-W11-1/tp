@@ -96,6 +96,8 @@ constructor is for direct Java callers.
 `RideRosterIntegrationTest` covers roster commands, filtered cyclists,
 capacity and FTP boundaries, invalid input, rejected commands without mutation,
 phone edits, confirmed/cancelled contact deletion, JSON readback and removal after reload.
+It also checks that leading-zero IDs identify the same ride across roster, list, edit and delete commands,
+while signed, all-zero and overflowing IDs leave the roster and saved data unchanged.
 `HelpWindowTest` verifies both roster command formats and dropdown starters. Run the
 Developer Guide's **Ride roster regression (manual testing)** after roster changes.
 

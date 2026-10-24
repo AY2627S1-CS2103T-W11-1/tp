@@ -1210,6 +1210,13 @@ Use a separate data directory or back up your data first.
    Expected: minimum-power error. An unknown cyclist or ride ID also reports an error.
 1. Enter `rideaddcyclist 0 +65 91234567`, `rideaddcyclist 1`, and `rideaddcyclist 1 p/+65 91234567`.
    Expected: invalid-input errors with no data changes.
+1. With ride 1's roster empty, enter `rideaddcyclist 001 +65 91234567`, then `ridelist 01`.
+   Expected: the cyclist is added to ride 1 and appears in the left panel.
+   Enter `rideedit 0001 l/Marina Bay`, then `ridedeletecyclist 01 +65 91234567`.
+   Expected: ride 1's location changes and its roster becomes empty; the cyclist record remains saved.
+   Try both roster commands with IDs `00`, `+01`, `-01` and `02147483648`.
+   Expected: each ID is rejected without changing the roster or saved data.
+   On a disposable second ride, verify that `ridedelete` also accepts its ID with leading zeroes.
 1. Add the first cyclist again. Run `list`, edit their phone to `+65 91111111`.
    Expected: the roster shows the new phone. Restart; expected: membership is preserved.
 1. Delete that contact and cancel. Expected: roster unchanged. Delete again and confirm.
