@@ -1,0 +1,152 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+skinparam ParticipantPadding 0
+skinparam NoteFontSize 16
+skinparam ArrowFontSize 16
+skinparam SequenceGroupFontSize 16
+skinparam SequenceGroupHeaderFontSize 16
+skinparam maxMessageSize 140
+!pragma sequenceMessageSpan true
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as Logic LOGIC_COLOR
+participant ":AddressBookParser" as Parser LOGIC_COLOR
+participant ":RideEditCommandParser" as EditParser LOGIC_COLOR
+participant "c:RideEditCommand" as Command LOGIC_COLOR
+end box
+participant "m:ModelManager" as Model MODEL_COLOR
+participant ":StorageManager" as Storage STORAGE_COLOR
+
+' Trace: LogicManager.java:55,81; AddressBookParser.java:96 (call, creation, call).
+note over Logic, Parser : input = "rideedit ID ..."
+[-> Logic : execute(input)
+activate Logic
+Logic -> Parser : parseCommand(input)
+activate Parser
+create EditParser
+Parser -> EditParser : new()
+Parser -> EditParser : parse(arguments)
+activate EditParser
+' RideEditCommandParser.java:33-46,55-87: internal calls/construction abstracted in a note.
+note right of EditParser
+  Validate positive ID;
+  reject duplicate prefixes.
+  Construct EditRideDescriptor; parse fields.
+  Require at least one edited field.
+  ParseException prevents
+  execution and saving.
+end note
+create Command
+EditParser -> Command : new(targetId, descriptor)
+' RideEditCommand.java:77-82: defensive copy, not the parser's descriptor object.
+note over Command : Copy EditRideDescriptor defensively.
+EditParser --> Parser : c
+deactivate EditParser
+Parser --> Logic : c
+deactivate Parser
+
+' LogicManager.java:91; RideEditCommand.java:89-92; ModelManager.java:87-89.
+Logic -> Command : execute(m)
+activate Command
+Command -> Model : getAddressBook()
+activate Model
+Model --> Command : book
+deactivate Model
+note left of Command
+  Read book.getRideList() (all stored rides).
+  Find target by persistent ID.
+  If found, createEditedRide combines fields
+  and calls Ride.isValidPeriod: end >= start.
+end note
+
+' RideEditCommand.java:93,104-125: static helpers are notes, not instance self-calls.
+alt valid
+    note left of Command
+      Construct proposed immutable Ride
+      with the same ID and roster.
+      Omitted fields and notes are preserved.
+      Supplied notes replace; notes/ clears.
+    end note
+    ' RideEditCommand.java:94,131-151: capacity first; phone resolution only for an FTP edit.
+    note left of Command
+      Next, validateRosterEligibility:
+      if size supplied: size >= roster count;
+      then, only if minimum FTP supplied,
+      resolve roster phones against all cyclists;
+      require FTP >= edited minimum.
+    end note
+    alt pass
+        ' RideEditCommand.java:96; ModelManager.java:128-131; AddressBook.java:179-190.
+        Command -> Model : setRide(target, proposed)
+        activate Model
+        note right of Model
+          book.setRide(target, proposed)
+          calls rides.set(index, proposed).
+          Preserve position, ID and roster,
+          nextRideId and all other records.
+          Notify observable views.
+        end note
+        Model --> Command
+        deactivate Model
+        note right of Command : Create success CommandResult.
+    else fail
+        note left of Command
+          Capacity / FTP / roster reference invalid.
+          Throw CommandException; no setRide.
+        end note
+    end
+else invalid
+    note right of Command : Throw CommandException.\nNo proposed Ride is constructed.
+end
+
+' Mutually exclusive replies to execute(m); exception messages are not returned values.
+alt result
+    Command --> Logic : result
+else exception
+    note left of Logic : On command failure:\nno save.
+    Command --> Logic : throws CommandException
+end
+deactivate Command
+
+opt result
+    ' LogicManager.java:92,148-156: internal helper invocation is abstracted in this note.
+    note left of Logic : saveAddressBook():\nexisting storage path.
+    Logic -> Model : getAddressBook()
+    activate Model
+    Model --> Logic : book
+    deactivate Model
+    Logic -> Storage : saveAddressBook(book)
+    activate Storage
+    note left of Storage : Delegate to JsonAddressBookStorage.
+    alt written
+        Storage --> Logic : saved
+    else I/O error
+        note left of Logic
+          StorageManager throws IOException;
+          LogicManager's saveAddressBook()
+          converts it to CommandException.
+        end note
+        Storage --> Logic : throws IOException
+    end
+    deactivate Storage
+end
+
+alt saved
+    [<-- Logic : result
+else error
+    [<-- Logic : throws CommandException
+end
+deactivate Logic
+
+legend bottom
+  Entry is from the command-box UI; its internal calls are omitted.
+  Parsing success is expanded. Notes abstract internal validation and construction.
+  Solid arrows are calls/creation; dashed arrows are returns or labelled exception propagation.
+  AddressBook internals and observable effects are notes, not direct UI calls.
+  Guards: valid = target found and complete period valid; pass/fail = roster eligibility checks.
+  result = command returned CommandResult; saved = command and saving both succeeded.
+  Messages labelled "throws" propagate exceptions; they do not return values.
+  No confirmation is required.
+endlegend
+@enduml

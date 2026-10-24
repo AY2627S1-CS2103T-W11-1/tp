@@ -1,0 +1,167 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+skinparam ParticipantPadding 0
+skinparam NoteFontSize 16
+skinparam ArrowFontSize 16
+skinparam SequenceGroupFontSize 16
+skinparam SequenceGroupHeaderFontSize 16
+skinparam maxMessageSize 140
+!pragma sequenceMessageSpan true
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as Logic LOGIC_COLOR
+participant ":AddressBookParser" as Parser LOGIC_COLOR
+participant ":RideListCommandParser" as ListParser LOGIC_COLOR
+participant "c:RideListCommand" as Command LOGIC_COLOR
+end box
+participant "book:AddressBook" as Book MODEL_COLOR
+participant "m:ModelManager" as Model MODEL_COLOR
+
+' ModelManager.java:38-52: registration is a precondition, never a command action.
+note over Book, Model
+  One ride-list listener registered earlier
+  in ModelManager's constructor.
+end note
+' LogicManager.java:55,81; AddressBookParser.java:91; RideListCommandParser.java:20-25.
+note over Logic, Parser : input = "ridelist ID"
+[-> Logic : execute(input)
+activate Logic
+Logic -> Parser : parseCommand(input)
+activate Parser
+create ListParser
+Parser -> ListParser : new()
+Parser -> ListParser : parse(arguments)
+activate ListParser
+note right of ListParser
+  Require exactly one positive integer ID.
+  Use the persistent ride ID.
+  Invalid parsing throws ParseException;
+  no execution or saving.
+end note
+create Command
+ListParser -> Command : new(targetId)
+ListParser --> Parser : c
+deactivate ListParser
+Parser --> Logic : c
+deactivate Parser
+
+' RideListCommand.java:43-56; ModelManager.java:87-89; AddressBook.java:205-212.
+Logic -> Command : execute(m)
+activate Command
+Command -> Model : getAddressBook()
+activate Model
+Model --> Command : book
+deactivate Model
+note left of Command
+  Find ID in book.getRideList() (all rides).
+  Validate every roster Phone against
+  book.getPersonList() (all cyclists).
+end note
+alt valid
+    ' RideListCommand.java:58; ModelManager.java:162-183.
+    Command -> Model : updateFilteredPersonListForRide(targetId)
+    activate Model
+    note left of Model : activeRideListId = targetId
+    Model -> Model : refreshRideListFilter()
+    activate Model
+    Model -> Book : getRideList()
+    activate Book
+    Book --> Model : complete ride list
+    deactivate Book
+    note left of Model : Get latest roster by activeRideListId.
+    note right of Model
+      filteredPersons:
+      setPredicate(...) matches
+      roster phone numbers.
+      JavaFX: FilteredList
+      feeds SortedList, then
+      PersonListPanel's ListView
+      and PersonCards on the left.
+      Alphabetical, ignoring case;
+      ties keep stored order.
+    end note
+    Model --> Model
+    deactivate Model
+    Model --> Command
+    deactivate Model
+    Command --> Logic : result (success or empty roster)
+else invalid
+    note left of Logic : On command failure:\nno filter change or save.
+    Command --> Logic : throws CommandException
+end
+deactivate Command
+note left of Logic
+  On command success:
+  saveAddressBook():
+  save unchanged data.
+  I/O errors become
+  CommandException.
+  Storage calls omitted.
+end note
+alt saved
+    [<-- Logic : result
+else error
+    [<-- Logic : throws CommandException
+end
+deactivate Logic
+
+== Later: refresh without another ridelist ==
+opt changed
+    ' RideRosterCommand.java:47-73; Ride.java:89-90: omitted caller and construction.
+    note left of Model
+      RideRosterCommand.execute(m) (caller omitted):
+      resolve ride, validate change and build roster.
+      ride.withRoster(roster) constructs a new Ride.
+      Parsing and saving are omitted.
+    end note
+    [-> Model : setRide(ride, replacement)
+    activate Model
+    Model -> Book : setRide(ride, replacement)
+    activate Book
+    ' AddressBook.java:33-34,190; ModelManager.java:51-52: JavaFX dispatch is abstracted.
+    note left of Book
+      rides.set(index, replacement) emits a change.
+      The observable wrapper invokes the registered
+      JavaFX ListChangeListener synchronously.
+      The notification arrow abstracts that dispatch;
+      it is not an explicit AddressBook method call.
+    end note
+    Book -> Model : <<notification>>\nlistener callback
+    activate Model
+    ' Re-entrant listener activation calls the real private helper (ModelManager.java:52).
+    Model -> Model : refreshRideListFilter()
+    activate Model
+    Model -> Book : getRideList()
+    activate Book
+    Book --> Model : complete ride list
+    deactivate Book
+    note right of Model : Latest roster by\nactiveRideListId.
+    note right of Model
+      Set person predicate
+      from latest roster.
+      Same live pipeline
+      refreshes the left panel.
+    end note
+    Model --> Model
+    deactivate Model
+    Model --> Book : callback returns
+    deactivate Model
+    Book --> Model
+    deactivate Book
+    [<-- Model
+    deactivate Model
+end
+
+legend bottom
+  Notes abstract list access, validation, construction, setPredicate and JavaFX notifications.
+  The later incoming setRide call is from the omitted RideRosterCommand instance.
+  The later roster change succeeds while Ride List is active; registration occurs at construction.
+  Solid arrows are calls/creation, except the labelled conceptual JavaFX notification.
+  Dashed arrows are returns or labelled exception propagation.
+  Guards: valid = ride found and every roster phone resolves; result = CommandResult received.
+  saved = command and saving both succeeded; "throws" messages propagate exceptions.
+  Empty roster or deleted selected ride => empty cyclist view; find/list replace this selection.
+  The right-hand Rides panel has an independent filter.
+endlegend
+@enduml
