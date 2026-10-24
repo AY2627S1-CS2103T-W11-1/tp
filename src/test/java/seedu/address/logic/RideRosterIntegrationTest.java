@@ -55,6 +55,40 @@ public class RideRosterIntegrationTest {
     }
 
     @Test
+    public void execute_leadingZeroRideIds_targetSameRideAcrossCommands() throws Exception {
+        logic.execute("rideaddcyclist 001 " + PHONE);
+        assertEquals(List.of(new Phone(PHONE)), currentRide().getRoster());
+        assertSavedState();
+        logic.execute("ridelist 01");
+        assertEquals(List.of(model.getAddressBook().getPersonList().get(0)), model.getFilteredPersonList());
+        logic.execute("rideedit 0001 l/Marina Bay");
+        assertEquals("Marina Bay", currentRide().getLocation().value);
+        logic.execute("ridedeletecyclist 01 " + PHONE);
+        assertTrue(currentRide().getRoster().isEmpty());
+        assertTrue(model.getFilteredPersonList().isEmpty());
+        assertEquals(2, model.getAddressBook().getPersonList().size());
+        assertEquals(2, model.getAddressBook().getNextRideId());
+        assertSavedState();
+        logic.execute("ridedelete 0001");
+        assertTrue(model.getAddressBook().getRideList().isEmpty());
+        assertSavedState();
+    }
+
+    @Test
+    public void execute_invalidRideIdForms_preserveRosterAndSavedData() throws Exception {
+        logic.execute("rideaddcyclist 1 " + PHONE);
+        Ride before = currentRide();
+        String saved = Files.readString(storage.getAddressBookFilePath());
+        for (String word : List.of("rideaddcyclist", "ridedeletecyclist")) {
+            for (String id : List.of("0", "00", "-01", "+01", "1.0", "abc", "02147483648")) {
+                assertThrows(ParseException.class, () -> logic.execute(word + " " + id + " " + PHONE));
+                assertEquals(before, currentRide());
+                assertEquals(saved, Files.readString(storage.getAddressBookFilePath()));
+            }
+        }
+    }
+
+    @Test
     public void execute_tabSeparatedRideEdit_updatesBothFields() throws Exception {
         logic.execute("rideedit 1 notes/Bring lights\ts/2");
         assertEquals("2", currentRide().getMaxGroupSize().value);
