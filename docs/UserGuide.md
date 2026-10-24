@@ -308,6 +308,16 @@ Examples:
 
 The first example adds a 45 km ride with minimum power 180 W and room for three cyclists. The second adds a ride without notes; its feedback includes `Notes: None`. If the sample rides already exist, these commands add separate rides with new IDs.
 
+**Screenshot walkthrough: add, edit and delete Ride 3**
+
+The three screenshots in these sections show a separate walkthrough starting with a new data file's sample rides, before running the examples above. Sunday Sunrise Ride is ID 1 and Evening Spin is ID 2; the next command adds Saturday Coastal Ride as ID 3. In an existing file, substitute the actual assigned ID in the later edit and delete commands. Select any walkthrough screenshot to open it at full resolution and read the smaller card text.
+
+`rideadd n/Saturday Coastal Ride from/31-10-2026 0700 to/31-10-2026 1000 l/East Coast Park d/40 f/180 s/5 notes/Bring water and friends!`
+
+<a href="images/ug-rideadd-success.png"><img src="images/ug-rideadd-success.png" width="900" alt="Ride Add success showing Saturday Coastal Ride as ID 3 at East Coast Park with an empty roster" /></a>
+
+*Saturday Coastal Ride is added as Ride 3, with notes `Bring water and friends!`; sample Rides 1 and 2 remain.*
+
 **If something goes wrong**
 
 * Missing required prefixes or text before the first prefix produces `Invalid command format.` followed by the command usage.
@@ -385,6 +395,12 @@ These examples use the existing sample Sunday Sunrise Ride, which has ID `1` in 
 * `rideedit 1 from/25-10-2026 1000` is rejected because the preserved end is `0930`. Similarly, `rideedit 1 to/25-10-2026 0600` is rejected because the preserved start is `0630`. To move both endpoints, supply both, for example `rideedit 1 from/25-10-2026 1000 to/25-10-2026 1200`.
 * Register the sample cyclists Alex Tan (280 W) and Bernice Lee (220 W) for this ride using `rideaddcyclist 1 +65 91234561` and `rideaddcyclist 1 +65 91234562`, respectively, only if they are not already registered for it. With these two cyclists on the roster, `rideedit 1 s/1` is rejected because there are two members, and `rideedit 1 f/221` is rejected because one member's FTP is 220 W. `rideedit 1 f/220 s/2` succeeds with that roster. No member is removed to make an edit succeed.
 
+Continuing the separate Ride 3 screenshot walkthrough from [Ride Add](#adding-a-group-ride-rideadd), enter `rideedit 3 l/Marina Bay notes/Meet at the waterfront`.
+
+<a href="images/ug-rideedit-success.png"><img src="images/ug-rideedit-success.png" width="900" alt="Ride Edit success for Saturday Coastal Ride, ID 3, showing Marina Bay and notes Meet at the waterfront" /></a>
+
+*Ride 3 retains its persistent ID while its location changes to Marina Bay and its notes to `Meet at the waterfront`. Its other details and empty roster are unchanged.*
+
 Common failures include:
 
 * A missing, zero, negative, malformed, overflowing or extra ID argument: `Invalid command format.` followed by the command usage.
@@ -406,6 +422,12 @@ Example: `ridedelete 1` (replace `1` with the actual ID of the ride you want to 
 Supply exactly one whole number from 1 to 2147483647 without a sign or decimal point, and no prefixes or extra arguments. It identifies the saved ride rather than its position in the Rides panel. A ride hidden by `ridefind` can still be deleted. Command words are case-sensitive: use `ridedelete`.
 
 Deletion is immediate and does not require confirmation. On success, Cyclique displays `Deleted ride:` followed by the deleted ride's complete details, removes its card from the Rides panel if visible and saves the change automatically. For Sunday Sunrise Ride with ID 1, the feedback starts with `Deleted ride: Ride 1: Sunday Sunrise Ride`.
+
+To finish the separate Ride 3 screenshot walkthrough, enter `ridedelete 3` after the edit shown above.
+
+<a href="images/ug-ridedelete-success.png"><img src="images/ug-ridedelete-success.png" width="900" alt="Ride Delete success identifying Saturday Coastal Ride, ID 3, with only Rides 1 and 2 and all three sample cyclists remaining" /></a>
+
+*Ride 3 has been removed. Sunday Sunrise Ride remains ID 1, Evening Spin remains ID 2, and Alex Tan, Bernice Lee and Chloe Lim remain visible.*
 
 The deleted ride's roster associations are removed with the ride. Cyclist records, other rides and their rosters
 remain unchanged. Remaining ride IDs are not renumbered, and deleted IDs are never reused.
