@@ -92,7 +92,7 @@ public class CommandTemplates {
             new Template(RideListCommand.COMMAND_WORD + " ID", RideListCommand.COMMAND_WORD + " "),
             new Template(RideFindCommand.COMMAND_WORD + " all OR " + RideFindCommand.COMMAND_WORD
                     + " [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] "
-                    + "[l/LOCATION] [d/DISTANCE] [f/MINIMUM_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]",
+                    + "[l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]",
                     RideFindCommand.COMMAND_WORD + " "),
             new Template(ListCommand.COMMAND_WORD, ListCommand.COMMAND_WORD),
             new Template(ClearCommand.COMMAND_WORD, ClearCommand.COMMAND_WORD),
