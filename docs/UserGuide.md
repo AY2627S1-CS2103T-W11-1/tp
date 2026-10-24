@@ -332,7 +332,7 @@ These rejected commands add no ride and consume no ID. Use only the listed prefi
 
 Finds rides matching one or more supplied criteria and displays the matching rides in the Rides panel.
 
-Format: `ridefind [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] [l/LOCATION] [d/DISTANCE] [f/MINIMUM_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`
+Format: `ridefind [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`
 
 To list every ride, use `ridefind all`.
 
@@ -344,7 +344,7 @@ The fields are matched as follows:
 * `to/` matches rides ending at or before the supplied date and time.
 * `l/LOCATION` matches the ride location, ignoring case.
 * `d/DISTANCE` and `s/MAX_GROUP_SIZE` use exact numeric matching.
-* `f/MINIMUM_POWER` matches rides whose minimum power is greater than or equal to the supplied value.
+* `f/MIN_POWER` matches rides whose minimum power is greater than or equal to the supplied value.
 * `notes/NOTES` matches rides with the supplied notes. Rides without notes do not match a notes criterion.
 
 The date and time format is `DD-MM-YYYY TTTT`, using the 24-hour clock. A date-only `from/` value means `0000`,
@@ -587,7 +587,7 @@ Action | Format, Examples
 **List** | `list`
 **Help** | `help`<br> or press `F1`, or choose **Help → Full help...**
 **Rideadd** | `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MIN_POWER s/MAX_GROUP_SIZE [notes/NOTES]`<br> e.g., `rideadd n/Sunday Sunrise Ride from/25-10-2026 0630 to/25-10-2026 0930 l/East Coast Park d/45 f/180 s/3 notes/Bring lights and a spare tube`
-**Ridefind** | `ridefind all` or `ridefind [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] [l/LOCATION] [d/DISTANCE] [f/MINIMUM_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`<br> e.g., `ridefind all`, `ridefind from/18-10-2026 to/18-10-2026 f/180`
+**Ridefind** | `ridefind all` or `ridefind [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`<br> e.g., `ridefind all`, `ridefind from/18-10-2026 to/18-10-2026 f/180`
 **Rideedit** | `rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`<br> e.g., `rideedit 1 l/Marina Bay notes/Meet at the waterfront`, `rideedit 1 notes/` (use the actual ride ID)
 **Ridedelete** | `ridedelete ID`<br> e.g., `ridedelete 1` (use the actual ride ID; no confirmation)
 **Add cyclist to ride** | `rideaddcyclist ID PHONE`<br> e.g., `rideaddcyclist 1 +65 91234567`
