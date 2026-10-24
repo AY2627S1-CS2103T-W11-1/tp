@@ -313,7 +313,7 @@ has multiplicity `1`. New `add` commands require `sos/`; `edit` optionally repla
 
 ### Group ride creation (`rideadd`)
 
-`rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MINIMUM_POWER s/MAX_GROUP_SIZE [notes/NOTES]`
+`rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MIN_POWER s/MAX_GROUP_SIZE [notes/NOTES]`
 creates a group ride. The [model class diagram](#model-component) shows the ride
 collection and ID counter at an overview level; the ride value classes are described below.
 
