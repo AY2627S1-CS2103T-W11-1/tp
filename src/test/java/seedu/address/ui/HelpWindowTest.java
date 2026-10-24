@@ -67,6 +67,14 @@ public class HelpWindowTest {
     }
 
     @Test
+    public void commandList_rosterUsage_includesBothOperationExamples() {
+        assertTrue(HelpWindow.COMMAND_LIST.contains(RideRosterCommand.MESSAGE_JOIN_USAGE));
+        assertTrue(HelpWindow.COMMAND_LIST.contains(RideRosterCommand.MESSAGE_LEAVE_USAGE));
+        assertTrue(HelpWindow.COMMAND_LIST.contains("Example: rideaddcyclist 1 +65 91234567"));
+        assertTrue(HelpWindow.COMMAND_LIST.contains("Example: ridedeletecyclist 1 +65 91234567"));
+    }
+
+    @Test
     public void commandList_reusesCommandUsageMessages() {
         assertTrue(HelpWindow.COMMAND_LIST.contains(AddCommand.MESSAGE_USAGE));
         assertTrue(HelpWindow.COMMAND_LIST.contains(EditCommand.MESSAGE_USAGE));
