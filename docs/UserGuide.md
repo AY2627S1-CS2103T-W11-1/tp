@@ -280,28 +280,43 @@ command usage without changing records.
 
 Adds a group ride that an organiser plans to lead.
 
-Format: `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MINIMUM_POWER s/MAX_GROUP_SIZE [notes/NOTES]`
+Format: `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MIN_POWER s/MAX_GROUP_SIZE [notes/NOTES]`
 
 Field | Meaning and rules
 ------|------------------
-`n/NAME` | The name of the ride. Letters, numbers and spaces only; it must not be blank.
-`from/FROM` | When the ride starts, written as `DD-MM-YYYY TTTT`. `TTTT` is the time on a 24-hour clock from `0000` to `2359`, for example `18-10-2026 0630`. The date must be a real date.
+`n/NAME` | The name of the ride. English letters (`A–Z`, `a–z`), digits (`0–9`) and spaces only; it must not be blank.
+`from/FROM` | When the ride starts, written as `DD-MM-YYYY TTTT` (day-month-year, followed by exactly one space and the time). `TTTT` uses the 24-hour clock from `0000` to `2359`, for example `25-10-2026 0630`. Both the date and time are required. The date must be a real calendar date, including the correct leap-year rules.
 `to/TO` | When the ride ends, in the same format as `from/`. It must not be earlier than `from/` (the same time is allowed).
-`l/LOCATION` | One location. Letters, numbers, spaces, hyphens and apostrophes only.
-`d/DISTANCE` | The distance in kilometres. A positive number with at most 2 decimal places, such as `45` or `45.5`.
-`f/MINIMUM_POWER` | The minimum power a cyclist needs to join, in watts. A whole number from 1 to 600, the same range as a cyclist's FTP.
-`s/MAX_GROUP_SIZE` | The most cyclists that can join. A positive whole number.
-`notes/NOTES` | Optional. At most 10 words.
+`l/LOCATION` | One non-blank location. English letters (`A–Z`, `a–z`), digits (`0–9`), spaces, hyphens and apostrophes only.
+`d/DISTANCE` | The distance in kilometres, from `0.01` to `999999.99`. Use 1–6 digits before the decimal point and, optionally, 1–2 digits after it, such as `45` or `45.5`.
+`f/MIN_POWER` | The minimum power a cyclist needs to join, in watts. Use 1–3 digits representing a whole number from 1 to 600, the same range as a cyclist's FTP.
+`s/MAX_GROUP_SIZE` | The most cyclists that can join. Use 1–9 digits representing a whole number from 1 to 999999999.
+`notes/NOTES` | Optional. If supplied, it must contain 1–10 words separated by whitespace. Repeated whitespace is stored as single spaces. Omit the prefix for no notes; empty `notes/` is rejected when adding a ride.
 
-Every field except `notes/` is required, and each prefix can be used only once. You can give the fields in any order.
+Every field except `notes/` is required and must have a value. Each prefix can be used only once, in any order. Put whitespace before each prefix; spaces around values are trimmed. Command words and prefixes are case-sensitive: use `rideadd` and `from/`, for example. Names, locations and notes retain the capitalisation you enter. Enter numeric values without units, signs, commas or scientific notation; zero and negative values are rejected. Leading zeroes count towards the digit limits and are removed from stored numeric values.
 
-Each new ride gets an ID automatically: 1 for the first ride, 2 for the next and so on. IDs follow the order in which rides are created, are never reused, and carry on from where they stopped after you restart the app. A new ride has no cyclists on its roster yet. Two rides may have the same name, because rides are told apart by their IDs.
+Rides may be in the past, cross midnight or span multiple days. The end must be on or after the start: for an overnight ride, enter the later date in `to/` as well as the time. Equal start and end date/times are allowed.
 
-The ride is shown in the result box when it is added, and it is saved with your other data. The window also has a **Rides** panel in a column on the right (about 30% of the window width), next to the command box, result box and cyclist list. Each ride is shown as a card, like the cyclist cards. The card shows the ride's ID and name in a yellow-tinted heading, then its start and end, then labelled lines for the location, distance, minimum power and maximum group size, and a **Notes** line if the ride has notes. Long names, locations and notes wrap onto more lines, so the panel never needs a horizontal scrollbar. Click a ride to highlight its card. If there are no rides, the panel says `No rides yet. Use rideadd to create one.`
+Each new ride gets a persistent ID automatically. A new empty book starts at 1; an existing book continues from its saved counter. IDs increase in creation order and are never reused, including after deletion, `clear` or restarting. Check the assigned ID in the result or ride card; it is not the card's list position. A new ride has no cyclists on its roster yet. Even rides with identical details are allowed, because their IDs differ.
+
+On success, the result box shows `New ride added:` followed by the assigned ID and complete ride details, and the change is saved automatically. The right-hand **Rides** panel updates immediately, with the new ride after existing rides. An active `ridefind` filter is retained and may hide the new card; use `ridefind all` to show every ride. Cyclist records and the current cyclist filter are unchanged. Each ride card shows its ID and name, period, location, distance, minimum power, maximum group size and roster, plus a **Notes** line if notes are present.
 
 Examples:
-* `rideadd n/Sunday Sunrise Ride from/18-10-2026 0630 to/18-10-2026 0930 l/East Coast d/45 f/180 s/12 notes/Bring lights and a spare tube`
-* `rideadd n/Evening Spin from/20-10-2026 1800 to/20-10-2026 1930 l/Punggol d/30.5 f/150 s/8`
+
+* `rideadd n/Sunday Sunrise Ride from/25-10-2026 0630 to/25-10-2026 0930 l/East Coast Park d/45 f/180 s/3 notes/Bring lights and a spare tube`
+* `rideadd n/Evening Spin from/27-10-2026 1800 to/27-10-2026 1930 l/Punggol d/30.5 f/150 s/8`
+
+The first example adds a 45 km ride with minimum power 180 W and room for three cyclists. The second adds a ride without notes; its feedback includes `Notes: None`. If the sample rides already exist, these commands add separate rides with new IDs.
+
+**If something goes wrong**
+
+* Missing required prefixes or text before the first prefix produces `Invalid command format.` followed by the command usage.
+* Repeating a prefix is rejected. For example, repeating `d/` reports `Multiple values specified for the following single-valued field(s): d/.`
+* Invalid field values report the relevant constraint. For example, `d/0` reports `Distance should be a positive number of kilometres with at most 2 decimal places, for example 45 or 45.5.` Empty `notes/` reports `Notes should not be blank and should contain at most 10 words.`
+* An end before the start reports `The end date and time (to/) cannot be earlier than the start date and time (from/).`
+* If the ID counter is exhausted, Cyclique reports `No more ride IDs are available.`
+
+These rejected commands add no ride and consume no ID. Use only the listed prefixes: unsupported prefix-like text is not checked separately and becomes part of the preceding value (or the text before the first prefix). For example, `notes/Bring lights q/test` can be accepted as notes containing `q/test`; it is not a separate parameter. Text after a recognised prefix belongs to that value until the next recognised prefix.
 
 ### Finding group rides: `ridefind`
 
@@ -346,39 +361,39 @@ Common failures include:
 
 Edits an existing group ride identified by its ride ID.
 
-Format: `rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_FTP] [s/MAX_SIZE] [notes/NOTES]`
+Format: `rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`
 
-`ID` is the positive whole number displayed on the ride card and assigned when the ride is created. Supply at
-least one editable field after it. All fields use the same rules as [`rideadd`](#adding-a-group-ride-rideadd), and
-each prefix can be used only once. In particular, `from/` and `to/` use `DD-MM-YYYY TTTT` with 24-hour time. The
-resulting end date and time cannot be earlier than the start date and time; equal times are allowed.
+`ID` is the persistent number assigned when the ride is created and displayed on its card, not its position in the Rides panel. Enter a whole number from 1 to 2147483647 without a sign or decimal point, before any prefixed fields. It must identify a saved ride; rides hidden by `ridefind` can still be edited. The ID itself cannot be edited.
 
-Only the supplied fields are replaced. The ride ID, cyclist roster and all unspecified fields remain unchanged.
-Supplying `notes/NOTES` replaces the existing notes, while `notes/` with no value clears them. Omitting `notes/`
-preserves the existing notes. Notes are optional and limited to 10 words.
+Supply at least one field after the ID. All eight fields shown in the format are editable. Fields follow the [`rideadd` rules](#adding-a-group-ride-rideadd), including case-sensitive command words and prefixes, digit limits, whitespace handling and duplicate-prefix rejection. Prefixed fields can be in any order after the ID. Only supplied fields are replaced; all unspecified fields are preserved. Supplied values must not be empty, except that `notes/` with no value clears existing notes. Non-empty `notes/NOTES` replaces the notes with 1–10 words; omitting it preserves them.
 
-The minimum FTP cannot be raised above the FTP of any cyclist currently on the roster, and the maximum group size
-cannot be reduced below the current roster count. An edit that breaks either constraint is rejected without changing
-the ride.
+**Dates and roster constraints**
 
-On success, Cyclique displays `Edited ride:` followed by the complete updated ride. The Rides panel updates in the
-same position, and the change is saved automatically. An invalid edit is rejected without changing the ride or
-its roster.
+* `from/START` and `to/END` require `DD-MM-YYYY TTTT`, just as for `rideadd`. Cyclique checks the complete resulting period, including any preserved endpoint. The end cannot be earlier than the start; equal date/times are allowed.
+* When `s/` is supplied, the proposed maximum group size must be at least the current roster count. Equality is allowed.
+* When `f/` is supplied, the proposed minimum power must be no greater than every registered cyclist's FTP. Equality is allowed. Cyclique looks up registered cyclists among all saved cyclists, including those hidden from the left panel. If a registered phone number cannot be matched to a saved cyclist, that minimum-power edit is rejected with `Cyclist with this phone number cannot be found.`
+* The roster count check runs only when `s/` is supplied. Cyclist lookup and FTP checks run only when `f/` is supplied, even if the value is unchanged. Unrelated edits do not revalidate roster phones or FTP. After the fields are parsed and the ride is found, checks run in this order: resulting period, supplied maximum group size, then supplied minimum power. Only the first failure is reported.
+
+On success, Cyclique displays `Edited ride:` followed by the complete updated ride and saves the change automatically. No confirmation is required. The ride ID, roster membership, stored ride order, other rides, cyclist records and next ride ID are unchanged. The Rides panel refreshes immediately using the existing `ridefind` filter: an edited ride may disappear if it no longer matches, or appear if it now matches. Use `ridefind all` to see all rides. If input or ride validation fails, none of the supplied changes is applied.
 
 Examples:
-* `rideedit 101 n/NightRide`
-* `rideedit 101 f/250`
-* `rideedit 101 from/20-10-2026 1400 to/20-10-2026 1600`
-* `rideedit 101 notes/`
+
+These examples use the existing sample Sunday Sunrise Ride, which has ID `1` in a new data file and initially runs from `25-10-2026 0630` to `25-10-2026 0930`. Substitute the actual ride ID if different.
+
+* `rideedit 1 l/Marina Bay notes/Meet at the waterfront` changes the location and replaces the notes. The result starts with `Edited ride: Ride 1: Sunday Sunrise Ride`.
+* `rideedit 1 notes/` clears the notes. Feedback includes `Notes: None`, and the card's Notes line disappears.
+* `rideedit 1 from/25-10-2026 1000` is rejected because the preserved end is `0930`. Similarly, `rideedit 1 to/25-10-2026 0600` is rejected because the preserved start is `0630`. To move both endpoints, supply both, for example `rideedit 1 from/25-10-2026 1000 to/25-10-2026 1200`.
+* Register the sample cyclists Alex Tan (280 W) and Bernice Lee (220 W) for this ride using `rideaddcyclist 1 +65 91234561` and `rideaddcyclist 1 +65 91234562`, respectively, only if they are not already registered for it. With these two cyclists on the roster, `rideedit 1 s/1` is rejected because there are two members, and `rideedit 1 f/221` is rejected because one member's FTP is 220 W. `rideedit 1 f/220 s/2` succeeds with that roster. No member is removed to make an edit succeed.
 
 Common failures include:
-* A missing, zero, negative, non-numeric or excessively large ride ID is rejected with the command usage instructions.
-* An ID that does not identify an existing ride: `Ride with ID ID cannot be found.`, where the second `ID` is
-  replaced with the number entered.
+
+* A missing, zero, negative, malformed, overflowing or extra ID argument: `Invalid command format.` followed by the command usage.
+* An unknown ID, for example `rideedit 999999 n/Morning Ride` when that ID is absent: `Ride with ID 999999 cannot be found.`
 * No editable field after the ID: `At least one field to edit must be provided.`
 * An invalid field value, which reports the same constraint as `rideadd`.
-* A resulting end time before the start time, including after changing only one endpoint:
-  `The end date and time (to/) cannot be earlier than the start date and time (from/).`
+* An invalid resulting period: `The end date and time (to/) cannot be earlier than the start date and time (from/).`
+* A proposed maximum below the roster count: `Cannot edit ride: maximum group size cannot be smaller than the current roster size.`
+* A proposed minimum above a member's FTP: `Cannot edit ride: minimum FTP exceeds the FTP of an existing cyclist.`
 
 ### Deleting a group ride: `ridedelete`
 
@@ -386,18 +401,18 @@ Deletes one group ride using the persistent ID shown on its ride card.
 
 Format: `ridedelete ID`
 
-Example: `ridedelete 101`
+Example: `ridedelete 1` (replace `1` with the actual ID of the ride you want to delete).
 
-The ID must be a positive integer and identifies the ride rather than its position in the Rides panel. Deletion is
-immediate and does not require confirmation. On success, Cyclique displays `Deleted ride:` followed by the deleted
-ride's details, removes its card from the Rides panel and saves the change automatically.
+Supply exactly one whole number from 1 to 2147483647 without a sign or decimal point, and no prefixes or extra arguments. It identifies the saved ride rather than its position in the Rides panel. A ride hidden by `ridefind` can still be deleted. Command words are case-sensitive: use `ridedelete`.
+
+Deletion is immediate and does not require confirmation. On success, Cyclique displays `Deleted ride:` followed by the deleted ride's complete details, removes its card from the Rides panel if visible and saves the change automatically. For Sunday Sunrise Ride with ID 1, the feedback starts with `Deleted ride: Ride 1: Sunday Sunrise Ride`.
 
 The deleted ride's roster associations are removed with the ride. Cyclist records, other rides and their rosters
 remain unchanged. Remaining ride IDs are not renumbered, and deleted IDs are never reused.
 
-A missing, malformed, non-positive, overflowing or additional argument produces `Invalid command format.` followed
-by the command usage. For example, an unknown ID of 101 reports `Ride with ID 101 cannot be found.` Failed
-deletions do not change ride or cyclist data.
+The current `ridefind` filter is retained. If a [`ridelist`](#listing-cyclists-registered-for-a-ride-ridelist) selection is showing the deleted ride's cyclists, the left-hand panel becomes empty and does not switch to another ride. Enter `list` to display all saved cyclists again. Other cyclist filters are retained.
+
+A missing, malformed, non-positive, overflowing or additional argument produces `Invalid command format.` followed by the command usage. For example, `ridedelete 1 extra` is invalid. An unknown ID of 1 reports `Ride with ID 1 cannot be found.` Input or missing-ride errors do not change ride or cyclist data, filters or the next ride ID.
 
 ### Adding a cyclist to a ride: `rideaddcyclist`
 
@@ -549,10 +564,10 @@ Action | Format, Examples
 **Find** | `find [n/NAME_KEYWORD]… [p/PHONE]… [sos/EMERGENCY_PHONE]… [f/MIN_FTP] [x/EXPERIENCE]… [l/LOCATION]…`<br> e.g., `find n/James n/Jake`, `find n/James p/+65 96320842`
 **List** | `list`
 **Help** | `help`<br> or press `F1`, or choose **Help → Full help...**
-**Rideadd** | `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MINIMUM_POWER s/MAX_GROUP_SIZE [notes/NOTES]`<br> e.g., `rideadd n/Sunday Sunrise Ride from/18-10-2026 0630 to/18-10-2026 0930 l/East Coast d/45 f/180 s/12 notes/Bring lights`
+**Rideadd** | `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MIN_POWER s/MAX_GROUP_SIZE [notes/NOTES]`<br> e.g., `rideadd n/Sunday Sunrise Ride from/25-10-2026 0630 to/25-10-2026 0930 l/East Coast Park d/45 f/180 s/3 notes/Bring lights and a spare tube`
 **Ridefind** | `ridefind all` or `ridefind [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] [l/LOCATION] [d/DISTANCE] [f/MINIMUM_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`<br> e.g., `ridefind all`, `ridefind from/18-10-2026 to/18-10-2026 f/180`
-**Rideedit** | `rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_FTP] [s/MAX_SIZE] [notes/NOTES]`<br> e.g., `rideedit 101 n/NightRide`, `rideedit 101 notes/`
-**Ridedelete** | `ridedelete ID`<br> e.g., `ridedelete 101`
+**Rideedit** | `rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`<br> e.g., `rideedit 1 l/Marina Bay notes/Meet at the waterfront`, `rideedit 1 notes/` (use the actual ride ID)
+**Ridedelete** | `ridedelete ID`<br> e.g., `ridedelete 1` (use the actual ride ID; no confirmation)
 **Add cyclist to ride** | `rideaddcyclist ID PHONE`<br> e.g., `rideaddcyclist 1 +65 91234567`
 **Remove cyclist from ride** | `ridedeletecyclist ID PHONE`<br> e.g., `ridedeletecyclist 1 +65 91234567`
 **List cyclists in ride** | `ridelist ID`<br> e.g., `ridelist 101`
