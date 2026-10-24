@@ -60,6 +60,38 @@ public class CommandTemplatesTest {
     }
 
     @Test
+    public void keepOptionalGroupsTogether_replacesSpacesInsideBracketsOnly() {
+        String format = "ridefind all OR ridefind [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] [l/LOCATION]";
+
+        String result = CommandTemplates.keepOptionalGroupsTogether(format);
+
+        assertEquals("ridefind all OR ridefind [n/NAME] [from/DATE\u00A0[TIME]] [to/DATE\u00A0[TIME]] [l/LOCATION]",
+                result);
+        // wrapping may happen between parameters, so those spaces stay ordinary spaces
+        assertTrue(result.contains("ridefind all OR ridefind [n/NAME] [from/"));
+        assertEquals(format.length(), result.length());
+    }
+
+    @Test
+    public void keepOptionalGroupsTogether_noBracketsOrUnbalancedBrackets_isHandledSafely() {
+        assertEquals("delete PHONE", CommandTemplates.keepOptionalGroupsTogether("delete PHONE"));
+        assertEquals("", CommandTemplates.keepOptionalGroupsTogether(""));
+        // a stray closing bracket does not make later spaces unbreakable
+        assertEquals("a] b c", CommandTemplates.keepOptionalGroupsTogether("a] b c"));
+        // an unclosed bracket keeps the rest together
+        assertEquals("a [b\u00A0c", CommandTemplates.keepOptionalGroupsTogether("a [b c"));
+    }
+
+    @Test
+    public void keepOptionalGroupsTogether_everyTemplate_keepsTheSameVisibleText() {
+        for (CommandTemplates.Template template : CommandTemplates.ALL) {
+            String grouped = CommandTemplates.keepOptionalGroupsTogether(template.display());
+
+            assertEquals(template.display(), grouped.replace('\u00A0', ' '));
+        }
+    }
+
+    @Test
     public void all_displayStartsWithCommandWord() {
         for (CommandTemplates.Template template : CommandTemplates.ALL) {
             String commandWord = template.insertText().trim().split(" ")[0];
