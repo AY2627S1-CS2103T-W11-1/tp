@@ -36,6 +36,15 @@ public class HelpWindowTest {
     }
 
     @Test
+    public void commandList_rideAliases_listsAllSevenMappings() {
+        for (String mapping : new String[] {"ra = rideadd", "re = rideedit", "rd = ridedelete",
+            "rf = ridefind", "rl = ridelist", "rac = rideaddcyclist", "rdc = ridedeletecyclist"}) {
+            assertTrue(HelpWindow.COMMAND_LIST.contains(mapping));
+        }
+        assertTrue(HelpWindow.COMMAND_LIST.contains("Aliases are case-sensitive."));
+    }
+
+    @Test
     public void commandList_deleteUsage_explainsConfirmationAndCancellation() {
         assertTrue(HelpWindow.COMMAND_LIST.contains("Enter y/yes to confirm or n/no to cancel"));
     }

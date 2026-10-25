@@ -1311,3 +1311,21 @@ the existing recovery behaviour starts with an empty book after a loading failur
    in its saved roster, add a valid-format phone with no corresponding cyclist, and set maximum group size
    below the saved roster size. Relaunch each fixture.
    Expected: each corrupted book is rejected with a specific loading warning; no invalid roster is displayed.
+
+
+### Ride command alias regression
+
+Use disposable test data and replace IDs and phone numbers with the saved values.
+
+1. Enter `ra n/Alias Ride from/29-10-2026 0800 to/29-10-2026 1000 l/East Coast d/20 f/180 s/10`.
+   Expected: a ride is created with the same feedback and card as `rideadd`.
+1. Enter `re ID notes/Bring lights`, then `rf n/Alias Ride`. Expected: the notes change and only the matching ride appears.
+1. Add an eligible cyclist using `rac ID PHONE`, then enter `rl ID`. Expected: that cyclist appears in the cyclist panel.
+1. Enter `rdc ID PHONE`. Expected: membership is removed and the selected cyclist panel refreshes.
+1. Request `delete PHONE`, then enter `rf all`. Expected: deletion is cancelled, all rides appear and the cyclist remains saved.
+1. Request `delete PHONE` again, then enter `re`. Expected: cancellation followed by the usual edit usage error;
+   entering `yes` afterwards reports an unknown command.
+1. Enter `RA` and `racID`. Expected: unknown command; no data changes.
+1. Open Full help. Expected: all seven aliases and their full command names are listed.
+1. Enter `rd ID`. Expected: the ride is removed immediately, as for `ridedelete`; the cyclist remains saved.
+1. Restart. Expected: the saved edits and removal persist. Repeat with the full command names to check compatibility.

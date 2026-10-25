@@ -23,6 +23,7 @@ import seedu.address.model.ride.Ride;
 public class RideAddCommand extends Command {
 
     public static final String COMMAND_WORD = "rideadd";
+    public static final String COMMAND_ALIAS = "ra";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Adds a group ride. "
             + "The ride ID is assigned automatically.\n"

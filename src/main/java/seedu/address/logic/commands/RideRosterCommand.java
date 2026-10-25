@@ -17,7 +17,9 @@ import seedu.address.model.ride.Ride;
  */
 public class RideRosterCommand extends Command {
     public static final String JOIN_COMMAND_WORD = "rideaddcyclist";
+    public static final String JOIN_COMMAND_ALIAS = "rac";
     public static final String LEAVE_COMMAND_WORD = "ridedeletecyclist";
+    public static final String LEAVE_COMMAND_ALIAS = "rdc";
     public static final String MESSAGE_USAGE = "rideaddcyclist ID PHONE: Adds a cyclist to a ride.\n"
             + "ridedeletecyclist ID PHONE: Removes a cyclist from a ride.\n"
             + "Example: rideaddcyclist 1 +65 91234567";
