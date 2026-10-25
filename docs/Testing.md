@@ -57,6 +57,14 @@ window layout, keyboard focus, artwork, or operating-system integration.
 
 Record release results, unresolved defects and incomplete manual checks in [Release testing](ReleaseTesting.md).
 
+`CommandBoxTest` exercises real FXML command entry: empty input, exact input forwarding,
+successful clearing, retained invalid input, error styling and recovery. Its overlap scenario
+connects the command box and result display to real logic and JSON storage, checking warning,
+invalid reply, cancellation and confirmed persistence. `ListPanelTest` checks live list bindings,
+the empty-ride placeholder and recycled ride/cyclist cards. UI component tests share one toolkit
+through `JavaFxTestUtil`; they run on the JavaFX application thread with bounded waits and do not
+open desktop windows. Linux test runs require an X display, as for `PersonCardTest`.
+
 `ModelManagerTest` checks alphabetical ordering by full name, case-insensitive ties,
 live updates after additions and name edits, filtered membership, deletion and book replacement.
 `ReleaseCommandIntegrationTest` checks sorted add/find/list/edit workflows, stable equal-name
@@ -116,6 +124,13 @@ names, ride IDs and counts without adding cyclist details to these log messages.
 
 
 ## Ride feature boundary and partition audit
+
+`RideOverlapTest` covers partial overlap, containment, identical periods, adjacency, zero duration
+and overnight boundaries. `RideOverlapConfirmationTest` checks registration and time-edit warnings,
+all affected cyclists, hidden rides, cancellation, confirmation, stale data, restart and save failures
+through real logic and JSON storage. Existing roster/list integration scenarios confirm intentional
+overlapping registrations. Run **Ride overlap confirmation regression** in the Developer Guide
+after changing overlap detection or confirmation handling.
 
 See [Bug testing report](BugTestingReport.md) for reproduced defects, deferred minor findings,
 coverage and manual-check limitations. The cases follow the Week 10 equivalence-partitioning

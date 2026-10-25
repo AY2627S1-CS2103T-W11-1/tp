@@ -111,6 +111,7 @@ public class RideRosterIntegrationTest {
         model.addRide(new RideBuilder().build());
         logic.execute("rideaddcyclist 1 " + PHONE);
         logic.execute("rideaddcyclist 2 " + PHONE);
+        logic.execute("yes");
         logic.execute("ridedeletecyclist 1 " + PHONE);
         assertTrue(currentRide().getRoster().isEmpty());
         assertEquals(List.of(new Phone(PHONE)), model.getAddressBook().getRideList().get(1).getRoster());
@@ -137,6 +138,7 @@ public class RideRosterIntegrationTest {
         model.addRide(new RideBuilder().build());
         logic.execute("rideaddcyclist 1 " + PHONE);
         logic.execute("rideaddcyclist 2 " + PHONE);
+        logic.execute("yes");
         logic.execute("edit " + PHONE + " p/+65 91111111");
         for (Ride ride : model.getAddressBook().getRideList()) {
             assertEquals(List.of(new Phone("+65 91111111")), ride.getRoster());

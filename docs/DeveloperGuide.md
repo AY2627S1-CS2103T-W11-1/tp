@@ -1308,3 +1308,30 @@ the existing recovery behaviour starts with an empty book after a loading failur
    in its saved roster, add a valid-format phone with no corresponding cyclist, and set maximum group size
    below the saved roster size. Relaunch each fixture.
    Expected: each corrupted book is rejected with a specific loading warning; no invalid roster is displayed.
+
+### Ride overlap confirmation regression
+
+Use JDK 25 and a disposable folder with a copy of the release JAR. Start with an empty book.
+Use the assigned ride IDs below if they differ from 1, 2 and 3.
+
+1. Add `add n/Overlap Tester p/+65 91234567 e/overlap@example.com f/250 x/Beginner l/any`.
+1. Create `rideadd n/Ride A from/29-10-2026 0800 to/29-10-2026 1000 l/East Coast d/20 f/180 s/10`
+   and `rideadd n/Ride B from/29-10-2026 0900 to/29-10-2026 1100 l/East Coast d/20 f/180 s/10`.
+1. Enter `rideaddcyclist 1 +65 91234567`, then `ridefind n/Ride B`, then
+   `rideaddcyclist 2 +65 91234567`. Expected: an overlap warning names the proposed ride and
+   cyclist, Ride A's ID, name and period, despite Ride A being hidden. No roster change is saved.
+1. Enter `maybe`. Expected: an error repeats the warning. Enter `NO`. Expected: cancellation;
+   `ridelist 2` remains empty. Retry the registration and enter `YeS`. Expected: the normal success
+   message, and `ridelist 2` now displays the cyclist. Resize the window and check warning readability.
+1. Enter `rideedit 2 from/29-10-2026 1000`. Expected: immediate success with adjacent times.
+   Enter `rideedit 2 from/29-10-2026 0900 notes/Bring lights`. Expected: warning with no partial edit.
+   Enter `no`. Expected: the start remains 1000 and notes remain unchanged. Repeat the edit and enter
+   `yes`. Expected: the entire edit succeeds. `rideedit 2 notes/Bring water` succeeds without a warning.
+1. Create `rideadd n/Ride C from/29-10-2026 0930 to/29-10-2026 0930 l/East Coast d/1 f/180 s/10`.
+   Enter `rideaddcyclist 3 +65 91234567`. Expected: immediate success for the zero-duration ride.
+1. Enter `rideedit 2 to/29-10-2026 1130`, then `help`. Expected: the pending edit is cancelled,
+   Help opens normally, and Ride B still ends at 1100. Close Help and enter `yes`.
+   Expected: unknown command; the cancelled edit cannot be confirmed.
+1. Request that time edit again, close and restart Cyclique, then enter `yes`.
+   Expected: unknown command; the unconfirmed edit is discarded. Previously confirmed rosters,
+   times and notes remain saved. Recheck the existing **Deletion confirmation regression**.

@@ -407,3 +407,23 @@ attach to the standalone Java window, including via the installed JDK bundle ID.
 The Developer Guide documents the affected roster/list/find and corrupt-data
 manual scenarios; visual layout, focus and cross-platform behaviour remain
 unverified manually.
+
+## Ride overlap warning (25 October 2026)
+
+Branch `ride-overlap-warning` adds command-box confirmation before overlapping
+registrations and ride time edits. Adjacent and zero-duration periods do not
+overlap; organisers may confirm an overlapping commitment explicitly.
+
+JDK 25 `./gradlew check coverage` passes with 742 tests and both Checkstyle
+checks. JaCoCo reports 86.20% line coverage (2111 of 2449 lines), up from
+83.67% before the additional UI tests. Command entry, result display and both
+list panels, including their cells, have 100% line coverage. Automated checks
+cover warnings, confirmation/cancellation, stale data, persistence, error
+recovery, interval boundaries and recycled cards.
+
+Manual desktop verification is incomplete: the disposable application launched,
+but Computer Use was stopped before the overlap scenario was exercised. Run the
+Developer Guide's **Ride overlap confirmation regression**, including warning
+readability after resizing, and **Deletion confirmation regression** before
+marking the change ready for review. Automated FXML component tests do not
+replace those visual and operating-system checks.

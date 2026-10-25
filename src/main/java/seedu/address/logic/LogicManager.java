@@ -13,9 +13,11 @@ import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.DeleteCommand;
+import seedu.address.logic.commands.OverlapAwareCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
 import seedu.address.model.ride.Ride;
@@ -26,6 +28,13 @@ import seedu.address.storage.Storage;
  */
 public class LogicManager implements Logic {
     public static final String FILE_OPS_ERROR_FORMAT = "Could not save data (%s).";
+
+    public static final String MESSAGE_CONFIRM_OVERLAP = "Warning: overlapping ride times.\n%1$s\n"
+            + "Enter y/yes to proceed anyway or n/no to cancel (case-insensitive).";
+    public static final String MESSAGE_OVERLAP_CANCELLED = "Ride change cancelled.";
+    public static final String MESSAGE_INVALID_OVERLAP_REPLY = "Invalid confirmation.\n%1$s";
+    public static final String MESSAGE_OVERLAP_DATA_CHANGED =
+            "Cyclist or ride data has changed. Enter the ride command again to review the overlaps.";
 
     public static final String FILE_OPS_PERMISSION_ERROR_FORMAT =
             "Could not save data to file %s due to insufficient permissions to write to the file or the folder.";
@@ -40,6 +49,13 @@ public class LogicManager implements Logic {
     private DeleteCommand pendingDeletion;
     /** Immutable snapshot of the cyclist shown in the confirmation request. */
     private Person pendingCyclist;
+
+    /** The ride command awaiting overlap confirmation; never persisted. */
+    private Command pendingRideChange;
+    /** Snapshot used to reject confirmation if any relevant stored data changes. */
+    private AddressBook pendingRideSnapshot;
+    /** Full warning repeated after invalid confirmation replies. */
+    private String pendingOverlapPrompt;
 
     /**
      * Constructs a {@code LogicManager} with the given {@code Model} and {@code Storage}.
@@ -57,7 +73,22 @@ public class LogicManager implements Logic {
                 : "Pending deletion and cyclist must be present or absent together.";
         logger.info("----------------[USER COMMAND][" + commandText + "]");
 
-        boolean cancelledDeletion = false;
+        String cancellationNotice = "";
+        if (pendingRideChange != null) {
+            String reply = commandText.trim();
+            if (reply.equalsIgnoreCase("y") || reply.equalsIgnoreCase("yes")) {
+                return confirmRideChange();
+            }
+            if (reply.equalsIgnoreCase("n") || reply.equalsIgnoreCase("no")) {
+                cancelRideChange();
+                return new CommandResult(MESSAGE_OVERLAP_CANCELLED);
+            }
+            if (!addressBookParser.isRecognisedCommand(commandText)) {
+                throw new CommandException(String.format(MESSAGE_INVALID_OVERLAP_REPLY, pendingOverlapPrompt));
+            }
+            cancelRideChange();
+            cancellationNotice = MESSAGE_OVERLAP_CANCELLED + "\n";
+        }
         if (pendingDeletion != null) {
             String reply = commandText.trim();
             if (reply.equalsIgnoreCase("y") || reply.equalsIgnoreCase("yes")) {
@@ -74,11 +105,13 @@ public class LogicManager implements Logic {
             }
             cancelDeletion();
             logger.fine("Pending deletion cancelled by a subsequent command.");
-            cancelledDeletion = true;
+            cancellationNotice = DeleteCommand.MESSAGE_DELETE_CANCELLED + "\n";
         }
 
         try {
             Command command = addressBookParser.parseCommand(commandText);
+            String overlapWarning = command instanceof OverlapAwareCommand overlapAware
+                    ? overlapAware.getOverlapWarning(model) : "";
             CommandResult result;
             if (command instanceof DeleteCommand deletion) {
                 Person cyclist = deletion.getPersonToDelete(model);
@@ -87,21 +120,26 @@ public class LogicManager implements Logic {
                 logger.fine("Deletion confirmation requested.");
                 result = new CommandResult(String.format(DeleteCommand.MESSAGE_CONFIRM_DELETE,
                         Messages.format(cyclist)));
+            } else if (!overlapWarning.isEmpty()) {
+                pendingRideChange = command;
+                pendingRideSnapshot = new AddressBook(model.getAddressBook());
+                pendingOverlapPrompt = String.format(MESSAGE_CONFIRM_OVERLAP, overlapWarning);
+                result = new CommandResult(pendingOverlapPrompt);
             } else {
                 result = command.execute(model);
                 saveAddressBook();
             }
-            return cancelledDeletion
-                    ? new CommandResult(withCancellationNotice(result.getFeedbackToUser()),
+            return !cancellationNotice.isEmpty()
+                    ? new CommandResult(cancellationNotice + result.getFeedbackToUser(),
                             result.isShowHelp(), result.isExit()) : result;
         } catch (ParseException e) {
-            if (cancelledDeletion) {
-                throw new ParseException(withCancellationNotice(e.getMessage()), e);
+            if (!cancellationNotice.isEmpty()) {
+                throw new ParseException(cancellationNotice + e.getMessage(), e);
             }
             throw e;
         } catch (CommandException e) {
-            if (cancelledDeletion) {
-                throw new CommandException(withCancellationNotice(e.getMessage()), e);
+            if (!cancellationNotice.isEmpty()) {
+                throw new CommandException(cancellationNotice + e.getMessage(), e);
             }
             throw e;
         }
@@ -136,10 +174,28 @@ public class LogicManager implements Logic {
     }
 
     /**
-     * Includes explicit cancellation feedback before the next command's normal output or error.
+     * Applies a confirmed ride command only to the data reviewed by the user.
+     * Consumes the request before execution so failures cannot replay the change.
      */
-    private String withCancellationNotice(String feedback) {
-        return DeleteCommand.MESSAGE_DELETE_CANCELLED + "\n" + feedback;
+    private CommandResult confirmRideChange() throws CommandException {
+        Command command = pendingRideChange;
+        AddressBook snapshot = pendingRideSnapshot;
+        cancelRideChange();
+        if (!snapshot.equals(model.getAddressBook())) {
+            throw new CommandException(MESSAGE_OVERLAP_DATA_CHANGED);
+        }
+        CommandResult result = command.execute(model);
+        saveAddressBook();
+        return result;
+    }
+
+    /**
+     * Clears the pending ride change without changing or saving data.
+     */
+    private void cancelRideChange() {
+        pendingRideChange = null;
+        pendingRideSnapshot = null;
+        pendingOverlapPrompt = null;
     }
 
     /**
