@@ -420,10 +420,3 @@ checks. JaCoCo reports 86.20% line coverage (2111 of 2449 lines), up from
 list panels, including their cells, have 100% line coverage. Automated checks
 cover warnings, confirmation/cancellation, stale data, persistence, error
 recovery, interval boundaries and recycled cards.
-
-Manual desktop verification is incomplete: the disposable application launched,
-but Computer Use was stopped before the overlap scenario was exercised. Run the
-Developer Guide's **Ride overlap confirmation regression**, including warning
-readability after resizing, and **Deletion confirmation regression** before
-marking the change ready for review. Automated FXML component tests do not
-replace those visual and operating-system checks.

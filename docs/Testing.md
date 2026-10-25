@@ -57,13 +57,9 @@ window layout, keyboard focus, artwork, or operating-system integration.
 
 Record release results, unresolved defects and incomplete manual checks in [Release testing](ReleaseTesting.md).
 
-`CommandBoxTest` exercises real FXML command entry: empty input, exact input forwarding,
-successful clearing, retained invalid input, error styling and recovery. Its overlap scenario
-connects the command box and result display to real logic and JSON storage, checking warning,
-invalid reply, cancellation and confirmed persistence. `ListPanelTest` checks live list bindings,
-the empty-ride placeholder and recycled ride/cyclist cards. UI component tests share one toolkit
-through `JavaFxTestUtil`; they run on the JavaFX application thread with bounded waits and do not
-open desktop windows. Linux test runs require an X display, as for `PersonCardTest`.
+`CommandBoxTest` covers command entry, error recovery and overlap confirmation with JSON persistence.
+`ListPanelTest` covers live lists, empty-ride placeholders and recycled cards.
+JavaFX tests require an X display on Linux; CI runs them using `xvfb-run`.
 
 `ModelManagerTest` checks alphabetical ordering by full name, case-insensitive ties,
 live updates after additions and name edits, filtered membership, deletion and book replacement.
