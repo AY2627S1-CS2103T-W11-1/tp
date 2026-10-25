@@ -266,7 +266,8 @@ case-insensitive whole-word or phrase match against the ride's notes. For exampl
 power is at least 200 watts. Unlike cyclist `find`, ridefind does not compare a ride's
 minimum power with a cyclist's FTP: its `f/` value is compared directly with the ride's
 `MinimumPower`, and a ride matches when its stored value is greater than or equal to the
-criterion.
+criterion. Case-insensitive notes matching uses `Locale.ROOT`, so the same search gives
+consistent results regardless of the computer's language settings.
 
 `ridefind` applies `RideMatchesFindCriteriaPredicate` to the model's filtered ride list. The
 ride panel observes that list and refreshes its displayed ride cards; it does not change the
