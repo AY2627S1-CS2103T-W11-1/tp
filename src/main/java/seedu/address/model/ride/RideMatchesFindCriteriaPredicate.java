@@ -2,9 +2,11 @@ package seedu.address.model.ride;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 import seedu.address.model.person.Location;
 import seedu.address.model.person.Name;
@@ -54,8 +56,17 @@ public class RideMatchesFindCriteriaPredicate implements Predicate<Ride> {
                         >= Integer.parseInt(value.value)).orElse(true)
                 && maxGroupSize.map(value -> ride.getMaxGroupSize().equals(value)).orElse(true)
                 && notes.map(value -> ride.getNotes().map(rideNotes ->
-                        rideNotes.value.toLowerCase().contains(value.value.toLowerCase())).orElse(false))
+                        containsWholeWordsIgnoreCase(rideNotes.value, value.value)).orElse(false))
                         .orElse(true);
+    }
+
+    /** Returns whether the text contains the supplied value as a complete word or phrase. */
+    private static boolean containsWholeWordsIgnoreCase(String text, String value) {
+        String lowerCaseText = text.toLowerCase(Locale.ROOT);
+        String lowerCaseValue = value.toLowerCase(Locale.ROOT);
+        String pattern = "(?<![\\p{L}\\p{N}])" + Pattern.quote(lowerCaseValue)
+                + "(?![\\p{L}\\p{N}])";
+        return Pattern.compile(pattern).matcher(lowerCaseText).find();
     }
 
     @Override
