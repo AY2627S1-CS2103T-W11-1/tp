@@ -259,8 +259,9 @@ Each prefix may appear only once, and all supplied ride criteria must match. The
 input `ridefind all` clears the ride criteria. Date-only boundaries expand to
 0000 for `from/` and 2359 for `to/`; when both are supplied, the end must not be earlier than
 the start. A ride matches only if it starts at or after `from/` and ends at or before `to/`.
-The `n/` value matches the complete ride name case-insensitively, while `d/`, `s/` and
-`notes/` performs a case-insensitive partial-text match against the ride's notes. For example,
+The `n/` value matches the complete ride name case-insensitively. The `d/` and `s/` values
+compare their respective numeric fields for equality, while `notes/` performs a
+case-insensitive whole-word or phrase match against the ride's notes. For example,
 `ridefind l/Tampines f/200` lists rides at Tampines whose minimum
 power is at least 200 watts. Unlike cyclist `find`, ridefind does not compare a ride's
 minimum power with a cyclist's FTP: its `f/` value is compared directly with the ride's
