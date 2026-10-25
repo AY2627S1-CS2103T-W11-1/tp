@@ -260,7 +260,7 @@ input `ridefind all` clears the ride criteria. Date-only boundaries expand to
 0000 for `from/` and 2359 for `to/`; when both are supplied, the end must not be earlier than
 the start. A ride matches only if it starts at or after `from/` and ends at or before `to/`.
 The `n/` value matches the complete ride name case-insensitively, while `d/`, `s/` and
-`notes/` compare their respective field values for equality. For example,
+`notes/` performs a case-insensitive partial-text match against the ride's notes. For example,
 `ridefind l/Tampines f/200` lists rides at Tampines whose minimum
 power is at least 200 watts. Unlike cyclist `find`, ridefind does not compare a ride's
 minimum power with a cyclist's FTP: its `f/` value is compared directly with the ride's
@@ -1255,6 +1255,7 @@ Use disposable cyclist and ride data. Record the original details before applyin
 1. Enter `list`. Expected: the full cyclist list is restored.
 1. Add at least three rides with different names, dates, locations, distances and minimum powers.
 1. Enter `ridefind n/Sunday Sunrise Ride`. Expected: only the ride with that complete name appears, ignoring case.
+1. Enter `ridefind notes/lights`. Expected: rides whose notes contain `lights` appear, including notes with additional words and regardless of case.
 1. Enter `ridefind from/18-10-2026 to/18-10-2026`. Expected: rides starting and ending within the inclusive date
    bounds appear. Date-only `from/` and `to/` use `0000` and `2359` respectively.
 1. Enter `ridefind l/Tampines f/200`. Expected: only rides matching both the location and minimum-power criteria

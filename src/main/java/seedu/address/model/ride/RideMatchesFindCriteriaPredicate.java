@@ -53,7 +53,9 @@ public class RideMatchesFindCriteriaPredicate implements Predicate<Ride> {
                 && minimumPower.map(value -> Integer.parseInt(ride.getMinimumPower().value)
                         >= Integer.parseInt(value.value)).orElse(true)
                 && maxGroupSize.map(value -> ride.getMaxGroupSize().equals(value)).orElse(true)
-                && notes.map(value -> ride.getNotes().map(value::equals).orElse(false)).orElse(true);
+                && notes.map(value -> ride.getNotes().map(rideNotes ->
+                        rideNotes.value.toLowerCase().contains(value.value.toLowerCase())).orElse(false))
+                        .orElse(true);
     }
 
     @Override

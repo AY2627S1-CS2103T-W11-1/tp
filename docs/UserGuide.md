@@ -346,7 +346,7 @@ The fields are matched as follows:
 * `l/LOCATION` matches the ride location, ignoring case.
 * `d/DISTANCE` and `s/MAX_GROUP_SIZE` use exact numeric matching.
 * `f/MIN_POWER` matches rides whose minimum power is greater than or equal to the supplied value.
-* `notes/NOTES` matches the complete notes field, ignoring case. Partial matches and notes with additional or missing words do not match. Rides without notes do not match a notes criterion.
+* `notes/NOTES` matches rides whose notes contain the supplied text, ignoring case. Partial matches are supported, so `notes/lights` matches `Bring lights`. Rides without notes do not match a notes criterion.
 
 The date and time format is `DD-MM-YYYY TTTT`, using the 24-hour clock. A date-only `from/` value means `0000`,
 while a date-only `to/` value means `2359`. When both bounds are supplied, `to/` cannot be earlier than `from/`.
@@ -356,6 +356,7 @@ The command updates only the displayed ride list; it does not change or delete s
 
 Examples:
 * `ridefind n/Sunday Sunrise Ride`
+* `ridefind notes/lights` finds rides whose notes contain `lights`, such as `Bring lights and a spare tube`.
 * `ridefind from/18-10-2026 to/18-10-2026`
 * `ridefind l/Tampines f/200`
 * `ridefind from/18-10-2026 0630 to/18-10-2026 2000 l/East Coast d/45 f/180 s/12`
