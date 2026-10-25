@@ -28,6 +28,8 @@ Cyclique is a **desktop application for organisers of recreational cycling group
 
    * `list` : Shows all cyclists.
 
+   * `find n/John` : Shows cyclists whose name contains the complete word `John`.
+
    * `add n/John Doe p/+65 98765432 sos/+65 99999999 e/johnd@example.com f/300 x/Beginner l/any` : Adds a cyclist named `John Doe`, including an emergency contact number supplied using `sos/`.
 
    * `delete +65 98765432` : Requests deletion of the cyclist with this phone number. Enter `yes` to confirm or `no` to cancel.
@@ -187,8 +189,8 @@ Field | Meaning and rules
 ------|------------------
 `n/NAME_KEYWORD` | A single name word or a complete full name. Single-word matching is case-insensitive and requires a full word; `n/hans` matches `Hans` but `n/Han` does not. A multi-word value such as `n/John Doe` matches the complete full name, ignoring case.
 `p/PHONE` | A complete phone number using a `+`, a 1–3 digit country code, one space and at least 3 digits. Matching is exact; `p/+65 963` does not match `+65 96320842`.
-`sos/EMERGENCY_PHONE` | A complete emergency contact number using the same validation and exact matching as `p/`. Cyclists without an emergency number do not match this criterion.
-`f/MIN_FTP` | A whole number from 1 to 600. Matches cyclists whose FTP is greater than or equal to the supplied value in watts.
+`sos/EMERGENCY_PHONE` | A complete emergency contact number using the same validation and exact matching as `p/`. Only cyclists with an emergency number matching the supplied value are shown. Cyclists whose emergency number is missing or different are not shown.
+`f/MIN_FTP` | A whole number from 1 to 600, inclusive. Matches cyclists whose FTP is greater than or equal to the supplied value in watts; both `f/1` and `f/600` are valid.
 `x/EXPERIENCE` | `Beginner`, `Intermediate` or `Advanced`, ignoring case. Repeat `x/` to match any of the supplied experience levels.
 `l/LOCATION` | A preferred location, ignoring case. Repeat `l/` to match any supplied location. A cyclist with `l/any` matches every location criterion.
 
@@ -219,8 +221,7 @@ Examples:
 Common failures include:
 
 * `find` with no criteria is rejected with the command usage instructions.
-* `find n/John Doe n/Jane Doe` is valid and matches either complete full name.
-* `find John Doe` is rejected because name values must use the `n/` prefix.
+* `find f/0` is rejected because FTP must be a whole number from 1 to 600.
 * A phone number, FTP value, experience level or location that does not follow the constraints above is rejected
   without changing the current filter.
 
@@ -345,7 +346,7 @@ The fields are matched as follows:
 * `l/LOCATION` matches the ride location, ignoring case.
 * `d/DISTANCE` and `s/MAX_GROUP_SIZE` use exact numeric matching.
 * `f/MIN_POWER` matches rides whose minimum power is greater than or equal to the supplied value.
-* `notes/NOTES` matches rides with the supplied notes. Rides without notes do not match a notes criterion.
+* `notes/NOTES` matches the complete notes field, ignoring case. Partial matches and notes with additional or missing words do not match. Rides without notes do not match a notes criterion.
 
 The date and time format is `DD-MM-YYYY TTTT`, using the 24-hour clock. A date-only `from/` value means `0000`,
 while a date-only `to/` value means `2359`. When both bounds are supplied, `to/` cannot be earlier than `from/`.
@@ -363,9 +364,9 @@ Examples:
 Common failures include:
 
 * `ridefind` with no criteria is rejected with the command usage instructions; use `ridefind all` to show all rides.
-* A date-only `from/` or `to/` value is expanded to the start or end of that day respectively.
+* Date-only values are valid: `from/18-10-2026` means `18-10-2026 0000`, while `to/18-10-2026` means `18-10-2026 2359`.
 * A `to/` value earlier than `from/`, an invalid date or time, or a value outside the numeric constraints is rejected without changing the displayed rides.
-* Supplying the same prefix twice is rejected. For example, use only one `f/` criterion.
+* Each `ridefind` prefix may be used only once. For example, `ridefind f/200 f/300` is rejected because `f/` is repeated; use one `f/` value only.
 
 ### Editing a group ride: `rideedit`
 
