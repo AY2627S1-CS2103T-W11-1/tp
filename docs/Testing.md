@@ -143,3 +143,12 @@ Run **Ride boundary and corrupt-data regression** in the Developer Guide after t
 Run **Ride command alias regression** in the Developer Guide after changing ride command dispatch.
 `RideCommandAliasTest` checks parsing equivalence, validation, case sensitivity, saved workflows
 and cancellation of pending cyclist deletions for all seven aliases.
+
+Run **Literal prefixes in ride notes (Issue #155)** in the Developer Guide after changing notes tokenisation.
+`ArgumentTokenizerTest` checks the explicit quoted-notes entry point and unchanged default tokenisation.
+Ride Add/Edit parser tests check literal prefixes, ordering, malformed quotes, duplicate fields and the word limit.
+`RideBoundaryIntegrationTest` checks quoted notes with a roster, intentional additional edits, JSON round trips,
+unchanged records/filters/files after rejection, non-consumed IDs and legacy unquoted behaviour.
+Ride Find keeps its existing unquoted whole-word and phrase semantics.
+`MainWindowRidePanelTest` submits quoted notes through the JavaFX command box, checks displayed feedback
+and card text, and verifies error styling and unchanged data after malformed input.

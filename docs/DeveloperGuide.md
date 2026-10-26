@@ -172,6 +172,35 @@ How the parsing works:
   arrow labelled `«create»` points to a class whose object is constructed by the class at
   the arrow's tail.
 
+#### Optional quoted ride notes
+
+`RideAddCommandParser` and `RideEditCommandParser` explicitly call
+`ArgumentTokenizer.tokenizeWithQuotedNotes`; every other caller continues to call `tokenize`.
+The existing tokenizer detects a supplied prefix after whitespace. Consequently, unquoted
+`notes/Bring camera with aperture f/2` supplies both notes and minimum power; there is no way to infer intent.
+The optional `notes/"Bring camera with aperture f/2"` syntax resolves that ambiguity for creation and editing.
+
+The new entry point sorts the existing prefix positions and walks them in command order. A quote immediately
+after a recognised `notes/` starts a quoted value; the first subsequent double quote closes it.
+Prefix positions inside that range are excluded from argument extraction. Prefixes outside it retain their
+normal meaning and ordering, including duplicates for `ArgumentMultimap#verifyNoDuplicatePrefixesFor` to reject.
+During extraction, only quoted notes have their surrounding delimiters removed, before `ParserUtil#parseNotes`
+and `Notes` apply the existing word-count validation and whitespace normalisation.
+
+Missing closing quotes, blank quoted values and non-whitespace text between the closing quote and the next
+recognised prefix (or command end) throw `ParseException` with `MESSAGE_INVALID_QUOTED_NOTES`.
+Backslashes are literal; embedded double quotes and escape sequences are unsupported.
+Bare `notes/` still clears notes in Ride Edit, while `notes/""` is rejected rather than treated as clearing.
+The tokenizer owns quote syntax; the parsers and commands retain field, ID, period and roster validation.
+Parsing failure never reaches execution or saving. A malformed parameter outside valid quoted notes likewise
+fails its normal validation before mutation. Other fields have no new quote semantics, and the original
+`tokenize` path, including Ride Find and repeated cyclist Find criteria, is unchanged.
+
+For example, `rideedit 1 notes/"Bring camera with aperture f/2" s/5` supplies literal notes and maximum
+group size 5, leaving minimum power, ID and roster unchanged. Use an existing ride ID; normal roster constraints
+still apply. `rideedit 1 notes/"camera f/2` and `rideedit 1 notes/"camera"extra f/2` are rejected without
+changing or saving any ride fields. The manual regression scenario below covers these cases and explicit power edits.
+
 ### Model component
 **API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
 
@@ -269,6 +298,9 @@ minimum power with a cyclist's FTP: its `f/` value is compared directly with the
 criterion. Case-insensitive notes matching uses `Locale.ROOT`, so the same search gives
 consistent results regardless of the computer's language settings.
 
+Ride Find keeps `ArgumentTokenizer#tokenize`: quotes remain ordinary search characters and do not protect
+prefixes. The whole-word and phrase predicate is unchanged.
+
 `ridefind` applies `RideMatchesFindCriteriaPredicate` to the model's filtered ride list. The
 ride panel observes that list and refreshes its displayed ride cards; it does not change the
 cyclist panel. Conversely, `ridelist ID` is the command that filters the cyclist panel to the
@@ -346,7 +378,9 @@ is lower than the highest ride ID, so a hand-edited file cannot cause a clash. R
 rides with identical details are allowed and `rideadd` has no duplicate check.
 
 **Parsing.** `RideAddCommandParser` tokenises with the prefixes `n/`, `from/`, `to/`, `l/`, `d/`, `f/`, `s/` and
-`notes/`. Prefixes are only recognised after whitespace, so `notes/` is not confused with `n/` and `to/` is not
+`notes/`, using `ArgumentTokenizer#tokenizeWithQuotedNotes` as described in
+[Optional quoted ride notes](#optional-quoted-ride-notes). Outside quoted notes, prefixes are only recognised
+after whitespace, so `notes/` is not confused with `n/` and `to/` is not
 confused with a word that happens to end in `to`. Rides reuse `PREFIX_NAME`, `PREFIX_LOCATION` and `PREFIX_FTP`
 (for minimum power); `CliSyntax` adds `PREFIX_FROM`, `PREFIX_TO`, `PREFIX_DISTANCE`, `PREFIX_GROUP_SIZE` and
 `PREFIX_NOTES`. A missing compulsory field or a non-empty preamble gives the usual invalid-format message with
@@ -354,6 +388,10 @@ confused with a word that happens to end in `to`. Rides reuse `PREFIX_NAME`, `PR
 parsed by a `ParserUtil` method that throws the field's own message. Values are checked in the order name, `from`,
 `to`, location, distance, minimum power, group size and notes, and only the first error is reported. The check
 that `to/` is not earlier than `from/` runs after every field is valid.
+
+For example, `rideadd n/Camera Ride from/29-10-2026 1600 to/29-10-2026 1800 l/East Coast d/20 f/180 s/2 notes/"Bring camera with aperture f/2"`
+creates notes `Bring camera with aperture f/2` and minimum power 180 W.
+Quote syntax is checked during tokenisation before the field checks above.
 
 **Storage.** Rides are saved in the same `data/addressbook.json`, in a `rides` array, with a `nextRideId` number. `JsonAdaptedRide` mirrors `Ride`, including its roster as a list of cyclist phone numbers, and validates each field when loading, throwing an `IllegalValueException` with the field's message. `rides` and `nextRideId` are optional when reading, so files saved before rides existed load with no rides and `nextRideId` 1. Duplicate ride IDs or a non-positive `nextRideId` make the file invalid. If `nextRideId` is missing, numbering continues after the highest saved ID. See the [Storage component](#storage-component) for how these classes fit together.
 
@@ -379,8 +417,9 @@ the parsing-success path is expanded, while execution failures are distinguished
 **Parsing.** `RideEditCommandParser` separates the positive ride ID from the prefixed fields and builds an
 `EditRideDescriptor`. Each supplied value is parsed by the same `ParserUtil` method used by `rideadd`, while
 duplicate prefixes, malformed IDs and a command with no editable field are rejected. Notes have three explicit
-states: an omitted `notes/` preserves the existing value, a non-empty value replaces it and an empty value clears
-it.
+states: an omitted `notes/` preserves the existing value, a non-empty value replaces it and bare `notes/` clears
+it. Tokenisation uses the explicit quoted-notes entry point described in
+[Optional quoted ride notes](#optional-quoted-ride-notes); quoted empty values are rejected.
 
 **Replacement and validation.** `RideEditCommand` finds the target by its unique ID and combines the descriptor
 with the existing ride. It validates the complete resulting period, so changing only `from/` or `to/` cannot
@@ -1072,6 +1111,38 @@ steps use this roster to exercise Ride Edit validation.
    Expected: Each reports the relevant invalid-format, missing-ride or missing-field error without changing ride data.
 1. Exit and relaunch. Expected: Successful edits remain visible and failed edits have not changed the saved ride.
    Add another ride. Expected: Its ID follows the previous counter rather than being affected by edits.
+
+### Literal prefixes in ride notes (Issue #155)
+
+Use a disposable book. Enter
+`rideadd n/Alpha Ride from/29-10-2026 1600 to/29-10-2026 1800 l/East Coast d/20 f/180 s/2`.
+Record the assigned ID and substitute it for `1` below if different; `clear` does not reset the ID counter.
+Add `add n/Camera Rider p/+65 91234567 sos/+65 99999999 e/camera@example.com f/250 x/Beginner l/any`,
+then `rideaddcyclist 1 +65 91234567`. Record all ride fields and the roster.
+
+1. Enter `rideedit 1 notes/"Bring camera with aperture f/2"`.
+   Expected: result and card show notes `Bring camera with aperture f/2` without delimiters and minimum power
+   180 W. ID, roster and every other field are unchanged.
+1. Enter `rideedit 1 notes/"Bring camera with aperture f/2" s/5`.
+   Expected: only maximum group size additionally changes to 5; minimum power remains 180 W.
+1. Enter `rideedit 1 f/200 notes/"Bring camera with aperture f/2"`.
+   Expected: minimum power becomes 200 W; the complete notes, ID, roster and other fields are preserved.
+1. Enter `rideedit 1 notes/"Bring camera with aperture f/2` (no closing quote),
+   `rideedit 1 notes/"camera"extra f/2`, `rideedit 1 notes/""`, and `rideedit 1 notes/"camera" s/bad` separately.
+   Expected: quote errors begin `Invalid quoted ride notes.`; the last input reports the group-size constraint.
+   Each rejection preserves all fields, roster, filters and saved data from the preceding successful command.
+1. Enter `rideadd n/Camera Ride from/29-10-2026 1600 to/29-10-2026 1800 l/East Coast d/20 f/180 s/2 notes/"Bring camera with aperture f/2"`.
+   Expected: a new ride with minimum power 180 W and complete literal notes. Repeat with a missing closing quote:
+   expected rejection with no new ride or consumed ID. Then add a ride with the same required fields but omit
+   `notes/`; expected: the next consecutive ID and no notes.
+1. Enter `ridefind notes/camera`. Expected: both camera-note rides match the whole word. Restore `ridefind all`.
+   Enter `rideedit 1 notes/Bring water f/200`, then `rideedit 1 f/200 notes/Bring water`.
+   Expected: both unquoted orders work, giving notes `Bring water` and minimum power 200 W.
+1. Restore `rideedit 1 notes/"Bring camera with aperture f/2"`, then exit and relaunch.
+   Expected: complete notes, minimum power 200 W, maximum group size 5, ID and roster persist.
+   Inspect the disposable JSON: notes contain literal `f/2` without surrounding quote characters.
+1. Open Full help. Expected: Ride Add and Ride Edit explain optional quotes, literal prefixes and unsupported
+   escaping. Help menu starters remain unchanged and still allow unquoted input.
 
 ### Deleting a group ride
 
