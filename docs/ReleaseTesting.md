@@ -1,5 +1,20 @@
 # Release testing results
 
+## Consecutive email special characters (26 October 2026)
+
+Allow consecutive underscores, plus signs, hyphens and mixed special characters inside the email local part.
+Retain the restrictions on leading/trailing special characters, consecutive periods and invalid domains,
+and explicitly mention consecutive periods in the validation message.
+
+`./gradlew check coverage shadowJar` passes using Eclipse Temurin JDK 25.0.4.1:
+**794 tests**, no failures, errors or skips; production and test Checkstyle pass.
+Line coverage is **89.16%** (2,245 of 2,518 lines), above the 50% target.
+New regressions exercise add/edit acceptance, JSON readback and rejected commands without saved-data changes.
+
+The rebuilt JAR launched in `/private/tmp/cyclique-email-ui.ytvzuN`, but the computer-use tool could not
+access its JavaFX window (`Invalid app: java`). The Developer Guide's **Email local-part regression**
+manual checks remain outstanding; automated command/storage tests do not establish visual correctness.
+
 ## Residential address removal (12 October 2026)
 
 Remove residential address from cyclist fields, add/edit commands, success messages,
