@@ -7,12 +7,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.RideRosterCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
@@ -52,6 +58,46 @@ public class RideRosterIntegrationTest {
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json")));
         storage.saveAddressBook(model.getAddressBook());
         logic = new LogicManager(model, storage);
+    }
+
+    @Test
+    public void execute_missingRosterArguments_showsMatchingUsageWithoutChanges() throws Exception {
+        logic.execute("rideaddcyclist 1 " + PHONE);
+        model.updateFilteredPersonList(person -> false);
+        Ride before = currentRide();
+        String saved = Files.readString(storage.getAddressBookFilePath());
+        for (String word : List.of("rideaddcyclist", "ridedeletecyclist")) {
+            String usage = word.equals("rideaddcyclist")
+                    ? RideRosterCommand.MESSAGE_JOIN_USAGE : RideRosterCommand.MESSAGE_LEAVE_USAGE;
+            for (String args : List.of("", " ", " 1", " 1   ")) {
+                ParseException exception = assertThrows(ParseException.class, () -> logic.execute(word + args));
+                assertEquals(String.format(Messages.MESSAGE_INVALID_COMMAND_FORMAT, usage), exception.getMessage());
+                assertTrue(exception.getMessage().contains("Example: " + word + " 1 +65 91234567"));
+                assertEquals(before, currentRide());
+                assertTrue(model.getFilteredPersonList().isEmpty());
+                assertEquals(saved, Files.readString(storage.getAddressBookFilePath()));
+            }
+        }
+    }
+
+    @Test
+    public void execute_malformedRosterArguments_preservesSpecificValidationErrors() throws Exception {
+        for (String word : List.of("rideaddcyclist", "ridedeletecyclist")) {
+            ParseException idException = assertThrows(ParseException.class, () ->
+                    logic.execute(word + " abc " + PHONE));
+            assertEquals("Ride ID should be a positive whole number no larger than 2147483647.",
+                    idException.getMessage());
+            for (String phone : List.of("91234567", "p/" + PHONE)) {
+                ParseException phoneException = assertThrows(ParseException.class, () ->
+                        logic.execute(word + " 1 " + phone));
+                assertEquals(Phone.MESSAGE_MISSING_COUNTRY_CODE, phoneException.getMessage());
+            }
+            ParseException extraArgumentException = assertThrows(ParseException.class, () ->
+                    logic.execute(word + " 1 " + PHONE + " extra"));
+            assertEquals(Phone.MESSAGE_CONSTRAINTS, extraArgumentException.getMessage());
+        }
+        assertTrue(currentRide().getRoster().isEmpty());
+        assertSavedState();
     }
 
     @Test
@@ -111,6 +157,7 @@ public class RideRosterIntegrationTest {
         model.addRide(new RideBuilder().build());
         logic.execute("rideaddcyclist 1 " + PHONE);
         logic.execute("rideaddcyclist 2 " + PHONE);
+        logic.execute("yes");
         logic.execute("ridedeletecyclist 1 " + PHONE);
         assertTrue(currentRide().getRoster().isEmpty());
         assertEquals(List.of(new Phone(PHONE)), model.getAddressBook().getRideList().get(1).getRoster());
@@ -137,6 +184,7 @@ public class RideRosterIntegrationTest {
         model.addRide(new RideBuilder().build());
         logic.execute("rideaddcyclist 1 " + PHONE);
         logic.execute("rideaddcyclist 2 " + PHONE);
+        logic.execute("yes");
         logic.execute("edit " + PHONE + " p/+65 91111111");
         for (Ride ride : model.getAddressBook().getRideList()) {
             assertEquals(List.of(new Phone("+65 91111111")), ride.getRoster());
@@ -209,5 +257,41 @@ public class RideRosterIntegrationTest {
 
     private void assertSavedState() throws Exception {
         assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_fineLogging_recordsRosterOperationIdAndResultingSize() throws Exception {
+        Logger logger = LogsCenter.getLogger(RideRosterCommand.class);
+        Level originalLevel = logger.getLevel();
+        boolean originalUseParentHandlers = logger.getUseParentHandlers();
+        List<String> messages = new ArrayList<>();
+        Handler handler = new Handler() {
+            @Override
+            public void publish(LogRecord record) {
+                messages.add(record.getMessage());
+            }
+
+            @Override
+            public void flush() {}
+
+            @Override
+            public void close() {}
+        };
+        try {
+            logger.setLevel(Level.FINE);
+            logger.setUseParentHandlers(false);
+            logger.addHandler(handler);
+            logic.execute("rideaddcyclist 1 " + PHONE);
+            assertEquals(List.of(new Phone(PHONE)), currentRide().getRoster());
+            logic.execute("ridedeletecyclist 1 " + PHONE);
+            assertTrue(currentRide().getRoster().isEmpty());
+            assertEquals(List.of("Completed roster addition for ride ID 1; roster size: 1.",
+                    "Completed roster removal for ride ID 1; roster size: 0."), messages);
+            assertSavedState();
+        } finally {
+            logger.removeHandler(handler);
+            logger.setLevel(originalLevel);
+            logger.setUseParentHandlers(originalUseParentHandlers);
+        }
     }
 }

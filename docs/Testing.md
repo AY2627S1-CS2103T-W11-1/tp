@@ -57,6 +57,12 @@ window layout, keyboard focus, artwork, or operating-system integration.
 
 Record release results, unresolved defects and incomplete manual checks in [Release testing](ReleaseTesting.md).
 
+`CommandBoxTest` covers command entry, error recovery and overlap confirmation with JSON persistence.
+`ListPanelTest` covers live lists, empty-ride placeholders and recycled cards.
+`MainWindowLayoutTest` checks the real FXML result pane at normal, constrained and large sizes,
+including many conflicts, invalid replies and restoration of the normal height.
+JavaFX tests require an X display on Linux; CI runs them using `xvfb-run`.
+
 `ModelManagerTest` checks alphabetical ordering by full name, case-insensitive ties,
 live updates after additions and name edits, filtered membership, deletion and book replacement.
 `ReleaseCommandIntegrationTest` checks sorted add/find/list/edit workflows, stable equal-name
@@ -96,6 +102,9 @@ constructor is for direct Java callers.
 `RideRosterIntegrationTest` covers roster commands, filtered cyclists,
 capacity and FTP boundaries, invalid input, rejected commands without mutation,
 phone edits, confirmed/cancelled contact deletion, JSON readback and removal after reload.
+It also checks command-specific usage for missing roster arguments and preserves the more specific
+ID and phone validation errors for malformed arguments. `HelpWindowTest` checks that Full help includes
+both roster command examples.
 `HelpWindowTest` verifies both roster command formats and dropdown starters. Run the
 Developer Guide's **Ride roster regression (manual testing)** after roster changes.
 
@@ -116,6 +125,13 @@ names, ride IDs and counts without adding cyclist details to these log messages.
 
 
 ## Ride feature boundary and partition audit
+
+`RideOverlapTest` covers partial overlap, containment, identical periods, adjacency, zero duration
+and overnight boundaries. `RideOverlapConfirmationTest` checks registration and time-edit warnings,
+all affected cyclists, hidden rides, cancellation, confirmation, stale data, restart and save failures
+through real logic and JSON storage. Existing roster/list integration scenarios confirm intentional
+overlapping registrations. Run **Ride overlap confirmation regression** in the Developer Guide
+after changing overlap detection or confirmation handling.
 
 See [Bug testing report](BugTestingReport.md) for reproduced defects, deferred minor findings,
 coverage and manual-check limitations. The cases follow the Week 10 equivalence-partitioning

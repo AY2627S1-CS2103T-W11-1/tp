@@ -13,11 +13,10 @@ package "logic.parser" {
     class AddressBookParser
     class FindCommandParser
     class RideFindCommandParser
-    class ParserUtil
-    class ArgumentMultimap
-    class ArgumentTokenizer
-    class Prefix
-    class CliSyntax
+
+    Parser -[hidden]down-> AddressBookParser
+    AddressBookParser -[hidden]down-> FindCommandParser
+    FindCommandParser -[hidden]right-> RideFindCommandParser
 }
 
 package "logic.commands" {
@@ -40,28 +39,27 @@ package "model.ride" {
     class RideMatchesFindCriteriaPredicate MODEL_COLOR
 }
 
-AddressBookParser ..> FindCommandParser : <<create>>
-AddressBookParser ..> RideFindCommandParser : <<create>>
-Parser <|.. FindCommandParser
-Parser <|.. RideFindCommandParser
-FindCommandParser .left.> FindCommand : <<create>>
-RideFindCommandParser .left.> RideFindCommand : <<create>>
+AddressBookParser .down.> FindCommandParser : <<create>>
+AddressBookParser .down.> RideFindCommandParser : <<create>>
+FindCommandParser .up.|> Parser
+RideFindCommandParser .up.|> Parser
+FindCommandParser .down.> FindCommand : <<create>>
+RideFindCommandParser .down.> RideFindCommand : <<create>>
 Command <|-- FindCommand
 Command <|-- RideFindCommand
 FindCommandParser .down.> PersonMatchesFindCriteriaPredicate : <<create>>
 RideFindCommandParser .down.> RideMatchesFindCriteriaPredicate : <<create>>
 
-FindCommandParser ..> ArgumentTokenizer
-RideFindCommandParser ..> ArgumentTokenizer
-ArgumentTokenizer ..> ArgumentMultimap : <<create>>
-ArgumentTokenizer ..> Prefix : recognises
-FindCommandParser .up.> ParserUtil
-RideFindCommandParser .down.> ParserUtil
-CliSyntax ..> Prefix : defines
+FindCommand -[hidden]down-> RideFindCommand
+PersonMatchesFindCriteriaPredicate -[hidden]down-> RideMatchesFindCriteriaPredicate
+
+FindCommand -[hidden]right-> Command
+Command -[hidden]right-> RideFindCommand
+PersonMatchesFindCriteriaPredicate -[hidden]right-> RideMatchesFindCriteriaPredicate
 
 legend bottom
-  Both parsers tokenise with ArgumentTokenizer and validate with ParserUtil.
-  They read ArgumentMultimap values and use CliSyntax prefixes.
-  Only the search-related classes and relationships are shown.
+  Both parsers use ArgumentTokenizer, ArgumentMultimap, Prefix,
+  CliSyntax and ParserUtil to parse and validate their inputs.
+  Only the main search-related relationships are shown.
 endlegend
 @enduml

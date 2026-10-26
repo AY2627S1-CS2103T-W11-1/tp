@@ -148,6 +148,7 @@ public class MainWindow extends UiPart<Stage> {
         rideListPanelPlaceholder.getChildren().add(rideListPanel.getRoot());
 
         resultDisplay = new ResultDisplay();
+        resultDisplayPlaceholder.prefHeightProperty().bind(resultDisplay.getRoot().prefHeightProperty());
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
 
         StatusBarFooter statusBarFooter = new StatusBarFooter(dataFilePath);

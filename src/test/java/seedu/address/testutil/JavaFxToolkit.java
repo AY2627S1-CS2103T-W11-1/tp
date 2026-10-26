@@ -37,9 +37,10 @@ public class JavaFxToolkit {
         }
 
         CountDownLatch startupLatch = new CountDownLatch(1);
-        Platform.startup(startupLatch::countDown);
-        // Otherwise JavaFX shuts down when a test closes the last window it showed, and later tests time out.
-        Platform.setImplicitExit(false);
+        Platform.startup(() -> {
+            Platform.setImplicitExit(false);
+            startupLatch.countDown();
+        });
         assertTrue(startupLatch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS), "JavaFX toolkit did not start");
         started = true;
     }
