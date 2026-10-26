@@ -97,7 +97,7 @@ Each panel is given an `ObservableList` by `MainWindow` and builds one card for 
 The two panels are filtered independently of each other:
 
 * `find`, `list` and `ridelist ID` change only the cyclist panel. In particular, `ridelist ID` shows the cyclists registered for that ride in the cyclist panel; it does not change the ride panel.
-* `ridefind` changes only the ride panel, and `ridefind all` shows every ride again.
+* `ridefind` changes only the ride panel, and `ridefind all` shows every ride again. When the filter hides every ride, `RideListPanel` shows `No rides match the current filter. Use ridefind all to show all rides.` instead of `No rides yet. Use rideadd to create one.`. It tells the two cases apart using the unfiltered list from `Logic#getRideList()`.
 
 #### Help menu templates
 
@@ -155,13 +155,22 @@ even if that command's arguments are invalid. See
 cancellation behaviour. Ride deletion executes immediately and does not use this
 confirmation flow.
 
-Here are the other classes in `Logic` (omitted from the class diagram above) that are used for parsing a user command:
+The following partial class diagram shows how the `find` and `ridefind` commands are parsed.
+It omits unrelated command parsers and validation classes.
 
-<img src="images/ParserClasses.png" width="600"/>
+<img src="images/ParserClasses.png" width="1000" alt="Class relationships for parsing cyclist and ride search" />
 
 How the parsing works:
-* When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
-* All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
+* `AddressBookParser` selects the concrete parser for the command word. For cyclist search,
+  `FindCommandParser` tokenises prefixes, validates each value with `ParserUtil`, creates a
+  `PersonMatchesFindCriteriaPredicate`, and places it in a `FindCommand`. For ride search,
+  `RideFindCommandParser` performs the equivalent work for ride fields and creates a
+  `RideMatchesFindCriteriaPredicate` held by `RideFindCommand`.
+* Both concrete parsers implement `Parser`, and both use `ArgumentTokenizer`,
+  `ArgumentMultimap`, `Prefix` and the validation helpers shown in the diagram. A dashed
+  line with a hollow triangle pointing to `Parser` shows interface implementation. A dashed
+  arrow labelled `«create»` points to a class whose object is constructed by the class at
+  the arrow's tail.
 
 ### Model component
 **API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
@@ -224,6 +233,47 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Cyclist and ride filtering
+
+The `find` command accepts `n/` for name, `p/` for the cyclist's own phone, `sos/` for an
+emergency phone, `f/` for a minimum FTP, `x/` for experience level and `l/` for preferred
+location. At least one criterion is required. The `n/`, `p/`, `sos/`, `x/` and `l/` prefixes
+can each be repeated: values within one field use OR matching, while different fields use
+AND. The `f/` prefix accepts only one minimum FTP value, and a cyclist matches when their
+FTP is greater than or equal to that value. Names match complete words case-insensitively;
+a name containing spaces is matched as a complete full name. For example,
+`find l/Punggol x/Intermediate f/250` finds intermediate cyclists who prefer Punggol and have
+an FTP of at least 250 watts. Preferred locations match case-insensitively against any
+supplied `l/` value. A cyclist whose stored preferred location is `any` matches every
+location criterion; searching for `l/any` alone matches only cyclists with that stored
+preference. Emergency-phone matching checks the optional emergency contact, not the
+cyclist's own phone.
+
+`find` applies its predicate to the model's person filter. The filtered person view is then
+sorted alphabetically by full name before `getFilteredPersonList()` supplies the observable
+list displayed by the cyclist panel.
+
+The `ridefind` command accepts one value for each of `n/` (name), `from/`, `to/`, `l/`
+(location), `d/` (distance), `f/` (minimum power), `s/` (maximum group size) and `notes/`.
+Each prefix may appear only once, and all supplied ride criteria must match. The special
+input `ridefind all` clears the ride criteria. Date-only boundaries expand to
+0000 for `from/` and 2359 for `to/`; when both are supplied, the end must not be earlier than
+the start. A ride matches only if it starts at or after `from/` and ends at or before `to/`.
+The `n/` value matches the complete ride name case-insensitively. The `d/` and `s/` values
+compare their respective numeric fields for equality, while `notes/` performs a
+case-insensitive whole-word or phrase match against the ride's notes. For example,
+`ridefind l/Tampines f/200` lists rides at Tampines whose minimum
+power is at least 200 watts. Unlike cyclist `find`, ridefind does not compare a ride's
+minimum power with a cyclist's FTP: its `f/` value is compared directly with the ride's
+`MinimumPower`, and a ride matches when its stored value is greater than or equal to the
+criterion. Case-insensitive notes matching uses `Locale.ROOT`, so the same search gives
+consistent results regardless of the computer's language settings.
+
+`ridefind` applies `RideMatchesFindCriteriaPredicate` to the model's filtered ride list. The
+ride panel observes that list and refreshes its displayed ride cards; it does not change the
+cyclist panel. Conversely, `ridelist ID` is the command that filters the cyclist panel to the
+selected ride's roster.
+
 ### Cyclist deletion confirmation
 
 Cyclist deletion is a two-input interaction: for example, enter
@@ -265,7 +315,7 @@ has multiplicity `1`. New `add` commands require `sos/`; `edit` optionally repla
 
 ### Group ride creation (`rideadd`)
 
-`rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MINIMUM_POWER s/MAX_GROUP_SIZE [notes/NOTES]`
+`rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MIN_POWER s/MAX_GROUP_SIZE [notes/NOTES]`
 creates a group ride. The [model class diagram](#model-component) shows the ride
 collection and ID counter at an overview level; the ride value classes are described below.
 
@@ -319,9 +369,12 @@ that `to/` is not earlier than `from/` runs after every field is valid.
 
 ### Group ride editing (`rideedit`)
 
-`rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_FTP] [s/MAX_SIZE] [notes/NOTES]`
-edits an existing ride without changing its identity or roster. The diagrams are not updated for Ride Edit in this
-increment.
+`rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`
+edits an existing ride without changing its identity or roster. The sequence diagram below shows parsing,
+validation, replacement and saving. Internal validation and immutable object construction are summarised in notes;
+the parsing-success path is expanded, while execution failures are distinguished from successful replacement.
+
+<img src="images/RideEditSequenceDiagram.png" width="1000" alt="Ride Edit parsing, validation before stored replacement, and saving through LogicManager" />
 
 **Parsing.** `RideEditCommandParser` separates the positive ride ID from the prefixed fields and builds an
 `EditRideDescriptor`. Each supplied value is parsed by the same `ParserUtil` method used by `rideadd`, while
@@ -331,17 +384,19 @@ it.
 
 **Replacement and validation.** `RideEditCommand` finds the target by its unique ID and combines the descriptor
 with the existing ride. It validates the complete resulting period, so changing only `from/` or `to/` cannot
-produce an end time earlier than the start time. When minimum power or maximum group size is edited, the command
-also checks the proposed value against the existing roster. It resolves roster phone numbers through the address
-book, rejects a maximum below the roster count before checking cyclists' FTP, and rejects a minimum above any
-member's FTP. The proposed replacement is immutable and retains the same ID and roster. Only after every validation
-succeeds does the command call `Model#setRide`. `AddressBook#setRide` replaces the target at its current list
-position, preserving other rides and the next ride ID counter. Failed parsing, a missing target or an invalid
-resulting ride therefore leaves the model unchanged.
+produce an end time earlier than the start time; equal start and end times are accepted. After the period check,
+`createEditedRide` constructs the proposed immutable `Ride`, retaining the same ID and roster. Next,
+`validateRosterEligibility` checks an edited maximum group size against the roster count before checking an edited
+minimum FTP. Only when minimum FTP is supplied does it resolve each roster phone against all cyclists, rejecting
+an unresolved phone or a minimum above any member's FTP. An unrelated edit does not resolve roster phones.
+Only after every validation succeeds does the command call `Model#setRide`. `ModelManager` delegates to
+`AddressBook#setRide`, which replaces the target at its current list position, preserving other rides and the next
+ride ID counter. Failed parsing, a missing target or an invalid resulting ride therefore leaves the model unchanged.
 
-The address book's observable ride list emits the replacement, allowing the existing Rides panel to refresh. A
-successful command returns through `LogicManager`, which saves the updated address book using the existing JSON
-storage path. No separate Ride Edit storage format is required.
+The address book's observable ride list emits the replacement, allowing the existing Rides panel to refresh.
+Cyclist records are unchanged, and Ride Edit requires no confirmation. A successful command returns through
+`LogicManager`, which saves the updated address book using the existing JSON storage path. No separate Ride Edit
+storage format is required.
 
 ### Group ride deletion (`ridedelete`)
 
@@ -358,40 +413,63 @@ the existing JSON storage path. Ride deletion is immediate and does not use cycl
 
 ### Ride roster management
 
-`rideaddcyclist ID PHONE` and `ridedeletecyclist ID PHONE` share
-`RideRosterCommandParser` and `RideRosterCommand`. The parser separates the first token
-as a positive integer ride ID and validates the remaining text as a complete phone number.
-The command resolves the ride by ID, independently of cyclist filtering. Addition requires
-an existing cyclist, no duplicate membership, a free place and sufficient FTP. Removal
-requires membership and leaves the cyclist record intact. Validation finishes before mutation.
+`rideaddcyclist ID PHONE` and `ridedeletecyclist ID PHONE` share `RideRosterCommandParser` and `RideRosterCommand`. The parser separates the first token as a positive integer ride ID and validates the remaining text as a complete phone number. `AddressBookParser` selects `isJoining = true` for addition and `false` for removal; the shared parser passes this flag to the command.
 
-`Ride#withRoster` creates an immutable replacement. `Model#setRide` delegates to
-`AddressBook#setRide`, preserving the ride's ID, position and next-ID counter. The observable
-list replacement refreshes its ride card. `LogicManager` saves through the existing JSON
-path; the roster phone list already has storage support. Phone edits replace roster references
-across rides, and confirmed cyclist deletion removes them. The deletion prompt explains this effect.
+The sequence diagram below shows either roster operation succeeding, with no pending cyclist deletion. Local validation and collection operations are summarised in notes to keep the diagram focused on parsing, immutable replacement and saving.
 
-UML diagram updates are deferred to a later increment. Invalid requests throw before `setRide`.
+<div style="overflow-x: auto;">
+  <img src="images/RideRosterSequenceDiagram.png" alt="Adding or removing a cyclist from a ride"
+       style="max-width: none;" />
+</div>
+
+*Ride roster command sequence. Scroll horizontally on narrow screens, or [open the full-size diagram](images/RideRosterSequenceDiagram.png).*
+
+The command searches the complete ride collection by persistent ID, rather than a displayed position, so `ridefind` does not restrict which ride can be changed. A roster stores `Phone` objects, not direct `Person` references. The command first copies the selected ride's roster into a local `ArrayList<Phone>`.
+
+For addition, it resolves the phone against `Model#getAddressBook().getPersonList()`, including cyclists hidden by `find` or `ridelist`. It then checks duplicate membership, maximum group size and the cyclist's FTP against the ride's minimum power, in that order, before adding the phone to the copy. For removal, `roster.remove(phone)` both removes the phone from the copy and checks membership: a `false` result causes a `CommandException`. Removal leaves the cyclist record intact. Parsing and validation failures occur before the stored ride is replaced, and do not reach the save step.
+
+`Ride#withRoster(...)` constructs an immutable replacement with the same ID and other details. `ModelManager#setRide(...)` implements `Model#setRide(...)` and delegates to `AddressBook#setRide(...)`, preserving the ride's list position and next-ID counter. Replacing the observable list entry refreshes its ride card within the current `ridefind` view. If `ridelist ID` is active for that ride, the model's ride-list listener also refreshes the cyclist filter from the new roster; the existing sorted view keeps those cyclists alphabetical.
+
+The command returns a `CommandResult` to `LogicManager`, which calls its `saveAddressBook()` helper before returning the result to the UI. The helper passes the complete address book to `Storage#saveAddressBook(...)`; cyclists, rides and roster phone lists share the existing JSON file. A storage failure reports an error after the in-memory replacement; it does not roll back that replacement.
+
+Cyclist phone edits use `AddressBook#setPerson(...)` to replace the old phone in every ride roster. Confirmed cyclist deletion reaches `AddressBook#removePerson(...)`, which removes the phone from every roster. Both operations construct replacement rides with `withRoster(...)` and save through the existing logic path. The cyclist deletion prompt explains this effect; requesting or cancelling deletion leaves the rosters unchanged.
 
 ### Ride roster display (`ridelist`)
+
+`ridelist ID` displays registered cyclists in the left-hand cyclist panel. The sequence diagram below shows the
+initial selection and a later successful roster change. A labelled `«notification»` arrow and explanatory notes
+distinguish JavaFX observable notifications and display updates from synchronous method calls; the later roster
+command's parsing and saving calls are omitted.
+
+<img src="images/RideListSequenceDiagram.png" width="1000" alt="Ride List validation and cyclist filtering, followed by listener-based automatic roster refresh" />
 
 `RideListCommandParser` accepts exactly one positive integer ID. `RideListCommand` finds the ride using
 `Ride#getId()`, so the ID is persistent and is not a displayed position. Its roster contains `Phone` objects;
 before filtering, the command resolves every phone against the complete person list rather than the currently
 filtered view. An unknown ride or unresolved phone throws before the existing filter changes.
 
-For a valid ride, `Model#updateFilteredPersonListForRide()` stores the selected persistent ID and selects people whose
-phones occur in its current roster. `ModelManager` registers one listener on the existing observable ride list. Ride
-replacement events refresh the predicate from the latest roster, so successful roster additions and removals update
-the left panel automatically. The existing `SortedList` keeps results alphabetical, and the unchanged
-`PersonListPanel` and `PersonCard` display them. The independent Rides panel is not filtered.
+For a valid ride, `Model#updateFilteredPersonListForRide(ID)` stores `activeRideListId` in `ModelManager` and calls
+`refreshRideListFilter()`. This retrieves the latest roster by persistent ID and sets the `FilteredList<Person>`
+predicate to match its phone references. The existing `SortedList<Person>` takes that filtered view and orders it
+by full name, ignoring case, with stored position as the tie-breaker. `PersonListPanel` observes the sorted view
+through its `ListView` and displays the matching `PersonCard` objects. An empty roster produces an empty cyclist
+view and an empty-roster command result. The right-hand Rides panel has an independent filter and is unchanged.
+
+`ModelManager` registers one listener on the existing observable ride list in its constructor, before commands
+execute. A successful `RideRosterCommand` calls `Ride#withRoster` to construct an immutable replacement, then calls
+`Model#setRide`. `ModelManager` delegates to `AddressBook#setRide`, whose list replacement notifies the existing
+listener. Its lambda invokes `refreshRideListFilter()` during replacement, replacing the cyclist predicate from
+the latest roster. The observable filtering and sorting pipeline refreshes the left panel automatically, without
+another `ridelist`, a new listener or a direct call from the roster command to `RideListCommand` or the panel.
 
 The selected ID, rather than a `Ride` object, remains active across immutable ride replacements. If that ride is
 deleted, refreshing with an absent ID produces an empty cyclist list without selecting another ride. A generic
 `Model#updateFilteredPersonList()` call clears the selected ID before applying its predicate, so `find` and `list`
-replace Ride List filtering and later ride events cannot reactivate it.
+replace Ride List filtering and later ride events cannot reactivate it. Another successful `ridelist` selects its
+own persistent ID. `ModelManager#setAddressBook()` cancels the active selection before resetting the data, while
+retaining the existing observable lists and listener.
 
-The command does not mutate cyclist or ride data. `LogicManager` may still save the unchanged address book after a
+The command does not mutate cyclist or ride data. `LogicManager` still saves the unchanged address book after a
 successful command through its existing execution path. Validation finishes before the filter update, preserving
 the previous filter on failure.
 
@@ -753,7 +831,8 @@ Repeat the checks on each operating system supported by the release.
 ### Launch and shutdown
 
 1. Launch in a folder without `preferences.json` or `data/addressbook.json`.
-   Expected: The opening artwork is followed by the main window and sample contacts.
+   Expected: The opening artwork is followed by the main window with Alex Tan, Bernice Lee and Chloe Lim,
+   each with an SOS number, and Sunday Sunrise Ride (ID 1) and Evening Spin (ID 2) with empty rosters.
    Contact cards show labelled phone, SOS, email, FTP, experience and location fields.
 1. Resize and move the window, then enter `exit`.
    Expected: The closing artwork appears and the application closes.
@@ -861,6 +940,8 @@ Use a disposable book with John and Alice from the adding/editing scenario.
 1. Try `delete +65 99999999`, `delete`, `delete 1`, `delete +65 12`, and `delete x`.
    Expected: An error appears and no contact is deleted.
 1. Enter `clear` twice. Expected: The list remains empty and each command succeeds.
+1. Add a cyclist, then enter `clear 1` and `clear n/Alex`. Expected: Each is rejected with `Invalid command format.`
+   and the `clear` usage, and the cyclist and any rides remain. Then enter `clear`. Expected: Everything is deleted.
 
 ### Alphabetical display regression
 
@@ -1008,15 +1089,7 @@ Use disposable test data and note the number of cyclist records before starting.
 
 ### Help dropdown and Full help for ride commands
 
-1. Launch Cyclique without resizing the window, then click the **Help** menu. Expected: The whole dropdown fits
-   inside the window, with no entry cut off at the right or bottom edge. Long formats such as `rideedit` and
-   `ridefind` wrap onto further lines between parameters. Close the menu and make the window wider, then open the
-   menu again. Expected: The menu is wider and fewer entries wrap. Make the window as narrow as it allows and open
-   the menu again. Expected: The menu is narrower, every entry is still fully readable, and it still fits inside
-   the window. The dropdown lists `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE
-   f/MIN_POWER s/MAX_GROUP_SIZE [notes/NOTES]` after `find`. It then lists `rideedit ID [n/NAME] [from/START]
-   [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`, followed by
-   `ridedelete ID` before the roster commands and `list`.
+1. Launch Cyclique without resizing the window, then click the **Help** menu. Expected: The whole dropdown fits inside the window, with no entry cut off at the right or bottom edge. Long formats such as `rideedit` and `ridefind` wrap onto further lines between parameters. Close the menu and make the window wider, then open the menu again. Expected: The menu is wider and fewer entries wrap. Make the window as narrow as it allows and open the menu again. Expected: The menu is narrower, every entry is still fully readable, and it still fits inside the window. The command word at the start of each entry (such as `rideadd`) is bold, and the entries have a little space between them. The dropdown lists `rideadd (ra) n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MIN_POWER s/MAX_GROUP_SIZE [notes/NOTES]` after `find`. It then lists `rideedit (re) ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`, followed by `ridedelete (rd) ID` before the roster commands and `list`.
 1. Click the `rideadd` item. Expected: The command box contains `rideadd n/ from/ to/ l/ d/ f/ s/` with the cursor
    at the end, and the command is not run. Type a value straight after each prefix to complete it.
 1. Click the `rideedit` item. Expected: The command box contains `rideedit ` with the cursor at the end, and the
@@ -1109,15 +1182,15 @@ Use a disposable data directory for these checks.
 
 The roster dropdown templates are provided by `CommandTemplates`. The existing `MainWindow#addCommandsToHelpMenu`
 creates the menu items and passes their starter text to `CommandBox#setCommandText`.
-The Full help window reuses `RideRosterCommand#MESSAGE_USAGE`. UML updates are deferred to a later increment.
+The Full help window reuses `RideRosterCommand#MESSAGE_USAGE`.
 
 1. Open Help. Expected: after `rideadd`, `rideedit` and `ridedelete`, the dropdown shows
-   `rideaddcyclist ID PHONE` followed by `ridedeletecyclist ID PHONE`.
+   `rideaddcyclist (rac) ID PHONE` followed by `ridedeletecyclist (rdc) ID PHONE`.
 1. Click the addition entry. Expected: the command box contains `rideaddcyclist `,
    with a trailing space and the caret at the end, ready for the ride ID and phone.
 1. Open Help and click the removal entry. Expected: the command box contains
    `ridedeletecyclist `, replacing the previous contents and placing the caret at the end.
-1. Confirm the labels display the literal `ID PHONE` arguments without short-form aliases.
+1. Confirm the labels show each alias beside the full command name and retain the literal `ID PHONE` arguments.
    No `p/` prefix or placeholder arguments should be inserted into the command box.
 1. Check that existing menu entries still insert their expected starter text and
    Full help... still opens the help window and includes the roster command usage.
@@ -1183,10 +1256,12 @@ Use disposable cyclist and ride data. Record the original details before applyin
 1. Enter `list`. Expected: the full cyclist list is restored.
 1. Add at least three rides with different names, dates, locations, distances and minimum powers.
 1. Enter `ridefind n/Sunday Sunrise Ride`. Expected: only the ride with that complete name appears, ignoring case.
+1. Enter `ridefind notes/lights`. Expected: rides whose notes contain `lights` appear, including notes with additional words and regardless of case.
 1. Enter `ridefind from/18-10-2026 to/18-10-2026`. Expected: rides starting and ending within the inclusive date
    bounds appear. Date-only `from/` and `to/` use `0000` and `2359` respectively.
 1. Enter `ridefind l/Tampines f/200`. Expected: only rides matching both the location and minimum-power criteria
    appear; a ride with a lower minimum power is excluded.
+1. Enter `ridefind n/No Such Ride`. Expected: The result box shows `0 ride(s) listed!` and the Rides panel shows `No rides match the current filter. Use ridefind all to show all rides.`, not the `No rides yet` message.
 1. Enter `ridefind all`. Expected: every saved ride appears again, including rides hidden by the earlier filters.
 1. Try `ridefind`, `ridefind from/invalid`, `ridefind from/19-10-2026 to/18-10-2026`, duplicate prefixes,
    and a distance, minimum power or group size outside its constraints. Expected: each invalid command shows an
@@ -1236,3 +1311,23 @@ the existing recovery behaviour starts with an empty book after a loading failur
    in its saved roster, add a valid-format phone with no corresponding cyclist, and set maximum group size
    below the saved roster size. Relaunch each fixture.
    Expected: each corrupted book is rejected with a specific loading warning; no invalid roster is displayed.
+
+
+### Ride command alias regression
+
+Use disposable test data and replace IDs and phone numbers with the saved values.
+
+1. Enter `ra n/Alias Ride from/29-10-2026 0800 to/29-10-2026 1000 l/East Coast d/20 f/180 s/10`.
+   Expected: a ride is created with the same feedback and card as `rideadd`.
+1. Enter `re ID notes/Bring lights`, then `rf n/Alias Ride`. Expected: the notes change and only the matching ride appears.
+1. Add an eligible cyclist using `rac ID PHONE`, then enter `rl ID`. Expected: that cyclist appears in the cyclist panel.
+1. Enter `rdc ID PHONE`. Expected: membership is removed and the selected cyclist panel refreshes.
+1. Request `delete PHONE`, then enter `rf all`. Expected: deletion is cancelled, all rides appear and the cyclist remains saved.
+1. Request `delete PHONE` again, then enter `re`. Expected: cancellation followed by the usual edit usage error;
+   entering `yes` afterwards reports an unknown command.
+1. Enter `RA` and `racID`. Expected: unknown command; no data changes.
+1. Open Help. Expected: all seven ride entries show the alias beside the full command name, for example
+   `rideadd (ra)` and `rideaddcyclist (rac)`. Select an entry: only its full command starter is inserted.
+   Open Full help: the same aliases appear beside their own command headings, rather than in a separate list.
+1. Enter `rd ID`. Expected: the ride is removed immediately, as for `ridedelete`; the cyclist remains saved.
+1. Restart. Expected: the saved edits and removal persist. Repeat with the full command names to check compatibility.

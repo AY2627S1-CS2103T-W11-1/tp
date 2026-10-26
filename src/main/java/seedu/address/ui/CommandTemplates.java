@@ -43,14 +43,21 @@ public class CommandTemplates {
      * @param display the one-line format shown as the menu item text
      * @param insertText the starter text placed in the command box when the menu item is clicked
      */
-    public record Template(String display, String insertText) {}
+    public record Template(String display, String insertText) {
+
+        /** Returns the command word, which is the text of {@code display} before its first space. */
+        public String commandWord() {
+            int end = display.indexOf(' ');
+            return end < 0 ? display : display.substring(0, end);
+        }
+    }
 
     /** All commands, in the order they appear in the Help menu. */
     public static final List<Template> ALL = List.of(
             new Template(
                     AddCommand.COMMAND_WORD + " " + PREFIX_NAME + "NAME " + PREFIX_PHONE + "PHONE "
                             + PREFIX_EMERGENCY_PHONE + "EMERGENCY_PHONE "
-                            + PREFIX_EMAIL + "EMAIL " + PREFIX_FTP + "FTP " + PREFIX_EXPERIENCE_LEVEL
+                            + PREFIX_EMAIL + "EMAIL " + PREFIX_FTP + "FTP_LEVEL " + PREFIX_EXPERIENCE_LEVEL
                             + "EXPERIENCE_LEVEL " + PREFIX_LOCATION + "LOCATION [" + PREFIX_LOCATION + "LOCATION]...",
                     AddCommand.COMMAND_WORD + " " + PREFIX_NAME + " " + PREFIX_PHONE + " "
                             + PREFIX_EMERGENCY_PHONE + " " + PREFIX_EMAIL + " "
@@ -58,7 +65,7 @@ public class CommandTemplates {
             new Template(
                     EditCommand.COMMAND_WORD + " PHONE [" + PREFIX_NAME + "NAME] [" + PREFIX_PHONE + "PHONE] ["
                             + PREFIX_EMERGENCY_PHONE + "EMERGENCY_PHONE] ["
-                            + PREFIX_EMAIL + "EMAIL] [" + PREFIX_FTP + "FTP] [" + PREFIX_EXPERIENCE_LEVEL
+                            + PREFIX_EMAIL + "EMAIL] [" + PREFIX_FTP + "FTP_LEVEL] [" + PREFIX_EXPERIENCE_LEVEL
                             + "EXPERIENCE_LEVEL] [" + PREFIX_LOCATION + "LOCATION]...",
                     EditCommand.COMMAND_WORD + " "),
             new Template(
@@ -71,7 +78,8 @@ public class CommandTemplates {
                             + "LOCATION]...",
                     FindCommand.COMMAND_WORD + " "),
             new Template(
-                    RideAddCommand.COMMAND_WORD + " " + PREFIX_NAME + "NAME " + PREFIX_FROM + "FROM "
+                    RideAddCommand.COMMAND_WORD + " (" + RideAddCommand.COMMAND_ALIAS + ") "
+                            + PREFIX_NAME + "NAME " + PREFIX_FROM + "FROM "
                             + PREFIX_TO + "TO " + PREFIX_LOCATION + "LOCATION " + PREFIX_DISTANCE + "DISTANCE "
                             + PREFIX_FTP + "MIN_POWER " + PREFIX_GROUP_SIZE + "MAX_GROUP_SIZE ["
                             + PREFIX_NOTES + "NOTES]",
@@ -79,20 +87,25 @@ public class CommandTemplates {
                             + PREFIX_LOCATION + " " + PREFIX_DISTANCE + " " + PREFIX_FTP + " "
                             + PREFIX_GROUP_SIZE),
             new Template(
-                    RideEditCommand.COMMAND_WORD + " ID [" + PREFIX_NAME + "NAME] [" + PREFIX_FROM + "START] ["
+                    RideEditCommand.COMMAND_WORD + " (" + RideEditCommand.COMMAND_ALIAS + ") ID ["
+                            + PREFIX_NAME + "NAME] [" + PREFIX_FROM + "START] ["
                             + PREFIX_TO + "END] [" + PREFIX_LOCATION + "LOCATION] [" + PREFIX_DISTANCE
                             + "DISTANCE] [" + PREFIX_FTP + "MIN_POWER] [" + PREFIX_GROUP_SIZE + "MAX_GROUP_SIZE] ["
                             + PREFIX_NOTES + "NOTES]",
                     RideEditCommand.COMMAND_WORD + " "),
             new Template(
-                    RideDeleteCommand.COMMAND_WORD + " ID",
+                    RideDeleteCommand.COMMAND_WORD + " (" + RideDeleteCommand.COMMAND_ALIAS + ") ID",
                     RideDeleteCommand.COMMAND_WORD + " "),
-            new Template("rideaddcyclist ID PHONE", RideRosterCommand.JOIN_COMMAND_WORD + " "),
-            new Template("ridedeletecyclist ID PHONE", RideRosterCommand.LEAVE_COMMAND_WORD + " "),
-            new Template(RideListCommand.COMMAND_WORD + " ID", RideListCommand.COMMAND_WORD + " "),
-            new Template(RideFindCommand.COMMAND_WORD + " all OR " + RideFindCommand.COMMAND_WORD
+            new Template(RideRosterCommand.JOIN_COMMAND_WORD + " (" + RideRosterCommand.JOIN_COMMAND_ALIAS
+                    + ") ID PHONE", RideRosterCommand.JOIN_COMMAND_WORD + " "),
+            new Template(RideRosterCommand.LEAVE_COMMAND_WORD + " (" + RideRosterCommand.LEAVE_COMMAND_ALIAS
+                    + ") ID PHONE", RideRosterCommand.LEAVE_COMMAND_WORD + " "),
+            new Template(RideListCommand.COMMAND_WORD + " (" + RideListCommand.COMMAND_ALIAS + ") ID",
+                    RideListCommand.COMMAND_WORD + " "),
+            new Template(RideFindCommand.COMMAND_WORD + " (" + RideFindCommand.COMMAND_ALIAS + ") all OR "
+                    + RideFindCommand.COMMAND_WORD
                     + " [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] "
-                    + "[l/LOCATION] [d/DISTANCE] [f/MINIMUM_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]",
+                    + "[l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]",
                     RideFindCommand.COMMAND_WORD + " "),
             new Template(ListCommand.COMMAND_WORD, ListCommand.COMMAND_WORD),
             new Template(ClearCommand.COMMAND_WORD, ClearCommand.COMMAND_WORD),

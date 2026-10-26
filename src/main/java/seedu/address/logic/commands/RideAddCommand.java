@@ -23,8 +23,9 @@ import seedu.address.model.ride.Ride;
 public class RideAddCommand extends Command {
 
     public static final String COMMAND_WORD = "rideadd";
+    public static final String COMMAND_ALIAS = "ra";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Adds a group ride. "
+    public static final String MESSAGE_USAGE = COMMAND_WORD + " (" + COMMAND_ALIAS + "): Adds a group ride. "
             + "The ride ID is assigned automatically.\n"
             + "Parameters: "
             + PREFIX_NAME + "NAME "
@@ -32,11 +33,11 @@ public class RideAddCommand extends Command {
             + PREFIX_TO + "TO "
             + PREFIX_LOCATION + "LOCATION "
             + PREFIX_DISTANCE + "DISTANCE "
-            + PREFIX_FTP + "MINIMUM_POWER "
+            + PREFIX_FTP + "MIN_POWER "
             + PREFIX_GROUP_SIZE + "MAX_GROUP_SIZE "
             + "[" + PREFIX_NOTES + "NOTES]\n"
             + "FROM and TO are written as DD-MM-YYYY TTTT (time on a 24-hour clock, 0000 to 2359), "
-            + "and TO must not be earlier than FROM. DISTANCE is in kilometres, MINIMUM_POWER is in watts "
+            + "and TO must not be earlier than FROM. DISTANCE is in kilometres, MIN_POWER is in watts "
             + "(1 to 600) and NOTES has at most 10 words.\n"
             + "Example: " + COMMAND_WORD + " "
             + PREFIX_NAME + "Sunday Sunrise Ride "

@@ -220,14 +220,25 @@
 
 /*
  * The Help menu lists every command format, and the long ones wrap onto further lines when the window is narrow.
- * The same font size as the rest of the application and tight padding keep the whole menu inside the window.
+ * The same font size as the rest of the application and modest padding keep the whole menu inside the window.
  */
 .context-menu .menu-item {
-    -fx-padding: 2 10 2 10;
+    -fx-padding: 3 10 3 10;
 }
 
 .context-menu .menu-item .label {
     -fx-font-size: 11pt;
+}
+
+/* The command entries are text, not labels, so they need the colour, font and size set here. */
+.help-menu-text {
+    -fx-fill: white;
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 11pt;
+}
+
+.help-menu-command {
+    -fx-font-weight: bold;
 }
 
 .menu-bar {

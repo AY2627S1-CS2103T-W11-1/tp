@@ -104,15 +104,30 @@ public class RideMatchesFindCriteriaPredicateTest {
     }
 
     @Test
-    public void test_notes_requiresExactValue() {
+    public void test_notes_matchesWholeWordsIgnoringCase() {
         Ride ride = new RideBuilder().withNotes("Bring lights").build();
 
         assertTrue(new RideMatchesFindCriteriaPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
                 Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
                 Optional.of(new Notes("Bring lights"))).test(ride));
+        assertTrue(new RideMatchesFindCriteriaPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.of(new Notes("Bring"))).test(ride));
+        assertTrue(new RideMatchesFindCriteriaPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.of(new Notes("lights"))).test(ride));
+        assertTrue(new RideMatchesFindCriteriaPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.of(new Notes("BRING"))).test(ride));
+        assertFalse(new RideMatchesFindCriteriaPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.of(new Notes("lig"))).test(ride));
         assertFalse(new RideMatchesFindCriteriaPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
                 Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
                 Optional.of(new Notes("Bring water"))).test(ride));
+        assertFalse(new RideMatchesFindCriteriaPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.of(new Notes("Bring lights and a spare tube"))).test(ride));
     }
 
     @Test

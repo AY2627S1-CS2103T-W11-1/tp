@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.AddCommand;
+import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.DeleteCommand;
 import seedu.address.logic.commands.ListCommand;
@@ -38,6 +39,7 @@ import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
 import seedu.address.testutil.PersonBuilder;
+import seedu.address.testutil.PersonUtil;
 import seedu.address.testutil.RideBuilder;
 import seedu.address.testutil.RideUtil;
 
@@ -158,6 +160,30 @@ public class LogicManagerTest {
 
         assertEquals(3, model.getAddressBook().getRideList().get(0).getId());
         assertEquals(4, reader.readAddressBook().get().getNextRideId());
+    }
+
+    @Test
+    public void execute_clearWithExtraText_rejectedAndKeepsDataAndSavedFile() throws Exception {
+        // add requires an emergency phone, which AMY does not have
+        Person cyclist = new PersonBuilder(AMY).withEmergencyPhone("+65 99999999").build();
+        logic.execute(PersonUtil.getAddCommand(cyclist));
+        logic.execute(RideUtil.getRideAddCommand(new RideBuilder().build()));
+        Path addressBookFile = temporaryFolder.resolve("addressBook.json");
+        String savedData = Files.readString(addressBookFile);
+
+        assertParseException("clear 1", String.format(Messages.MESSAGE_INVALID_COMMAND_FORMAT,
+                ClearCommand.MESSAGE_USAGE));
+        assertParseException("clear n/Amy", String.format(Messages.MESSAGE_INVALID_COMMAND_FORMAT,
+                ClearCommand.MESSAGE_USAGE));
+
+        assertEquals(1, model.getAddressBook().getPersonList().size());
+        assertEquals(1, model.getAddressBook().getRideList().size());
+        assertEquals(savedData, Files.readString(addressBookFile));
+
+        // plain clear still works
+        logic.execute("clear");
+        assertEquals(0, model.getAddressBook().getPersonList().size());
+        assertEquals(0, model.getAddressBook().getRideList().size());
     }
 
     @Test

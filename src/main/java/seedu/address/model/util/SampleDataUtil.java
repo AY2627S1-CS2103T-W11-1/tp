@@ -2,6 +2,7 @@
 package seedu.address.model.util;
 
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -14,51 +15,57 @@ import seedu.address.model.person.Location;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.ride.Distance;
+import seedu.address.model.ride.GroupSize;
+import seedu.address.model.ride.MinimumPower;
+import seedu.address.model.ride.Notes;
+import seedu.address.model.ride.Ride;
+import seedu.address.model.ride.RideDateTime;
 
 /**
  * Contains utility methods for populating {@code AddressBook} with sample data.
  */
 public class SampleDataUtil {
 
+    /**
+     * Returns the sample cyclists shown in the User Guide's starting screen.
+     */
     public static Person[] getSamplePersons() {
         return new Person[] {
-            new Person(new Name("Alex Yeoh"), new Phone("+65 87438807"),
-                    new Email("alexyeoh@example.com"), new Ftp("120"),
-                    new ExperienceLevel("Beginner"),
-                    getLocationSet("East Coast Park", "Marina Bay")),
+            new Person(new Name("Alex Tan"), new Phone("+65 91234561"),
+                    new Email("alex@example.com"), new Ftp("280"),
+                    new ExperienceLevel("Advanced"), getLocationSet("East Coast Park", "Marina Bay"),
+                    Optional.of(new Phone("+65 90000001"))),
 
-            new Person(new Name("Bernice Yu"), new Phone("+65 99272758"),
-                    new Email("berniceyu@example.com"), new Ftp("185"),
-                    new ExperienceLevel("Intermediate"),
-                    getLocationSet("Punggol", "Seletar")),
+            new Person(new Name("Bernice Lee"), new Phone("+65 91234562"),
+                    new Email("bernice@example.com"), new Ftp("220"),
+                    new ExperienceLevel("Intermediate"), getLocationSet("Punggol"),
+                    Optional.of(new Phone("+65 90000002"))),
 
-            new Person(new Name("Charlotte Oliveiro"), new Phone("+65 93210283"),
-                    new Email("charlotte@example.com"), new Ftp("280"),
-                    new ExperienceLevel("Advanced"),
-                    getLocationSet("Mandai", "Lim Chu Kang")),
-
-            new Person(new Name("David Li"), new Phone("+65 91031282"),
-                    new Email("lidavid@example.com"), new Ftp("145"),
-                    new ExperienceLevel("Beginner"),
-                    getLocationSet("Bishan Park")),
-
-            new Person(new Name("Irfan Ibrahim"), new Phone("+65 92492021"),
-                    new Email("irfan@example.com"), new Ftp("210"),
-                    new ExperienceLevel("Intermediate"),
-                    getLocationSet("East Coast Park", "Changi")),
-
-            new Person(new Name("Roy Balakrishnan"), new Phone("+65 92624417"),
-                    new Email("royb@example.com"), new Ftp("320"),
-                    new ExperienceLevel("Advanced"),
-                    getLocationSet("any"))
+            new Person(new Name("Chloe Lim"), new Phone("+65 91234563"),
+                    new Email("chloe@example.com"), new Ftp("180"),
+                    new ExperienceLevel("Beginner"), getLocationSet("any"),
+                    Optional.of(new Phone("+65 90000003")))
         };
     }
 
+    /**
+     * Returns a fresh sample book with three cyclists and two rides with empty rosters.
+     * Existing saved books are loaded separately and do not receive this sample data.
+     */
     public static ReadOnlyAddressBook getSampleAddressBook() {
         AddressBook sampleAb = new AddressBook();
         for (Person samplePerson : getSamplePersons()) {
             sampleAb.addPerson(samplePerson);
         }
+        sampleAb.addRide(new Ride(new Name("Sunday Sunrise Ride"),
+                new RideDateTime("25-10-2026 0630"), new RideDateTime("25-10-2026 0930"),
+                new Location("East Coast Park"), new Distance("45"), new MinimumPower("180"),
+                new GroupSize("3"), Optional.of(new Notes("Bring lights and a spare tube"))));
+        sampleAb.addRide(new Ride(new Name("Evening Spin"),
+                new RideDateTime("27-10-2026 1800"), new RideDateTime("27-10-2026 1930"),
+                new Location("Punggol"), new Distance("30.5"), new MinimumPower("150"),
+                new GroupSize("8"), Optional.empty()));
         return sampleAb;
     }
 
