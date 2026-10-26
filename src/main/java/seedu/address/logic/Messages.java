@@ -13,6 +13,7 @@ import seedu.address.model.ride.Ride;
  */
 public class Messages {
 
+    public static final String MESSAGE_OVERLAP_INSTRUCTIONS = "Enter y/yes to proceed or n/no to cancel.";
     public static final String MESSAGE_UNKNOWN_COMMAND = "Unknown command.";
     public static final String MESSAGE_INVALID_COMMAND_FORMAT = "Invalid command format.\n%1$s";
     public static final String MESSAGE_INVALID_PERSON_DISPLAYED_INDEX = "The cyclist index provided is invalid.";
@@ -21,7 +22,7 @@ public class Messages {
     public static final String MESSAGE_AMBIGUOUS_PHONE =
             "More than one cyclist in the displayed list has this phone number. "
             + "Use find to display only the intended cyclist.";
-    public static final String MESSAGE_PERSONS_LISTED_OVERVIEW = "%1$d person(s) listed!";
+    public static final String MESSAGE_PERSONS_LISTED_OVERVIEW = "%1$d person(s) found!";
     public static final String MESSAGE_DUPLICATE_FIELDS =
                 "Multiple values specified for the following single-valued field(s): ";
 

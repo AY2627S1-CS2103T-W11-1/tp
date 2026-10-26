@@ -28,7 +28,8 @@ public class RideRosterCommandParser implements Parser<RideRosterCommand> {
     public RideRosterCommand parse(String args) throws ParseException {
         String[] arguments = args.trim().split("\\s+", 2);
         if (arguments.length != 2) {
-            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, RideRosterCommand.MESSAGE_USAGE));
+            String usage = isJoining ? RideRosterCommand.MESSAGE_JOIN_USAGE : RideRosterCommand.MESSAGE_LEAVE_USAGE;
+            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, usage));
         }
         String id = arguments[0];
         try {

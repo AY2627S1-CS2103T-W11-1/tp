@@ -12,10 +12,12 @@ import seedu.address.model.ride.RideMatchesFindCriteriaPredicate;
 /** Finds rides matching at least one supplied criterion. */
 public class RideFindCommand extends Command {
     public static final String COMMAND_WORD = "ridefind";
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Finds rides matching the supplied criteria.\n"
+    public static final String COMMAND_ALIAS = "rf";
+    public static final String MESSAGE_USAGE = COMMAND_WORD
+            + " (" + COMMAND_ALIAS + "): Finds rides matching the supplied criteria.\n"
             + "Use '" + COMMAND_WORD + " all' to list all rides.\n"
             + "Parameters: [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] [l/LOCATION] [d/DISTANCE] "
-            + "[f/MINIMUM_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]\n"
+            + "[f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]\n"
             + "At least one criterion is required. Date-only from/ and to/ values mean 0000 and 2359. "
             + "When both are supplied, to/ must not be earlier than from/.";
     public static final String MESSAGE_SUCCESS = "%1$d ride(s) listed!";

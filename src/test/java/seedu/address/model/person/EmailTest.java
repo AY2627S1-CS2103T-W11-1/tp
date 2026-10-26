@@ -67,6 +67,24 @@ public class EmailTest {
     }
 
     @Test
+    public void isValidEmail_adjacentSpecialCharacters_returnsTrue() {
+        for (String localPart : new String[] {"rider__club", "rider++club", "rider--club",
+            "rider_+.-club", "rider._club", "rider+.club", "a__b", "a"}) {
+            assertTrue(Email.isValidEmail(localPart + "@example.com"));
+        }
+    }
+
+    @Test
+    public void isValidEmail_invalidSpecialCharacters_returnsFalse() {
+        for (String localPart : new String[] {"__rider", "rider__", "++rider", "rider++",
+            ".rider", "rider.", "rider..club", "rider+.._club", "rider!club", "__"}) {
+            assertFalse(Email.isValidEmail(localPart + "@example.com"));
+        }
+        assertFalse(Email.isValidEmail("rider__club@exam__ple.com"));
+        assertFalse(Email.isValidEmail("rider++club@example..com"));
+    }
+
+    @Test
     public void equals() {
         Email email = new Email("valid@email");
 

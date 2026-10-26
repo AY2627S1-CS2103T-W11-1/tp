@@ -7,30 +7,24 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.testutil.JavaFxTestUtil.runOnJavaFxThread;
 
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
 
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import seedu.address.model.person.Person;
+import seedu.address.testutil.JavaFxTestUtil;
 import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.RideBuilder;
 
 public class PersonCardTest {
-
-    private static final int JAVAFX_TIMEOUT_SECONDS = 5;
 
     @BeforeAll
     public static void startJavaFxToolkit() throws InterruptedException {
@@ -40,15 +34,7 @@ public class PersonCardTest {
             assertFalse(display.isBlank(), "JavaFX tests on Linux require an X display");
         }
 
-        CountDownLatch startupLatch = new CountDownLatch(1);
-        Platform.startup(startupLatch::countDown);
-        assertTrue(startupLatch.await(JAVAFX_TIMEOUT_SECONDS, TimeUnit.SECONDS),
-                "JavaFX toolkit did not start");
-    }
-
-    @AfterAll
-    public static void stopJavaFxToolkit() {
-        Platform.exit();
+        JavaFxTestUtil.startJavaFxToolkit();
     }
 
     @Test
@@ -59,7 +45,8 @@ public class PersonCardTest {
             Parent populatedCard = new RideCard(new RideBuilder()
                     .withRoster("+65 91234567", "+65 98765432").build()).getRoot();
             Label roster = getLabel(populatedCard, "roster");
-            assertEquals("+65 91234567, +65 98765432", roster.getText());
+            assertEquals(DisplayText.keepTogether("+65 91234567") + "\n" + DisplayText.keepTogether("+65 98765432"),
+                    roster.getText());
             assertTrue(roster.isWrapText());
             assertTrue(roster.isManaged());
             assertTrue(roster.isVisible());
@@ -73,7 +60,7 @@ public class PersonCardTest {
         runOnJavaFxThread(() -> {
             Parent root = new PersonCard(cyclist, 1).getRoot();
             Label emergencyPhone = getLabel(root, "emergencyPhone");
-            assertEquals("+65 99999999", emergencyPhone.getText());
+            assertEquals(DisplayText.keepTogether("+65 99999999"), emergencyPhone.getText());
             assertTrue(emergencyPhone.isWrapText());
             assertTrue(emergencyPhone.isVisible());
             assertTrue(emergencyPhone.isManaged());
@@ -81,6 +68,24 @@ public class PersonCardTest {
             assertTrue(getAllLabelTexts(root).contains("SOS"));
             assertEquals("Not provided", getLabel(new PersonCard(legacy, 2).getRoot(), "emergencyPhone").getText());
         });
+    }
+
+    @Test
+    public void formatPhoneEmergencyPhoneAndFtp_keepValuesOnOneLine() {
+        Person person = new PersonBuilder().withPhone("+65 98765432").withEmergencyPhone("+65 91234567")
+                .withFtp("300").build();
+
+        assertEquals(DisplayText.keepTogether("+65 98765432"), PersonCard.formatPhone(person));
+        assertEquals(DisplayText.keepTogether("+65 91234567"), PersonCard.formatEmergencyPhone(person));
+        assertEquals(DisplayText.keepTogether("300 W"), PersonCard.formatFtp(person));
+        assertFalse(PersonCard.formatPhone(person).contains(" "));
+        assertFalse(PersonCard.formatEmergencyPhone(person).contains(" "));
+        assertFalse(PersonCard.formatFtp(person).contains(" "));
+    }
+
+    @Test
+    public void formatEmergencyPhone_legacyCyclist_showsNotProvided() {
+        assertEquals("Not provided", PersonCard.formatEmergencyPhone(new PersonBuilder().build()));
     }
 
     @Test
@@ -128,9 +133,9 @@ public class PersonCardTest {
 
             assertEquals("7. ", getLabel(root, "id").getText());
             assertEquals("Zelda Longname Cyclist", name.getText());
-            assertEquals("+65 98765432", phone.getText());
+            assertEquals(DisplayText.keepTogether("+65 98765432"), phone.getText());
             assertEquals("MixedCase.Email@Example.com", email.getText());
-            assertEquals("450 W", ftp.getText());
+            assertEquals(DisplayText.keepTogether("450 W"), ftp.getText());
             assertEquals("Advanced", experienceLevel.getText());
             assertEquals("East Coast Park, Marina Bay", locations.getText());
             assertTrue(name.isWrapText());
@@ -212,24 +217,5 @@ public class PersonCardTest {
                 .map(Label.class::cast)
                 .map(Label::getText)
                 .toList();
-    }
-
-    private static void runOnJavaFxThread(Runnable action) throws Exception {
-        FutureTask<Void> task = new FutureTask<>(() -> {
-            action.run();
-            return null;
-        });
-        Platform.runLater(task);
-        try {
-            task.get(JAVAFX_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        } catch (ExecutionException exception) {
-            if (exception.getCause() instanceof AssertionError assertionError) {
-                throw assertionError;
-            }
-            if (exception.getCause() instanceof Exception cause) {
-                throw cause;
-            }
-            throw new RuntimeException(exception.getCause());
-        }
     }
 }

@@ -60,10 +60,53 @@ public class CommandTemplatesTest {
     }
 
     @Test
+    public void keepOptionalGroupsTogether_replacesSpacesInsideBracketsOnly() {
+        String format = "ridefind all OR ridefind [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] [l/LOCATION]";
+
+        String result = CommandTemplates.keepOptionalGroupsTogether(format);
+
+        assertEquals("ridefind all OR ridefind [n/NAME] [from/DATE\u00A0[TIME]] [to/DATE\u00A0[TIME]] [l/LOCATION]",
+                result);
+        // wrapping may happen between parameters, so those spaces stay ordinary spaces
+        assertTrue(result.contains("ridefind all OR ridefind [n/NAME] [from/"));
+        assertEquals(format.length(), result.length());
+    }
+
+    @Test
+    public void keepOptionalGroupsTogether_noBracketsOrUnbalancedBrackets_isHandledSafely() {
+        assertEquals("delete PHONE", CommandTemplates.keepOptionalGroupsTogether("delete PHONE"));
+        assertEquals("", CommandTemplates.keepOptionalGroupsTogether(""));
+        // a stray closing bracket does not make later spaces unbreakable
+        assertEquals("a] b c", CommandTemplates.keepOptionalGroupsTogether("a] b c"));
+        // an unclosed bracket keeps the rest together
+        assertEquals("a [b\u00A0c", CommandTemplates.keepOptionalGroupsTogether("a [b c"));
+    }
+
+    @Test
+    public void keepOptionalGroupsTogether_everyTemplate_keepsTheSameVisibleText() {
+        for (CommandTemplates.Template template : CommandTemplates.ALL) {
+            String grouped = CommandTemplates.keepOptionalGroupsTogether(template.display());
+
+            assertEquals(template.display(), grouped.replace('\u00A0', ' '));
+        }
+    }
+
+    @Test
     public void all_displayStartsWithCommandWord() {
         for (CommandTemplates.Template template : CommandTemplates.ALL) {
             String commandWord = template.insertText().trim().split(" ")[0];
             assertTrue(template.display().startsWith(commandWord));
+        }
+    }
+
+    @Test
+    public void rideTemplates_displayAliasesButInsertFullCommandNames() {
+        for (String[] pair : new String[][] {{"rideadd", "ra"}, {"rideedit", "re"}, {"ridedelete", "rd"},
+            {"ridefind", "rf"}, {"ridelist", "rl"}, {"rideaddcyclist", "rac"}, {"ridedeletecyclist", "rdc"}}) {
+            CommandTemplates.Template template = templateFor(pair[0]);
+            assertTrue(template.display().startsWith(pair[0] + " (" + pair[1] + ") "));
+            assertEquals(pair[0], template.insertText().trim().split(" ")[0]);
+            assertFalse(template.insertText().contains("("));
         }
     }
 
@@ -82,7 +125,7 @@ public class CommandTemplatesTest {
     public void rideFindTemplate_listsAllShortcut() {
         String display = templateFor(RideFindCommand.COMMAND_WORD).display();
 
-        assertTrue(display.contains("ridefind all"));
+        assertTrue(display.contains("ridefind (rf) all"));
     }
 
     @Test
@@ -109,7 +152,7 @@ public class CommandTemplatesTest {
     public void rideAddTemplate_displayShowsCompulsoryPrefixesAndNotesAsOptional() {
         String display = templateFor(RideAddCommand.COMMAND_WORD).display();
 
-        assertEquals("rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MIN_POWER s/MAX_GROUP_SIZE"
+        assertEquals("rideadd (ra) n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MIN_POWER s/MAX_GROUP_SIZE"
                 + " [notes/NOTES]", display);
         for (Object prefix : new Object[] {PREFIX_NAME, PREFIX_FROM, PREFIX_TO, PREFIX_LOCATION, PREFIX_DISTANCE,
             PREFIX_FTP, PREFIX_GROUP_SIZE}) {
@@ -142,7 +185,7 @@ public class CommandTemplatesTest {
     public void rideEditTemplate_displayListsEveryEditableFieldAsOptional() {
         String display = templateFor(RideEditCommand.COMMAND_WORD).display();
 
-        assertEquals("rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER]"
+        assertEquals("rideedit (re) ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER]"
                 + " [s/MAX_GROUP_SIZE] [notes/NOTES]", display);
         for (Object prefix : new Object[] {PREFIX_NAME, PREFIX_FROM, PREFIX_TO, PREFIX_LOCATION, PREFIX_DISTANCE,
             PREFIX_FTP, PREFIX_GROUP_SIZE, PREFIX_NOTES}) {
@@ -177,7 +220,7 @@ public class CommandTemplatesTest {
                 .map(commandTemplate -> commandTemplate.insertText().trim().split(" ")[0])
                 .toList();
 
-        assertEquals("ridedelete ID", template.display());
+        assertEquals("ridedelete (rd) ID", template.display());
         assertEquals("ridedelete ", template.insertText());
         assertEquals(commandWords.indexOf(RideEditCommand.COMMAND_WORD) + 1,
                 commandWords.indexOf(RideDeleteCommand.COMMAND_WORD));
@@ -187,8 +230,8 @@ public class CommandTemplatesTest {
 
     @Test
     public void rosterTemplates_showPositionalArguments() {
-        assertEquals("rideaddcyclist ID PHONE", templateFor(RideRosterCommand.JOIN_COMMAND_WORD).display());
-        assertEquals("ridedeletecyclist ID PHONE", templateFor(RideRosterCommand.LEAVE_COMMAND_WORD).display());
+        assertEquals("rideaddcyclist (rac) ID PHONE", templateFor(RideRosterCommand.JOIN_COMMAND_WORD).display());
+        assertEquals("ridedeletecyclist (rdc) ID PHONE", templateFor(RideRosterCommand.LEAVE_COMMAND_WORD).display());
     }
 
     @Test
@@ -204,7 +247,7 @@ public class CommandTemplatesTest {
                 .filter(candidate -> candidate.insertText().trim().equals(RideListCommand.COMMAND_WORD))
                 .count();
 
-        assertEquals("ridelist ID", template.display());
+        assertEquals("ridelist (rl) ID", template.display());
         assertEquals("ridelist ", template.insertText());
         assertEquals(1, occurrences);
     }

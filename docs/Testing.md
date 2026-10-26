@@ -37,6 +37,10 @@ This project has three types of tests:
 
 ## Release checks
 
+`EmailTest` and `EmailValidationIntegrationTest` cover consecutive local-part special characters,
+add/edit acceptance and JSON readback, and rejected emails without saved-data changes.
+Run **Email local-part regression** in the Developer Guide after changing email validation.
+
 Select JDK 25 and verify it with `java -version` before running `./gradlew check coverage shadowJar`.
 This runs JUnit, checks production and test code with Checkstyle, generates coverage, and builds the release JAR.
 Review `build/reports/tests/test/index.html` and `build/reports/jacoco/coverage/html/index.html`.
@@ -56,6 +60,12 @@ These automated checks complement the full manual test plan in the Developer Gui
 window layout, keyboard focus, artwork, or operating-system integration.
 
 Record release results, unresolved defects and incomplete manual checks in [Release testing](ReleaseTesting.md).
+
+`CommandBoxTest` covers command entry, error recovery and overlap confirmation with JSON persistence.
+`ListPanelTest` covers live lists, empty-ride placeholders and recycled cards.
+`MainWindowLayoutTest` checks the real FXML result pane at normal, constrained and large sizes,
+including many conflicts, invalid replies and restoration of the normal height.
+JavaFX tests require an X display on Linux; CI runs them using `xvfb-run`.
 
 `ModelManagerTest` checks alphabetical ordering by full name, case-insensitive ties,
 live updates after additions and name edits, filtered membership, deletion and book replacement.
@@ -98,6 +108,11 @@ capacity and FTP boundaries, invalid input, rejected commands without mutation,
 phone edits, confirmed/cancelled contact deletion, JSON readback and removal after reload.
 It also checks that leading-zero IDs identify the same ride across roster, list, edit and delete commands,
 while signed, all-zero and overflowing IDs leave the roster and saved data unchanged.
+It also checks command-specific usage for missing roster arguments and preserves the more specific
+ID and phone validation errors for malformed arguments. `HelpWindowTest` checks that Full help includes
+both roster command examples.
+`RideRosterCommandParserTest` checks both `FINE` rejection diagnostics and verifies that their messages
+contain only the operation, without the raw ID or phone number.
 `HelpWindowTest` verifies both roster command formats and dropdown starters. Run the
 Developer Guide's **Ride roster regression (manual testing)** after roster changes.
 
@@ -119,6 +134,13 @@ names, ride IDs and counts without adding cyclist details to these log messages.
 
 ## Ride feature boundary and partition audit
 
+`RideOverlapTest` covers partial overlap, containment, identical periods, adjacency, zero duration
+and overnight boundaries. `RideOverlapConfirmationTest` checks registration and time-edit warnings,
+all affected cyclists, hidden rides, cancellation, confirmation, stale data, restart and save failures
+through real logic and JSON storage. Existing roster/list integration scenarios confirm intentional
+overlapping registrations. Run **Ride overlap confirmation regression** in the Developer Guide
+after changing overlap detection or confirmation handling.
+
 See [Bug testing report](BugTestingReport.md) for reproduced defects, deferred minor findings,
 coverage and manual-check limitations. The cases follow the Week 10 equivalence-partitioning
 and boundary-value approach: test distinct valid/invalid classes and adjacent values at limits.
@@ -138,3 +160,7 @@ and subscriber lengths 2, 3 and 4. Thus `+12 123` and `+123 123` are both tested
 `RideRosterIntegrationTest` verifies a tab-separated edit persists both supplied fields.
 
 Run **Ride boundary and corrupt-data regression** in the Developer Guide after these changes.
+
+Run **Ride command alias regression** in the Developer Guide after changing ride command dispatch.
+`RideCommandAliasTest` checks parsing equivalence, validation, case sensitivity, saved workflows
+and cancellation of pending cyclist deletions for all seven aliases.

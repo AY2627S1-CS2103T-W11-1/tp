@@ -1,5 +1,20 @@
 # Release testing results
 
+## Consecutive email special characters (26 October 2026)
+
+Allow consecutive underscores, plus signs, hyphens and mixed special characters inside the email local part.
+Retain the restrictions on leading/trailing special characters, consecutive periods and invalid domains,
+and explicitly mention consecutive periods in the validation message.
+
+`./gradlew check coverage shadowJar` passes using Eclipse Temurin JDK 25.0.4.1:
+**794 tests**, no failures, errors or skips; production and test Checkstyle pass.
+Line coverage is **89.16%** (2,245 of 2,518 lines), above the 50% target.
+New regressions exercise add/edit acceptance, JSON readback and rejected commands without saved-data changes.
+
+The rebuilt JAR launched in `/private/tmp/cyclique-email-ui.ytvzuN`, but the computer-use tool could not
+access its JavaFX window (`Invalid app: java`). The Developer Guide's **Email local-part regression**
+manual checks remain outstanding; automated command/storage tests do not establish visual correctness.
+
 ## Residential address removal (12 October 2026)
 
 Remove residential address from cyclist fields, add/edit commands, success messages,
@@ -407,3 +422,16 @@ attach to the standalone Java window, including via the installed JDK bundle ID.
 The Developer Guide documents the affected roster/list/find and corrupt-data
 manual scenarios; visual layout, focus and cross-platform behaviour remain
 unverified manually.
+
+## Ride overlap warning (25 October 2026)
+
+Branch `ride-overlap-warning` adds command-box confirmation before overlapping
+registrations and ride time edits. Adjacent and zero-duration periods do not
+overlap; organisers may confirm an overlapping commitment explicitly.
+
+JDK 25 `./gradlew check coverage` passes with 742 tests and both Checkstyle
+checks. JaCoCo reports 86.20% line coverage (2111 of 2449 lines), up from
+83.67% before the additional UI tests. Command entry, result display and both
+list panels, including their cells, have 100% line coverage. Automated checks
+cover warnings, confirmation/cancellation, stale data, persistence, error
+recovery, interval boundaries and recycled cards.

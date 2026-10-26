@@ -183,6 +183,17 @@
     -fx-text-fill: black !important;
 }
 
+.confirmation-heading, .confirmation-instructions {
+    -fx-font-family: "Segoe UI Light";
+    -fx-font-size: 13pt;
+    -fx-padding: 0 8 0 8;
+    -fx-text-fill: white;
+}
+
+.confirmation-instructions {
+    -fx-text-fill: #ffd23f;
+}
+
 .status-bar .label {
     -fx-font-family: "Segoe UI Light";
     -fx-text-fill: white;
@@ -216,6 +227,18 @@
 
 .context-menu .label {
     -fx-text-fill: white;
+}
+
+/*
+ * The Help menu lists every command format, and the long ones wrap onto further lines when the window is narrow.
+ * The same font size as the rest of the application and modest padding keep the whole menu inside the window.
+ */
+.context-menu .menu-item {
+    -fx-padding: 3 10 3 10;
+}
+
+.context-menu .menu-item .label {
+    -fx-font-size: 11pt;
 }
 
 .menu-bar {

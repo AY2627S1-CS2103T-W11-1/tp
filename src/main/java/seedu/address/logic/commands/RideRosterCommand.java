@@ -3,6 +3,7 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import seedu.address.commons.core.LogsCenter;
@@ -15,12 +16,19 @@ import seedu.address.model.ride.Ride;
 /**
  * Adds or removes one cyclist from a group ride without changing the cyclist record.
  */
-public class RideRosterCommand extends Command {
+public class RideRosterCommand extends Command implements OverlapAwareCommand {
     public static final String JOIN_COMMAND_WORD = "rideaddcyclist";
+    public static final String JOIN_COMMAND_ALIAS = "rac";
     public static final String LEAVE_COMMAND_WORD = "ridedeletecyclist";
-    public static final String MESSAGE_USAGE = "rideaddcyclist ID PHONE: Adds a cyclist to a ride.\n"
-            + "ridedeletecyclist ID PHONE: Removes a cyclist from a ride.\n"
-            + "Example: rideaddcyclist 1 +65 91234567";
+    public static final String LEAVE_COMMAND_ALIAS = "rdc";
+    public static final String MESSAGE_JOIN_USAGE = JOIN_COMMAND_WORD
+            + " (" + JOIN_COMMAND_ALIAS + ") ID PHONE: Adds a cyclist to a ride.\n"
+            + "Example: " + JOIN_COMMAND_WORD + " 1 +65 91234567\n"
+            + "Overlapping registrations require y/yes to proceed or n/no to cancel.";
+    public static final String MESSAGE_LEAVE_USAGE = LEAVE_COMMAND_WORD
+            + " (" + LEAVE_COMMAND_ALIAS + ") ID PHONE: Removes a cyclist from a ride.\n"
+            + "Example: " + LEAVE_COMMAND_WORD + " 1 +65 91234567";
+    public static final String MESSAGE_USAGE = MESSAGE_JOIN_USAGE + "\n" + MESSAGE_LEAVE_USAGE;
     public static final String MESSAGE_RIDE_NOT_FOUND = "Ride ID cannot be found.";
     public static final String MESSAGE_PERSON_NOT_FOUND = "Cyclist with this phone number cannot be found.";
     public static final String MESSAGE_ALREADY_JOINED = "Cyclist is already on this ride's roster.";
@@ -45,10 +53,36 @@ public class RideRosterCommand extends Command {
 
     @Override
     public CommandResult execute(Model model) throws CommandException {
+        Ride ride = getRide(model);
+        Ride updatedRide = createUpdatedRide(model, ride);
+        model.setRide(ride, updatedRide);
+        logger.fine(() -> "Completed roster " + (isJoining ? "addition" : "removal")
+                + " for ride ID " + rideId + "; roster size: " + updatedRide.getRoster().size() + ".");
+        return new CommandResult(String.format("Cyclist %s %s ride %d.", phone,
+                isJoining ? "added to" : "removed from", rideId));
+    }
+
+    @Override
+    public String getOverlapWarning(Model model) throws CommandException {
+        Ride updatedRide = createUpdatedRide(model, getRide(model));
+        return isJoining ? RideOverlapWarning.describe(updatedRide, List.of(phone),
+                model.getAddressBook().getRideList()) : "";
+    }
+
+    /**
+     * Resolves the stable ride ID independently of the active filter.
+     */
+    private Ride getRide(Model model) throws CommandException {
         requireNonNull(model);
-        Ride ride = model.getAddressBook().getRideList().stream()
+        return model.getAddressBook().getRideList().stream()
                 .filter(candidate -> candidate.getId() == rideId).findFirst()
                 .orElseThrow(() -> new CommandException(MESSAGE_RIDE_NOT_FOUND));
+    }
+
+    /**
+     * Checks eligibility and builds the proposed roster without changing stored data.
+     */
+    private Ride createUpdatedRide(Model model, Ride ride) throws CommandException {
         ArrayList<Phone> roster = new ArrayList<>(ride.getRoster());
         if (isJoining) {
             Person cyclist = model.getAddressBook().getPersonList().stream()
@@ -70,10 +104,6 @@ public class RideRosterCommand extends Command {
         assert roster.contains(phone) == isJoining : "Roster membership must match the requested operation.";
         assert roster.size() == ride.getRoster().size() + (isJoining ? 1 : -1)
                 : "A roster operation must add or remove exactly one cyclist.";
-        model.setRide(ride, ride.withRoster(roster));
-        logger.fine(() -> "Completed roster " + (isJoining ? "addition" : "removal")
-                + " for ride ID " + rideId + "; roster size: " + roster.size() + ".");
-        return new CommandResult(String.format("Cyclist %s %s ride %d.", phone,
-                isJoining ? "added to" : "removed from", rideId));
+        return ride.withRoster(roster);
     }
 }

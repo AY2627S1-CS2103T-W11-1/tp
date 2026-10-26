@@ -77,6 +77,16 @@ public class Ride {
     }
 
     /**
+     * Returns whether this ride and {@code other} share any time.
+     * Adjacent periods and zero-duration rides do not overlap.
+     */
+    public boolean overlaps(Ride other) {
+        requireAllNonNull(other);
+        return from.isBefore(to) && other.from.isBefore(other.to)
+                && from.isBefore(other.to) && other.from.isBefore(to);
+    }
+
+    /**
      * Returns a copy of this ride that has the given {@code newId}.
      */
     public Ride withId(int newId) {

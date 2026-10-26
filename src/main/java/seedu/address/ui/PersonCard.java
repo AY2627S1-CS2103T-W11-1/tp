@@ -49,12 +49,37 @@ public class PersonCard extends UiPart<Region> {
         this.person = person;
         id.setText(displayedIndex + ". ");
         name.setText(person.getName().fullName);
-        phone.setText(person.getPhone().value);
-        emergencyPhone.setText(person.getEmergencyPhone().map(number -> number.value).orElse("Not provided"));
+        phone.setText(formatPhone(person));
+        emergencyPhone.setText(formatEmergencyPhone(person));
         email.setText(person.getEmail().value);
         experienceLevel.setText(person.getExperienceLevel().value);
-        ftp.setText(person.getFtp().value + " W");
+        ftp.setText(formatFtp(person));
         locations.setText(formatLocations(person));
+    }
+
+    /**
+     * Returns the person's phone number as display text, kept on one line so that it is never split between the
+     * country code and the number.
+     */
+    static String formatPhone(Person person) {
+        return DisplayText.keepTogether(person.getPhone().value);
+    }
+
+    /**
+     * Returns the person's emergency phone number as display text (kept on one line), or {@code Not provided} if
+     * the person has none.
+     */
+    static String formatEmergencyPhone(Person person) {
+        return person.getEmergencyPhone()
+                .map(number -> DisplayText.keepTogether(number.value))
+                .orElse("Not provided");
+    }
+
+    /**
+     * Returns the person's FTP in watts as display text, for example {@code 300 W}, kept on one line.
+     */
+    static String formatFtp(Person person) {
+        return DisplayText.keepTogether(person.getFtp().value + " W");
     }
 
     /**
