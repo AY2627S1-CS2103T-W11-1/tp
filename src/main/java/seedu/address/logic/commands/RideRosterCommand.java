@@ -23,11 +23,10 @@ public class RideRosterCommand extends Command implements OverlapAwareCommand {
     public static final String LEAVE_COMMAND_ALIAS = "rdc";
     public static final String MESSAGE_JOIN_USAGE = JOIN_COMMAND_WORD
             + " (" + JOIN_COMMAND_ALIAS + ") ID PHONE: Adds a cyclist to a ride.\n"
-            + "Example: " + JOIN_COMMAND_WORD + " 1 +65 91234567";
+            + "Example: " + JOIN_COMMAND_WORD + " 1 +65 91234567\n"
+            + "Overlapping registrations require y/yes to proceed or n/no to cancel.";
     public static final String MESSAGE_LEAVE_USAGE = LEAVE_COMMAND_WORD
             + " (" + LEAVE_COMMAND_ALIAS + ") ID PHONE: Removes a cyclist from a ride.\n"
-            + "Example: rideaddcyclist 1 +65 91234567\n"
-            + "Overlapping registrations require y/yes to proceed or n/no to cancel.";
             + "Example: " + LEAVE_COMMAND_WORD + " 1 +65 91234567";
     public static final String MESSAGE_USAGE = MESSAGE_JOIN_USAGE + "\n" + MESSAGE_LEAVE_USAGE;
     public static final String MESSAGE_RIDE_NOT_FOUND = "Ride ID cannot be found.";

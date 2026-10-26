@@ -1234,7 +1234,8 @@ Use a separate data directory or back up your data first.
 1. Delete that contact and cancel. Expected: roster unchanged. Delete again and confirm.
    Expected: the prompt explains removal from all rosters; the card says `No cyclists`.
 1. Check Help dropdown and Full help for both commands. Expected: Full help includes both command syntaxes
-   and their matching examples. Create a second ride
+   and their matching examples. Only the addition usage explains overlap confirmation with `y`/`yes` or `n`/`no`.
+   Create a second ride
    with maximum group size 12 and add several eligible cyclists. Resize the window; expected: text wraps and the ride card stays within its column.
 1. Try `ridedeletecyclist` for a cyclist not on the roster. Expected: membership error;
    no contact records or other rides change.

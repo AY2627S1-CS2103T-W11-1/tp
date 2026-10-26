@@ -94,6 +94,10 @@ public class HelpWindowTest {
         assertTrue(HelpWindow.COMMAND_LIST.contains(RideRosterCommand.MESSAGE_LEAVE_USAGE));
         assertTrue(HelpWindow.COMMAND_LIST.contains("Example: rideaddcyclist 1 +65 91234567"));
         assertTrue(HelpWindow.COMMAND_LIST.contains("Example: ridedeletecyclist 1 +65 91234567"));
+        assertTrue(RideRosterCommand.MESSAGE_JOIN_USAGE.contains(
+                "Overlapping registrations require y/yes to proceed or n/no to cancel."));
+        assertFalse(RideRosterCommand.MESSAGE_LEAVE_USAGE.contains("Overlapping registrations"));
+        assertFalse(RideRosterCommand.MESSAGE_LEAVE_USAGE.contains("Example: rideaddcyclist"));
     }
 
     @Test
