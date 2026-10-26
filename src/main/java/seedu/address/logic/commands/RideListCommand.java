@@ -15,9 +15,10 @@ import seedu.address.model.ride.Ride;
 public class RideListCommand extends Command {
 
     public static final String COMMAND_WORD = "ridelist";
+    public static final String COMMAND_ALIAS = "rl";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Lists the cyclists registered for the ride identified by its ride ID.\n"
+            + " (" + COMMAND_ALIAS + "): Lists the cyclists registered for the ride identified by its ride ID.\n"
             + "Parameters: ID (must be a positive integer)\n"
             + "Example: " + COMMAND_WORD + " 101";
 

@@ -15,9 +15,10 @@ import seedu.address.model.ride.Ride;
 public class RideDeleteCommand extends Command {
 
     public static final String COMMAND_WORD = "ridedelete";
+    public static final String COMMAND_ALIAS = "rd";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Deletes the group ride identified by its ride ID.\n"
+            + " (" + COMMAND_ALIAS + "): Deletes the group ride identified by its ride ID.\n"
             + "Parameters: ID (must be a positive integer)\n"
             + "Example: " + COMMAND_WORD + " 101";
 

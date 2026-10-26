@@ -68,6 +68,17 @@ public class CommandTemplatesTest {
     }
 
     @Test
+    public void rideTemplates_displayAliasesButInsertFullCommandNames() {
+        for (String[] pair : new String[][] {{"rideadd", "ra"}, {"rideedit", "re"}, {"ridedelete", "rd"},
+            {"ridefind", "rf"}, {"ridelist", "rl"}, {"rideaddcyclist", "rac"}, {"ridedeletecyclist", "rdc"}}) {
+            CommandTemplates.Template template = templateFor(pair[0]);
+            assertTrue(template.display().startsWith(pair[0] + " (" + pair[1] + ") "));
+            assertEquals(pair[0], template.insertText().trim().split(" ")[0]);
+            assertFalse(template.insertText().contains("("));
+        }
+    }
+
+    @Test
     public void findTemplate_listsAllSearchFields() {
         String display = CommandTemplates.ALL.stream()
                 .filter(template -> template.insertText().trim().startsWith(FindCommand.COMMAND_WORD))
@@ -82,7 +93,7 @@ public class CommandTemplatesTest {
     public void rideFindTemplate_listsAllShortcut() {
         String display = templateFor(RideFindCommand.COMMAND_WORD).display();
 
-        assertTrue(display.contains("ridefind all"));
+        assertTrue(display.contains("ridefind (rf) all"));
     }
 
     @Test
@@ -109,7 +120,7 @@ public class CommandTemplatesTest {
     public void rideAddTemplate_displayShowsCompulsoryPrefixesAndNotesAsOptional() {
         String display = templateFor(RideAddCommand.COMMAND_WORD).display();
 
-        assertEquals("rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MIN_POWER s/MAX_GROUP_SIZE"
+        assertEquals("rideadd (ra) n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MIN_POWER s/MAX_GROUP_SIZE"
                 + " [notes/NOTES]", display);
         for (Object prefix : new Object[] {PREFIX_NAME, PREFIX_FROM, PREFIX_TO, PREFIX_LOCATION, PREFIX_DISTANCE,
             PREFIX_FTP, PREFIX_GROUP_SIZE}) {
@@ -142,7 +153,7 @@ public class CommandTemplatesTest {
     public void rideEditTemplate_displayListsEveryEditableFieldAsOptional() {
         String display = templateFor(RideEditCommand.COMMAND_WORD).display();
 
-        assertEquals("rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER]"
+        assertEquals("rideedit (re) ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER]"
                 + " [s/MAX_GROUP_SIZE] [notes/NOTES]", display);
         for (Object prefix : new Object[] {PREFIX_NAME, PREFIX_FROM, PREFIX_TO, PREFIX_LOCATION, PREFIX_DISTANCE,
             PREFIX_FTP, PREFIX_GROUP_SIZE, PREFIX_NOTES}) {
@@ -177,7 +188,7 @@ public class CommandTemplatesTest {
                 .map(commandTemplate -> commandTemplate.insertText().trim().split(" ")[0])
                 .toList();
 
-        assertEquals("ridedelete ID", template.display());
+        assertEquals("ridedelete (rd) ID", template.display());
         assertEquals("ridedelete ", template.insertText());
         assertEquals(commandWords.indexOf(RideEditCommand.COMMAND_WORD) + 1,
                 commandWords.indexOf(RideDeleteCommand.COMMAND_WORD));
@@ -187,8 +198,8 @@ public class CommandTemplatesTest {
 
     @Test
     public void rosterTemplates_showPositionalArguments() {
-        assertEquals("rideaddcyclist ID PHONE", templateFor(RideRosterCommand.JOIN_COMMAND_WORD).display());
-        assertEquals("ridedeletecyclist ID PHONE", templateFor(RideRosterCommand.LEAVE_COMMAND_WORD).display());
+        assertEquals("rideaddcyclist (rac) ID PHONE", templateFor(RideRosterCommand.JOIN_COMMAND_WORD).display());
+        assertEquals("ridedeletecyclist (rdc) ID PHONE", templateFor(RideRosterCommand.LEAVE_COMMAND_WORD).display());
     }
 
     @Test
@@ -204,7 +215,7 @@ public class CommandTemplatesTest {
                 .filter(candidate -> candidate.insertText().trim().equals(RideListCommand.COMMAND_WORD))
                 .count();
 
-        assertEquals("ridelist ID", template.display());
+        assertEquals("ridelist (rl) ID", template.display());
         assertEquals("ridelist ", template.insertText());
         assertEquals(1, occurrences);
     }

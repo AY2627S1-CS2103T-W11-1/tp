@@ -68,6 +68,26 @@ Cyclists are displayed alphabetically by their full name, ignoring letter case, 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </div>
 
+### Short forms for ride commands
+
+Use these aliases with exactly the same arguments as the full command names. Commands and aliases are case-sensitive.
+
+| Command | Alias |
+| --- | --- |
+| `rideadd` | `ra` |
+| `rideedit` | `re` |
+| `ridedelete` | `rd` |
+| `ridefind` | `rf` |
+| `ridelist` | `rl` |
+| `rideaddcyclist` | `rac` |
+| `ridedeletecyclist` | `rdc` |
+
+For example, `re 1 notes/Bring lights` edits ride 1 and `rf all` shows all rides.
+The Help menu and Full help window show each alias in parentheses beside its full command name,
+for example `rideadd (ra)`. Selecting a Help menu entry inserts the full command name; do not type the parentheses.
+Entering an alias while a cyclist deletion confirmation is pending cancels that request,
+then processes the alias normally, even if its arguments are invalid.
+
 ### Viewing help: `help`
 
 Cyclique gives you help in two places: the **Help** menu in the menu bar, and the **Full help** window.
