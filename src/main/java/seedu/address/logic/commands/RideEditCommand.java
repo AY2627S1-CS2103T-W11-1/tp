@@ -49,7 +49,7 @@ public class RideEditCommand extends Command implements OverlapAwareCommand {
             + "[" + PREFIX_TO + "END] "
             + "[" + PREFIX_LOCATION + "LOCATION] "
             + "[" + PREFIX_DISTANCE + "DISTANCE] "
-            + "[" + PREFIX_FTP + "MINIMUM_POWER] "
+            + "[" + PREFIX_FTP + "MIN_POWER] "
             + "[" + PREFIX_GROUP_SIZE + "MAX_GROUP_SIZE] "
             + "[" + PREFIX_NOTES + "NOTES]\n"
             + "START and END are written as DD-MM-YYYY TTTT (time on a 24-hour clock, 0000 to 2359), "

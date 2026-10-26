@@ -28,7 +28,7 @@ public class ListPanelTest {
     public void rideList_emptyAndUpdatedList_usesPlaceholderAndLiveItems() throws Exception {
         runOnJavaFxThread(() -> {
             var rides = FXCollections.<Ride>observableArrayList();
-            RideListPanel panel = new RideListPanel(rides);
+            RideListPanel panel = new RideListPanel(rides, rides);
             ListView<?> view = (ListView<?>) panel.getRoot().lookup("#rideListView");
             assertSame(rides, view.getItems());
             Label placeholder = assertInstanceOf(Label.class, view.getPlaceholder());
@@ -45,7 +45,8 @@ public class ListPanelTest {
     @Test
     public void rideCell_reusedForChangedOrEmptyRide_replacesAndClearsCard() throws Exception {
         runOnJavaFxThread(() -> {
-            RideListPanel panel = new RideListPanel(FXCollections.observableArrayList());
+            RideListPanel panel = new RideListPanel(
+                    FXCollections.observableArrayList(), FXCollections.observableArrayList());
             ListView<?> view = (ListView<?>) panel.getRoot().lookup("#rideListView");
             var cell = assertInstanceOf(RideListPanel.RideListViewCell.class, view.getCellFactory().call(null));
             cell.updateItem(new RideBuilder().withId(1).withName("Ride A").build(), false);

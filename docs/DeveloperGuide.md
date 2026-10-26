@@ -97,7 +97,7 @@ Each panel is given an `ObservableList` by `MainWindow` and builds one card for 
 The two panels are filtered independently of each other:
 
 * `find`, `list` and `ridelist ID` change only the cyclist panel. In particular, `ridelist ID` shows the cyclists registered for that ride in the cyclist panel; it does not change the ride panel.
-* `ridefind` changes only the ride panel, and `ridefind all` shows every ride again.
+* `ridefind` changes only the ride panel, and `ridefind all` shows every ride again. When the filter hides every ride, `RideListPanel` shows `No rides match the current filter. Use ridefind all to show all rides.` instead of `No rides yet. Use rideadd to create one.`. It tells the two cases apart using the unfiltered list from `Logic#getRideList()`.
 
 #### Help menu templates
 
@@ -952,6 +952,8 @@ Use a disposable book with John and Alice from the adding/editing scenario.
 1. Try `delete +65 99999999`, `delete`, `delete 1`, `delete +65 12`, and `delete x`.
    Expected: An error appears and no contact is deleted.
 1. Enter `clear` twice. Expected: The list remains empty and each command succeeds.
+1. Add a cyclist, then enter `clear 1` and `clear n/Alex`. Expected: Each is rejected with `Invalid command format.`
+   and the `clear` usage, and the cyclist and any rides remain. Then enter `clear`. Expected: Everything is deleted.
 
 ### Alphabetical display regression
 
@@ -1274,6 +1276,7 @@ Use disposable cyclist and ride data. Record the original details before applyin
    bounds appear. Date-only `from/` and `to/` use `0000` and `2359` respectively.
 1. Enter `ridefind l/Tampines f/200`. Expected: only rides matching both the location and minimum-power criteria
    appear; a ride with a lower minimum power is excluded.
+1. Enter `ridefind n/No Such Ride`. Expected: The result box shows `0 ride(s) listed!` and the Rides panel shows `No rides match the current filter. Use ridefind all to show all rides.`, not the `No rides yet` message.
 1. Enter `ridefind all`. Expected: every saved ride appears again, including rides hidden by the earlier filters.
 1. Try `ridefind`, `ridefind from/invalid`, `ridefind from/19-10-2026 to/18-10-2026`, duplicate prefixes,
    and a distance, minimum power or group size outside its constraints. Expected: each invalid command shows an

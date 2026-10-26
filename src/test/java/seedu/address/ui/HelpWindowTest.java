@@ -1,5 +1,6 @@
 package seedu.address.ui;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -21,6 +22,13 @@ import seedu.address.logic.commands.RideListCommand;
 import seedu.address.logic.commands.RideRosterCommand;
 
 public class HelpWindowTest {
+
+    @Test
+    public void userGuideUrl_pointsToCycliqueUserGuide() {
+        assertEquals("https://ay2627s1-cs2103t-w11-1.github.io/tp/UserGuide.html", HelpWindow.USERGUIDE_URL);
+        assertFalse(HelpWindow.USERGUIDE_URL.contains("addressbook-level3"));
+        assertTrue(HelpWindow.HELP_MESSAGE.endsWith(HelpWindow.USERGUIDE_URL));
+    }
 
     @Test
     public void commandList_rosterCommands_includesFormatsAndExample() {
@@ -81,11 +89,20 @@ public class HelpWindowTest {
     }
 
     @Test
+    public void commandList_clearUsage_warnsItDeletesRidesAndTakesNoParameters() {
+        assertTrue(ClearCommand.MESSAGE_USAGE.contains("every cyclist and every ride"));
+        assertTrue(ClearCommand.MESSAGE_USAGE.contains("Takes no parameters"));
+        assertTrue(ClearCommand.MESSAGE_USAGE.contains("does not ask for confirmation"));
+        assertFalse(HelpWindow.COMMAND_LIST.contains("Clears all entries"));
+    }
+
+    @Test
     public void commandList_reusesCommandUsageMessages() {
         assertTrue(HelpWindow.COMMAND_LIST.contains(AddCommand.MESSAGE_USAGE));
         assertTrue(HelpWindow.COMMAND_LIST.contains(EditCommand.MESSAGE_USAGE));
         assertTrue(HelpWindow.COMMAND_LIST.contains(DeleteCommand.MESSAGE_USAGE));
         assertTrue(HelpWindow.COMMAND_LIST.contains(FindCommand.MESSAGE_USAGE));
+        assertTrue(HelpWindow.COMMAND_LIST.contains(ClearCommand.MESSAGE_USAGE));
         assertTrue(HelpWindow.COMMAND_LIST.contains(RideAddCommand.MESSAGE_USAGE));
         assertTrue(HelpWindow.COMMAND_LIST.contains(RideEditCommand.MESSAGE_USAGE));
         assertTrue(HelpWindow.COMMAND_LIST.contains(RideDeleteCommand.MESSAGE_USAGE));
@@ -98,6 +115,29 @@ public class HelpWindowTest {
         assertTrue(HelpWindow.COMMAND_LIST.contains("rideadd (ra): Adds a group ride."));
         assertTrue(HelpWindow.COMMAND_LIST.contains("DD-MM-YYYY TTTT"));
         assertTrue(HelpWindow.COMMAND_LIST.contains("Example: rideadd n/Sunday Sunrise Ride"));
+    }
+
+    @Test
+    public void rideCommands_nameMinimumPowerMinPower_everywhereHelpIsShown() {
+        // The User Guide calls this parameter MIN_POWER for rideadd, rideedit and ridefind.
+        // Full help (the command usage messages)
+        assertTrue(RideAddCommand.MESSAGE_USAGE.contains("f/MIN_POWER s/MAX_GROUP_SIZE"));
+        assertTrue(RideAddCommand.MESSAGE_USAGE.contains("MIN_POWER is in watts"));
+        assertTrue(RideEditCommand.MESSAGE_USAGE.contains("[f/MIN_POWER] [s/MAX_GROUP_SIZE]"));
+        assertTrue(RideFindCommand.MESSAGE_USAGE.contains("[f/MIN_POWER] [s/MAX_GROUP_SIZE]"));
+        // Help menu
+        for (String commandWord : new String[] {RideAddCommand.COMMAND_WORD, RideEditCommand.COMMAND_WORD,
+            RideFindCommand.COMMAND_WORD}) {
+            String menuEntry = CommandTemplates.ALL.stream()
+                    .filter(template -> template.insertText().trim().split(" ")[0].equals(commandWord))
+                    .findFirst().orElseThrow().display();
+            assertTrue(menuEntry.contains("f/MIN_POWER"), menuEntry);
+        }
+        // the old long name must not come back anywhere help is shown
+        assertFalse(HelpWindow.COMMAND_LIST.contains("MINIMUM_POWER"));
+        for (CommandTemplates.Template template : CommandTemplates.ALL) {
+            assertFalse(template.display().contains("MINIMUM_POWER"), template.display());
+        }
     }
 
     @Test
@@ -159,5 +199,26 @@ public class HelpWindowTest {
         assertTrue(HelpWindow.COMMAND_LIST.contains("Example: ridelist 101"));
         assertFalse(HelpWindow.COMMAND_LIST.contains("Run ridelist again after roster changes"));
         assertFalse(RideListCommand.MESSAGE_USAGE.contains("[ID]"));
+    }
+
+    @Test
+    public void addAndEditFormats_useSameParameterNamesAsTheUserGuide_everywhereHelpIsShown() {
+        // The User Guide calls these parameters FTP_LEVEL and EXPERIENCE_LEVEL for both add and edit.
+        String addMenu = CommandTemplates.ALL.get(0).display();
+        String editMenu = CommandTemplates.ALL.get(1).display();
+
+        // Full help (the command usage messages)
+        assertTrue(AddCommand.MESSAGE_USAGE.contains("f/FTP_LEVEL x/EXPERIENCE_LEVEL"));
+        assertTrue(EditCommand.MESSAGE_USAGE.contains("[f/FTP_LEVEL] [x/EXPERIENCE_LEVEL]"));
+        assertTrue(AddCommand.MESSAGE_MISSING_FTP.endsWith("f/FTP_LEVEL."));
+        // Help menu
+        assertTrue(addMenu.contains("f/FTP_LEVEL x/EXPERIENCE_LEVEL"));
+        assertTrue(editMenu.contains("[f/FTP_LEVEL] [x/EXPERIENCE_LEVEL]"));
+        // the old short names must not come back in either place
+        for (String text : new String[] {AddCommand.MESSAGE_USAGE, EditCommand.MESSAGE_USAGE, addMenu, editMenu}) {
+            assertFalse(text.contains("f/FTP "), text);
+            assertFalse(text.contains("[f/FTP]"), text);
+            assertFalse(text.contains("[x/EXPERIENCE]"), text);
+        }
     }
 }

@@ -50,7 +50,7 @@ public class CommandTemplates {
             new Template(
                     AddCommand.COMMAND_WORD + " " + PREFIX_NAME + "NAME " + PREFIX_PHONE + "PHONE "
                             + PREFIX_EMERGENCY_PHONE + "EMERGENCY_PHONE "
-                            + PREFIX_EMAIL + "EMAIL " + PREFIX_FTP + "FTP " + PREFIX_EXPERIENCE_LEVEL
+                            + PREFIX_EMAIL + "EMAIL " + PREFIX_FTP + "FTP_LEVEL " + PREFIX_EXPERIENCE_LEVEL
                             + "EXPERIENCE_LEVEL " + PREFIX_LOCATION + "LOCATION [" + PREFIX_LOCATION + "LOCATION]...",
                     AddCommand.COMMAND_WORD + " " + PREFIX_NAME + " " + PREFIX_PHONE + " "
                             + PREFIX_EMERGENCY_PHONE + " " + PREFIX_EMAIL + " "
@@ -58,7 +58,7 @@ public class CommandTemplates {
             new Template(
                     EditCommand.COMMAND_WORD + " PHONE [" + PREFIX_NAME + "NAME] [" + PREFIX_PHONE + "PHONE] ["
                             + PREFIX_EMERGENCY_PHONE + "EMERGENCY_PHONE] ["
-                            + PREFIX_EMAIL + "EMAIL] [" + PREFIX_FTP + "FTP] [" + PREFIX_EXPERIENCE_LEVEL
+                            + PREFIX_EMAIL + "EMAIL] [" + PREFIX_FTP + "FTP_LEVEL] [" + PREFIX_EXPERIENCE_LEVEL
                             + "EXPERIENCE_LEVEL] [" + PREFIX_LOCATION + "LOCATION]...",
                     EditCommand.COMMAND_WORD + " "),
             new Template(
@@ -98,7 +98,7 @@ public class CommandTemplates {
             new Template(RideFindCommand.COMMAND_WORD + " (" + RideFindCommand.COMMAND_ALIAS + ") all OR "
                     + RideFindCommand.COMMAND_WORD
                     + " [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] "
-                    + "[l/LOCATION] [d/DISTANCE] [f/MINIMUM_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]",
+                    + "[l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]",
                     RideFindCommand.COMMAND_WORD + " "),
             new Template(ListCommand.COMMAND_WORD, ListCommand.COMMAND_WORD),
             new Template(ClearCommand.COMMAND_WORD, ClearCommand.COMMAND_WORD),
