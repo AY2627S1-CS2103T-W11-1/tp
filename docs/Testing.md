@@ -37,6 +37,10 @@ This project has three types of tests:
 
 ## Release checks
 
+`NameTest` and `UnicodeNameIntegrationTest` cover accented and non-Latin names, combining marks,
+Unicode digits, cyclist/ride add and edit commands, JSON readback and invalid-name rejection without changes.
+Run **Unicode name regression** in the Developer Guide after changing name validation.
+
 `EmailTest` and `EmailValidationIntegrationTest` cover consecutive local-part special characters,
 add/edit acceptance and JSON readback, and rejected emails without saved-data changes.
 Run **Email local-part regression** in the Developer Guide after changing email validation.
