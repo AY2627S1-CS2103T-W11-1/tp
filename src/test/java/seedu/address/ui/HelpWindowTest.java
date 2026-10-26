@@ -177,4 +177,25 @@ public class HelpWindowTest {
         assertFalse(HelpWindow.COMMAND_LIST.contains("Run ridelist again after roster changes"));
         assertFalse(RideListCommand.MESSAGE_USAGE.contains("[ID]"));
     }
+
+    @Test
+    public void addAndEditFormats_useSameParameterNamesAsTheUserGuide_everywhereHelpIsShown() {
+        // The User Guide calls these parameters FTP_LEVEL and EXPERIENCE_LEVEL for both add and edit.
+        String addMenu = CommandTemplates.ALL.get(0).display();
+        String editMenu = CommandTemplates.ALL.get(1).display();
+
+        // Full help (the command usage messages)
+        assertTrue(AddCommand.MESSAGE_USAGE.contains("f/FTP_LEVEL x/EXPERIENCE_LEVEL"));
+        assertTrue(EditCommand.MESSAGE_USAGE.contains("[f/FTP_LEVEL] [x/EXPERIENCE_LEVEL]"));
+        assertTrue(AddCommand.MESSAGE_MISSING_FTP.endsWith("f/FTP_LEVEL."));
+        // Help menu
+        assertTrue(addMenu.contains("f/FTP_LEVEL x/EXPERIENCE_LEVEL"));
+        assertTrue(editMenu.contains("[f/FTP_LEVEL] [x/EXPERIENCE_LEVEL]"));
+        // the old short names must not come back in either place
+        for (String text : new String[] {AddCommand.MESSAGE_USAGE, EditCommand.MESSAGE_USAGE, addMenu, editMenu}) {
+            assertFalse(text.contains("f/FTP "), text);
+            assertFalse(text.contains("[f/FTP]"), text);
+            assertFalse(text.contains("[x/EXPERIENCE]"), text);
+        }
+    }
 }

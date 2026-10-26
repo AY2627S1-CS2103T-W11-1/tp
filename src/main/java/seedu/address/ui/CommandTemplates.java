@@ -50,7 +50,7 @@ public class CommandTemplates {
             new Template(
                     AddCommand.COMMAND_WORD + " " + PREFIX_NAME + "NAME " + PREFIX_PHONE + "PHONE "
                             + PREFIX_EMERGENCY_PHONE + "EMERGENCY_PHONE "
-                            + PREFIX_EMAIL + "EMAIL " + PREFIX_FTP + "FTP " + PREFIX_EXPERIENCE_LEVEL
+                            + PREFIX_EMAIL + "EMAIL " + PREFIX_FTP + "FTP_LEVEL " + PREFIX_EXPERIENCE_LEVEL
                             + "EXPERIENCE_LEVEL " + PREFIX_LOCATION + "LOCATION [" + PREFIX_LOCATION + "LOCATION]...",
                     AddCommand.COMMAND_WORD + " " + PREFIX_NAME + " " + PREFIX_PHONE + " "
                             + PREFIX_EMERGENCY_PHONE + " " + PREFIX_EMAIL + " "
@@ -58,7 +58,7 @@ public class CommandTemplates {
             new Template(
                     EditCommand.COMMAND_WORD + " PHONE [" + PREFIX_NAME + "NAME] [" + PREFIX_PHONE + "PHONE] ["
                             + PREFIX_EMERGENCY_PHONE + "EMERGENCY_PHONE] ["
-                            + PREFIX_EMAIL + "EMAIL] [" + PREFIX_FTP + "FTP] [" + PREFIX_EXPERIENCE_LEVEL
+                            + PREFIX_EMAIL + "EMAIL] [" + PREFIX_FTP + "FTP_LEVEL] [" + PREFIX_EXPERIENCE_LEVEL
                             + "EXPERIENCE_LEVEL] [" + PREFIX_LOCATION + "LOCATION]...",
                     EditCommand.COMMAND_WORD + " "),
             new Template(
