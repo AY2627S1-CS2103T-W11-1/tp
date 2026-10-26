@@ -169,6 +169,7 @@ Updates an existing cyclist's contact details or cycling profile.
 Format: `edit PHONE [n/NAME] [p/PHONE] [sos/EMERGENCY_PHONE] [e/EMAIL] [f/FTP_LEVEL] [x/EXPERIENCE_LEVEL] [l/LOCATION]…`
 
 * The unprefixed `PHONE` identifies the cyclist to edit. It must match exactly one cyclist in the **displayed list**. Use `list` first if a filter hides the cyclist. Card indexes cannot be used as the target.
+* Include `+`, the country code and one space in the target phone number, for example `+65 91234567`. A malformed target reports the specific phone-validation error; omitting the target reports the command usage.
 * `p/PHONE`, if supplied, is the cyclist's **replacement** phone number. For example, `edit +65 98765432 p/+65 91111111` targets the old number and replaces it with the new number.
 * Supply at least one optional field. Otherwise, Cyclique reports `At least one field to edit must be provided.`
 * Supplied fields follow the [Add field rules](#adding-a-cyclist-add). Only `l/` may be repeated. Phone numbers and email addresses must remain unique across all cyclists, including hidden records; email comparisons ignore case. Keeping the cyclist's own current phone or email is allowed.
@@ -252,6 +253,7 @@ Deletes a cyclist only after you check their details and confirm in the command 
 Format: `delete PHONE`, then enter a separate confirmation or cancellation reply.
 
 * Use the cyclist's own complete phone number, including country code and exactly one space, for example `+65 98765432`. The country code contains 1–3 digits; the number after the space contains at least 3 digits. Do not use a card index or the `p/` prefix.
+* A malformed target reports the specific phone-validation error; omitting the target reports the command usage.
 * The number must identify exactly one cyclist in the **displayed list**. A cyclist hidden by a filter cannot be deleted; use `list` to show all cyclists first. Multiple displayed matches are rejected.
 * The result panel shows `Delete this cyclist?` followed by the target's details, including their emergency number, and warns `This also removes them from all ride rosters.` No cyclist, roster or saved data changes at this stage.
 * Enter `y` or `yes` to confirm, or `n` or `no` to cancel. Replies ignore letter case and surrounding spaces, so `YeS` and ` NO ` are accepted.

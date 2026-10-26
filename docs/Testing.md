@@ -37,6 +37,11 @@ This project has three types of tests:
 
 ## Release checks
 
+`EditCommandParserTest`, `DeleteCommandParserTest` and `PhoneValidationIntegrationTest` verify specific
+phone errors for malformed edit/delete targets, usage for missing targets, and consistency with add/find.
+Integration checks preserve cyclist records, ride rosters, the active filter and saved JSON on rejection.
+Run **Phone target error regression** in the Developer Guide after changing target-phone parsing.
+
 `NameTest` and `UnicodeNameIntegrationTest` cover accented and non-Latin names, combining marks,
 Unicode digits, cyclist/ride add and edit commands, JSON readback and invalid-name rejection without changes.
 Run **Unicode name regression** in the Developer Guide after changing name validation.
@@ -49,6 +54,12 @@ Select JDK 25 and verify it with `java -version` before running `./gradlew check
 This runs JUnit, checks production and test code with Checkstyle, generates coverage, and builds the release JAR.
 Review `build/reports/tests/test/index.html` and `build/reports/jacoco/coverage/html/index.html`.
 The coverage report does not enforce the 50% target automatically; check the measured coverage explicitly.
+
+Gradle selects JavaFX native libraries for the operating system and architecture of its JVM:
+ARM64 or x64 on macOS/Linux, and x64 on Windows. Use a JDK matching your machine's architecture.
+The `shadowJar` output targets that platform; build a separate JAR on each target platform for distribution.
+After changing this selection, run `./gradlew run` and check that the main window opens without native-library
+errors. The CI matrix checks the build on Windows, macOS and Linux; other architectures need separate checks.
 
 `ReleaseCommandIntegrationTest` covers command sequences through parsing, the model, filtering and JSON storage.
 It checks cyclist data without retired fields, repeated locations, edit replacement and preservation of fields,

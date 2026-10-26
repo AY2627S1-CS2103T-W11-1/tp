@@ -101,8 +101,12 @@ public class EditCommandParserTest {
 
     @Test
     public void parse_missingParts_failure() {
-        // no target phone specified
-        assertParseFailure(parser, VALID_NAME_AMY, MESSAGE_INVALID_FORMAT);
+        // name supplied instead of a target phone
+        assertParseFailure(parser, VALID_NAME_AMY, Phone.MESSAGE_MISSING_COUNTRY_CODE);
+
+        // field supplied without a target phone
+        assertParseFailure(parser, NAME_DESC_AMY, MESSAGE_INVALID_FORMAT);
+        assertParseFailure(parser, " \t\n", MESSAGE_INVALID_FORMAT);
 
         // no field specified
         assertParseFailure(parser, TARGET_PHONE.toString(), EditCommand.MESSAGE_NOT_EDITED);
@@ -114,22 +118,29 @@ public class EditCommandParserTest {
     @Test
     public void parse_invalidPreamble_failure() {
         // non-numeric phone
-        assertParseFailure(parser, "-5" + NAME_DESC_AMY, MESSAGE_INVALID_FORMAT);
+        assertParseFailure(parser, "-5" + NAME_DESC_AMY, Phone.MESSAGE_MISSING_COUNTRY_CODE);
 
         // phone that is too short
-        assertParseFailure(parser, "12" + NAME_DESC_AMY, MESSAGE_INVALID_FORMAT);
+        assertParseFailure(parser, "12" + NAME_DESC_AMY, Phone.MESSAGE_MISSING_COUNTRY_CODE);
 
         // old phone format without a country code
-        assertParseFailure(parser, "91234567" + NAME_DESC_AMY, MESSAGE_INVALID_FORMAT);
+        assertParseFailure(parser, "91234567" + NAME_DESC_AMY, Phone.MESSAGE_MISSING_COUNTRY_CODE);
 
         // malformed international phone
-        assertParseFailure(parser, "+65 abc" + NAME_DESC_AMY, MESSAGE_INVALID_FORMAT);
+        assertParseFailure(parser, "+65 abc" + NAME_DESC_AMY, Phone.MESSAGE_CONSTRAINTS);
 
         // invalid arguments being parsed as preamble
-        assertParseFailure(parser, TARGET_PHONE + " some random string", MESSAGE_INVALID_FORMAT);
+        assertParseFailure(parser, TARGET_PHONE + " some random string", Phone.MESSAGE_CONSTRAINTS);
 
         // invalid prefix being parsed as preamble
-        assertParseFailure(parser, TARGET_PHONE + " i/ string", MESSAGE_INVALID_FORMAT);
+        assertParseFailure(parser, TARGET_PHONE + " i/ string", Phone.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
+    public void parse_malformedPhoneSeparators_failure() {
+        assertParseFailure(parser, "+6591234567" + NAME_DESC_AMY, Phone.MESSAGE_MISSING_SEPARATOR);
+        assertParseFailure(parser, "+65  91234567" + NAME_DESC_AMY, Phone.MESSAGE_MULTIPLE_SEPARATORS);
+        assertParseFailure(parser, "+65 12" + NAME_DESC_AMY, Phone.MESSAGE_CONSTRAINTS);
     }
 
     @Test
