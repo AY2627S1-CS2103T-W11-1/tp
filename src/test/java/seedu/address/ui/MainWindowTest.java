@@ -1,7 +1,6 @@
 package seedu.address.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
@@ -10,11 +9,12 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import javafx.scene.Group;
+import javafx.scene.Scene;
 import javafx.scene.control.CustomMenuItem;
+import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 import seedu.address.logic.Logic;
 import seedu.address.logic.LogicManager;
@@ -35,32 +35,28 @@ public class MainWindowTest {
     }
 
     @Test
-    public void helpMenuText_everyCommand_hasBoldCommandWordThenTheRestOfTheFormat() throws Exception {
+    public void helpMenuLabel_everyCommand_showsTheWholeFormatAndWraps() throws Exception {
         JavaFxToolkit.call(() -> {
             for (CommandTemplates.Template template : CommandTemplates.ALL) {
-                TextFlow text = MainWindow.helpMenuText(template, 1000);
+                Label label = MainWindow.helpMenuLabel(template, 1000);
 
-                assertEquals(2, text.getChildren().size());
-                Text commandWord = (Text) text.getChildren().get(0);
-                Text format = (Text) text.getChildren().get(1);
-                assertEquals(template.commandWord(), commandWord.getText());
-                assertTrue(commandWord.getStyleClass().contains("help-menu-command"));
-                assertFalse(format.getStyleClass().contains("help-menu-command"));
+                assertTrue(label.isWrapText());
+                assertEquals(1000, label.getMaxWidth(), 0.001);
                 // the format only differs from the displayed text in that spaces inside brackets cannot break
-                assertEquals(template.display(), (commandWord.getText() + format.getText()).replace('\u00A0', ' '));
+                assertEquals(template.display(), label.getText().replace('\u00A0', ' '));
             }
             return null;
         });
     }
 
     @Test
-    public void helpMenuText_longFormat_wrapsInsteadOfGrowingPastTheMaximumWidth() throws Exception {
+    public void helpMenuLabel_longFormat_wrapsInsteadOfGrowingPastTheMaximumWidth() throws Exception {
         CommandTemplates.Template rideEdit = CommandTemplates.ALL.stream()
-                .filter(template -> template.commandWord().equals("rideedit")).findFirst().orElseThrow();
+                .filter(template -> template.display().startsWith("rideedit")).findFirst().orElseThrow();
 
         JavaFxToolkit.call(() -> {
-            TextFlow wide = MainWindow.helpMenuText(rideEdit, 5000);
-            TextFlow narrow = MainWindow.helpMenuText(rideEdit, 300);
+            Label wide = inScene(MainWindow.helpMenuLabel(rideEdit, 5000));
+            Label narrow = inScene(MainWindow.helpMenuLabel(rideEdit, 300));
 
             assertTrue(narrow.prefWidth(-1) <= 300);
             assertTrue(wide.prefWidth(-1) > 300);
@@ -106,13 +102,19 @@ public class MainWindowTest {
             Menu helpMenu = menuBar.getMenus().stream()
                     .filter(menu -> menu.getText().equals("Help")).findFirst().orElseThrow();
             helpMenu.show();
-            double maxWidth = ((CustomMenuItem) helpMenu.getItems().get(0)).getContent() instanceof TextFlow text
-                    ? text.getMaxWidth() : Double.NaN;
+            double maxWidth = ((Label) ((CustomMenuItem) helpMenu.getItems().get(0)).getContent()).getMaxWidth();
             helpMenu.hide();
             return maxWidth;
         } finally {
             stage.hide();
         }
+    }
+
+    /** Puts {@code label} in a scene, so that it is styled and can report its preferred size. */
+    private static Label inScene(Label label) {
+        new Scene(new Group(label));
+        label.applyCss();
+        return label;
     }
 
     private Logic createLogic() {

@@ -9,6 +9,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.CustomMenuItem;
+import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuButton;
@@ -18,8 +19,6 @@ import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import seedu.address.commons.core.GuiSettings;
@@ -36,8 +35,6 @@ import seedu.address.logic.parser.exceptions.ParseException;
 public class MainWindow extends UiPart<Stage> {
 
     private static final String FXML = "MainWindow.fxml";
-    private static final String HELP_MENU_TEXT_STYLE_CLASS = "help-menu-text";
-    private static final String HELP_MENU_COMMAND_STYLE_CLASS = "help-menu-command";
     private static final Duration CLOSING_SCREEN_DURATION = Duration.seconds(1.5);
 
     /** The narrowest a Help menu item may be made, so that it stays readable in a very narrow window. */
@@ -185,7 +182,7 @@ public class MainWindow extends UiPart<Stage> {
 
         List<MenuItem> commandItems = new ArrayList<>();
         for (CommandTemplates.Template template : CommandTemplates.ALL) {
-            CustomMenuItem commandItem = new CustomMenuItem(helpMenuText(template, labelWidth));
+            CustomMenuItem commandItem = new CustomMenuItem(helpMenuLabel(template, labelWidth));
             commandItem.setOnAction(event -> commandBox.setCommandText(template.insertText()));
             commandItems.add(commandItem);
         }
@@ -209,20 +206,14 @@ public class MainWindow extends UiPart<Stage> {
     }
 
     /**
-     * Returns the text of a Help menu item: the command word of {@code template} in bold, followed by the rest of
-     * its format. The text wraps, unlike plain menu text, so it can be made at most {@code maxWidth} wide to fit
-     * the window.
+     * Returns the label of a Help menu item showing the format of {@code template}. The label wraps, unlike plain
+     * menu text, so it can be made at most {@code maxWidth} wide to fit the window.
      */
-    static TextFlow helpMenuText(CommandTemplates.Template template, double maxWidth) {
-        Text commandWord = new Text(template.commandWord());
-        commandWord.getStyleClass().addAll(HELP_MENU_TEXT_STYLE_CLASS, HELP_MENU_COMMAND_STYLE_CLASS);
-        Text format = new Text(CommandTemplates.keepOptionalGroupsTogether(
-                template.display().substring(template.commandWord().length())));
-        format.getStyleClass().add(HELP_MENU_TEXT_STYLE_CLASS);
-
-        TextFlow text = new BoundedTextFlow(commandWord, format);
-        text.setMaxWidth(maxWidth);
-        return text;
+    static Label helpMenuLabel(CommandTemplates.Template template, double maxWidth) {
+        Label label = new BoundedLabel(CommandTemplates.keepOptionalGroupsTogether(template.display()));
+        label.setWrapText(true);
+        label.setMaxWidth(maxWidth);
+        return label;
     }
 
     /**
@@ -314,13 +305,13 @@ public class MainWindow extends UiPart<Stage> {
     }
 
     /**
-     * Text whose preferred width is its text width, but never more than its maximum width. A menu sizes its
-     * items by their preferred width and ignores their maximum width, so without this a long format would make
+     * A label whose preferred width is its text width, but never more than its maximum width. A menu sizes its
+     * items by their preferred width and ignores their maximum width, so without this a long label would make
      * the menu wider than the window instead of wrapping.
      */
-    private static class BoundedTextFlow extends TextFlow {
-        BoundedTextFlow(Text... texts) {
-            super(texts);
+    private static class BoundedLabel extends Label {
+        BoundedLabel(String text) {
+            super(text);
         }
 
         @Override
@@ -329,8 +320,8 @@ public class MainWindow extends UiPart<Stage> {
         }
 
         /**
-         * A menu asks for the height without giving the width, so use the width this text will get. Otherwise the
-         * text is only one line tall and cuts off wrapped lines.
+         * A menu asks for the height without giving the width, so use the width this label will get. Otherwise the
+         * label is only one line tall and cuts off wrapped text.
          */
         @Override
         protected double computePrefHeight(double width) {

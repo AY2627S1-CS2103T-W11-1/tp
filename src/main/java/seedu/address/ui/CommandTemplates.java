@@ -43,14 +43,7 @@ public class CommandTemplates {
      * @param display the one-line format shown as the menu item text
      * @param insertText the starter text placed in the command box when the menu item is clicked
      */
-    public record Template(String display, String insertText) {
-
-        /** Returns the command word, which is the text of {@code display} before its first space. */
-        public String commandWord() {
-            int end = display.indexOf(' ');
-            return end < 0 ? display : display.substring(0, end);
-        }
-    }
+    public record Template(String display, String insertText) {}
 
     /** All commands, in the order they appear in the Help menu. */
     public static final List<Template> ALL = List.of(

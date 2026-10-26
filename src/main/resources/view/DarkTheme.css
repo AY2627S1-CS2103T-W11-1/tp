@@ -230,17 +230,6 @@
     -fx-font-size: 11pt;
 }
 
-/* The command entries are text, not labels, so they need the colour, font and size set here. */
-.help-menu-text {
-    -fx-fill: white;
-    -fx-font-family: "Segoe UI";
-    -fx-font-size: 11pt;
-}
-
-.help-menu-command {
-    -fx-font-weight: bold;
-}
-
 .menu-bar {
     -fx-background-color: #1a1a1a;
 }

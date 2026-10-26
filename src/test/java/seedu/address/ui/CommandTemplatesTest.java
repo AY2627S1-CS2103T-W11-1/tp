@@ -92,17 +92,6 @@ public class CommandTemplatesTest {
     }
 
     @Test
-    public void commandWord_isTheTextBeforeTheFirstSpace() {
-        assertEquals("rideadd", templateFor(RideAddCommand.COMMAND_WORD).commandWord());
-        assertEquals("ridefind", templateFor(RideFindCommand.COMMAND_WORD).commandWord());
-        assertEquals("list", new CommandTemplates.Template("list", "list").commandWord());
-        for (CommandTemplates.Template template : CommandTemplates.ALL) {
-            assertFalse(template.commandWord().contains(" "));
-            assertTrue(template.display().startsWith(template.commandWord()));
-        }
-    }
-
-    @Test
     public void all_displayStartsWithCommandWord() {
         for (CommandTemplates.Template template : CommandTemplates.ALL) {
             String commandWord = template.insertText().trim().split(" ")[0];
