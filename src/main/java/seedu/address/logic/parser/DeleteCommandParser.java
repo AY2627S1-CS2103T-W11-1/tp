@@ -16,12 +16,10 @@ public class DeleteCommandParser implements Parser<DeleteCommand> {
      * @throws ParseException if the user input does not conform to the expected format
      */
     public DeleteCommand parse(String args) throws ParseException {
-        try {
-            return new DeleteCommand(ParserUtil.parsePhone(args));
-        } catch (ParseException pe) {
-            throw new ParseException(
-                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE), pe);
+        if (args.trim().isEmpty()) {
+            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE));
         }
+        return new DeleteCommand(ParserUtil.parsePhone(args));
     }
 
 }

@@ -1040,6 +1040,25 @@ Use a disposable test book. Check both cyclist names and card indexes after ever
    Enter `list`. Expected: Alex Adams, alex Zane, BERNICE and Zara are numbered 1 to 4.
    Enter `delete +65 94444444`, then `yes`. Expected: Zara is deleted; the remaining cyclists are numbered 1 to 3.
 
+### Phone target error regression
+
+Use a disposable test book with a cyclist visible in the left panel.
+
+1. Enter `edit 87438807 f/130`, `delete 87438807`, `find p/87438807`, and
+   `add n/Phone Test p/81234567 sos/+65 89999999 e/phone.test@example.com f/200 x/Beginner l/any`.
+   Expected: All four report
+   `Phone numbers must start with a '+' followed by the country code, for example '+65 91234567'.`
+1. Enter `edit +6587438807 f/130` and `delete +6587438807`.
+   Expected: Both report that one space is required between the country code and the number.
+1. Enter `edit +65  87438807 f/130` and `delete +65  87438807` (two spaces after the country code).
+   Expected: Both report that exactly one space is required.
+1. Enter `edit +65 12 f/130` and `delete +65 12`.
+   Expected: Both report the invalid-phone constraint and an accepted example.
+1. Enter `edit`, `edit f/130`, and `delete`.
+   Expected: Each reports `Invalid command format.` followed by the relevant command usage.
+1. Expected throughout: The cyclist records, ride rosters, active filter and saved data remain unchanged.
+   No deletion confirmation is requested for any malformed target.
+
 ### Unicode name regression
 
 Launch Cyclique in a disposable test folder with an empty cyclist list.

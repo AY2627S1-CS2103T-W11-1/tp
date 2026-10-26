@@ -1,5 +1,54 @@
 # Release testing results
 
+## PR #201 integration with latest master (27 October 2026)
+
+Combine feature HEAD `aaa7e9d3` with master `e89f88ba`, retaining optional quoted ride notes and the new
+specific phone errors for supplied Edit/Delete targets. Both branches' release-testing records are preserved.
+
+On Windows with Oracle JDK 25.0.4, `./gradlew clean check coverage shadowJar` passes **826 tests**, with no
+failures, errors or skips; both Checkstyle tasks pass. Line coverage is **89.26%** (2,270 of 2,543 lines), and
+branch coverage is **93.08%** (1,009 of 1,084 branches). Existing quoted-notes, overlap/deletion confirmation,
+roster, persistence, Unicode name, email and JavaFX regression tests remain present and pass.
+
+The final master build configuration is retained, including the platform-selection revert in `e99c52ca`.
+The JAR bundles Windows, Linux and Intel macOS native libraries. The native manual phone-error checks and
+non-Windows execution were not repeated; the earlier standalone JavaFX focus limitation remains applicable.
+
+## JavaFX native platform selection (26 October 2026; reverted)
+
+Historical verification of the platform-selection change: `e99c52ca` subsequently reverted this selection.
+The current build bundles the `win`, `mac` and `linux` classifiers; ARM-specific selection is not active.
+
+The change selected one JavaFX native dependency classifier matching the operating system and architecture
+of the Gradle JVM, including `mac-aarch64` for Apple Silicon. Unsupported combinations failed during
+configuration with an explicit message. Its generated release JAR targeted the build platform, requiring
+separate builds for each supported platform.
+
+Before that revert, `./gradlew check coverage shadowJar` passed on macOS ARM64 using Eclipse Temurin
+JDK 25.0.4.1 without an init-script override: **804 tests**, no failures, errors or skips; both Checkstyle
+checks pass. Line coverage is **89.15%** (2,243 of 2,516 lines).
+At that revision, `./gradlew run` reached UI initialisation using ARM64 JavaFX libraries without the previous
+incompatible-architecture or missing-toolkit errors. The smoke-test application was then stopped.
+Visual inspection remains unavailable because the computer-use tool cannot bind to the JavaFX application.
+Windows, Linux and Intel macOS were not tested locally.
+
+## Specific phone errors for edit/delete (26 October 2026)
+
+Preserve the detailed phone-validation error for supplied edit/delete targets. Missing targets still
+report command usage. Regression tests verify missing country codes, missing/multiple separators,
+other malformed numbers, valid delete targets with surrounding whitespace and missing-target usage.
+Integration tests compare edit/delete with add/find and confirm unchanged cyclist records, ride rosters,
+active filters and saved JSON after rejection, without starting a deletion confirmation.
+
+Using Eclipse Temurin JDK 25.0.4.1 and the temporary ARM JavaFX override described below,
+`check coverage shadowJar` passes: **804 tests**, no failures, errors or skips; both Checkstyle checks pass.
+Line coverage is **89.15%** (2,243 of 2,516 lines), above the 50% target.
+The repository build configuration is unchanged.
+
+The rebuilt JAR launched in a disposable folder, but the computer-use tool could not access its
+JavaFX window (`Invalid app: java`). The **Phone target error regression** manual checks remain
+outstanding. The temporary application was stopped after this attempt.
+
 ## Issue #155 integration with master (26 October 2026)
 
 Integrate `3732943a` (optional quoted ride notes) with master `d2c023f3` (including overlap confirmation).
