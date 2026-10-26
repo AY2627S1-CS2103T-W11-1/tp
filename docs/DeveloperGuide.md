@@ -839,9 +839,6 @@ Use JDK 25 and a disposable folder containing the release JAR. Run
 `java -version` to confirm the selected JDK, then `java -jar cyclique.jar`
 from that folder. All commands below operate on test contacts; do not use real contact data.
 Repeat the checks on each operating system supported by the release.
-Use `cyclique-mac-aarch64.jar` on Apple Silicon and `cyclique.jar` on Windows x64, Linux x64 or Intel macOS.
-Use the exact built release files on each platform, with matching SHA-256 hashes; rebuilding locally can hide
-missing native libraries in the published JAR. See [Testing](Testing.md#release-checks) for the automated smoke test.
 
 ### Launch and shutdown
 

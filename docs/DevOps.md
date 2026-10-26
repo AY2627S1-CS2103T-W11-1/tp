@@ -74,11 +74,6 @@ Any warnings or errors will be printed out to the console.
 Here are the steps to create a new release.
 
 1. Update the version number in [`MainApp.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/MainApp.java).
-1. Use JDK 25 and run `./gradlew clean check coverage` to build and verify both fat JARs.
-   `build/libs/cyclique.jar` targets Windows x64, Linux x64 and Intel macOS;
-   `build/libs/cyclique-mac-aarch64.jar` targets Apple Silicon.
-1. Follow the packaged-JAR smoke checks in [Testing](Testing.md#release-checks).
-   Test the exact release files across platforms and retain their SHA-256 hashes.
+1. Generate a fat JAR file using Gradle (i.e., `./gradlew shadowJar`).
 1. Tag the repo with the version number. e.g. `v0.1`
-1. [Create a new release using GitHub](https://help.github.com/articles/creating-releases/).
-   Upload both verified JARs and label their supported platforms.
+1. [Create a new release using GitHub](https://help.github.com/articles/creating-releases/). Upload the JAR file you created.
