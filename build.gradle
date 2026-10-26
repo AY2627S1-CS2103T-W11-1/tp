@@ -6,6 +6,15 @@ plugins {
     id 'jacoco'
 }
 
+configurations {
+    javafxReleaseGraphics {
+        transitive = false
+    }
+    javafxMacArmGraphics {
+        transitive = false
+    }
+}
+
 application {
     mainClass = 'seedu.address.Main'
 }
@@ -70,6 +79,12 @@ dependencies {
         implementation "org.openjfx:javafx-${module}:${javaFxVersion}:${javaFxPlatform}"
     }
 
+    // Keep development dependencies native to the host, but package all release platforms.
+    ['win', 'linux', 'mac'].each { platform ->
+        javafxReleaseGraphics "org.openjfx:javafx-graphics:${javaFxVersion}:${platform}"
+    }
+    javafxMacArmGraphics "org.openjfx:javafx-graphics:${javaFxVersion}:mac-aarch64"
+
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.7.0'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.7.4'
 
@@ -81,6 +96,67 @@ dependencies {
 
 shadowJar {
     archiveFileName = 'cyclique.jar'
+    configurations = [project.configurations.runtimeClasspath.copyRecursive()
+            .exclude(group: 'org.openjfx', module: 'javafx-graphics'), project.configurations.javafxReleaseGraphics]
+}
+
+// Intel and ARM macOS natives have identical filenames, so they need separate JARs.
+tasks.register('shadowJarMacArm', com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+    archiveFileName = 'cyclique-mac-aarch64.jar'
+    from sourceSets.main.output
+    configurations = [project.configurations.runtimeClasspath.copyRecursive()
+            .exclude(group: 'org.openjfx', module: 'javafx-graphics'), project.configurations.javafxMacArmGraphics]
+    manifest {
+        attributes 'Main-Class': application.mainClass.get()
+    }
+}
+
+tasks.register('verifyReleaseJars') {
+    dependsOn shadowJar, shadowJarMacArm
+    inputs.files(shadowJar.archiveFile, shadowJarMacArm.archiveFile)
+    doLast {
+        [shadowJar.archiveFile.get().asFile, shadowJarMacArm.archiveFile.get().asFile].each { jar ->
+            new java.util.jar.JarFile(jar).withCloseable { archive ->
+                boolean isMacArm = jar.name.contains('aarch64')
+                def required = ['seedu/address/Main.class', 'view/MainWindow.fxml', 'javafx/event/Event.class',
+                                'javafx/scene/control/Control.class', 'javafx/fxml/FXMLLoader.class',
+                                'com/fasterxml/jackson/databind/ObjectMapper.class',
+                                'com/sun/prism/es2/ES2Pipeline.class', 'libglass.dylib', 'libprism_sw.dylib']
+                if (!isMacArm) {
+                    required += ['com/sun/prism/d3d/D3DPipeline.class', 'glass.dll', 'prism_sw.dll',
+                                 'libglassgtk3.so', 'libprism_es2.so', 'libprism_sw.so']
+                }
+                required.each { name ->
+                    if (archive.getJarEntry(name) == null) {
+                        throw new GradleException("${jar.name} is missing ${name}")
+                    }
+                }
+                archive.getInputStream(archive.getJarEntry('libglass.dylib')).withCloseable { stream ->
+                    byte[] header = stream.readNBytes(8)
+                    byte[] expected = isMacArm ? [0xcf, 0xfa, 0xed, 0xfe, 0x0c, 0, 0, 1] as byte[]
+                            : [0xcf, 0xfa, 0xed, 0xfe, 7, 0, 0, 1] as byte[]
+                    if (!Arrays.equals(header, expected)) {
+                        throw new GradleException("${jar.name} has the wrong macOS native architecture")
+                    }
+                }
+            }
+        }
+    }
+}
+
+check.dependsOn verifyReleaseJars
+
+tasks.register('smokeTestJar', JavaExec) {
+    dependsOn testClasses, verifyReleaseJars
+    mainClass = 'seedu.address.testutil.PackagedJarSmokeTest'
+    classpath = files(sourceSets.test.output.classesDirs,
+            providers.gradleProperty('smokeJar').orElse(shadowJar.archiveFile.map { it.asFile.absolutePath }))
+    doFirst {
+        workingDir = java.nio.file.Files.createTempDirectory('cyclique-jar-smoke-').toFile()
+        systemProperty 'javafx.cachedir', new File(workingDir, 'javafx-cache').absolutePath
+        systemProperty 'java.library.path', ''
+        enableAssertions = true
+    }
 }
 
 defaultTasks 'clean', 'test'

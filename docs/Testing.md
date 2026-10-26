@@ -42,6 +42,21 @@ This runs JUnit, checks production and test code with Checkstyle, generates cove
 Review `build/reports/tests/test/index.html` and `build/reports/jacoco/coverage/html/index.html`.
 The coverage report does not enforce the 50% target automatically; check the measured coverage explicitly.
 
+`check` also runs `verifyReleaseJars`, which builds both release JARs and checks their required JavaFX
+classes, native libraries and macOS native architecture. `cyclique.jar` supports Windows x64, Linux x64
+and Intel macOS; `cyclique-mac-aarch64.jar` is for Apple Silicon. Intel and ARM macOS libraries use
+identical filenames and cannot simply be merged into the same JAR.
+
+Run `./gradlew smokeTestJar` with a graphical display and a plain JDK 25. On Apple Silicon use
+`./gradlew smokeTestJar -PsmokeJar=build/libs/cyclique-mac-aarch64.jar`.
+On headless Linux prefix the command with `xvfb-run -a`.
+The smoke test runs the actual packaged application with no development dependencies on its classpath,
+an empty native-library search path, a fresh JavaFX cache and disposable data. It checks main-window
+rendering, command entry, validation, Help, JSON persistence and normal shutdown, and saves a PNG of the
+main window in the printed test directory. It complements the manual checks for focus and appearance.
+Before uploading a release, repeat these checks with the exact same built JAR on every supported platform;
+compare SHA-256 hashes rather than rebuilding it on each machine.
+
 `ReleaseCommandIntegrationTest` covers command sequences through parsing, the model, filtering and JSON storage.
 It checks cyclist data without retired fields, repeated locations, edit replacement and preservation of fields,
 find matching rules, filtered edit/delete behaviour, rejected commands without saved-data changes,

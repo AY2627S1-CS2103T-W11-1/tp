@@ -408,6 +408,36 @@ The Developer Guide documents the affected roster/list/find and corrupt-data
 manual scenarios; visual layout, focus and cross-platform behaviour remain
 unverified manually.
 
+## Cross-platform JAR packaging (26 October 2026)
+
+Branch `fix-cross-platform-jar` repairs the Windows-only JavaFX packaging in the published v1.4 JAR.
+That exact release was reproduced failing on Ubuntu/WSL with plain Java 25: `ES2Pipeline` was absent
+and `libprism_sw.so` could not load. Development dependencies remain native to the host; release packaging
+explicitly includes the target graphics artifacts.
+
+JDK 25 `./gradlew check coverage smokeTestJar` passes: 781 JUnit tests, both Checkstyle tasks and
+88.99% line coverage (2215 of 2489 lines). `verifyReleaseJars` verifies required classes and libraries,
+including the Mach-O architecture of each macOS variant. CI now uses plain JDKs and runs packaging
+verification and smoke tests on Windows, Linux, Intel macOS and Apple Silicon.
+
+The identical Windows-built `cyclique.jar` passed packaged-app checks on Windows with JDK 25.0.2
+and Ubuntu/WSL x64 with Temurin JDK 25.0.5. Each test used disposable data, an empty native-library search
+path and a fresh JavaFX cache. Checks cover startup, a rendered main window, `list`, roster input
+validation, adding a cyclist, saved JSON, Help and normal shutdown. Main-window PNGs were inspected.
+Windows also passed with software rendering forced. Linux passed both automatic software fallback
+and ES2 rendering with `-Dprism.forceGPU=true`; that option is for this additional test only.
+
+The SHA-256 of the tested `cyclique.jar` is
+`67b190afaf2d8a964469b18dcacd0a79c903b4a5dfdf449458219c36772c43bc`.
+It supports Windows x64, Linux x64 and Intel macOS.
+`cyclique-mac-aarch64.jar` has SHA-256
+`7108ad48bfa30696ac1266c32a8af09766ad160bb86c371054bdaa183b552ffd`.
+Its ARM macOS libraries are packaged separately because they share filenames with the Intel libraries.
+
+macOS runtime checks and remote CI have not run locally. Both macOS variants still require their
+configured CI checks before release. Keyboard focus, interactive window resizing and native Linux
+outside WSL were not manually tested in this run. No release asset was replaced.
+
 ## Ride overlap warning (25 October 2026)
 
 Branch `ride-overlap-warning` adds command-box confirmation before overlapping
