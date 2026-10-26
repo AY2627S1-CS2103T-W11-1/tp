@@ -89,11 +89,20 @@ public class HelpWindowTest {
     }
 
     @Test
+    public void commandList_clearUsage_warnsItDeletesRidesAndTakesNoParameters() {
+        assertTrue(ClearCommand.MESSAGE_USAGE.contains("every cyclist and every ride"));
+        assertTrue(ClearCommand.MESSAGE_USAGE.contains("Takes no parameters"));
+        assertTrue(ClearCommand.MESSAGE_USAGE.contains("does not ask for confirmation"));
+        assertFalse(HelpWindow.COMMAND_LIST.contains("Clears all entries"));
+    }
+
+    @Test
     public void commandList_reusesCommandUsageMessages() {
         assertTrue(HelpWindow.COMMAND_LIST.contains(AddCommand.MESSAGE_USAGE));
         assertTrue(HelpWindow.COMMAND_LIST.contains(EditCommand.MESSAGE_USAGE));
         assertTrue(HelpWindow.COMMAND_LIST.contains(DeleteCommand.MESSAGE_USAGE));
         assertTrue(HelpWindow.COMMAND_LIST.contains(FindCommand.MESSAGE_USAGE));
+        assertTrue(HelpWindow.COMMAND_LIST.contains(ClearCommand.MESSAGE_USAGE));
         assertTrue(HelpWindow.COMMAND_LIST.contains(RideAddCommand.MESSAGE_USAGE));
         assertTrue(HelpWindow.COMMAND_LIST.contains(RideEditCommand.MESSAGE_USAGE));
         assertTrue(HelpWindow.COMMAND_LIST.contains(RideDeleteCommand.MESSAGE_USAGE));

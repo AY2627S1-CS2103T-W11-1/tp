@@ -76,7 +76,7 @@ public class HelpWindow extends UiPart<Stage> {
             RideFindCommand.MESSAGE_USAGE,
             "Aliases in parentheses use the same arguments as the full command names. Aliases are case-sensitive.",
             ListCommand.COMMAND_WORD + ": Lists all persons.\nExample: " + ListCommand.COMMAND_WORD,
-            ClearCommand.COMMAND_WORD + ": Clears all entries.\nExample: " + ClearCommand.COMMAND_WORD,
+            ClearCommand.MESSAGE_USAGE,
             HelpCommand.MESSAGE_USAGE,
             ExitCommand.COMMAND_WORD + ": Exits the program.\nExample: " + ExitCommand.COMMAND_WORD);
 
