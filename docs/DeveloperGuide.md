@@ -369,10 +369,11 @@ that `to/` is not earlier than `from/` runs after every field is valid.
 
 `rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`
 edits an existing ride without changing its identity or roster. The sequence diagram below shows parsing,
-validation, replacement and saving. Internal validation and immutable object construction are summarised in notes;
-the parsing-success path is expanded, while execution failures are distinguished from successful replacement.
+validation, conditional overlap confirmation, replacement and saving. Internal validation and immutable object
+construction are summarised in notes; the parsing-success path is expanded, while validation failures and
+cancelled edits are distinguished from successful replacement.
 
-<img src="images/RideEditSequenceDiagram.png" width="1000" alt="Ride Edit parsing, validation before stored replacement, and saving through LogicManager" />
+<img src="images/RideEditSequenceDiagram.png" width="1000" alt="Ride Edit parsing, validation, conditional overlap confirmation and saving through LogicManager" />
 
 **Parsing.** `RideEditCommandParser` separates the positive ride ID from the prefixed fields and builds an
 `EditRideDescriptor`. Each supplied value is parsed by the same `ParserUtil` method used by `rideadd`, while
@@ -387,14 +388,25 @@ produce an end time earlier than the start time; equal start and end times are a
 `validateRosterEligibility` checks an edited maximum group size against the roster count before checking an edited
 minimum FTP. Only when minimum FTP is supplied does it resolve each roster phone against all cyclists, rejecting
 an unresolved phone or a minimum above any member's FTP. An unrelated edit does not resolve roster phones.
-Only after every validation succeeds does the command call `Model#setRide`. `ModelManager` delegates to
-`AddressBook#setRide`, which replaces the target at its current list position, preserving other rides and the next
+Both `getOverlapWarning` and `execute` perform these checks. The warning check does not replace or save the ride.
+Only after validation succeeds and any required overlap confirmation is accepted does `execute` call
+`Model#setRide`. `ModelManager` delegates to `AddressBook#setRide`, which replaces the target at its current list position, preserving other rides and the next
 ride ID counter. Failed parsing, a missing target or an invalid resulting ride therefore leaves the model unchanged.
 
-The address book's observable ride list emits the replacement, allowing the existing Rides panel to refresh.
-Cyclist records are unchanged, and Ride Edit requires no confirmation. A successful command returns through
-`LogicManager`, which saves the updated address book using the existing JSON storage path. No separate Ride Edit
-storage format is required.
+**Conditional overlap confirmation.** Before execution, `LogicManager` calls `RideEditCommand#getOverlapWarning`.
+If either endpoint actually changes, the command checks the proposed period against all other stored rides
+for every cyclist on its roster, including rides hidden by filters. Adjacent periods and zero-duration rides
+do not conflict. An edit with unchanged times, or without a conflict, executes immediately.
+
+For a conflicting edit, `LogicManager` retains the command, a copy of the address book and the warning text
+in memory. It returns the warning without applying any fields or saving. A later `y`/`yes` reply consumes the
+pending request, rejects it if the address book has changed, then executes and saves the whole edit.
+An `n`/`no` reply cancels without saving; replies are case-insensitive. An invalid reply repeats the warning,
+while another recognised command cancels the edit and is processed normally. Restarting discards the request.
+
+The address book's observable ride list emits a successful replacement, allowing the existing Rides panel to
+refresh. Cyclist records are unchanged. `LogicManager` saves the updated address book using the existing JSON
+storage path. No separate Ride Edit storage format is required.
 
 ### Group ride deletion (`ridedelete`)
 
@@ -1314,7 +1326,7 @@ the existing recovery behaviour starts with an empty book after a loading failur
 Use JDK 25 and a disposable folder with a copy of the release JAR. Start with an empty book.
 Use the assigned ride IDs below if they differ from 1, 2 and 3.
 
-1. Add `add n/Overlap Tester p/+65 91234567 e/overlap@example.com f/250 x/Beginner l/any`.
+1. Add `add n/Overlap Tester p/+65 91234567 sos/+65 98765432 e/overlap@example.com f/250 x/Beginner l/any`.
 1. Create `rideadd n/Ride A from/29-10-2026 0800 to/29-10-2026 1000 l/East Coast d/20 f/180 s/10`
    and `rideadd n/Ride B from/29-10-2026 0900 to/29-10-2026 1100 l/East Coast d/20 f/180 s/10`.
 1. Enter `rideaddcyclist 1 +65 91234567`, then `ridefind n/Ride B`, then
