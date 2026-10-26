@@ -38,8 +38,10 @@ import seedu.address.model.ride.RideDateTime;
 public class RideEditCommand extends Command implements OverlapAwareCommand {
 
     public static final String COMMAND_WORD = "rideedit";
+    public static final String COMMAND_ALIAS = "re";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Edits the group ride identified by its ride ID. "
+    public static final String MESSAGE_USAGE = COMMAND_WORD
+            + " (" + COMMAND_ALIAS + "): Edits the group ride identified by its ride ID. "
             + "Existing values will be overwritten by the input values.\n"
             + "Parameters: ID "
             + "[" + PREFIX_NAME + "NAME] "

@@ -183,11 +183,11 @@ public class RideRosterIntegrationTest {
     }
 
     @Test
-    public void execute_removedAliases_rejectWithoutChangingDataOrPendingDeletion() throws Exception {
+    public void execute_unsupportedAliasSpellings_rejectWithoutChangingDataOrPendingDeletion() throws Exception {
         AddressBookParser parser = new AddressBookParser();
         String saved = Files.readString(storage.getAddressBookFilePath());
         Ride before = currentRide();
-        for (String alias : List.of("rac", "rdc")) {
+        for (String alias : List.of("RAC", "RDC", "rac1", "rdc1")) {
             assertFalse(parser.isRecognisedCommand(alias));
             ParseException exception = assertThrows(ParseException.class, () -> logic.execute(alias + " 1 " + PHONE));
             assertEquals(Messages.MESSAGE_UNKNOWN_COMMAND, exception.getMessage());
@@ -195,7 +195,7 @@ public class RideRosterIntegrationTest {
             assertEquals(saved, Files.readString(storage.getAddressBookFilePath()));
         }
         logic.execute("delete " + PHONE);
-        for (String alias : List.of("rac", "rdc")) {
+        for (String alias : List.of("RAC", "RDC", "rac1", "rdc1")) {
             assertThrows(CommandException.class, () -> logic.execute(alias + " 1 " + PHONE));
         }
         assertEquals("Deletion cancelled.", logic.execute("no").getFeedbackToUser());

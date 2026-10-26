@@ -249,6 +249,35 @@ public class RideOverlapConfirmationTest {
         assertEquals("29-10-2026 1000", ride(2).getFrom().toString());
     }
 
+    @Test
+    public void execute_joinAlias_warnsAndPersistsOnlyAfterConfirmation() throws Exception {
+        String warning = logic.execute("rac 2 " + PHONE).getFeedbackToUser();
+        assertTrue(warning.startsWith("Warning: overlapping ride times."));
+        assertUnchanged();
+        logic.execute("yes");
+        assertEquals(List.of(new Phone(PHONE)), ride(2).getRoster());
+        assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_editAliasAndSubsequentAlias_preserveConfirmationRules() throws Exception {
+        model.setRide(ride(2), ride(2).withRoster(List.of(new Phone(PHONE))));
+        saveBaseline();
+        String warning = logic.execute("re 2 to/29-10-2026 1130").getFeedbackToUser();
+        assertTrue(warning.startsWith("Warning: overlapping ride times."));
+        assertUnchanged();
+        assertTrue(logic.execute("rf all").getFeedbackToUser()
+                .startsWith(LogicManager.MESSAGE_OVERLAP_CANCELLED + "\n"));
+        assertEquals(originalBook, model.getAddressBook());
+        assertEquals(originalJson, Files.readString(storage.getAddressBookFilePath()));
+        assertEquals(1, bookStorage.saveCalls);
+        assertThrows(ParseException.class, () -> logic.execute("yes"));
+        logic.execute("re 2 to/29-10-2026 1130");
+        logic.execute("yes");
+        assertEquals("29-10-2026 1130", ride(2).getTo().toString());
+        assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
+    }
+
     private Ride ride(int id) {
         return model.getAddressBook().getRideList().get(id - 1);
     }
