@@ -4,14 +4,30 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.file.Path;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
+import javafx.scene.control.CustomMenuItem;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
+import javafx.stage.Stage;
+import seedu.address.logic.Logic;
+import seedu.address.logic.LogicManager;
+import seedu.address.model.ModelManager;
+import seedu.address.storage.JsonAddressBookStorage;
+import seedu.address.storage.JsonUserPrefsStorage;
+import seedu.address.storage.StorageManager;
 import seedu.address.testutil.JavaFxToolkit;
 
 public class MainWindowTest {
+
+    @TempDir
+    public Path testFolder;
 
     @BeforeAll
     public static void startJavaFxToolkit() throws InterruptedException {
@@ -50,8 +66,59 @@ public class MainWindowTest {
             assertTrue(wide.prefWidth(-1) > 300);
             // a narrow menu item is taller, because it needs more lines
             assertTrue(narrow.prefHeight(-1) > wide.prefHeight(-1));
+            // asking for the height at an explicit width gives the same answer as at the width it will be given
+            assertEquals(narrow.prefHeight(-1), narrow.prefHeight(300), 0.001);
             return null;
         });
+    }
+
+    @Test
+    public void helpMenu_opened_fitsItsEntriesInsideTheWindow() throws Exception {
+        Logic logic = createLogic();
+
+        JavaFxToolkit.call(() -> {
+            double wideWindowEntryWidth = firstHelpEntryMaxWidthWhenOpened(logic, 1000);
+            double narrowWindowEntryWidth = firstHelpEntryMaxWidthWhenOpened(logic, 720);
+
+            // a wider window gives wider entries, and an entry is always narrower than the window it is in
+            assertTrue(wideWindowEntryWidth > narrowWindowEntryWidth);
+            assertTrue(wideWindowEntryWidth < 1000);
+            assertTrue(narrowWindowEntryWidth < 720);
+            assertTrue(narrowWindowEntryWidth >= 200);
+            return null;
+        });
+    }
+
+    /**
+     * Shows a main window {@code windowWidth} wide, opens its Help menu and returns the maximum width given to the
+     * first command entry. Must be called on the JavaFX thread.
+     */
+    private double firstHelpEntryMaxWidthWhenOpened(Logic logic, double windowWidth) {
+        MainWindow mainWindow = new MainWindow(new Stage(), logic, testFolder.resolve("addressbook.json"));
+        mainWindow.fillInnerParts();
+        Stage stage = mainWindow.getPrimaryStage();
+        stage.setWidth(windowWidth);
+        stage.show();
+        try {
+            stage.getScene().getRoot().applyCss();
+            stage.getScene().getRoot().layout();
+            MenuBar menuBar = (MenuBar) stage.getScene().getRoot().lookup(".menu-bar");
+            Menu helpMenu = menuBar.getMenus().stream()
+                    .filter(menu -> menu.getText().equals("Help")).findFirst().orElseThrow();
+            helpMenu.show();
+            double maxWidth = ((CustomMenuItem) helpMenu.getItems().get(0)).getContent() instanceof TextFlow text
+                    ? text.getMaxWidth() : Double.NaN;
+            helpMenu.hide();
+            return maxWidth;
+        } finally {
+            stage.hide();
+        }
+    }
+
+    private Logic createLogic() {
+        return new LogicManager(new ModelManager(), new StorageManager(
+                new JsonAddressBookStorage(testFolder.resolve("addressbook.json")),
+                new JsonUserPrefsStorage(testFolder.resolve("prefs.json"))));
     }
 
     @Test
