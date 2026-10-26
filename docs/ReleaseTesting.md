@@ -1,5 +1,24 @@
 # Release testing results
 
+## Unicode names (26 October 2026)
+
+Accept Unicode letters, decimal digits and attached combining marks in cyclist and ride names.
+Preserve the entered spelling, reject blank names, leading spaces, punctuation and detached marks,
+and update the validation message and User Guide to explain the supported characters.
+
+The standard `./gradlew check coverage shadowJar` run encountered 14 JavaFX-related test failures:
+the existing build declares Intel macOS libraries, which cannot initialise the toolkit on this ARM Mac.
+Use a temporary init script outside the repository to select the `mac-aarch64` JavaFX 17.0.7 dependencies.
+With that override, `check coverage shadowJar` passes using Eclipse Temurin JDK 25.0.4.1:
+**799 tests**, no failures, errors or skips; both Checkstyle checks pass. Line coverage is
+**89.16%** (2,245 of 2,518 lines), above the 50% target. The repository build configuration is unchanged.
+
+New tests cover accented and non-Latin names, composed/decomposed accents, Unicode digits,
+cyclist/ride add and edit commands, exact spelling after JSON readback and rejection without data changes.
+The ARM-compatible JAR launched in a disposable folder, but the computer-use tool could not access its
+JavaFX window (`Invalid app: java`). The **Unicode name regression** manual checks remain outstanding.
+The temporary application was stopped after this attempt.
+
 ## Consecutive email special characters (26 October 2026)
 
 Allow consecutive underscores, plus signs, hyphens and mixed special characters inside the email local part.

@@ -1,5 +1,6 @@
 package seedu.address.model.person;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -36,6 +37,24 @@ public class NameTest {
         assertTrue(Name.isValidName("peter the 2nd")); // alphanumeric characters
         assertTrue(Name.isValidName("Capital Tan")); // with capital letters
         assertTrue(Name.isValidName("David Roger Jackson Ray Jr 2nd")); // long names
+    }
+
+    @Test
+    public void isValidName_unicodeLettersDigitsAndMarks_returnsTrue() {
+        for (String name : new String[] {"José Tan", "Jose\u0301 Tan", "Zoë", "李明", "அருண்", "محمد",
+            "Rider ٢", "𐐀 Rider", "José  Tan", "José Tan "}) {
+            assertTrue(Name.isValidName(name), name);
+            assertEquals(name, new Name(name).fullName);
+        }
+    }
+
+    @Test
+    public void isValidName_invalidCharactersOrDetachedMarks_returnsFalse() {
+        for (String name : new String[] {" José", "\u0301Jose", "\u0301", "Jose \u0301Tan", "José-Tan",
+            "O'Connor", "José_Tan", "José\tTan", "José\nTan", "Rider 🚲"}) {
+            assertFalse(Name.isValidName(name), name);
+            assertThrows(IllegalArgumentException.class, () -> new Name(name));
+        }
     }
 
     @Test

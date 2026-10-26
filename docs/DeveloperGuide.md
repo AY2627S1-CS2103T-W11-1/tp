@@ -987,6 +987,23 @@ Use a disposable test book. Check both cyclist names and card indexes after ever
    Enter `list`. Expected: Alex Adams, alex Zane, BERNICE and Zara are numbered 1 to 4.
    Enter `delete +65 94444444`, then `yes`. Expected: Zara is deleted; the remaining cyclists are numbered 1 to 3.
 
+### Unicode name regression
+
+Launch Cyclique in a disposable test folder with an empty cyclist list.
+
+1. Enter `add n/José Tan p/+65 91234567 sos/+65 99999999 e/jose@example.com f/200 x/Beginner l/any`.
+   Expected: The cyclist is added and their card and success message display `José Tan` accurately.
+1. Enter `edit +65 91234567 n/李明`, then `edit +65 91234567 n/Zoë Tan`.
+   Expected: Both edits succeed and display the supplied spelling. Enter `find n/Zoë`.
+   Expected: The cyclist appears. Enter `list` to restore the full cyclist display.
+1. Enter `rideadd n/Élan Ride from/29-10-2026 0630 to/29-10-2026 0930 l/Mandai d/40 f/150 s/5`.
+   Expected: The ride is added and its name is displayed accurately. Using its assigned ID,
+   enter `rideedit ID n/晨骑`. Expected: The ride name changes successfully.
+1. Try `edit +65 91234567 n/José-Tan`, `edit +65 91234567 n/`, and `rideedit ID n/Ride!`.
+   Expected: Each is rejected with name constraints explaining the supported Unicode characters;
+   cyclist and ride details remain unchanged.
+1. Exit and relaunch. Expected: The cyclist retains `Zoë Tan` and the ride retains `晨骑`.
+
 ### Email local-part regression
 
 Launch Cyclique in a disposable test folder. Use an empty cyclist list and unique phone numbers and emails.
