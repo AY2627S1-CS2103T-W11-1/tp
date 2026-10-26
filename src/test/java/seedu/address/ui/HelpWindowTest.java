@@ -24,24 +24,26 @@ public class HelpWindowTest {
 
     @Test
     public void commandList_rosterCommands_includesFormatsAndExample() {
-        assertTrue(HelpWindow.COMMAND_LIST.contains("rideaddcyclist ID PHONE"));
-        assertTrue(HelpWindow.COMMAND_LIST.contains("ridedeletecyclist ID PHONE"));
+        assertTrue(HelpWindow.COMMAND_LIST.contains("rideaddcyclist (rac) ID PHONE"));
+        assertTrue(HelpWindow.COMMAND_LIST.contains("ridedeletecyclist (rdc) ID PHONE"));
         assertTrue(HelpWindow.COMMAND_LIST.contains("Example: rideaddcyclist 1 +65 91234567"));
         assertTrue(CommandTemplates.ALL.stream().anyMatch(template ->
-                template.display().equals("rideaddcyclist ID PHONE")
+                template.display().equals("rideaddcyclist (rac) ID PHONE")
                         && template.insertText().equals("rideaddcyclist ")));
         assertTrue(CommandTemplates.ALL.stream().anyMatch(template ->
-                template.display().equals("ridedeletecyclist ID PHONE")
+                template.display().equals("ridedeletecyclist (rdc) ID PHONE")
                         && template.insertText().equals("ridedeletecyclist ")));
     }
 
     @Test
-    public void commandList_rideAliases_listsAllSevenMappings() {
-        for (String mapping : new String[] {"ra = rideadd", "re = rideedit", "rd = ridedelete",
-            "rf = ridefind", "rl = ridelist", "rac = rideaddcyclist", "rdc = ridedeletecyclist"}) {
+    public void commandList_rideAliases_placesEachAliasBesideItsCommand() {
+        for (String mapping : new String[] {"rideadd (ra):", "rideedit (re):", "ridedelete (rd):",
+            "ridefind (rf):", "ridelist (rl):", "rideaddcyclist (rac) ID PHONE:",
+            "ridedeletecyclist (rdc) ID PHONE:"}) {
             assertTrue(HelpWindow.COMMAND_LIST.contains(mapping));
         }
         assertTrue(HelpWindow.COMMAND_LIST.contains("Aliases are case-sensitive."));
+        assertFalse(HelpWindow.COMMAND_LIST.contains("Ride command aliases (use the same arguments)"));
     }
 
     @Test
@@ -64,9 +66,12 @@ public class HelpWindowTest {
         String[] commandWords = {
             AddCommand.COMMAND_WORD, EditCommand.COMMAND_WORD, DeleteCommand.COMMAND_WORD,
             FindCommand.COMMAND_WORD, ListCommand.COMMAND_WORD, ClearCommand.COMMAND_WORD,
-            HelpCommand.COMMAND_WORD, ExitCommand.COMMAND_WORD, RideAddCommand.COMMAND_WORD,
-            RideEditCommand.COMMAND_WORD, RideDeleteCommand.COMMAND_WORD, RideListCommand.COMMAND_WORD,
-            RideFindCommand.COMMAND_WORD
+            HelpCommand.COMMAND_WORD, ExitCommand.COMMAND_WORD,
+            RideAddCommand.COMMAND_WORD + " (" + RideAddCommand.COMMAND_ALIAS + ")",
+            RideEditCommand.COMMAND_WORD + " (" + RideEditCommand.COMMAND_ALIAS + ")",
+            RideDeleteCommand.COMMAND_WORD + " (" + RideDeleteCommand.COMMAND_ALIAS + ")",
+            RideListCommand.COMMAND_WORD + " (" + RideListCommand.COMMAND_ALIAS + ")",
+            RideFindCommand.COMMAND_WORD + " (" + RideFindCommand.COMMAND_ALIAS + ")"
         };
 
         for (String commandWord : commandWords) {
@@ -90,7 +95,7 @@ public class HelpWindowTest {
 
     @Test
     public void commandList_rideAddUsage_includesDateFormatAndExample() {
-        assertTrue(HelpWindow.COMMAND_LIST.contains("rideadd: Adds a group ride."));
+        assertTrue(HelpWindow.COMMAND_LIST.contains("rideadd (ra): Adds a group ride."));
         assertTrue(HelpWindow.COMMAND_LIST.contains("DD-MM-YYYY TTTT"));
         assertTrue(HelpWindow.COMMAND_LIST.contains("Example: rideadd n/Sunday Sunrise Ride"));
     }

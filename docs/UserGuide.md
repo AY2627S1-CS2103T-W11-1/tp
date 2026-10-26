@@ -83,7 +83,8 @@ Use these aliases with exactly the same arguments as the full command names. Com
 | `ridedeletecyclist` | `rdc` |
 
 For example, `re 1 notes/Bring lights` edits ride 1 and `rf all` shows all rides.
-The Help menu inserts full command names; the Full help window also lists these aliases.
+The Help menu and Full help window show each alias in parentheses beside its full command name,
+for example `rideadd (ra)`. Selecting a Help menu entry inserts the full command name; do not type the parentheses.
 Entering an alias while a cyclist deletion confirmation is pending cancels that request,
 then processes the alias normally, even if its arguments are invalid.
 

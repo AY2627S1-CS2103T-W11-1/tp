@@ -20,8 +20,10 @@ public class RideRosterCommand extends Command {
     public static final String JOIN_COMMAND_ALIAS = "rac";
     public static final String LEAVE_COMMAND_WORD = "ridedeletecyclist";
     public static final String LEAVE_COMMAND_ALIAS = "rdc";
-    public static final String MESSAGE_USAGE = "rideaddcyclist ID PHONE: Adds a cyclist to a ride.\n"
-            + "ridedeletecyclist ID PHONE: Removes a cyclist from a ride.\n"
+    public static final String MESSAGE_USAGE = JOIN_COMMAND_WORD
+            + " (" + JOIN_COMMAND_ALIAS + ") ID PHONE: Adds a cyclist to a ride.\n"
+            + LEAVE_COMMAND_WORD
+            + " (" + LEAVE_COMMAND_ALIAS + ") ID PHONE: Removes a cyclist from a ride.\n"
             + "Example: rideaddcyclist 1 +65 91234567";
     public static final String MESSAGE_RIDE_NOT_FOUND = "Ride ID cannot be found.";
     public static final String MESSAGE_PERSON_NOT_FOUND = "Cyclist with this phone number cannot be found.";

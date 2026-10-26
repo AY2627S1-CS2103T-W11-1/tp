@@ -1087,10 +1087,10 @@ Use disposable test data and note the number of cyclist records before starting.
 
 ### Help dropdown and Full help for ride commands
 
-1. Click the **Help** menu. Expected: The dropdown lists `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE
-   f/MIN_POWER s/MAX_GROUP_SIZE [notes/NOTES]` after `find`. It then lists `rideedit ID [n/NAME] [from/START]
+1. Click the **Help** menu. Expected: The dropdown lists `rideadd (ra) n/NAME from/FROM to/TO l/LOCATION d/DISTANCE
+   f/MIN_POWER s/MAX_GROUP_SIZE [notes/NOTES]` after `find`. It then lists `rideedit (re) ID [n/NAME] [from/START]
    [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`, followed by
-   `ridedelete ID` before the roster commands and `list`.
+   `ridedelete (rd) ID` before the roster commands and `list`.
 1. Click the `rideadd` item. Expected: The command box contains `rideadd n/ from/ to/ l/ d/ f/ s/` with the cursor
    at the end, and the command is not run. Type a value straight after each prefix to complete it.
 1. Click the `rideedit` item. Expected: The command box contains `rideedit ` with the cursor at the end, and the
@@ -1186,12 +1186,12 @@ creates the menu items and passes their starter text to `CommandBox#setCommandTe
 The Full help window reuses `RideRosterCommand#MESSAGE_USAGE`.
 
 1. Open Help. Expected: after `rideadd`, `rideedit` and `ridedelete`, the dropdown shows
-   `rideaddcyclist ID PHONE` followed by `ridedeletecyclist ID PHONE`.
+   `rideaddcyclist (rac) ID PHONE` followed by `ridedeletecyclist (rdc) ID PHONE`.
 1. Click the addition entry. Expected: the command box contains `rideaddcyclist `,
    with a trailing space and the caret at the end, ready for the ride ID and phone.
 1. Open Help and click the removal entry. Expected: the command box contains
    `ridedeletecyclist `, replacing the previous contents and placing the caret at the end.
-1. Confirm the labels display the literal `ID PHONE` arguments without short-form aliases.
+1. Confirm the labels show each alias beside the full command name and retain the literal `ID PHONE` arguments.
    No `p/` prefix or placeholder arguments should be inserted into the command box.
 1. Check that existing menu entries still insert their expected starter text and
    Full help... still opens the help window and includes the roster command usage.
@@ -1326,6 +1326,8 @@ Use disposable test data and replace IDs and phone numbers with the saved values
 1. Request `delete PHONE` again, then enter `re`. Expected: cancellation followed by the usual edit usage error;
    entering `yes` afterwards reports an unknown command.
 1. Enter `RA` and `racID`. Expected: unknown command; no data changes.
-1. Open Full help. Expected: all seven aliases and their full command names are listed.
+1. Open Help. Expected: all seven ride entries show the alias beside the full command name, for example
+   `rideadd (ra)` and `rideaddcyclist (rac)`. Select an entry: only its full command starter is inserted.
+   Open Full help: the same aliases appear beside their own command headings, rather than in a separate list.
 1. Enter `rd ID`. Expected: the ride is removed immediately, as for `ridedelete`; the cyclist remains saved.
 1. Restart. Expected: the saved edits and removal persist. Repeat with the full command names to check compatibility.
