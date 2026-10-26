@@ -45,7 +45,8 @@ public class PersonCardTest {
             Parent populatedCard = new RideCard(new RideBuilder()
                     .withRoster("+65 91234567", "+65 98765432").build()).getRoot();
             Label roster = getLabel(populatedCard, "roster");
-            assertEquals("+65 91234567, +65 98765432", roster.getText());
+            assertEquals(DisplayText.keepTogether("+65 91234567") + "\n" + DisplayText.keepTogether("+65 98765432"),
+                    roster.getText());
             assertTrue(roster.isWrapText());
             assertTrue(roster.isManaged());
             assertTrue(roster.isVisible());
@@ -59,7 +60,7 @@ public class PersonCardTest {
         runOnJavaFxThread(() -> {
             Parent root = new PersonCard(cyclist, 1).getRoot();
             Label emergencyPhone = getLabel(root, "emergencyPhone");
-            assertEquals("+65 99999999", emergencyPhone.getText());
+            assertEquals(DisplayText.keepTogether("+65 99999999"), emergencyPhone.getText());
             assertTrue(emergencyPhone.isWrapText());
             assertTrue(emergencyPhone.isVisible());
             assertTrue(emergencyPhone.isManaged());
@@ -67,6 +68,24 @@ public class PersonCardTest {
             assertTrue(getAllLabelTexts(root).contains("SOS"));
             assertEquals("Not provided", getLabel(new PersonCard(legacy, 2).getRoot(), "emergencyPhone").getText());
         });
+    }
+
+    @Test
+    public void formatPhoneEmergencyPhoneAndFtp_keepValuesOnOneLine() {
+        Person person = new PersonBuilder().withPhone("+65 98765432").withEmergencyPhone("+65 91234567")
+                .withFtp("300").build();
+
+        assertEquals(DisplayText.keepTogether("+65 98765432"), PersonCard.formatPhone(person));
+        assertEquals(DisplayText.keepTogether("+65 91234567"), PersonCard.formatEmergencyPhone(person));
+        assertEquals(DisplayText.keepTogether("300 W"), PersonCard.formatFtp(person));
+        assertFalse(PersonCard.formatPhone(person).contains(" "));
+        assertFalse(PersonCard.formatEmergencyPhone(person).contains(" "));
+        assertFalse(PersonCard.formatFtp(person).contains(" "));
+    }
+
+    @Test
+    public void formatEmergencyPhone_legacyCyclist_showsNotProvided() {
+        assertEquals("Not provided", PersonCard.formatEmergencyPhone(new PersonBuilder().build()));
     }
 
     @Test
@@ -114,9 +133,9 @@ public class PersonCardTest {
 
             assertEquals("7. ", getLabel(root, "id").getText());
             assertEquals("Zelda Longname Cyclist", name.getText());
-            assertEquals("+65 98765432", phone.getText());
+            assertEquals(DisplayText.keepTogether("+65 98765432"), phone.getText());
             assertEquals("MixedCase.Email@Example.com", email.getText());
-            assertEquals("450 W", ftp.getText());
+            assertEquals(DisplayText.keepTogether("450 W"), ftp.getText());
             assertEquals("Advanced", experienceLevel.getText());
             assertEquals("East Coast Park, Marina Bay", locations.getText());
             assertTrue(name.isWrapText());

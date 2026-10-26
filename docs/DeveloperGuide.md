@@ -92,7 +92,7 @@ The `UI` component,
 
 `MainWindow` is split into two columns. The left 70% holds the `CommandBox`, the `ResultDisplay` and the cyclist panel (`PersonListPanel`). The right 30% holds the ride panel (`RideListPanel`).
 
-Each panel is given an `ObservableList` by `MainWindow` and builds one card for every item in it: `PersonListPanel` shows a `PersonCard` for each `Person` from `Logic#getFilteredPersonList()`, and `RideListPanel` shows a `RideCard` (laid out by `RideListCard.fxml`) for each `Ride` from `Logic#getFilteredRideList()`. Because the panels observe these lists, they refresh by themselves when cyclists or rides are added, edited, deleted or filtered. `RideCard` keeps its text formatting in small static methods so that they can be unit tested without the GUI.
+Each panel is given an `ObservableList` by `MainWindow` and builds one card for every item in it: `PersonListPanel` shows a `PersonCard` for each `Person` from `Logic#getFilteredPersonList()`, and `RideListPanel` shows a `RideCard` (laid out by `RideListCard.fxml`) for each `Ride` from `Logic#getFilteredRideList()`. Because the panels observe these lists, they refresh by themselves when cyclists or rides are added, edited, deleted or filtered. `RideCard` keeps its text formatting in small static methods so that they can be unit tested without the GUI. The cards keep values such as phone numbers, distances, powers and dates on one line by replacing their spaces with no-break spaces (`DisplayText#keepTogether`), so a label can only wrap between whole values. The ride card shows the roster across its full width, because a phone number is too wide for the narrow value column. The main window has a minimum width of 720 so that the Rides panel cannot become too narrow for these values.
 
 The two panels are filtered independently of each other:
 
@@ -1029,9 +1029,8 @@ Check the panel after each step, and check the saved file `data/addressbook.json
 1. Enter `rideadd n/Same Time from/18-10-2026 0630 to/18-10-2026 0630 l/East Coast d/45 f/180 s/12`.
    Expected: The ride is added, because the end time may equal the start time.
 1. Enter `rideadd n/The Extraordinarily Long Weekend Charity Fundraiser Century Ride For Everyone from/31-12-2026 2300 to/01-01-2027 0100 l/Marina Bay Sands Waterfront Promenade and Gardens d/160.75 f/250 s/150 notes/Bring plenty of water and snacks for the whole day`.
-   Expected: The ride appears as a card whose long name, location and notes wrap onto further lines inside the card.
-   Make the window as narrow as it allows. Expected: The Rides panel shows no horizontal scrollbar and every card
-   stays inside the column.
+   Expected: The ride appears as a card whose long name, location and notes wrap onto further lines inside the card. Make the window as narrow as it allows (it cannot go below 720 pixels wide). Expected: The Rides panel shows no horizontal scrollbar and every card stays inside the column. Each date and time, the distance and the minimum power stay on one line instead of breaking in the middle, and the location wraps only between words.
+1. Add two cyclists to the same ride with `rideaddcyclist ID PHONE`. Expected: The ride card lists each phone number on its own line, one below the other, even when the window is wide. Make the window as narrow as it allows. Expected: A phone number is still never broken in the middle.
 1. Enter `rideadd n/Any Place Ride from/21-10-2026 0600 to/21-10-2026 0800 l/any d/20 f/100 s/5`.
    Expected: The card's Location line shows `Any`, and the card has no Notes line.
 1. Click a ride card. Expected: The card is highlighted with a yellow border.
@@ -1226,11 +1225,16 @@ Use a separate data directory or back up your data first.
    Expected: minimum-power error. An unknown cyclist or ride ID also reports an error.
 1. Enter `rideaddcyclist 0 +65 91234567`, `rideaddcyclist 1`, and `rideaddcyclist 1 p/+65 91234567`.
    Expected: invalid-input errors with no data changes.
+1. Enter `ridedeletecyclist` and `ridedeletecyclist 1`, then `rideaddcyclist` and `rideaddcyclist 1`.
+   Expected: `Invalid command format.` followed by the entered command's syntax and example; no data changes.
+   Removal shows `Example: ridedeletecyclist 1 +65 91234567`;
+   addition shows `Example: rideaddcyclist 1 +65 91234567`.
 1. Add the first cyclist again. Run `list`, edit their phone to `+65 91111111`.
    Expected: the roster shows the new phone. Restart; expected: membership is preserved.
 1. Delete that contact and cancel. Expected: roster unchanged. Delete again and confirm.
    Expected: the prompt explains removal from all rosters; the card says `No cyclists`.
-1. Check Help dropdown and Full help for both commands. Create a second ride
+1. Check Help dropdown and Full help for both commands. Expected: Full help includes both command syntaxes
+   and their matching examples. Create a second ride
    with maximum group size 12 and add several eligible cyclists. Resize the window; expected: text wraps and the ride card stays within its column.
 1. Try `ridedeletecyclist` for a cyclist not on the roster. Expected: membership error;
    no contact records or other rides change.

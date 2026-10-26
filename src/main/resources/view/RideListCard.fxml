@@ -33,9 +33,10 @@
       <Label styleClass="ride-field-label" text="Max group" GridPane.rowIndex="3" />
       <Label fx:id="maxGroupSize" maxWidth="1.7976931348623157E308" styleClass="ride-field-value"
              text="\$maxGroupSize" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-      <Label styleClass="ride-field-label" text="Roster" GridPane.rowIndex="4" />
+      <Label styleClass="ride-field-label" text="Roster" GridPane.columnSpan="2" GridPane.rowIndex="4" />
+      <!-- The roster spans the full card width, because a phone number is too wide for the value column. -->
       <Label fx:id="roster" maxWidth="1.7976931348623157E308" styleClass="ride-field-value"
-             wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+             wrapText="true" GridPane.columnSpan="2" GridPane.rowIndex="5" />
     </GridPane>
     <!-- Only shown when the ride has notes -->
     <GridPane fx:id="notesRow" hgap="8" maxWidth="1.7976931348623157E308">

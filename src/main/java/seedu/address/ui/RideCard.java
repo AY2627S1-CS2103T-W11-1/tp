@@ -55,8 +55,7 @@ public class RideCard extends UiPart<Region> {
         distance.setText(formatDistance(ride));
         minimumPower.setText(formatMinimumPower(ride));
         maxGroupSize.setText(ride.getMaxGroupSize().value);
-        roster.setText(ride.getRoster().isEmpty() ? "No cyclists" : ride.getRoster().stream()
-                .map(Object::toString).collect(Collectors.joining(", ")));
+        roster.setText(formatRoster(ride));
 
         // The notes line takes up no space when the ride has no notes.
         boolean hasNotes = ride.getNotes().isPresent();
@@ -75,10 +74,12 @@ public class RideCard extends UiPart<Region> {
 
     /**
      * Returns the start and end of the ride as display text, for example
-     * {@code 18-10-2026 0630 to 18-10-2026 0930}.
+     * {@code 18-10-2026 0630 to 18-10-2026 0930}. Each date and time is kept on one line, so the text can only
+     * wrap around the word "to".
      */
     static String formatPeriod(Ride ride) {
-        return ride.getFrom() + " to " + ride.getTo();
+        return DisplayText.keepTogether(ride.getFrom().toString()) + " to "
+                + DisplayText.keepTogether(ride.getTo().toString());
     }
 
     /**
@@ -92,15 +93,31 @@ public class RideCard extends UiPart<Region> {
 
     /**
      * Returns the distance of the ride in kilometres as display text, for example {@code 45 km}.
+     * The number and unit are kept on one line.
      */
     static String formatDistance(Ride ride) {
-        return ride.getDistance().value + " km";
+        return DisplayText.keepTogether(ride.getDistance().value + " km");
     }
 
     /**
      * Returns the minimum power of the ride in watts as display text, for example {@code 180 W}.
+     * The number and unit are kept on one line.
      */
     static String formatMinimumPower(Ride ride) {
-        return ride.getMinimumPower().value + " W";
+        return DisplayText.keepTogether(ride.getMinimumPower().value + " W");
+    }
+
+    /**
+     * Returns the phone numbers on the ride's roster as display text, one per line, or {@code No cyclists} if
+     * the roster is empty. Each phone number is kept whole, so it is never broken between its country code and
+     * its number, however narrow the card is.
+     */
+    static String formatRoster(Ride ride) {
+        if (ride.getRoster().isEmpty()) {
+            return "No cyclists";
+        }
+        return ride.getRoster().stream()
+                .map(phone -> DisplayText.keepTogether(phone.toString()))
+                .collect(Collectors.joining("\n"));
     }
 }
