@@ -1,19 +1,24 @@
 # Release testing results
 
-## JavaFX native platform selection (26 October 2026)
+## Cross-platform JavaFX packaging (26 October 2026)
 
-Select one JavaFX native dependency classifier matching the operating system and architecture of the
-Gradle JVM, including `mac-aarch64` for Apple Silicon. Unsupported combinations fail during configuration
-with an explicit message. The generated release JAR targets the build platform; distribution requires
-separate builds for each supported platform.
+Retain one release `cyclique.jar` for Windows, macOS and Linux. Gradle runs and tests select host-specific
+JavaFX dependencies, while the release JAR includes the toolkit classes for all three operating systems.
+Bundle Windows x64, macOS x64/ARM64 and Linux x64/ARM64 native libraries in separate platform folders;
+the startup loader extracts the current JVM's libraries before JavaFX starts. This avoids collisions
+between Intel and ARM libraries with identical filenames and supersedes the platform-specific JAR approach.
 
-The standard `./gradlew check coverage shadowJar` now passes on macOS ARM64 using Eclipse Temurin
-JDK 25.0.4.1 without an init-script override: **804 tests**, no failures, errors or skips; both Checkstyle
-checks pass. Line coverage is **89.15%** (2,243 of 2,516 lines).
-The standard `./gradlew run` reaches UI initialisation using ARM64 JavaFX libraries without the previous
-incompatible-architecture or missing-toolkit errors. The smoke-test application was then stopped.
-Visual inspection remains unavailable because the computer-use tool cannot bind to the JavaFX application.
-Windows, Linux and Intel macOS were not tested locally.
+The standard `./gradlew check coverage shadowJar` passes on macOS ARM64 using Eclipse Temurin
+JDK 25.0.4.1 without an init-script override: **809 tests**, no failures, errors or skips; both Checkstyle
+checks pass. Line coverage is **88.75%** (2,271 of 2,559 lines).
+The new `verifyJavafxPackaging` check compares every packaged native library with its source dependency
+and checks all three platform toolkit classes. Loader tests cover architecture selection/isolation,
+missing libraries and invalid archive paths.
+
+A copy of the cross-platform release JAR reaches UI initialisation on Apple Silicon without architecture
+or toolkit errors. Visual inspection remains unavailable because the computer-use tool cannot bind to
+the JavaFX application. Windows, Linux/WSL and Intel macOS smoke tests of this same JAR remain outstanding;
+archive verification alone does not establish that it launches on those platforms.
 
 ## Specific phone errors for edit/delete (26 October 2026)
 

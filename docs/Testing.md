@@ -55,11 +55,17 @@ This runs JUnit, checks production and test code with Checkstyle, generates cove
 Review `build/reports/tests/test/index.html` and `build/reports/jacoco/coverage/html/index.html`.
 The coverage report does not enforce the 50% target automatically; check the measured coverage explicitly.
 
-Gradle selects JavaFX native libraries for the operating system and architecture of its JVM:
-ARM64 or x64 on macOS/Linux, and x64 on Windows. Use a JDK matching your machine's architecture.
-The `shadowJar` output targets that platform; build a separate JAR on each target platform for distribution.
-After changing this selection, run `./gradlew run` and check that the main window opens without native-library
-errors. The CI matrix checks the build on Windows, macOS and Linux; other architectures need separate checks.
+Gradle runs and tests use JavaFX libraries matching the operating system and architecture of its JVM.
+The single release `cyclique.jar` includes Windows x64, macOS x64/ARM64 and Linux x64/ARM64 libraries in
+separate platform folders. At startup, it extracts only the current JVM's native libraries before JavaFX starts.
+`check` runs `verifyJavafxPackaging`, which checks native-library contents against the original dependency JARs
+and verifies the Windows, macOS and Linux toolkit classes are included. `JavaFxNativeLoaderTest` checks platform
+selection, architecture isolation and invalid archive paths.
+After packaging changes, run both `./gradlew run` and `java -jar build/libs/cyclique.jar` with JDK 25.
+Smoke-test the same release JAR on Windows, Intel/ARM macOS, Linux and Linux under WSL with a graphical display;
+check startup, text rendering, command entry, saved-data reload and absence of native-library errors.
+CI tests each build host, but does not establish that one identical JAR launches on every platform.
+Follow **Cross-platform release startup regression** in the Developer Guide and record each platform's result.
 
 `ReleaseCommandIntegrationTest` covers command sequences through parsing, the model, filtering and JSON storage.
 It checks cyclist data without retired fields, repeated locations, edit replacement and preservation of fields,

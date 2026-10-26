@@ -25,7 +25,7 @@ public class Main {
     private static Logger logger = LogsCenter.getLogger(Main.class);
 
     public static void main(String[] args) {
-
+        JavaFxNativeLoader.configure();
         logger.warning("The warnings about a 'restricted method in java.lang.System' "
             + "and 'enabling native access' appearing below (if any) can be ignored.");
         Application.launch(MainApp.class, args);

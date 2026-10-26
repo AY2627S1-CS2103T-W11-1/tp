@@ -50,6 +50,12 @@ task coverage(type: JacocoReport) {
     }
 }
 
+configurations {
+    javafxRelease {
+        transitive = false
+    }
+}
+
 dependencies {
     String jUnitVersion = '5.14.4'
     String javaFxVersion = '17.0.7'
@@ -72,6 +78,9 @@ dependencies {
 
     ['base', 'controls', 'fxml', 'graphics'].each { module ->
         implementation "org.openjfx:javafx-${module}:${javaFxVersion}:${javaFxPlatform}"
+        ['win', 'mac', 'mac-aarch64', 'linux', 'linux-aarch64'].each { platform ->
+            javafxRelease "org.openjfx:javafx-${module}:${javaFxVersion}:${platform}"
+        }
     }
 
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.7.0'
@@ -85,6 +94,57 @@ dependencies {
 
 shadowJar {
     archiveFileName = 'cyclique.jar'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    // Merge platform-specific Java classes, but keep same-named native libraries apart.
+    dependencies {
+        exclude(dependency('org.openjfx:.*:.*'))
+    }
+    project.configurations.javafxRelease.resolvedConfiguration.resolvedArtifacts.each { artifact ->
+        from(zipTree(artifact.file)) {
+            exclude '**/*.dll', '**/*.dylib', '**/*.so', 'META-INF/**', 'module-info.class'
+        }
+        from(zipTree(artifact.file)) {
+            include '**/*.dll', '**/*.dylib', '**/*.so'
+            into "javafx-natives/${artifact.classifier}"
+        }
+    }
 }
+
+tasks.register('verifyJavafxPackaging') {
+    dependsOn shadowJar
+    doLast {
+        new java.util.jar.JarFile(shadowJar.archiveFile.get().asFile).withCloseable { releaseJar ->
+            project.configurations.javafxRelease.resolvedConfiguration.resolvedArtifacts.each { artifact ->
+                new java.util.zip.ZipFile(artifact.file).withCloseable { sourceJar ->
+                    sourceJar.entries().each { entry ->
+                        if (entry.name.endsWith('.dll') || entry.name.endsWith('.dylib')
+                                || entry.name.endsWith('.so')) {
+                            String path = "javafx-natives/${artifact.classifier}/${entry.name}"
+                            def bundled = releaseJar.getJarEntry(path)
+                            if (bundled == null) {
+                                throw new GradleException("Missing JavaFX native library: ${path}")
+                            }
+                            byte[] expected = sourceJar.getInputStream(entry).withCloseable { it.bytes }
+                            byte[] actual = releaseJar.getInputStream(bundled).withCloseable { it.bytes }
+                            if (!Arrays.equals(expected, actual)) {
+                                throw new GradleException("Incorrect JavaFX native library: ${path}")
+                            }
+                            if (releaseJar.getJarEntry(entry.name) != null) {
+                                throw new GradleException("Unscoped JavaFX native library: ${entry.name}")
+                            }
+                        }
+                    }
+                }
+            }
+            ['win/WinApplication', 'mac/MacApplication', 'gtk/GtkApplication'].each { platformClass ->
+                if (releaseJar.getJarEntry("com/sun/glass/ui/${platformClass}.class") == null) {
+                    throw new GradleException("Missing JavaFX platform class: ${platformClass}")
+                }
+            }
+        }
+    }
+}
+
+check.dependsOn verifyJavafxPackaging
 
 defaultTasks 'clean', 'test'

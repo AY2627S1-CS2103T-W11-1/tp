@@ -987,6 +987,19 @@ Use a disposable test book. Check both cyclist names and card indexes after ever
    Enter `list`. Expected: Alex Adams, alex Zane, BERNICE and Zara are numbered 1 to 4.
    Enter `delete +65 94444444`, then `yes`. Expected: Zara is deleted; the remaining cyclists are numbered 1 to 3.
 
+### Cross-platform release startup regression
+
+Build `cyclique.jar` once with `./gradlew shadowJar`. Copy that identical JAR to disposable folders on
+Windows x64, Intel macOS, Apple Silicon macOS and Linux/WSL with a graphical display. Use JDK 25 on each.
+
+1. Enter `java -jar cyclique.jar`. Expected: The main window opens without incompatible-architecture,
+   native-library or missing-toolkit errors. The same JAR requires no manual JavaFX installation.
+1. Enter `add n/Platform Rider p/+65 98887777 sos/+65 99999999 e/platform@example.com f/200 x/Beginner l/any`.
+   Expected: The command succeeds, the cyclist card appears and text renders correctly.
+1. Enter `exit`, then relaunch the same JAR. Expected: The saved cyclist appears with the same details.
+1. Record the OS, JVM architecture, JAR checksum and outcome for each platform in `docs/ReleaseTesting.md`.
+   Testing separately built JARs does not verify the single-JAR release requirement.
+
 ### Phone target error regression
 
 Use a disposable test book with a cyclist visible in the left panel.
