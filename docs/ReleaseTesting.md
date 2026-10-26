@@ -11,8 +11,30 @@ branch coverage is **93.08%** (1,009 of 1,084 branches). Existing quoted-notes, 
 roster, persistence, Unicode name, email and JavaFX regression tests remain present and pass.
 
 The final master build configuration is retained, including the platform-selection revert in `e99c52ca`.
-The JAR bundles Windows, Linux and Intel macOS native libraries. The native manual phone-error checks and
-non-Windows execution were not repeated; the earlier standalone JavaFX focus limitation remains applicable.
+The JAR bundles Windows, Linux and Intel macOS native libraries. Native manual phone-error checks and
+non-Windows execution were not repeated during this agent run. Subsequent user verification of Issue #155
+is recorded below.
+
+### Subsequent Issue #155 manual verification
+
+The user tested a freshly built merged Cyclique JAR on Windows using Temurin OpenJDK 25.0.4, in a disposable
+folder with sample data. **All 11 manual scenarios passed:**
+
+1. Create a ride with ordinary unquoted notes.
+1. Edit notes using `notes/"Bring camera with aperture f/2"`.
+1. Preserve literal `f/2` without changing minimum power.
+1. Edit quoted notes alongside another parameter, such as `s/6`.
+1. Trigger an overlap warning for a cyclist registered for both rides.
+1. Confirm with `yes`, preserving complete notes and applying the intended time changes.
+1. Cancel with `no`, preserving the original ride.
+1. Reject malformed quoted notes without changing ride data.
+1. Retain the existing unquoted interpretation of `f/200`.
+1. Preserve multiple literal prefixes, including `f/2` and `s/3`, inside quoted notes.
+1. Retain updated ride details after restarting Cyclique.
+
+This completes the Issue #155 command and restart verification that agents initially could not perform.
+Window-resize testing was not reported. This run does not verify Linux, macOS, Apple Silicon or Windows ARM64
+compatibility; the existing cross-platform limitations remain.
 
 ## JavaFX native platform selection (26 October 2026; reverted)
 
@@ -65,9 +87,11 @@ The Ride Edit PNG is regenerated from the combined overlap-aware PlantUML source
 embedded and its native-resolution rendering inspected. The release JAR contains Windows, Linux and macOS
 native libraries. Linux/macOS execution and ARM compatibility are not verified by this Windows run.
 
-The packaged JAR launches with assertions enabled in a disposable folder. Native desktop focus could not be
-maintained reliably for safe command entry, so the standalone manual command, resize and restart scenarios
-remain unverified. The disposable application was stopped; automated JavaFX tests do not replace these checks.
+During this earlier agent run, the packaged JAR launched with assertions enabled in a disposable folder.
+Native desktop focus could not be maintained reliably for safe command entry, leaving standalone command,
+resize and restart scenarios unverified at that time. The disposable application was stopped. The subsequent
+user verification recorded above covers Issue #155 commands and restart persistence; resize testing remains
+unverified.
 
 ## Unicode names (26 October 2026)
 
