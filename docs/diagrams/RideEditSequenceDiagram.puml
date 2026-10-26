@@ -53,12 +53,6 @@ group Check overlap before execution (no mutation or save)
     activate Model
     Model --> Command : book
     deactivate Model
-    note over Command, Model
-      Resolve target; combine fields; validate period and roster eligibility.
-      If either endpoint changes, check every roster member against
-      all other stored rides, including hidden rides.
-      Unchanged times, adjacent periods and zero-duration rides do not warn.
-    end note
     alt valid proposal
         Command --> Logic : warning text or empty string
     else invalid proposal
