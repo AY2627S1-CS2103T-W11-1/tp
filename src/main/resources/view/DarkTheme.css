@@ -229,6 +229,18 @@
     -fx-text-fill: white;
 }
 
+/*
+ * The Help menu lists every command format, and the long ones wrap onto further lines when the window is narrow.
+ * The same font size as the rest of the application and modest padding keep the whole menu inside the window.
+ */
+.context-menu .menu-item {
+    -fx-padding: 3 10 3 10;
+}
+
+.context-menu .menu-item .label {
+    -fx-font-size: 11pt;
+}
+
 .menu-bar {
     -fx-background-color: #1a1a1a;
 }

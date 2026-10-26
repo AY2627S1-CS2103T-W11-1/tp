@@ -105,6 +105,27 @@ public class CommandTemplates {
             new Template(HelpCommand.COMMAND_WORD, HelpCommand.COMMAND_WORD),
             new Template(ExitCommand.COMMAND_WORD, ExitCommand.COMMAND_WORD));
 
+    private static final char NO_BREAK_SPACE = '\u00A0';
+
     private CommandTemplates() {} // prevents instantiation
+
+    /**
+     * Returns {@code format} with every space that is inside square brackets replaced by a no-break space, so that
+     * a menu item which wraps to the window width breaks only between parameters, never inside an optional group
+     * such as {@code [from/DATE [TIME]]}.
+     */
+    static String keepOptionalGroupsTogether(String format) {
+        StringBuilder result = new StringBuilder();
+        int depth = 0;
+        for (char character : format.toCharArray()) {
+            if (character == '[') {
+                depth++;
+            } else if (character == ']' && depth > 0) {
+                depth--;
+            }
+            result.append(character == ' ' && depth > 0 ? NO_BREAK_SPACE : character);
+        }
+        return result.toString();
+    }
 
 }

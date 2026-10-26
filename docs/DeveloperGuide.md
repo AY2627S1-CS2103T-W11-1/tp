@@ -101,7 +101,7 @@ The two panels are filtered independently of each other:
 
 #### Help menu templates
 
-`CommandTemplates` holds a list of `Template` records, one for each command. Each `Template` has the text shown in the Help menu and the starter text for the command box. When `MainWindow` is set up, it adds one menu item per `Template` to the top of the **Help** menu, above **Full help...**. Choosing an item calls `CommandBox#setCommandText(...)` with that template's starter text. The command is only placed in the command box for the user to complete; it is not executed. The **Full help...** window (`HelpWindow`) lists the usage of every command, reusing the usage messages defined by the command classes in `Logic`, so `HelpWindow` depends on `Logic`.
+`CommandTemplates` holds a list of `Template` records, one for each command. Each `Template` has the text shown in the Help menu and the starter text for the command box. Each menu item is a wrapping label. Whenever the **Help** menu opens, `MainWindow` builds the command items again and limits their width to the room between the **Help** menu and the right edge of the window, so a long command format wraps onto further lines instead of making the menu wider than the window. A wider window gives a wider menu, and a narrower window a narrower one. Lines wrap only between parameters, because spaces inside an optional group such as `[from/DATE [TIME]]` are replaced by no-break spaces (`CommandTemplates#keepOptionalGroupsTogether`). The menu font and padding in `DarkTheme.css` are kept small so that the height of the menu also stays inside the window. When `MainWindow` is set up, it adds one menu item per `Template` to the top of the **Help** menu, above **Full help...**. Choosing an item calls `CommandBox#setCommandText(...)` with that template's starter text. The command is only placed in the command box for the user to complete; it is not executed. The **Full help...** window (`HelpWindow`) lists the usage of every command, reusing the usage messages defined by the command classes in `Logic`, so `HelpWindow` depends on `Logic`.
 
 #### Opening and closing artwork
 
@@ -1100,10 +1100,7 @@ Use disposable test data and note the number of cyclist records before starting.
 
 ### Help dropdown and Full help for ride commands
 
-1. Click the **Help** menu. Expected: The dropdown lists `rideadd (ra) n/NAME from/FROM to/TO l/LOCATION d/DISTANCE
-   f/MIN_POWER s/MAX_GROUP_SIZE [notes/NOTES]` after `find`. It then lists `rideedit (re) ID [n/NAME] [from/START]
-   [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`, followed by
-   `ridedelete (rd) ID` before the roster commands and `list`.
+1. Launch Cyclique without resizing the window, then click the **Help** menu. Expected: The whole dropdown fits inside the window, with no entry cut off at the right or bottom edge. Long formats such as `rideedit` and `ridefind` wrap onto further lines between parameters. Close the menu and make the window wider, then open the menu again. Expected: The menu is wider and fewer entries wrap. Make the window as narrow as it allows and open the menu again. Expected: The menu is narrower, every entry is still fully readable, and it still fits inside the window. The entries have a little space between them. The dropdown lists `rideadd (ra) n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MIN_POWER s/MAX_GROUP_SIZE [notes/NOTES]` after `find`. It then lists `rideedit (re) ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`, followed by `ridedelete (rd) ID` before the roster commands and `list`.
 1. Click the `rideadd` item. Expected: The command box contains `rideadd n/ from/ to/ l/ d/ f/ s/` with the cursor
    at the end, and the command is not run. Type a value straight after each prefix to complete it.
 1. Click the `rideedit` item. Expected: The command box contains `rideedit ` with the cursor at the end, and the
