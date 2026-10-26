@@ -1,5 +1,6 @@
 package seedu.address.ui;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -21,6 +22,13 @@ import seedu.address.logic.commands.RideListCommand;
 import seedu.address.logic.commands.RideRosterCommand;
 
 public class HelpWindowTest {
+
+    @Test
+    public void userGuideUrl_pointsToCycliqueUserGuide() {
+        assertEquals("https://ay2627s1-cs2103t-w11-1.github.io/tp/UserGuide.html", HelpWindow.USERGUIDE_URL);
+        assertFalse(HelpWindow.USERGUIDE_URL.contains("addressbook-level3"));
+        assertTrue(HelpWindow.HELP_MESSAGE.endsWith(HelpWindow.USERGUIDE_URL));
+    }
 
     @Test
     public void commandList_rosterCommands_includesFormatsAndExample() {
