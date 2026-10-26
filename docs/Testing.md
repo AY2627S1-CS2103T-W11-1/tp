@@ -37,6 +37,10 @@ This project has three types of tests:
 
 ## Release checks
 
+`EmailTest` and `EmailValidationIntegrationTest` cover consecutive local-part special characters,
+add/edit acceptance and JSON readback, and rejected emails without saved-data changes.
+Run **Email local-part regression** in the Developer Guide after changing email validation.
+
 Select JDK 25 and verify it with `java -version` before running `./gradlew check coverage shadowJar`.
 This runs JUnit, checks production and test code with Checkstyle, generates coverage, and builds the release JAR.
 Review `build/reports/tests/test/index.html` and `build/reports/jacoco/coverage/html/index.html`.

@@ -987,6 +987,24 @@ Use a disposable test book. Check both cyclist names and card indexes after ever
    Enter `list`. Expected: Alex Adams, alex Zane, BERNICE and Zara are numbered 1 to 4.
    Enter `delete +65 94444444`, then `yes`. Expected: Zara is deleted; the remaining cyclists are numbered 1 to 3.
 
+### Email local-part regression
+
+Launch Cyclique in a disposable test folder. Use an empty cyclist list and unique phone numbers and emails.
+
+1. Enter `add n/Alpha Rider p/+65 91234567 sos/+65 99999999 e/rider__club@example.com f/200 x/Beginner l/any`.
+   Expected: The cyclist is added and their card displays `rider__club@example.com`.
+1. Enter `edit +65 91234567 e/rider++club@example.com`.
+   Expected: The edit succeeds and the card displays `rider++club@example.com`.
+1. Add a second cyclist using
+   `add n/Beta Rider p/+65 92234567 sos/+65 99999999 e/beta++club@example.com f/200 x/Beginner l/any`.
+   Expected: The cyclist is added. Edit Alpha's email to `rider_+.-club@example.com`, then
+   `rider_club@example.com`. Expected: Both edits succeed.
+1. Try editing Alpha's email to `rider..club@example.com`, `__rider@example.com`,
+   `rider++@example.com` and `rider__club@exam_ple.com`.
+   Expected: Each edit is rejected with the email constraints, which explicitly prohibit consecutive periods
+   and special characters at either end of the local part. The cyclist details remain unchanged.
+1. Exit and relaunch. Expected: Alpha retains `rider_club@example.com` and Beta retains `beta++club@example.com`.
+
 ### Error message consistency
 
 Use the contacts from the alphabetical display scenario before deleting Zara.
