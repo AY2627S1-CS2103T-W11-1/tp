@@ -503,7 +503,7 @@ An unknown ride reports `Ride ID cannot be found.` A phone that is not on the se
 
 #### Shared roster command input and behaviour
 
-* Both commands require an ID followed by a complete phone number. For example, `rideaddcyclist 1` reports `Invalid command format.` followed by usage instructions for both roster commands.
+* Both commands require an ID followed by a complete phone number. Missing arguments report `Invalid command format.` followed by the entered command's syntax and example. For example, `ridedeletecyclist 1` shows `Example: ridedeletecyclist 1 +65 91234567`; `rideaddcyclist 1` shows `Example: rideaddcyclist 1 +65 91234567`. The **Full help** window includes both commands and their examples.
 * An invalid ID, such as `0`, `-1`, `01`, `abc` or `2147483648`, reports `Ride ID should be a positive whole number no larger than 2147483647.` when a phone argument is supplied.
 * An invalid phone, including a `p/` prefix or extra text after the phone, reports a phone-format error. Enter the complete phone number exactly as saved. Invalid inputs do not change rosters.
 * Command names are case-sensitive. Both commands appear in the **Help** menu; choosing one inserts the command word and a space for you to complete, without running it.

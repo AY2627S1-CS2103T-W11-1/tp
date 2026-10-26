@@ -89,6 +89,14 @@ public class HelpWindowTest {
     }
 
     @Test
+    public void commandList_rosterUsage_includesBothOperationExamples() {
+        assertTrue(HelpWindow.COMMAND_LIST.contains(RideRosterCommand.MESSAGE_JOIN_USAGE));
+        assertTrue(HelpWindow.COMMAND_LIST.contains(RideRosterCommand.MESSAGE_LEAVE_USAGE));
+        assertTrue(HelpWindow.COMMAND_LIST.contains("Example: rideaddcyclist 1 +65 91234567"));
+        assertTrue(HelpWindow.COMMAND_LIST.contains("Example: ridedeletecyclist 1 +65 91234567"));
+    }
+
+    @Test
     public void commandList_clearUsage_warnsItDeletesRidesAndTakesNoParameters() {
         assertTrue(ClearCommand.MESSAGE_USAGE.contains("every cyclist and every ride"));
         assertTrue(ClearCommand.MESSAGE_USAGE.contains("Takes no parameters"));

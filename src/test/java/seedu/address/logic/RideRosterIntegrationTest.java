@@ -55,6 +55,46 @@ public class RideRosterIntegrationTest {
     }
 
     @Test
+    public void execute_missingRosterArguments_showsMatchingUsageWithoutChanges() throws Exception {
+        logic.execute("rideaddcyclist 1 " + PHONE);
+        model.updateFilteredPersonList(person -> false);
+        Ride before = currentRide();
+        String saved = Files.readString(storage.getAddressBookFilePath());
+        for (String word : List.of("rideaddcyclist", "ridedeletecyclist")) {
+            String usage = word.equals("rideaddcyclist")
+                    ? RideRosterCommand.MESSAGE_JOIN_USAGE : RideRosterCommand.MESSAGE_LEAVE_USAGE;
+            for (String args : List.of("", " ", " 1", " 1   ")) {
+                ParseException exception = assertThrows(ParseException.class, () -> logic.execute(word + args));
+                assertEquals(String.format(Messages.MESSAGE_INVALID_COMMAND_FORMAT, usage), exception.getMessage());
+                assertTrue(exception.getMessage().contains("Example: " + word + " 1 +65 91234567"));
+                assertEquals(before, currentRide());
+                assertTrue(model.getFilteredPersonList().isEmpty());
+                assertEquals(saved, Files.readString(storage.getAddressBookFilePath()));
+            }
+        }
+    }
+
+    @Test
+    public void execute_malformedRosterArguments_preservesSpecificValidationErrors() throws Exception {
+        for (String word : List.of("rideaddcyclist", "ridedeletecyclist")) {
+            ParseException idException = assertThrows(ParseException.class, () ->
+                    logic.execute(word + " abc " + PHONE));
+            assertEquals("Ride ID should be a positive whole number no larger than 2147483647.",
+                    idException.getMessage());
+            for (String phone : List.of("91234567", "p/" + PHONE)) {
+                ParseException phoneException = assertThrows(ParseException.class, () ->
+                        logic.execute(word + " 1 " + phone));
+                assertEquals(Phone.MESSAGE_MISSING_COUNTRY_CODE, phoneException.getMessage());
+            }
+            ParseException extraArgumentException = assertThrows(ParseException.class, () ->
+                    logic.execute(word + " 1 " + PHONE + " extra"));
+            assertEquals(Phone.MESSAGE_CONSTRAINTS, extraArgumentException.getMessage());
+        }
+        assertTrue(currentRide().getRoster().isEmpty());
+        assertSavedState();
+    }
+
+    @Test
     public void execute_tabSeparatedRideEdit_updatesBothFields() throws Exception {
         logic.execute("rideedit 1 notes/Bring lights\ts/2");
         assertEquals("2", currentRide().getMaxGroupSize().value);

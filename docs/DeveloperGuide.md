@@ -1213,11 +1213,16 @@ Use a separate data directory or back up your data first.
    Expected: minimum-power error. An unknown cyclist or ride ID also reports an error.
 1. Enter `rideaddcyclist 0 +65 91234567`, `rideaddcyclist 1`, and `rideaddcyclist 1 p/+65 91234567`.
    Expected: invalid-input errors with no data changes.
+1. Enter `ridedeletecyclist` and `ridedeletecyclist 1`, then `rideaddcyclist` and `rideaddcyclist 1`.
+   Expected: `Invalid command format.` followed by the entered command's syntax and example; no data changes.
+   Removal shows `Example: ridedeletecyclist 1 +65 91234567`;
+   addition shows `Example: rideaddcyclist 1 +65 91234567`.
 1. Add the first cyclist again. Run `list`, edit their phone to `+65 91111111`.
    Expected: the roster shows the new phone. Restart; expected: membership is preserved.
 1. Delete that contact and cancel. Expected: roster unchanged. Delete again and confirm.
    Expected: the prompt explains removal from all rosters; the card says `No cyclists`.
-1. Check Help dropdown and Full help for both commands. Create a second ride
+1. Check Help dropdown and Full help for both commands. Expected: Full help includes both command syntaxes
+   and their matching examples. Create a second ride
    with maximum group size 12 and add several eligible cyclists. Resize the window; expected: text wraps and the ride card stays within its column.
 1. Try `ridedeletecyclist` for a cyclist not on the roster. Expected: membership error;
    no contact records or other rides change.
