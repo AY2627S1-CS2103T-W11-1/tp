@@ -59,6 +59,8 @@ Record release results, unresolved defects and incomplete manual checks in [Rele
 
 `CommandBoxTest` covers command entry, error recovery and overlap confirmation with JSON persistence.
 `ListPanelTest` covers live lists, empty-ride placeholders and recycled cards.
+`MainWindowLayoutTest` checks the real FXML result pane at normal, constrained and large sizes,
+including many conflicts, invalid replies and restoration of the normal height.
 JavaFX tests require an X display on Linux; CI runs them using `xvfb-run`.
 
 `ModelManagerTest` checks alphabetical ordering by full name, case-insensitive ties,

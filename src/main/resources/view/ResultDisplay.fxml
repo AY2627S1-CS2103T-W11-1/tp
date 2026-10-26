@@ -5,7 +5,8 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<StackPane fx:id="placeHolder" styleClass="pane-with-border" xmlns="http://javafx.com/javafx/17"
+<StackPane fx:id="placeHolder" styleClass="pane-with-border" minHeight="0" prefHeight="100"
+    xmlns="http://javafx.com/javafx/17"
     xmlns:fx="http://javafx.com/fxml/1">
   <VBox>
     <Label fx:id="confirmationHeading" visible="false" managed="false" wrapText="true"

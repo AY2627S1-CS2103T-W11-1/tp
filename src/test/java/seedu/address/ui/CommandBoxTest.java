@@ -128,6 +128,7 @@ public class CommandBoxTest {
             assertTrue(heading.isVisible());
             assertTrue(instructions.isVisible());
             assertTrue(instructions.isManaged());
+            assertEquals(200, display.getRoot().getPrefHeight());
             assertTrue(feedback.isWrapText());
             display.getRoot().applyCss();
             assertEquals(Color.WHITE, heading.getTextFill());
@@ -141,12 +142,14 @@ public class CommandBoxTest {
 
             enter(box, "maybe");
             assertTrue(heading.getText().startsWith("Invalid confirmation."));
+            assertEquals(200, display.getRoot().getPrefHeight());
             assertEquals(Messages.MESSAGE_OVERLAP_INSTRUCTIONS, instructions.getText());
             assertTrue(instructions.isVisible());
             assertTrue(feedback.getText().contains("Ride A"));
             assertTrue(input(box).getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
             enter(box, "no");
             assertEquals(LogicManager.MESSAGE_OVERLAP_CANCELLED, feedback.getText());
+            assertEquals(100, display.getRoot().getPrefHeight());
             assertFalse(feedback.isWrapText());
             assertFalse(heading.isVisible());
             assertFalse(heading.isManaged());
@@ -157,6 +160,7 @@ public class CommandBoxTest {
             enter(box, "rideaddcyclist 2 " + PHONE);
             enter(box, "YeS");
             assertTrue(feedback.getText().contains("added to ride 2"));
+            assertEquals(100, display.getRoot().getPrefHeight());
             assertFalse(heading.isVisible());
             assertFalse(heading.isManaged());
             assertFalse(instructions.isVisible());

@@ -1334,7 +1334,10 @@ Use the assigned ride IDs below if they differ from 1, 2 and 3.
    cyclist, Ride A's ID, name and period, despite Ride A being hidden. No roster change is saved.
    The heading and conflict details remain white. The instruction line uses the theme's yellow accent and shows
    `Enter y/yes to proceed or n/no to cancel.` immediately below its heading, before the conflict details.
-   At the normal and maximised window sizes, both lines must be visible without scrolling.
+   The result pane normally prefers 100px and expands towards 200px while this confirmation is pending.
+   At the normal and maximised window sizes, both lines must be visible without scrolling; conflict details
+   scroll within the pane. At the minimum window size, the pane stays within 100px and 200px and the cyclist panel
+   remains usable. Cancelling, confirming or entering another command restores the normal preferred height.
 1. Enter `maybe`. Expected: an error repeats the warning. Enter `NO`. Expected: cancellation;
    `ridelist 2` remains empty. Retry the registration and enter `YeS`. Expected: the normal success
    message in the normal feedback colour, and `ridelist 2` now displays the cyclist. Resize the window

@@ -14,6 +14,8 @@ import seedu.address.logic.Messages;
 public class ResultDisplay extends UiPart<Region> {
 
     private static final String FXML = "ResultDisplay.fxml";
+    private static final double NORMAL_HEIGHT = 100;
+    private static final double CONFIRMATION_HEIGHT = 200;
 
     @FXML
     private Label confirmationHeading;
@@ -36,6 +38,7 @@ public class ResultDisplay extends UiPart<Region> {
         String instructionLine = "\n" + Messages.MESSAGE_OVERLAP_INSTRUCTIONS + "\n";
         int instructionIndex = feedbackToUser.indexOf(instructionLine);
         boolean isConfirmation = instructionIndex >= 0;
+        getRoot().setPrefHeight(isConfirmation ? CONFIRMATION_HEIGHT : NORMAL_HEIGHT);
         confirmationHeading.setVisible(isConfirmation);
         confirmationHeading.setManaged(isConfirmation);
         confirmationInstructions.setVisible(isConfirmation);
