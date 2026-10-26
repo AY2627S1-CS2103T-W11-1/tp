@@ -37,7 +37,10 @@ public class JavaFxToolkit {
         }
 
         CountDownLatch startupLatch = new CountDownLatch(1);
-        Platform.startup(startupLatch::countDown);
+        Platform.startup(() -> {
+            Platform.setImplicitExit(false);
+            startupLatch.countDown();
+        });
         assertTrue(startupLatch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS), "JavaFX toolkit did not start");
         started = true;
     }

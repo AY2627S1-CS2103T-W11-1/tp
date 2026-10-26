@@ -94,6 +94,7 @@ public class RideListIntegrationTest {
         assertEquals(List.of(), model.getFilteredPersonList());
 
         logic.execute("rideaddcyclist 310 " + ALICE.getPhone().value);
+        logic.execute("yes");
         assertEquals(List.of(ALICE), model.getFilteredPersonList());
 
         logic.execute("ridedeletecyclist 310 " + ALICE.getPhone().value);
@@ -101,6 +102,7 @@ public class RideListIntegrationTest {
 
         logic.execute("ridelist 101");
         logic.execute("rideaddcyclist 101 " + BENSON.getPhone().value);
+        logic.execute("yes");
         assertEquals(List.of(ALICE, BENSON, CARL), model.getFilteredPersonList());
 
         logic.execute("ridedeletecyclist 101 " + CARL.getPhone().value);

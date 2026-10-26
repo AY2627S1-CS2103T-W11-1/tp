@@ -3,36 +3,38 @@ package seedu.address.ui;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.testutil.JavaFxTestUtil.runOnJavaFxThread;
 
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import seedu.address.model.person.Person;
-import seedu.address.testutil.JavaFxToolkit;
+import seedu.address.testutil.JavaFxTestUtil;
 import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.RideBuilder;
 
 public class PersonCardTest {
 
-    private static final int JAVAFX_TIMEOUT_SECONDS = 5;
-
     @BeforeAll
     public static void startJavaFxToolkit() throws InterruptedException {
-        JavaFxToolkit.start();
+        if (System.getProperty("os.name").startsWith("Linux")) {
+            String display = System.getenv("DISPLAY");
+            assertNotNull(display, "JavaFX tests on Linux require an X display");
+            assertFalse(display.isBlank(), "JavaFX tests on Linux require an X display");
+        }
+
+        JavaFxTestUtil.startJavaFxToolkit();
     }
 
     @Test
@@ -215,24 +217,5 @@ public class PersonCardTest {
                 .map(Label.class::cast)
                 .map(Label::getText)
                 .toList();
-    }
-
-    private static void runOnJavaFxThread(Runnable action) throws Exception {
-        FutureTask<Void> task = new FutureTask<>(() -> {
-            action.run();
-            return null;
-        });
-        Platform.runLater(task);
-        try {
-            task.get(JAVAFX_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        } catch (ExecutionException exception) {
-            if (exception.getCause() instanceof AssertionError assertionError) {
-                throw assertionError;
-            }
-            if (exception.getCause() instanceof Exception cause) {
-                throw cause;
-            }
-            throw new RuntimeException(exception.getCause());
-        }
     }
 }
