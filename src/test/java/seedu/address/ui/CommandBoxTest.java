@@ -14,9 +14,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import javafx.event.ActionEvent;
+import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.paint.Color;
 import seedu.address.logic.LogicManager;
+import seedu.address.logic.Messages;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -102,6 +106,11 @@ public class CommandBoxTest {
 
         runOnJavaFxThread(() -> {
             ResultDisplay display = new ResultDisplay();
+            new Scene(display.getRoot());
+            display.getRoot().getStylesheets().add(ResultDisplay.class.getResource("/view/DarkTheme.css")
+                    .toExternalForm());
+            Label heading = (Label) display.getRoot().lookup("#confirmationHeading");
+            Label instructions = (Label) display.getRoot().lookup("#confirmationInstructions");
             TextArea feedback = (TextArea) display.getRoot().lookup("#resultDisplay");
             CommandBox box = new CommandBox(text -> {
                 try {
@@ -114,22 +123,44 @@ public class CommandBoxTest {
                 }
             });
             enter(box, "rideaddcyclist 2 " + PHONE);
-            assertTrue(feedback.getText().startsWith("Warning: overlapping ride times."));
+            assertEquals("Warning: overlapping ride times.", heading.getText());
+            assertEquals(Messages.MESSAGE_OVERLAP_INSTRUCTIONS, instructions.getText());
+            assertTrue(heading.isVisible());
+            assertTrue(instructions.isVisible());
+            assertTrue(instructions.isManaged());
+            assertTrue(feedback.isWrapText());
+            display.getRoot().applyCss();
+            assertEquals(Color.WHITE, heading.getTextFill());
+            assertEquals(Color.web("#ffd23f"), instructions.getTextFill());
+            assertFalse(feedback.getText().contains(Messages.MESSAGE_OVERLAP_INSTRUCTIONS));
+            assertEquals(0, feedback.getCaretPosition());
             assertTrue(feedback.getText().contains("Ride A"));
             assertTrue(model.getAddressBook().getRideList().get(1).getRoster().isEmpty());
             assertEquals("", input(box).getText());
             assertFalse(input(box).getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
 
             enter(box, "maybe");
-            assertTrue(feedback.getText().startsWith("Invalid confirmation."));
+            assertTrue(heading.getText().startsWith("Invalid confirmation."));
+            assertEquals(Messages.MESSAGE_OVERLAP_INSTRUCTIONS, instructions.getText());
+            assertTrue(instructions.isVisible());
+            assertTrue(feedback.getText().contains("Ride A"));
             assertTrue(input(box).getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
             enter(box, "no");
             assertEquals(LogicManager.MESSAGE_OVERLAP_CANCELLED, feedback.getText());
+            assertFalse(feedback.isWrapText());
+            assertFalse(heading.isVisible());
+            assertFalse(heading.isManaged());
+            assertFalse(instructions.isVisible());
+            assertFalse(instructions.isManaged());
             assertTrue(model.getAddressBook().getRideList().get(1).getRoster().isEmpty());
 
             enter(box, "rideaddcyclist 2 " + PHONE);
             enter(box, "YeS");
             assertTrue(feedback.getText().contains("added to ride 2"));
+            assertFalse(heading.isVisible());
+            assertFalse(heading.isManaged());
+            assertFalse(instructions.isVisible());
+            assertFalse(instructions.isManaged());
             assertEquals(List.of(new Phone(PHONE)), model.getAddressBook().getRideList().get(1).getRoster());
             assertEquals("", input(box).getText());
             assertFalse(input(box).getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));

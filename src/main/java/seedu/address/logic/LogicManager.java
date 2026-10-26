@@ -29,10 +29,10 @@ import seedu.address.storage.Storage;
 public class LogicManager implements Logic {
     public static final String FILE_OPS_ERROR_FORMAT = "Could not save data (%s).";
 
-    public static final String MESSAGE_CONFIRM_OVERLAP = "Warning: overlapping ride times.\n%1$s\n"
-            + "Enter y/yes to proceed anyway or n/no to cancel (case-insensitive).";
+    public static final String MESSAGE_CONFIRM_OVERLAP = "Warning: overlapping ride times.\n"
+            + Messages.MESSAGE_OVERLAP_INSTRUCTIONS + "\n%1$s";
     public static final String MESSAGE_OVERLAP_CANCELLED = "Ride change cancelled.";
-    public static final String MESSAGE_INVALID_OVERLAP_REPLY = "Invalid confirmation.\n%1$s";
+    public static final String MESSAGE_INVALID_OVERLAP_REPLY = "Invalid confirmation. %1$s";
     public static final String MESSAGE_OVERLAP_DATA_CHANGED =
             "Cyclist or ride data has changed. Enter the ride command again to review the overlaps.";
 

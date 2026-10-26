@@ -1,9 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
 
 <StackPane fx:id="placeHolder" styleClass="pane-with-border" xmlns="http://javafx.com/javafx/17"
     xmlns:fx="http://javafx.com/fxml/1">
-  <TextArea fx:id="resultDisplay" editable="false" styleClass="result-display"/>
+  <VBox>
+    <Label fx:id="confirmationHeading" visible="false" managed="false" wrapText="true"
+           styleClass="confirmation-heading"/>
+    <Label fx:id="confirmationInstructions" visible="false" managed="false" wrapText="true"
+           styleClass="confirmation-instructions"/>
+    <TextArea fx:id="resultDisplay" editable="false" styleClass="result-display" minHeight="0"
+              VBox.vgrow="ALWAYS"/>
+  </VBox>
 </StackPane>

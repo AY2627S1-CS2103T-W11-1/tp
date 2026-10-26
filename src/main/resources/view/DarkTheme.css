@@ -183,6 +183,17 @@
     -fx-text-fill: black !important;
 }
 
+.confirmation-heading, .confirmation-instructions {
+    -fx-font-family: "Segoe UI Light";
+    -fx-font-size: 13pt;
+    -fx-padding: 0 8 0 8;
+    -fx-text-fill: white;
+}
+
+.confirmation-instructions {
+    -fx-text-fill: #ffd23f;
+}
+
 .status-bar .label {
     -fx-font-family: "Segoe UI Light";
     -fx-text-fill: white;

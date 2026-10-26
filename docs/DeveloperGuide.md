@@ -1332,9 +1332,13 @@ Use the assigned ride IDs below if they differ from 1, 2 and 3.
 1. Enter `rideaddcyclist 1 +65 91234567`, then `ridefind n/Ride B`, then
    `rideaddcyclist 2 +65 91234567`. Expected: an overlap warning names the proposed ride and
    cyclist, Ride A's ID, name and period, despite Ride A being hidden. No roster change is saved.
+   The heading and conflict details remain white. The instruction line uses the theme's yellow accent and shows
+   `Enter y/yes to proceed or n/no to cancel.` immediately below its heading, before the conflict details.
+   At the normal and maximised window sizes, both lines must be visible without scrolling.
 1. Enter `maybe`. Expected: an error repeats the warning. Enter `NO`. Expected: cancellation;
    `ridelist 2` remains empty. Retry the registration and enter `YeS`. Expected: the normal success
-   message, and `ridelist 2` now displays the cyclist. Resize the window and check warning readability.
+   message in the normal feedback colour, and `ridelist 2` now displays the cyclist. Resize the window
+   and check warning readability.
 1. Enter `rideedit 2 from/29-10-2026 1000`. Expected: immediate success with adjacent times.
    Enter `rideedit 2 from/29-10-2026 0900 notes/Bring lights`. Expected: warning with no partial edit.
    Enter `no`. Expected: the start remains 1000 and notes remain unchanged. Repeat the edit and enter

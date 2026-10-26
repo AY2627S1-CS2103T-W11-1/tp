@@ -72,6 +72,7 @@ public class RideOverlapConfirmationTest {
         model.updateFilteredRideList(ride -> ride.getId() == 2);
         String warning = logic.execute(JOIN).getFeedbackToUser();
         assertTrue(warning.startsWith("Warning: overlapping ride times."));
+        assertEquals(Messages.MESSAGE_OVERLAP_INSTRUCTIONS, warning.lines().skip(1).findFirst().orElseThrow());
         assertTrue(warning.contains("Proposed ride 2 (Ride B): 29-10-2026 0900 to 29-10-2026 1100"));
         assertTrue(warning.contains("Cyclist " + PHONE + ": ride 1 (Ride A): "
                 + "29-10-2026 0800 to 29-10-2026 1000"));
