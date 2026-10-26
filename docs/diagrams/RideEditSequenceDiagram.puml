@@ -46,7 +46,73 @@ deactivate EditParser
 Parser --> Logic : c
 deactivate Parser
 
-' LogicManager#execute calls RideEditCommand#execute, which calls ModelManager#getAddressBook.
+' LogicManager#execute calls RideEditCommand#getOverlapWarning before storing or executing the command.
+group Check overlap before execution (no mutation or save)
+    Logic -> Command : getOverlapWarning(m)
+    activate Command
+    Command -> Model : getAddressBook()
+    activate Model
+    Model --> Command : book
+    deactivate Model
+    note right of Storage
+      Resolve target; combine fields;
+      validate period and roster eligibility.
+      If either endpoint changes, check
+      every roster member against all
+      other stored rides, including hidden rides.
+      Unchanged times, adjacent periods
+      and zero-duration rides do not warn.
+    end note
+    alt valid proposal
+        Command --> Logic : warning text or empty string
+    else invalid proposal
+        Command --> Logic : throws CommandException
+    end
+    deactivate Command
+end
+
+break invalid proposal
+    [<-- Logic : throws CommandException (no mutation or save)
+end
+
+opt non-empty warning
+    Logic -> Model : getAddressBook()
+    activate Model
+    Model --> Logic : book
+    deactivate Model
+    note left of Logic
+      Keep command, address-book copy and prompt in memory.
+      Do not execute or save any part of the edit.
+    end note
+    [<-- Logic : warning CommandResult
+    deactivate Logic
+
+    ... Await another command-box input ...
+    [-> Logic : execute(reply)
+    activate Logic
+    note left of Logic
+      Invalid replies repeat the warning and retain the request.
+      Reply matching ignores letter case.
+      Restart discards the pending request.
+    end note
+    break n/no or another recognised command
+        note left of Logic
+          Clear the pending edit without saving.
+          Process another recognised command normally.
+        end note
+        [<-- Logic : cancellation (plus new command result or error)
+    end
+    note left of Logic : y/yes: consume pending request before execution.
+    Logic -> Model : getAddressBook()
+    activate Model
+    Model --> Logic : current book
+    deactivate Model
+    break current book differs from saved copy
+        [<-- Logic : throws CommandException (no mutation or save)
+    end
+end
+
+' LogicManager#execute or #confirmRideChange calls RideEditCommand#execute after overlap checks/confirmation.
 Logic -> Command : execute(m)
 activate Command
 Command -> Model : getAddressBook()
@@ -110,7 +176,7 @@ end
 deactivate Command
 
 opt result
-    ' LogicManager#execute calls #saveAddressBook: internal helper invocation is abstracted in this note.
+    ' LogicManager#execute and #confirmRideChange call #saveAddressBook only after successful execution.
     note left of Logic : saveAddressBook():\nexisting storage path.
     Logic -> Model : getAddressBook()
     activate Model
@@ -147,6 +213,8 @@ legend bottom
   Guards: valid = target found and complete period valid; pass/fail = roster eligibility checks.
   result = command returned CommandResult; saved = command and saving both succeeded.
   Messages labelled "throws" propagate exceptions; they do not return values.
-  No confirmation is required.
+  Only time changes with roster conflicts require confirmation.
+  Warning/cancellation paths never execute or save the pending edit.
+  Execution repeats validation before replacing the stored ride.
 endlegend
 @enduml

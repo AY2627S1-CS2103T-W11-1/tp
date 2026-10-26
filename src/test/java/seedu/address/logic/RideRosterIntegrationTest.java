@@ -7,12 +7,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.RideRosterCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
@@ -151,6 +157,7 @@ public class RideRosterIntegrationTest {
         model.addRide(new RideBuilder().build());
         logic.execute("rideaddcyclist 1 " + PHONE);
         logic.execute("rideaddcyclist 2 " + PHONE);
+        logic.execute("yes");
         logic.execute("ridedeletecyclist 1 " + PHONE);
         assertTrue(currentRide().getRoster().isEmpty());
         assertEquals(List.of(new Phone(PHONE)), model.getAddressBook().getRideList().get(1).getRoster());
@@ -177,6 +184,7 @@ public class RideRosterIntegrationTest {
         model.addRide(new RideBuilder().build());
         logic.execute("rideaddcyclist 1 " + PHONE);
         logic.execute("rideaddcyclist 2 " + PHONE);
+        logic.execute("yes");
         logic.execute("edit " + PHONE + " p/+65 91111111");
         for (Ride ride : model.getAddressBook().getRideList()) {
             assertEquals(List.of(new Phone("+65 91111111")), ride.getRoster());
@@ -249,5 +257,41 @@ public class RideRosterIntegrationTest {
 
     private void assertSavedState() throws Exception {
         assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_fineLogging_recordsRosterOperationIdAndResultingSize() throws Exception {
+        Logger logger = LogsCenter.getLogger(RideRosterCommand.class);
+        Level originalLevel = logger.getLevel();
+        boolean originalUseParentHandlers = logger.getUseParentHandlers();
+        List<String> messages = new ArrayList<>();
+        Handler handler = new Handler() {
+            @Override
+            public void publish(LogRecord record) {
+                messages.add(record.getMessage());
+            }
+
+            @Override
+            public void flush() {}
+
+            @Override
+            public void close() {}
+        };
+        try {
+            logger.setLevel(Level.FINE);
+            logger.setUseParentHandlers(false);
+            logger.addHandler(handler);
+            logic.execute("rideaddcyclist 1 " + PHONE);
+            assertEquals(List.of(new Phone(PHONE)), currentRide().getRoster());
+            logic.execute("ridedeletecyclist 1 " + PHONE);
+            assertTrue(currentRide().getRoster().isEmpty());
+            assertEquals(List.of("Completed roster addition for ride ID 1; roster size: 1.",
+                    "Completed roster removal for ride ID 1; roster size: 0."), messages);
+            assertSavedState();
+        } finally {
+            logger.removeHandler(handler);
+            logger.setLevel(originalLevel);
+            logger.setUseParentHandlers(originalUseParentHandlers);
+        }
     }
 }

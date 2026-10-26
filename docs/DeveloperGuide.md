@@ -101,7 +101,7 @@ The two panels are filtered independently of each other:
 
 #### Help menu templates
 
-`CommandTemplates` holds a list of `Template` records, one for each command. Each `Template` has the text shown in the Help menu and the starter text for the command box. When `MainWindow` is set up, it adds one menu item per `Template` to the top of the **Help** menu, above **Full help...**. Choosing an item calls `CommandBox#setCommandText(...)` with that template's starter text. The command is only placed in the command box for the user to complete; it is not executed. The **Full help...** window (`HelpWindow`) lists the usage of every command, reusing the usage messages defined by the command classes in `Logic`, so `HelpWindow` depends on `Logic`.
+`CommandTemplates` holds a list of `Template` records, one for each command. Each `Template` has the text shown in the Help menu and the starter text for the command box. Each menu item is a wrapping label. Whenever the **Help** menu opens, `MainWindow` builds the command items again and limits their width to the room between the **Help** menu and the right edge of the window, so a long command format wraps onto further lines instead of making the menu wider than the window. A wider window gives a wider menu, and a narrower window a narrower one. Lines wrap only between parameters, because spaces inside an optional group such as `[from/DATE [TIME]]` are replaced by no-break spaces (`CommandTemplates#keepOptionalGroupsTogether`). The menu font and padding in `DarkTheme.css` are kept small so that the height of the menu also stays inside the window. When `MainWindow` is set up, it adds one menu item per `Template` to the top of the **Help** menu, above **Full help...**. Choosing an item calls `CommandBox#setCommandText(...)` with that template's starter text. The command is only placed in the command box for the user to complete; it is not executed. The **Full help...** window (`HelpWindow`) lists the usage of every command, reusing the usage messages defined by the command classes in `Logic`, so `HelpWindow` depends on `Logic`.
 
 #### Opening and closing artwork
 
@@ -155,6 +155,10 @@ even if that command's arguments are invalid. See
 cancellation behaviour. Ride deletion executes immediately and does not use this
 confirmation flow.
 
+Ride Edit and roster commands implement `OverlapAwareCommand`. Before executing one, `LogicManager` calls
+`getOverlapWarning`; a non-empty result starts a separate pending ride request without mutation or saving.
+See [Group ride editing](#group-ride-editing-rideedit) for confirmation, cancellation and snapshot validation.
+
 The following partial class diagram shows how the `find` and `ridefind` commands are parsed.
 It omits unrelated command parsers and validation classes.
 
@@ -195,6 +199,9 @@ The tokenizer owns quote syntax; the parsers and commands retain field, ID, peri
 Parsing failure never reaches execution or saving. A malformed parameter outside valid quoted notes likewise
 fails its normal validation before mutation. Other fields have no new quote semantics, and the original
 `tokenize` path, including Ride Find and repeated cyclist Find criteria, is unchanged.
+
+Quoted notes are parsed before overlap processing. Invalid quoting creates no pending ride request. If a
+request is already pending, a new recognised command cancels it before parsing, even when that new input is malformed.
 
 For example, `rideedit 1 notes/"Bring camera with aperture f/2" s/5` supplies literal notes and maximum
 group size 5, leaving minimum power, ID and roster unchanged. Use an existing ride ID; normal roster constraints
@@ -409,10 +416,11 @@ Quote syntax is checked during tokenisation before the field checks above.
 
 `rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`
 edits an existing ride without changing its identity or roster. The sequence diagram below shows parsing,
-validation, replacement and saving. Internal validation and immutable object construction are summarised in notes;
-the parsing-success path is expanded, while execution failures are distinguished from successful replacement.
+validation, conditional overlap confirmation, replacement and saving. Internal validation and immutable object
+construction are summarised in notes; the parsing-success path is expanded, while validation failures and
+cancelled edits are distinguished from successful replacement.
 
-<img src="images/RideEditSequenceDiagram.png" width="1000" alt="Ride Edit parsing, validation before stored replacement, and saving through LogicManager" />
+<img src="images/RideEditSequenceDiagram.png" width="1000" alt="Ride Edit parsing, validation, conditional overlap confirmation and saving through LogicManager" />
 
 **Parsing.** `RideEditCommandParser` separates the positive ride ID from the prefixed fields and builds an
 `EditRideDescriptor`. Each supplied value is parsed by the same `ParserUtil` method used by `rideadd`, while
@@ -428,14 +436,25 @@ produce an end time earlier than the start time; equal start and end times are a
 `validateRosterEligibility` checks an edited maximum group size against the roster count before checking an edited
 minimum FTP. Only when minimum FTP is supplied does it resolve each roster phone against all cyclists, rejecting
 an unresolved phone or a minimum above any member's FTP. An unrelated edit does not resolve roster phones.
-Only after every validation succeeds does the command call `Model#setRide`. `ModelManager` delegates to
-`AddressBook#setRide`, which replaces the target at its current list position, preserving other rides and the next
+Both `getOverlapWarning` and `execute` perform these checks. The warning check does not replace or save the ride.
+Only after validation succeeds and any required overlap confirmation is accepted does `execute` call
+`Model#setRide`. `ModelManager` delegates to `AddressBook#setRide`, which replaces the target at its current list position, preserving other rides and the next
 ride ID counter. Failed parsing, a missing target or an invalid resulting ride therefore leaves the model unchanged.
 
-The address book's observable ride list emits the replacement, allowing the existing Rides panel to refresh.
-Cyclist records are unchanged, and Ride Edit requires no confirmation. A successful command returns through
-`LogicManager`, which saves the updated address book using the existing JSON storage path. No separate Ride Edit
-storage format is required.
+**Conditional overlap confirmation.** Before execution, `LogicManager` calls `RideEditCommand#getOverlapWarning`.
+If either endpoint actually changes, the command checks the proposed period against all other stored rides
+for every cyclist on its roster, including rides hidden by filters. Adjacent periods and zero-duration rides
+do not conflict. An edit with unchanged times, or without a conflict, executes immediately.
+
+For a conflicting edit, `LogicManager` retains the command, a copy of the address book and the warning text
+in memory. It returns the warning without applying any fields or saving. A later `y`/`yes` reply consumes the
+pending request, rejects it if the address book has changed, then executes and saves the whole edit.
+An `n`/`no` reply cancels without saving; replies are case-insensitive. An invalid reply repeats the warning,
+while another recognised command cancels the edit and is processed normally. Restarting discards the request.
+
+The address book's observable ride list emits a successful replacement, allowing the existing Rides panel to
+refresh. Cyclist records are unchanged. `LogicManager` saves the updated address book using the existing JSON
+storage path. No separate Ride Edit storage format is required.
 
 ### Group ride deletion (`ridedelete`)
 
@@ -454,7 +473,14 @@ the existing JSON storage path. Ride deletion is immediate and does not use cycl
 
 `rideaddcyclist ID PHONE` and `ridedeletecyclist ID PHONE` share `RideRosterCommandParser` and `RideRosterCommand`. The parser separates the first token as a positive integer ride ID and validates the remaining text as a complete phone number. `AddressBookParser` selects `isJoining = true` for addition and `false` for removal; the shared parser passes this flag to the command.
 
-The sequence diagram below shows either roster operation succeeding, with no pending cyclist deletion. Local validation and collection operations are summarised in notes to keep the diagram focused on parsing, immutable replacement and saving.
+The sequence diagram below shows either roster operation succeeding, with no pending cyclist deletion and no
+overlap warning needed. The separate confirmation phase is omitted. Local validation and collection operations
+are summarised in notes to keep the diagram focused on parsing, immutable replacement and saving.
+
+`LogicManager` first calls `RideRosterCommand#getOverlapWarning`, which validates the proposed roster without
+replacing it. Addition checks the joining cyclist against all other stored rides using `RideOverlapWarning`;
+removal needs no overlap confirmation. A warning uses the same deferred execution and snapshot validation as
+Ride Edit. Execution repeats normal roster validation before replacement.
 
 <div style="overflow-x: auto;">
   <img src="images/RideRosterSequenceDiagram.png" alt="Adding or removing a cyclist from a ride"
@@ -1014,6 +1040,41 @@ Use a disposable test book. Check both cyclist names and card indexes after ever
    Enter `list`. Expected: Alex Adams, alex Zane, BERNICE and Zara are numbered 1 to 4.
    Enter `delete +65 94444444`, then `yes`. Expected: Zara is deleted; the remaining cyclists are numbered 1 to 3.
 
+### Unicode name regression
+
+Launch Cyclique in a disposable test folder with an empty cyclist list.
+
+1. Enter `add n/José Tan p/+65 91234567 sos/+65 99999999 e/jose@example.com f/200 x/Beginner l/any`.
+   Expected: The cyclist is added and their card and success message display `José Tan` accurately.
+1. Enter `edit +65 91234567 n/李明`, then `edit +65 91234567 n/Zoë Tan`.
+   Expected: Both edits succeed and display the supplied spelling. Enter `find n/Zoë`.
+   Expected: The cyclist appears. Enter `list` to restore the full cyclist display.
+1. Enter `rideadd n/Élan Ride from/29-10-2026 0630 to/29-10-2026 0930 l/Mandai d/40 f/150 s/5`.
+   Expected: The ride is added and its name is displayed accurately. Using its assigned ID,
+   enter `rideedit ID n/晨骑`. Expected: The ride name changes successfully.
+1. Try `edit +65 91234567 n/José-Tan`, `edit +65 91234567 n/`, and `rideedit ID n/Ride!`.
+   Expected: Each is rejected with name constraints explaining the supported Unicode characters;
+   cyclist and ride details remain unchanged.
+1. Exit and relaunch. Expected: The cyclist retains `Zoë Tan` and the ride retains `晨骑`.
+
+### Email local-part regression
+
+Launch Cyclique in a disposable test folder. Use an empty cyclist list and unique phone numbers and emails.
+
+1. Enter `add n/Alpha Rider p/+65 91234567 sos/+65 99999999 e/rider__club@example.com f/200 x/Beginner l/any`.
+   Expected: The cyclist is added and their card displays `rider__club@example.com`.
+1. Enter `edit +65 91234567 e/rider++club@example.com`.
+   Expected: The edit succeeds and the card displays `rider++club@example.com`.
+1. Add a second cyclist using
+   `add n/Beta Rider p/+65 92234567 sos/+65 99999999 e/beta++club@example.com f/200 x/Beginner l/any`.
+   Expected: The cyclist is added. Edit Alpha's email to `rider_+.-club@example.com`, then
+   `rider_club@example.com`. Expected: Both edits succeed.
+1. Try editing Alpha's email to `rider..club@example.com`, `__rider@example.com`,
+   `rider++@example.com` and `rider__club@exam_ple.com`.
+   Expected: Each edit is rejected with the email constraints, which explicitly prohibit consecutive periods
+   and special characters at either end of the local part. The cyclist details remain unchanged.
+1. Exit and relaunch. Expected: Alpha retains `rider_club@example.com` and Beta retains `beta++club@example.com`.
+
 ### Error message consistency
 
 Use the contacts from the alphabetical display scenario before deleting Zara.
@@ -1159,10 +1220,7 @@ Use disposable test data and note the number of cyclist records before starting.
 
 ### Help dropdown and Full help for ride commands
 
-1. Click the **Help** menu. Expected: The dropdown lists `rideadd (ra) n/NAME from/FROM to/TO l/LOCATION d/DISTANCE
-   f/MIN_POWER s/MAX_GROUP_SIZE [notes/NOTES]` after `find`. It then lists `rideedit (re) ID [n/NAME] [from/START]
-   [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`, followed by
-   `ridedelete (rd) ID` before the roster commands and `list`.
+1. Launch Cyclique without resizing the window, then click the **Help** menu. Expected: The whole dropdown fits inside the window, with no entry cut off at the right or bottom edge. Long formats such as `rideedit` and `ridefind` wrap onto further lines between parameters. Close the menu and make the window wider, then open the menu again. Expected: The menu is wider and fewer entries wrap. Make the window as narrow as it allows and open the menu again. Expected: The menu is narrower, every entry is still fully readable, and it still fits inside the window. The entries have a little space between them. The dropdown lists `rideadd (ra) n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MIN_POWER s/MAX_GROUP_SIZE [notes/NOTES]` after `find`. It then lists `rideedit (re) ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`, followed by `ridedelete (rd) ID` before the roster commands and `list`.
 1. Click the `rideadd` item. Expected: The command box contains `rideadd n/ from/ to/ l/ d/ f/ s/` with the cursor
    at the end, and the command is not run. Type a value straight after each prefix to complete it.
 1. Click the `rideedit` item. Expected: The command box contains `rideedit ` with the cursor at the end, and the
@@ -1293,7 +1351,8 @@ Use a separate data directory or back up your data first.
 1. Delete that contact and cancel. Expected: roster unchanged. Delete again and confirm.
    Expected: the prompt explains removal from all rosters; the card says `No cyclists`.
 1. Check Help dropdown and Full help for both commands. Expected: Full help includes both command syntaxes
-   and their matching examples. Create a second ride
+   and their matching examples. Only the addition usage explains overlap confirmation with `y`/`yes` or `n`/`no`.
+   Create a second ride
    with maximum group size 12 and add several eligible cyclists. Resize the window; expected: text wraps and the ride card stays within its column.
 1. Try `ridedeletecyclist` for a cyclist not on the roster. Expected: membership error;
    no contact records or other rides change.
@@ -1390,10 +1449,52 @@ the existing recovery behaviour starts with an empty book after a loading failur
    below the saved roster size. Relaunch each fixture.
    Expected: each corrupted book is rejected with a specific loading warning; no invalid roster is displayed.
 
+### Ride overlap confirmation regression
+
+Use JDK 25 and a disposable folder with a copy of the release JAR. Start with an empty book.
+Use the assigned ride IDs below if they differ from 1, 2 and 3.
+
+1. Add `add n/Overlap Tester p/+65 91234567 sos/+65 98765432 e/overlap@example.com f/250 x/Beginner l/any`.
+1. Create `rideadd n/Ride A from/29-10-2026 0800 to/29-10-2026 1000 l/East Coast d/20 f/180 s/10`
+   and `rideadd n/Ride B from/29-10-2026 0900 to/29-10-2026 1100 l/East Coast d/20 f/180 s/10`.
+1. Enter `rideaddcyclist 1 +65 91234567`, then `ridefind n/Ride B`, then
+   `rideaddcyclist 2 +65 91234567`. Expected: an overlap warning names the proposed ride and
+   cyclist, Ride A's ID, name and period, despite Ride A being hidden. No roster change is saved.
+   The heading and conflict details remain white. The instruction line uses the theme's yellow accent and shows
+   `Enter y/yes to proceed or n/no to cancel.` immediately below its heading, before the conflict details.
+   The result pane normally prefers 100px and expands towards 200px while this confirmation is pending.
+   At the normal and maximised window sizes, both lines must be visible without scrolling; conflict details
+   scroll within the pane. At the minimum window size, the pane stays within 100px and 200px and the cyclist panel
+   remains usable. Cancelling, confirming or entering another command restores the normal preferred height.
+1. Enter `maybe`. Expected: an error repeats the warning. Enter `NO`. Expected: cancellation;
+   `ridelist 2` remains empty. Retry the registration and enter `YeS`. Expected: the normal success
+   message in the normal feedback colour, and `ridelist 2` now displays the cyclist. Resize the window
+   and check warning readability.
+1. Enter `rideedit 2 from/29-10-2026 1000`. Expected: immediate success with adjacent times.
+   Enter `rideedit 2 from/29-10-2026 0900 notes/Bring lights`. Expected: warning with no partial edit.
+   Enter `no`. Expected: the start remains 1000 and notes remain unchanged. Repeat the edit and enter
+   `yes`. Expected: the entire edit succeeds. `rideedit 2 notes/Bring water` succeeds without a warning.
+1. Create `rideadd n/Ride C from/29-10-2026 0930 to/29-10-2026 0930 l/East Coast d/1 f/180 s/10`.
+   Enter `rideaddcyclist 3 +65 91234567`. Expected: immediate success for the zero-duration ride.
+1. Enter `rideedit 2 to/29-10-2026 1130`, then `help`. Expected: the pending edit is cancelled,
+   Help opens normally, and Ride B still ends at 1100. Close Help and enter `yes`.
+   Expected: unknown command; the cancelled edit cannot be confirmed.
+1. Request that time edit again, close and restart Cyclique, then enter `yes`.
+   Expected: unknown command; the unconfirmed edit is discarded. Previously confirmed rosters,
+   times and notes remain saved. Recheck the existing **Deletion confirmation regression**.
+1. Enter `rideedit 2 notes/"Bring camera with aperture f/2"`. Expected: immediate success, complete literal notes,
+   unchanged minimum power 180 W and roster. Restore `rideedit 2 notes/Bring water` for the next check.
+1. Enter `rideedit 2 notes/"Bring camera with aperture f/2" to/29-10-2026 1130`.
+   Expected: warning; notes remain `Bring water`, end remains 1100, roster and saved JSON remain unchanged.
+   Enter `no`; expected: the whole edit is cancelled. Repeat the command and enter `yes`.
+   Expected: complete literal notes and end 1130 are saved together, with minimum power 180 W and roster unchanged.
+1. Enter `rideedit 2 from/29-10-2026 0830 notes/"camera f/2` (no closing quote).
+   Expected: `Invalid quoted ride notes.`; no warning, pending request, field changes or save.
+   Enter `yes`; expected: unknown command. Restart; the preceding confirmed notes, end and roster remain saved.
 
 ### Ride command alias regression
 
-Use disposable test data and replace IDs and phone numbers with the saved values.
+Use disposable test data and replace IDs and phone numbers with the saved values. Use a cyclist with no overlapping registration for the immediate-success steps below.
 
 1. Enter `ra n/Alias Ride from/29-10-2026 0800 to/29-10-2026 1000 l/East Coast d/20 f/180 s/10`.
    Expected: a ride is created with the same feedback and card as `rideadd`.
@@ -1409,3 +1510,4 @@ Use disposable test data and replace IDs and phone numbers with the saved values
    Open Full help: the same aliases appear beside their own command headings, rather than in a separate list.
 1. Enter `rd ID`. Expected: the ride is removed immediately, as for `ridedelete`; the cyclist remains saved.
 1. Restart. Expected: the saved edits and removal persist. Repeat with the full command names to check compatibility.
+1. Repeat the overlap warning steps above using `rac` and `re`. Expected: aliases show the same warnings and require confirmation. While a warning is pending, enter `rf all`: the change is cancelled and all rides are shown; a subsequent `yes` cannot apply the cancelled change.

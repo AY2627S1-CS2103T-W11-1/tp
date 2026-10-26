@@ -125,7 +125,7 @@ Format: `add n/NAME p/PHONE sos/EMERGENCY_PHONE e/EMAIL f/FTP_LEVEL x/EXPERIENCE
 
 Field | Meaning and rules
 ------|------------------
-`n/NAME` | The cyclist's name. It may contain letters, numbers and spaces, but must not be blank.
+`n/NAME` | The cyclist's name. It may contain Unicode letters (including accented letters), digits and spaces, with combining marks attached to letters or digits. It must start with a letter or digit; blank names and punctuation are rejected. For example, `José Tan` is accepted.
 `p/PHONE` | A unique phone number using a `+`, a 1–3 digit country code, one space and at least 3 digits, such as `+65 98765432`. Parentheses, hyphens and blank values are rejected. The number must not belong to another cyclist, including cyclists hidden by a filter.
 `sos/EMERGENCY_PHONE` | The cyclist's emergency contact phone number, displayed as **SOS** on their card. Required for new cyclists. It follows the same format as `p/` but may be shared by multiple cyclists and does not determine duplicate cyclists.
 `e/EMAIL` | A valid email address, such as `johnd@example.com`. It must be unique across all cyclists, including those hidden by a filter; comparisons ignore letter case.
@@ -309,7 +309,7 @@ Format: `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MIN_POWER s/MAX_
 
 Field | Meaning and rules
 ------|------------------
-`n/NAME` | The name of the ride. English letters (`A–Z`, `a–z`), digits (`0–9`) and spaces only; it must not be blank.
+`n/NAME` | The name of the ride. Unicode letters (including accented letters), digits and spaces, with combining marks attached to letters or digits. It must start with a letter or digit; blank names and punctuation are rejected.
 `from/FROM` | When the ride starts, written as `DD-MM-YYYY TTTT` (day-month-year, followed by exactly one space and the time). `TTTT` uses the 24-hour clock from `0000` to `2359`, for example `25-10-2026 0630`. Both the date and time are required. The date must be a real calendar date, including the correct leap-year rules.
 `to/TO` | When the ride ends, in the same format as `from/`. It must not be earlier than `from/` (the same time is allowed).
 `l/LOCATION` | One non-blank location. English letters (`A–Z`, `a–z`), digits (`0–9`), spaces, hyphens and apostrophes only.
@@ -446,7 +446,16 @@ only `Bring camera with aperture` as notes. Cyclique cannot infer whether an unq
 * When `f/` is supplied, the proposed minimum power must be no greater than every registered cyclist's FTP. Equality is allowed. Cyclique looks up registered cyclists among all saved cyclists, including those hidden from the left panel. If a registered phone number cannot be matched to a saved cyclist, that minimum-power edit is rejected with `Cyclist with this phone number cannot be found.`
 * The roster count check runs only when `s/` is supplied. Cyclist lookup and FTP checks run only when `f/` is supplied, even if the value is unchanged. Unrelated edits do not revalidate roster phones or FTP. After the fields are parsed and the ride is found, checks run in this order: resulting period, supplied maximum group size, then supplied minimum power. Only the first failure is reported.
 
-On success, Cyclique displays `Edited ride:` followed by the complete updated ride and saves the change automatically. No confirmation is required. The ride ID, roster membership, stored ride order, other rides, cyclist records and next ride ID are unchanged. The Rides panel refreshes immediately using the existing `ridefind` filter: an edited ride may disappear if it no longer matches, or appear if it now matches. Use `ridefind all` to see all rides. If input or ride validation fails, none of the supplied changes is applied.
+If the resulting start or end changes and a registered cyclist has another ride with overlapping times, Cyclique warns before applying any part of the edit. The warning lists every affected cyclist's phone number and conflicting ride IDs, names and times. Enter `y`/`yes` to apply the whole edit anyway or `n`/`no` to cancel it, ignoring letter case. Adjacent periods and zero-duration rides do not overlap; travel time is not checked. Rides hidden by filters are included. Edits that preserve both endpoints do not warn about existing overlaps.
+
+While an overlap warning is pending, an invalid reply repeats the warning. Entering another recognised command cancels the pending change and processes the new command, including reporting errors in its arguments. Restarting discards pending confirmation. No data is changed or saved until confirmation; if cyclist or ride data changes before confirmation, enter the original command again to review it. These confirmation rules also apply to `rideaddcyclist` overlap warnings.
+
+Quoted notes follow the same confirmation rules. For example,
+`rideedit 3 notes/"Bring camera with aperture f/2" from/29-10-2026 1700 to/29-10-2026 1900`
+preserves literal `f/2`. If the new period creates a roster conflict, both the notes and times remain unchanged
+until `y`/`yes`; `n`/`no` cancels the whole edit. Substitute the actual ride ID.
+
+On success, Cyclique displays `Edited ride:` followed by the complete updated ride and saves the change automatically. The ride ID, roster membership, stored ride order, other rides, cyclist records and next ride ID are unchanged. The Rides panel refreshes immediately using the existing `ridefind` filter: an edited ride may disappear if it no longer matches, or appear if it now matches. Use `ridefind all` to see all rides. If input or ride validation fails, none of the supplied changes is applied.
 
 Examples:
 
@@ -510,7 +519,9 @@ Example: `rideaddcyclist 1 +65 91234567`
 * `PHONE` is the cyclist's own saved phone number, not their SOS number. Enter `+`, a 1–3 digit country code, exactly one space and at least three digits, for example `+65 91234567`. Do not add `p/`, brackets or hyphens. Put the ride ID before the phone number.
 * The cyclist must already exist in Cyclique, but can be hidden by `find` or a `ridelist` selection.
 * The cyclist must not already be on that ride's roster, the ride must have a free place, and the cyclist's FTP must be at least the ride's minimum power. FTP equal to the minimum is accepted.
-* One cyclist may join several rides. This command changes only the selected ride's roster; it does not create or edit a cyclist record.
+* One cyclist may join several rides. If the cyclist is already registered for another ride with overlapping times, Cyclique shows a warning before changing the roster, with yellow confirmation instructions above the white conflict details. Enter `y`/`yes` to proceed anyway or `n`/`no` to cancel, ignoring letter case. The warning lists the proposed ride and the conflicting ride IDs, names and times.
+* Rides ending exactly when another starts do not overlap. Zero-duration rides do not overlap other rides. All saved rides are checked, including rides hidden by a filter; travel time between rides is not included.
+* This command changes only the selected ride's roster; it does not create or edit a cyclist record.
 
 For the example above, successful addition reports `Cyclist +65 91234567 added to ride 1.` The ride card's roster includes the phone number and the change is saved automatically. If `ridelist 1` is active, the cyclist also appears in the left panel in alphabetical order. Otherwise, the current cyclist filter is retained.
 
@@ -600,6 +611,10 @@ Format: `exit`
 ### Saving the data
 
 Cyclique saves successful additions, edits and confirmed deletions automatically; you do not need to save manually. It also saves after other successfully executed commands, including commands that only change the display. A deletion request, an explicit cancellation reply (`n`/`no`) or an invalid confirmation reply does not write the data file. When another recognised command cancels a pending deletion, that command follows its normal saving behaviour. Rejected commands do not save changes.
+
+An overlap warning likewise leaves the pending ride change unsaved. Confirmation applies and saves the whole
+change; cancellation preserves the saved data. A new recognised command cancels the request and follows its own
+normal saving behaviour.
 
 ### Repairing duplicate phone numbers in an existing book
 

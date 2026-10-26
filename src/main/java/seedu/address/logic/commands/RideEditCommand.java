@@ -35,7 +35,7 @@ import seedu.address.model.ride.RideDateTime;
 /**
  * Edits the details of an existing group ride.
  */
-public class RideEditCommand extends Command {
+public class RideEditCommand extends Command implements OverlapAwareCommand {
 
     public static final String COMMAND_WORD = "rideedit";
     public static final String COMMAND_ALIAS = "re";
@@ -57,6 +57,7 @@ public class RideEditCommand extends Command {
             + "Notes may be unquoted. Use notes/\"Bring camera with aperture f/2\" to keep prefixes literal "
             + "without changing minimum power. Quotes are removed; other parameters may precede or follow. "
             + "Quoted notes must contain 1 to 10 words; embedded double quotes and escaping are unsupported.\n"
+            + "Time changes causing overlapping registrations require y/yes to proceed or n/no to cancel.\n"
             + "Example: " + COMMAND_WORD + " 101 "
             + PREFIX_NAME + "Morning Ride "
             + PREFIX_LOCATION + "East Coast Park "
@@ -91,16 +92,35 @@ public class RideEditCommand extends Command {
         requireNonNull(model);
         logger.fine("Attempting to edit ride ID: " + targetId);
 
-        Ride rideToEdit = model.getAddressBook().getRideList().stream()
-                .filter(ride -> ride.getId() == targetId)
-                .findFirst()
-                .orElseThrow(() -> new CommandException(String.format(MESSAGE_RIDE_NOT_FOUND, targetId)));
+        Ride rideToEdit = getRide(model);
         Ride editedRide = createEditedRide(rideToEdit, editRideDescriptor);
         validateRosterEligibility(model, editedRide, editRideDescriptor);
 
         model.setRide(rideToEdit, editedRide);
         logger.fine("Successfully edited ride ID: " + targetId);
         return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.formatRide(editedRide)));
+    }
+
+    @Override
+    public String getOverlapWarning(Model model) throws CommandException {
+        Ride original = getRide(model);
+        Ride edited = createEditedRide(original, editRideDescriptor);
+        validateRosterEligibility(model, edited, editRideDescriptor);
+        if (original.getFrom().equals(edited.getFrom()) && original.getTo().equals(edited.getTo())) {
+            return "";
+        }
+        return RideOverlapWarning.describe(edited, edited.getRoster(), model.getAddressBook().getRideList());
+    }
+
+    /**
+     * Resolves the stable ride ID independently of the active filter.
+     */
+    private Ride getRide(Model model) throws CommandException {
+        requireNonNull(model);
+        return model.getAddressBook().getRideList().stream()
+                .filter(ride -> ride.getId() == targetId)
+                .findFirst()
+                .orElseThrow(() -> new CommandException(String.format(MESSAGE_RIDE_NOT_FOUND, targetId)));
     }
 
     /**

@@ -37,6 +37,14 @@ This project has three types of tests:
 
 ## Release checks
 
+`NameTest` and `UnicodeNameIntegrationTest` cover accented and non-Latin names, combining marks,
+Unicode digits, cyclist/ride add and edit commands, JSON readback and invalid-name rejection without changes.
+Run **Unicode name regression** in the Developer Guide after changing name validation.
+
+`EmailTest` and `EmailValidationIntegrationTest` cover consecutive local-part special characters,
+add/edit acceptance and JSON readback, and rejected emails without saved-data changes.
+Run **Email local-part regression** in the Developer Guide after changing email validation.
+
 Select JDK 25 and verify it with `java -version` before running `./gradlew check coverage shadowJar`.
 This runs JUnit, checks production and test code with Checkstyle, generates coverage, and builds the release JAR.
 Review `build/reports/tests/test/index.html` and `build/reports/jacoco/coverage/html/index.html`.
@@ -56,6 +64,12 @@ These automated checks complement the full manual test plan in the Developer Gui
 window layout, keyboard focus, artwork, or operating-system integration.
 
 Record release results, unresolved defects and incomplete manual checks in [Release testing](ReleaseTesting.md).
+
+`CommandBoxTest` covers command entry, error recovery and overlap confirmation with JSON persistence.
+`ListPanelTest` covers live lists, empty-ride placeholders and recycled cards.
+`MainWindowLayoutTest` checks the real FXML result pane at normal, constrained and large sizes,
+including many conflicts, invalid replies and restoration of the normal height.
+JavaFX tests require an X display on Linux; CI runs them using `xvfb-run`.
 
 `ModelManagerTest` checks alphabetical ordering by full name, case-insensitive ties,
 live updates after additions and name edits, filtered membership, deletion and book replacement.
@@ -120,6 +134,13 @@ names, ride IDs and counts without adding cyclist details to these log messages.
 
 ## Ride feature boundary and partition audit
 
+`RideOverlapTest` covers partial overlap, containment, identical periods, adjacency, zero duration
+and overnight boundaries. `RideOverlapConfirmationTest` checks registration and time-edit warnings,
+all affected cyclists, hidden rides, cancellation, confirmation, stale data, restart and save failures
+through real logic and JSON storage. Existing roster/list integration scenarios confirm intentional
+overlapping registrations. Run **Ride overlap confirmation regression** in the Developer Guide
+after changing overlap detection or confirmation handling.
+
 See [Bug testing report](BugTestingReport.md) for reproduced defects, deferred minor findings,
 coverage and manual-check limitations. The cases follow the Week 10 equivalence-partitioning
 and boundary-value approach: test distinct valid/invalid classes and adjacent values at limits.
@@ -152,3 +173,6 @@ unchanged records/filters/files after rejection, non-consumed IDs and legacy unq
 Ride Find keeps its existing unquoted whole-word and phrase semantics.
 `MainWindowRidePanelTest` submits quoted notes through the JavaFX command box, checks displayed feedback
 and card text, and verifies error styling and unchanged data after malformed input.
+`RideOverlapConfirmationTest` also combines quoted notes with overlapping time edits: the entire edit is deferred,
+confirmed exactly once, cancelled, rejected for stale data or rejected before overlap processing for invalid input.
+`MainWindowRidePanelTest` checks the combined command through the real command box and confirmation display.

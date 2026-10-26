@@ -278,7 +278,8 @@ public class ReleaseCommandIntegrationTest {
         logic.execute(ADD_JOHN);
         String savedData = Files.readString(storage.getAddressBookFilePath());
         String[][] invalidEdits = {
-            {"n/!", "Names should only contain alphanumeric characters and spaces, and should not be blank."},
+            {"n/!", "Names should only contain Unicode letters, digits, combining marks and spaces, "
+                    + "and should start with a letter or digit. Combining marks must follow a letter or digit."},
             {"x/Expert", "Experience level should be one of: Beginner, Intermediate, Advanced (case-insensitive)."},
             {"n/John n/Ben", "Multiple values specified for the following single-valued field(s): n/."}
         };

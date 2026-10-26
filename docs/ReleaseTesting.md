@@ -1,5 +1,59 @@
 # Release testing results
 
+## Issue #155 integration with master (26 October 2026)
+
+Integrate `3732943a` (optional quoted ride notes) with master `d2c023f3` (including overlap confirmation).
+Retain deferred execution and saving for overlapping edits, and preserve literal prefix text in notes.
+
+On Windows with Oracle JDK 25.0.4, focused parser, integration and JavaFX checks pass **190 tests** and both
+Checkstyle tasks. `./gradlew clean check coverage shadowJar` passes **821 tests**, with no failures, errors or
+skips. Line coverage is **89.27%** (2,272 of 2,545 lines); branch coverage is **93.06%** (1,005 of 1,080 branches).
+All existing test methods from both branches remain present. New integration tests cover quoted notes with
+overlap confirmation, cancellation, invalid replies, stale data, malformed input, roster constraints and saving
+exactly once. A JavaFX main-window test checks the combined command and confirmation display.
+
+The Ride Edit PNG is regenerated from the combined overlap-aware PlantUML source, with its complete source
+embedded and its native-resolution rendering inspected. The release JAR contains Windows, Linux and macOS
+native libraries. Linux/macOS execution and ARM compatibility are not verified by this Windows run.
+
+The packaged JAR launches with assertions enabled in a disposable folder. Native desktop focus could not be
+maintained reliably for safe command entry, so the standalone manual command, resize and restart scenarios
+remain unverified. The disposable application was stopped; automated JavaFX tests do not replace these checks.
+
+## Unicode names (26 October 2026)
+
+Accept Unicode letters, decimal digits and attached combining marks in cyclist and ride names.
+Preserve the entered spelling, reject blank names, leading spaces, punctuation and detached marks,
+and update the validation message and User Guide to explain the supported characters.
+
+The standard `./gradlew check coverage shadowJar` run encountered 14 JavaFX-related test failures:
+the existing build declares Intel macOS libraries, which cannot initialise the toolkit on this ARM Mac.
+Use a temporary init script outside the repository to select the `mac-aarch64` JavaFX 17.0.7 dependencies.
+With that override, `check coverage shadowJar` passes using Eclipse Temurin JDK 25.0.4.1:
+**799 tests**, no failures, errors or skips; both Checkstyle checks pass. Line coverage is
+**89.16%** (2,245 of 2,518 lines), above the 50% target. The repository build configuration is unchanged.
+
+New tests cover accented and non-Latin names, composed/decomposed accents, Unicode digits,
+cyclist/ride add and edit commands, exact spelling after JSON readback and rejection without data changes.
+The ARM-compatible JAR launched in a disposable folder, but the computer-use tool could not access its
+JavaFX window (`Invalid app: java`). The **Unicode name regression** manual checks remain outstanding.
+The temporary application was stopped after this attempt.
+
+## Consecutive email special characters (26 October 2026)
+
+Allow consecutive underscores, plus signs, hyphens and mixed special characters inside the email local part.
+Retain the restrictions on leading/trailing special characters, consecutive periods and invalid domains,
+and explicitly mention consecutive periods in the validation message.
+
+`./gradlew check coverage shadowJar` passes using Eclipse Temurin JDK 25.0.4.1:
+**794 tests**, no failures, errors or skips; production and test Checkstyle pass.
+Line coverage is **89.16%** (2,245 of 2,518 lines), above the 50% target.
+New regressions exercise add/edit acceptance, JSON readback and rejected commands without saved-data changes.
+
+The rebuilt JAR launched in `/private/tmp/cyclique-email-ui.ytvzuN`, but the computer-use tool could not
+access its JavaFX window (`Invalid app: java`). The Developer Guide's **Email local-part regression**
+manual checks remain outstanding; automated command/storage tests do not establish visual correctness.
+
 ## Residential address removal (12 October 2026)
 
 Remove residential address from cyclist fields, add/edit commands, success messages,
@@ -407,3 +461,16 @@ attach to the standalone Java window, including via the installed JDK bundle ID.
 The Developer Guide documents the affected roster/list/find and corrupt-data
 manual scenarios; visual layout, focus and cross-platform behaviour remain
 unverified manually.
+
+## Ride overlap warning (25 October 2026)
+
+Branch `ride-overlap-warning` adds command-box confirmation before overlapping
+registrations and ride time edits. Adjacent and zero-duration periods do not
+overlap; organisers may confirm an overlapping commitment explicitly.
+
+JDK 25 `./gradlew check coverage` passes with 742 tests and both Checkstyle
+checks. JaCoCo reports 86.20% line coverage (2111 of 2449 lines), up from
+83.67% before the additional UI tests. Command entry, result display and both
+list panels, including their cells, have 100% line coverage. Automated checks
+cover warnings, confirmation/cancellation, stale data, persistence, error
+recovery, interval boundaries and recycled cards.

@@ -27,6 +27,8 @@ import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
 import seedu.address.testutil.JavaFxToolkit;
+import seedu.address.testutil.PersonBuilder;
+import seedu.address.testutil.RideBuilder;
 
 public class MainWindowRidePanelTest {
 
@@ -83,6 +85,57 @@ public class MainWindowRidePanelTest {
     private static void enterCommand(TextField input, String command) {
         input.setText(command);
         input.fireEvent(new ActionEvent());
+    }
+
+    @Test
+    public void commandBox_quotedTimeEdit_preservesConfirmationDisplayAndAppliesOnlyAfterYes() throws Exception {
+        Path dataFile = testFolder.resolve("quoted-overlap.json");
+        ModelManager model = new ModelManager();
+        String phone = "+65 91234567";
+        model.addPerson(new PersonBuilder().withPhone(phone).withFtp("250").build());
+        model.addRide(new RideBuilder().withFrom("29-10-2026 0800").withTo("29-10-2026 1000")
+                .withRoster(phone).build());
+        Ride original = model.addRide(new RideBuilder().withFrom("29-10-2026 1200").withTo("29-10-2026 1400")
+                .withRoster(phone).withNotes("Bring water").build());
+        StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataFile),
+                new JsonUserPrefsStorage(testFolder.resolve("quoted-overlap-prefs.json")));
+        storage.saveAddressBook(model.getAddressBook());
+        String saved = Files.readString(dataFile);
+        Logic logic = new LogicManager(model, storage);
+        JavaFxToolkit.call(() -> {
+            MainWindow window = new MainWindow(new Stage(), logic, dataFile);
+            window.fillInnerParts();
+            var scene = window.getRoot().getScene();
+            TextField input = (TextField) scene.lookup("#commandTextField");
+            TextArea feedback = (TextArea) scene.lookup("#resultDisplay");
+            Label instructions = (Label) scene.lookup("#confirmationInstructions");
+            StackPane resultPane = (StackPane) scene.lookup("#resultDisplayPlaceholder");
+            String edit = "rideedit 2 notes/\"Bring camera with aperture f/2\""
+                    + " from/29-10-2026 0900 to/29-10-2026 1100";
+            enterCommand(input, edit);
+            assertTrue(instructions.isVisible());
+            assertEquals("Enter y/yes to proceed or n/no to cancel.", instructions.getText());
+            assertEquals(200, resultPane.getPrefHeight());
+            assertEquals(original, model.getAddressBook().getRideList().get(1));
+            assertEquals(saved, Files.readString(dataFile));
+            enterCommand(input, "no");
+            assertFalse(instructions.isVisible());
+            assertEquals(100, resultPane.getPrefHeight());
+            assertEquals(original, model.getAddressBook().getRideList().get(1));
+            assertEquals(saved, Files.readString(dataFile));
+
+            enterCommand(input, edit);
+            enterCommand(input, "yes");
+            assertFalse(instructions.isVisible());
+            assertEquals(100, resultPane.getPrefHeight());
+            assertEquals("", input.getText());
+            assertTrue(feedback.getText().contains("Notes: Bring camera with aperture f/2"));
+            assertEquals(new RideBuilder(original).withNotes("Bring camera with aperture f/2")
+                    .withFrom("29-10-2026 0900").withTo("29-10-2026 1100").build(),
+                    model.getAddressBook().getRideList().get(1));
+            assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
+            return null;
+        });
     }
 
     @Test
