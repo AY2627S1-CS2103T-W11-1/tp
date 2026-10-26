@@ -28,6 +28,8 @@ Cyclique is a **desktop application for organisers of recreational cycling group
 
    * `list` : Shows all cyclists.
 
+   * `find n/John` : Shows cyclists whose name contains the complete word `John`.
+
    * `add n/John Doe p/+65 98765432 sos/+65 99999999 e/johnd@example.com f/300 x/Beginner l/any` : Adds a cyclist named `John Doe`, including an emergency contact number supplied using `sos/`.
 
    * `delete +65 98765432` : Requests deletion of the cyclist with this phone number. Enter `yes` to confirm or `no` to cancel.
@@ -60,11 +62,31 @@ Cyclists are displayed alphabetically by their full name, ignoring letter case, 
 * Parameters with prefixes can be in any order. Positional arguments must follow the order shown in the command format.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
-* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
-  For example, `help 123` is interpreted as `help`.
+* Extraneous parameters for commands that take no parameters, such as `help`, `list` and `exit`, are ignored.<br>
+  For example, `help 123` is interpreted as `help`. The exception is [`clear`](#clearing-all-entries-clear), which rejects any extra text because it deletes all your data.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </div>
+
+### Short forms for ride commands
+
+Use these aliases with exactly the same arguments as the full command names. Commands and aliases are case-sensitive.
+
+| Command | Alias |
+| --- | --- |
+| `rideadd` | `ra` |
+| `rideedit` | `re` |
+| `ridedelete` | `rd` |
+| `ridefind` | `rf` |
+| `ridelist` | `rl` |
+| `rideaddcyclist` | `rac` |
+| `ridedeletecyclist` | `rdc` |
+
+For example, `re 1 notes/Bring lights` edits ride 1 and `rf all` shows all rides.
+The Help menu and Full help window show each alias in parentheses beside its full command name,
+for example `rideadd (ra)`. Selecting a Help menu entry inserts the full command name; do not type the parentheses.
+Entering an alias while a cyclist deletion confirmation is pending cancels that request,
+then processes the alias normally, even if its arguments are invalid.
 
 ### Viewing help: `help`
 
@@ -187,8 +209,8 @@ Field | Meaning and rules
 ------|------------------
 `n/NAME_KEYWORD` | A single name word or a complete full name. Single-word matching is case-insensitive and requires a full word; `n/hans` matches `Hans` but `n/Han` does not. A multi-word value such as `n/John Doe` matches the complete full name, ignoring case.
 `p/PHONE` | A complete phone number using a `+`, a 1–3 digit country code, one space and at least 3 digits. Matching is exact; `p/+65 963` does not match `+65 96320842`.
-`sos/EMERGENCY_PHONE` | A complete emergency contact number using the same validation and exact matching as `p/`. Cyclists without an emergency number do not match this criterion.
-`f/MIN_FTP` | A whole number from 1 to 600. Matches cyclists whose FTP is greater than or equal to the supplied value in watts.
+`sos/EMERGENCY_PHONE` | A complete emergency contact number using the same validation and exact matching as `p/`. Only cyclists with an emergency number matching the supplied value are shown. Cyclists whose emergency number is missing or different are not shown.
+`f/MIN_FTP` | A whole number from 1 to 600, inclusive. Matches cyclists whose FTP is greater than or equal to the supplied value in watts; both `f/1` and `f/600` are valid.
 `x/EXPERIENCE` | `Beginner`, `Intermediate` or `Advanced`, ignoring case. Repeat `x/` to match any of the supplied experience levels.
 `l/LOCATION` | A preferred location, ignoring case. Repeat `l/` to match any supplied location. A cyclist with `l/any` matches every location criterion.
 
@@ -219,8 +241,7 @@ Examples:
 Common failures include:
 
 * `find` with no criteria is rejected with the command usage instructions.
-* `find n/John Doe n/Jane Doe` is valid and matches either complete full name.
-* `find John Doe` is rejected because name values must use the `n/` prefix.
+* `find f/0` is rejected because FTP must be a whole number from 1 to 600.
 * A phone number, FTP value, experience level or location that does not follow the constraints above is rejected
   without changing the current filter.
 
@@ -345,7 +366,8 @@ The fields are matched as follows:
 * `l/LOCATION` matches the ride location, ignoring case.
 * `d/DISTANCE` and `s/MAX_GROUP_SIZE` use exact numeric matching.
 * `f/MIN_POWER` matches rides whose minimum power is greater than or equal to the supplied value.
-* `notes/NOTES` matches rides with the supplied notes. Rides without notes do not match a notes criterion.
+* `notes/NOTES` matches complete words or phrases in the ride's notes, ignoring case. For example,
+  `notes/lights` matches `Bring lights`, but `notes/lig` does not. Rides without notes do not match a notes criterion.
 
 The date and time format is `DD-MM-YYYY TTTT`, using the 24-hour clock. A date-only `from/` value means `0000`,
 while a date-only `to/` value means `2359`. When both bounds are supplied, `to/` cannot be earlier than `from/`.
@@ -355,6 +377,7 @@ The command updates only the displayed ride list; it does not change or delete s
 
 Examples:
 * `ridefind n/Sunday Sunrise Ride`
+* `ridefind notes/lights` finds rides whose notes contain the complete word `lights`, such as `Bring lights and a spare tube`.
 * `ridefind from/18-10-2026 to/18-10-2026`
 * `ridefind l/Tampines f/200`
 * `ridefind from/18-10-2026 0630 to/18-10-2026 2000 l/East Coast d/45 f/180 s/12`
@@ -363,9 +386,9 @@ Examples:
 Common failures include:
 
 * `ridefind` with no criteria is rejected with the command usage instructions; use `ridefind all` to show all rides.
-* A date-only `from/` or `to/` value is expanded to the start or end of that day respectively.
+* Date-only values are valid: `from/18-10-2026` means `18-10-2026 0000`, while `to/18-10-2026` means `18-10-2026 2359`.
 * A `to/` value earlier than `from/`, an invalid date or time, or a value outside the numeric constraints is rejected without changing the displayed rides.
-* Supplying the same prefix twice is rejected. For example, use only one `f/` criterion.
+* Each `ridefind` prefix may be used only once. For example, `ridefind f/200 f/300` is rejected because `f/` is repeated; use one `f/` value only.
 
 ### Editing a group ride: `rideedit`
 
@@ -523,6 +546,7 @@ Deletes **every cyclist and every ride** from Cyclique.
 
 Format: `clear`
 
+* `clear` takes no parameters. If you type anything after it, for example `clear 3`, Cyclique rejects the command with `Invalid command format.` and the command usage, and nothing is deleted. To remove a single cyclist, use [`delete`](#deleting-a-person-delete) instead.
 * Cyclique does **not** ask you to confirm, and there is no undo. The change is saved automatically, so the data file is emptied as well. Keep a copy of your data file first if you might need the data again (see [Saving the data](#saving-the-data)).
 * Ride IDs are never reused. After `clear`, the next ride you add receives the next unused ID instead of starting again from 1.
 * Any cyclist filter, including a [`ridelist`](#listing-cyclists-registered-for-a-ride-ridelist) selection, is reset.

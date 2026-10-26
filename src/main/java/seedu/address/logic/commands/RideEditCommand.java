@@ -38,8 +38,10 @@ import seedu.address.model.ride.RideDateTime;
 public class RideEditCommand extends Command {
 
     public static final String COMMAND_WORD = "rideedit";
+    public static final String COMMAND_ALIAS = "re";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Edits the group ride identified by its ride ID. "
+    public static final String MESSAGE_USAGE = COMMAND_WORD
+            + " (" + COMMAND_ALIAS + "): Edits the group ride identified by its ride ID. "
             + "Existing values will be overwritten by the input values.\n"
             + "Parameters: ID "
             + "[" + PREFIX_NAME + "NAME] "
@@ -47,7 +49,7 @@ public class RideEditCommand extends Command {
             + "[" + PREFIX_TO + "END] "
             + "[" + PREFIX_LOCATION + "LOCATION] "
             + "[" + PREFIX_DISTANCE + "DISTANCE] "
-            + "[" + PREFIX_FTP + "MINIMUM_POWER] "
+            + "[" + PREFIX_FTP + "MIN_POWER] "
             + "[" + PREFIX_GROUP_SIZE + "MAX_GROUP_SIZE] "
             + "[" + PREFIX_NOTES + "NOTES]\n"
             + "START and END are written as DD-MM-YYYY TTTT (time on a 24-hour clock, 0000 to 2359), "

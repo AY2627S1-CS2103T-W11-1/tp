@@ -97,7 +97,7 @@ Each panel is given an `ObservableList` by `MainWindow` and builds one card for 
 The two panels are filtered independently of each other:
 
 * `find`, `list` and `ridelist ID` change only the cyclist panel. In particular, `ridelist ID` shows the cyclists registered for that ride in the cyclist panel; it does not change the ride panel.
-* `ridefind` changes only the ride panel, and `ridefind all` shows every ride again.
+* `ridefind` changes only the ride panel, and `ridefind all` shows every ride again. When the filter hides every ride, `RideListPanel` shows `No rides match the current filter. Use ridefind all to show all rides.` instead of `No rides yet. Use rideadd to create one.`. It tells the two cases apart using the unfiltered list from `Logic#getRideList()`.
 
 #### Help menu templates
 
@@ -259,13 +259,15 @@ Each prefix may appear only once, and all supplied ride criteria must match. The
 input `ridefind all` clears the ride criteria. Date-only boundaries expand to
 0000 for `from/` and 2359 for `to/`; when both are supplied, the end must not be earlier than
 the start. A ride matches only if it starts at or after `from/` and ends at or before `to/`.
-The `n/` value matches the complete ride name case-insensitively, while `d/`, `s/` and
-`notes/` compare their respective field values for equality. For example,
+The `n/` value matches the complete ride name case-insensitively. The `d/` and `s/` values
+compare their respective numeric fields for equality, while `notes/` performs a
+case-insensitive whole-word or phrase match against the ride's notes. For example,
 `ridefind l/Tampines f/200` lists rides at Tampines whose minimum
 power is at least 200 watts. Unlike cyclist `find`, ridefind does not compare a ride's
 minimum power with a cyclist's FTP: its `f/` value is compared directly with the ride's
 `MinimumPower`, and a ride matches when its stored value is greater than or equal to the
-criterion.
+criterion. Case-insensitive notes matching uses `Locale.ROOT`, so the same search gives
+consistent results regardless of the computer's language settings.
 
 `ridefind` applies `RideMatchesFindCriteriaPredicate` to the model's filtered ride list. The
 ride panel observes that list and refreshes its displayed ride cards; it does not change the
@@ -938,6 +940,8 @@ Use a disposable book with John and Alice from the adding/editing scenario.
 1. Try `delete +65 99999999`, `delete`, `delete 1`, `delete +65 12`, and `delete x`.
    Expected: An error appears and no contact is deleted.
 1. Enter `clear` twice. Expected: The list remains empty and each command succeeds.
+1. Add a cyclist, then enter `clear 1` and `clear n/Alex`. Expected: Each is rejected with `Invalid command format.`
+   and the `clear` usage, and the cyclist and any rides remain. Then enter `clear`. Expected: Everything is deleted.
 
 ### Alphabetical display regression
 
@@ -1085,10 +1089,10 @@ Use disposable test data and note the number of cyclist records before starting.
 
 ### Help dropdown and Full help for ride commands
 
-1. Click the **Help** menu. Expected: The dropdown lists `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE
-   f/MIN_POWER s/MAX_GROUP_SIZE [notes/NOTES]` after `find`. It then lists `rideedit ID [n/NAME] [from/START]
+1. Click the **Help** menu. Expected: The dropdown lists `rideadd (ra) n/NAME from/FROM to/TO l/LOCATION d/DISTANCE
+   f/MIN_POWER s/MAX_GROUP_SIZE [notes/NOTES]` after `find`. It then lists `rideedit (re) ID [n/NAME] [from/START]
    [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`, followed by
-   `ridedelete ID` before the roster commands and `list`.
+   `ridedelete (rd) ID` before the roster commands and `list`.
 1. Click the `rideadd` item. Expected: The command box contains `rideadd n/ from/ to/ l/ d/ f/ s/` with the cursor
    at the end, and the command is not run. Type a value straight after each prefix to complete it.
 1. Click the `rideedit` item. Expected: The command box contains `rideedit ` with the cursor at the end, and the
@@ -1184,12 +1188,12 @@ creates the menu items and passes their starter text to `CommandBox#setCommandTe
 The Full help window reuses `RideRosterCommand#MESSAGE_USAGE`.
 
 1. Open Help. Expected: after `rideadd`, `rideedit` and `ridedelete`, the dropdown shows
-   `rideaddcyclist ID PHONE` followed by `ridedeletecyclist ID PHONE`.
+   `rideaddcyclist (rac) ID PHONE` followed by `ridedeletecyclist (rdc) ID PHONE`.
 1. Click the addition entry. Expected: the command box contains `rideaddcyclist `,
    with a trailing space and the caret at the end, ready for the ride ID and phone.
 1. Open Help and click the removal entry. Expected: the command box contains
    `ridedeletecyclist `, replacing the previous contents and placing the caret at the end.
-1. Confirm the labels display the literal `ID PHONE` arguments without short-form aliases.
+1. Confirm the labels show each alias beside the full command name and retain the literal `ID PHONE` arguments.
    No `p/` prefix or placeholder arguments should be inserted into the command box.
 1. Check that existing menu entries still insert their expected starter text and
    Full help... still opens the help window and includes the roster command usage.
@@ -1260,10 +1264,12 @@ Use disposable cyclist and ride data. Record the original details before applyin
 1. Enter `list`. Expected: the full cyclist list is restored.
 1. Add at least three rides with different names, dates, locations, distances and minimum powers.
 1. Enter `ridefind n/Sunday Sunrise Ride`. Expected: only the ride with that complete name appears, ignoring case.
+1. Enter `ridefind notes/lights`. Expected: rides whose notes contain `lights` appear, including notes with additional words and regardless of case.
 1. Enter `ridefind from/18-10-2026 to/18-10-2026`. Expected: rides starting and ending within the inclusive date
    bounds appear. Date-only `from/` and `to/` use `0000` and `2359` respectively.
 1. Enter `ridefind l/Tampines f/200`. Expected: only rides matching both the location and minimum-power criteria
    appear; a ride with a lower minimum power is excluded.
+1. Enter `ridefind n/No Such Ride`. Expected: The result box shows `0 ride(s) listed!` and the Rides panel shows `No rides match the current filter. Use ridefind all to show all rides.`, not the `No rides yet` message.
 1. Enter `ridefind all`. Expected: every saved ride appears again, including rides hidden by the earlier filters.
 1. Try `ridefind`, `ridefind from/invalid`, `ridefind from/19-10-2026 to/18-10-2026`, duplicate prefixes,
    and a distance, minimum power or group size outside its constraints. Expected: each invalid command shows an
@@ -1313,3 +1319,23 @@ the existing recovery behaviour starts with an empty book after a loading failur
    in its saved roster, add a valid-format phone with no corresponding cyclist, and set maximum group size
    below the saved roster size. Relaunch each fixture.
    Expected: each corrupted book is rejected with a specific loading warning; no invalid roster is displayed.
+
+
+### Ride command alias regression
+
+Use disposable test data and replace IDs and phone numbers with the saved values.
+
+1. Enter `ra n/Alias Ride from/29-10-2026 0800 to/29-10-2026 1000 l/East Coast d/20 f/180 s/10`.
+   Expected: a ride is created with the same feedback and card as `rideadd`.
+1. Enter `re ID notes/Bring lights`, then `rf n/Alias Ride`. Expected: the notes change and only the matching ride appears.
+1. Add an eligible cyclist using `rac ID PHONE`, then enter `rl ID`. Expected: that cyclist appears in the cyclist panel.
+1. Enter `rdc ID PHONE`. Expected: membership is removed and the selected cyclist panel refreshes.
+1. Request `delete PHONE`, then enter `rf all`. Expected: deletion is cancelled, all rides appear and the cyclist remains saved.
+1. Request `delete PHONE` again, then enter `re`. Expected: cancellation followed by the usual edit usage error;
+   entering `yes` afterwards reports an unknown command.
+1. Enter `RA` and `racID`. Expected: unknown command; no data changes.
+1. Open Help. Expected: all seven ride entries show the alias beside the full command name, for example
+   `rideadd (ra)` and `rideaddcyclist (rac)`. Select an entry: only its full command starter is inserted.
+   Open Full help: the same aliases appear beside their own command headings, rather than in a separate list.
+1. Enter `rd ID`. Expected: the ride is removed immediately, as for `ridedelete`; the cyclist remains saved.
+1. Restart. Expected: the saved edits and removal persist. Repeat with the full command names to check compatibility.

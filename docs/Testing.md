@@ -139,3 +139,7 @@ and subscriber lengths 2, 3 and 4. Thus `+12 123` and `+123 123` are both tested
 `RideRosterIntegrationTest` verifies a tab-separated edit persists both supplied fields.
 
 Run **Ride boundary and corrupt-data regression** in the Developer Guide after these changes.
+
+Run **Ride command alias regression** in the Developer Guide after changing ride command dispatch.
+`RideCommandAliasTest` checks parsing equivalence, validation, case sensitivity, saved workflows
+and cancellation of pending cyclist deletions for all seven aliases.

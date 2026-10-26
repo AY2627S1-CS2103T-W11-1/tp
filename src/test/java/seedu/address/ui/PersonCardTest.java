@@ -3,18 +3,15 @@ package seedu.address.ui;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -25,6 +22,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import seedu.address.model.person.Person;
+import seedu.address.testutil.JavaFxToolkit;
 import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.RideBuilder;
 
@@ -34,21 +32,7 @@ public class PersonCardTest {
 
     @BeforeAll
     public static void startJavaFxToolkit() throws InterruptedException {
-        if (System.getProperty("os.name").startsWith("Linux")) {
-            String display = System.getenv("DISPLAY");
-            assertNotNull(display, "JavaFX tests on Linux require an X display");
-            assertFalse(display.isBlank(), "JavaFX tests on Linux require an X display");
-        }
-
-        CountDownLatch startupLatch = new CountDownLatch(1);
-        Platform.startup(startupLatch::countDown);
-        assertTrue(startupLatch.await(JAVAFX_TIMEOUT_SECONDS, TimeUnit.SECONDS),
-                "JavaFX toolkit did not start");
-    }
-
-    @AfterAll
-    public static void stopJavaFxToolkit() {
-        Platform.exit();
+        JavaFxToolkit.start();
     }
 
     @Test

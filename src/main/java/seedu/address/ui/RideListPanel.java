@@ -1,5 +1,6 @@
 package seedu.address.ui;
 
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -16,6 +17,8 @@ import seedu.address.model.ride.Ride;
 public class RideListPanel extends UiPart<Region> {
 
     public static final String NO_RIDES_MESSAGE = "No rides yet. Use rideadd to create one.";
+    public static final String NO_MATCHING_RIDES_MESSAGE =
+            "No rides match the current filter. Use ridefind all to show all rides.";
 
     private static final String FXML = "RideListPanel.fxml";
 
@@ -23,19 +26,30 @@ public class RideListPanel extends UiPart<Region> {
     private ListView<Ride> rideListView;
 
     /**
-     * Creates a {@code RideListPanel} with the given {@code ObservableList}.
+     * Creates a {@code RideListPanel} that shows {@code rideList}. {@code allRides} holds every saved ride,
+     * including those hidden by a filter, so that the empty panel can say which of the two cases applies.
      */
-    public RideListPanel(ObservableList<Ride> rideList) {
+    public RideListPanel(ObservableList<Ride> rideList, ObservableList<Ride> allRides) {
         super(FXML);
         rideListView.setItems(rideList);
         rideListView.setCellFactory(listView -> new RideListViewCell());
 
-        Label placeholder = new Label(NO_RIDES_MESSAGE);
+        Label placeholder = new Label(placeholderMessage(!allRides.isEmpty()));
+        allRides.addListener((ListChangeListener<Ride>) change ->
+                placeholder.setText(placeholderMessage(!allRides.isEmpty())));
         placeholder.getStyleClass().add("ride-placeholder");
         placeholder.setWrapText(true);
         placeholder.setTextAlignment(TextAlignment.CENTER);
         placeholder.setAlignment(Pos.CENTER);
         rideListView.setPlaceholder(placeholder);
+    }
+
+    /**
+     * Returns the text shown when no ride card is visible. If {@code hasSavedRides} is true, the current
+     * filter is hiding every saved ride; otherwise there are no rides at all.
+     */
+    static String placeholderMessage(boolean hasSavedRides) {
+        return hasSavedRides ? NO_MATCHING_RIDES_MESSAGE : NO_RIDES_MESSAGE;
     }
 
     /**
