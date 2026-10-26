@@ -118,6 +118,29 @@ public class HelpWindowTest {
     }
 
     @Test
+    public void rideCommands_nameMinimumPowerMinPower_everywhereHelpIsShown() {
+        // The User Guide calls this parameter MIN_POWER for rideadd, rideedit and ridefind.
+        // Full help (the command usage messages)
+        assertTrue(RideAddCommand.MESSAGE_USAGE.contains("f/MIN_POWER s/MAX_GROUP_SIZE"));
+        assertTrue(RideAddCommand.MESSAGE_USAGE.contains("MIN_POWER is in watts"));
+        assertTrue(RideEditCommand.MESSAGE_USAGE.contains("[f/MIN_POWER] [s/MAX_GROUP_SIZE]"));
+        assertTrue(RideFindCommand.MESSAGE_USAGE.contains("[f/MIN_POWER] [s/MAX_GROUP_SIZE]"));
+        // Help menu
+        for (String commandWord : new String[] {RideAddCommand.COMMAND_WORD, RideEditCommand.COMMAND_WORD,
+            RideFindCommand.COMMAND_WORD}) {
+            String menuEntry = CommandTemplates.ALL.stream()
+                    .filter(template -> template.insertText().trim().split(" ")[0].equals(commandWord))
+                    .findFirst().orElseThrow().display();
+            assertTrue(menuEntry.contains("f/MIN_POWER"), menuEntry);
+        }
+        // the old long name must not come back anywhere help is shown
+        assertFalse(HelpWindow.COMMAND_LIST.contains("MINIMUM_POWER"));
+        for (CommandTemplates.Template template : CommandTemplates.ALL) {
+            assertFalse(template.display().contains("MINIMUM_POWER"), template.display());
+        }
+    }
+
+    @Test
     public void commandList_listsRideCommandsAfterFindAndBeforeList() {
         int findIndex = HelpWindow.COMMAND_LIST.indexOf(FindCommand.MESSAGE_USAGE);
         int rideAddIndex = HelpWindow.COMMAND_LIST.indexOf(RideAddCommand.MESSAGE_USAGE);
