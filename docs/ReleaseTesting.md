@@ -1,5 +1,37 @@
 # Release testing results
 
+## JavaFX native platform selection (26 October 2026)
+
+Select one JavaFX native dependency classifier matching the operating system and architecture of the
+Gradle JVM, including `mac-aarch64` for Apple Silicon. Unsupported combinations fail during configuration
+with an explicit message. The generated release JAR targets the build platform; distribution requires
+separate builds for each supported platform.
+
+The standard `./gradlew check coverage shadowJar` now passes on macOS ARM64 using Eclipse Temurin
+JDK 25.0.4.1 without an init-script override: **804 tests**, no failures, errors or skips; both Checkstyle
+checks pass. Line coverage is **89.15%** (2,243 of 2,516 lines).
+The standard `./gradlew run` reaches UI initialisation using ARM64 JavaFX libraries without the previous
+incompatible-architecture or missing-toolkit errors. The smoke-test application was then stopped.
+Visual inspection remains unavailable because the computer-use tool cannot bind to the JavaFX application.
+Windows, Linux and Intel macOS were not tested locally.
+
+## Specific phone errors for edit/delete (26 October 2026)
+
+Preserve the detailed phone-validation error for supplied edit/delete targets. Missing targets still
+report command usage. Regression tests verify missing country codes, missing/multiple separators,
+other malformed numbers, valid delete targets with surrounding whitespace and missing-target usage.
+Integration tests compare edit/delete with add/find and confirm unchanged cyclist records, ride rosters,
+active filters and saved JSON after rejection, without starting a deletion confirmation.
+
+Using Eclipse Temurin JDK 25.0.4.1 and the temporary ARM JavaFX override described below,
+`check coverage shadowJar` passes: **804 tests**, no failures, errors or skips; both Checkstyle checks pass.
+Line coverage is **89.15%** (2,243 of 2,516 lines), above the 50% target.
+The repository build configuration is unchanged.
+
+The rebuilt JAR launched in a disposable folder, but the computer-use tool could not access its
+JavaFX window (`Invalid app: java`). The **Phone target error regression** manual checks remain
+outstanding. The temporary application was stopped after this attempt.
+
 ## Unicode names (26 October 2026)
 
 Accept Unicode letters, decimal digits and attached combining marks in cyclist and ride names.
