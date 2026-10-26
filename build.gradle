@@ -53,26 +53,19 @@ task coverage(type: JacocoReport) {
 dependencies {
     String jUnitVersion = '5.14.4'
     String javaFxVersion = '17.0.7'
-    String osName = System.getProperty('os.name').toLowerCase(Locale.ROOT)
-    String osArch = System.getProperty('os.arch').toLowerCase(Locale.ROOT)
-    boolean isArm64 = osArch in ['aarch64', 'arm64']
-    boolean isX64 = osArch in ['amd64', 'x86_64']
-    String javaFxPlatform
 
-    // JavaFX native libraries must match the JVM running Gradle.
-    if (osName.contains('mac') && (isArm64 || isX64)) {
-        javaFxPlatform = isArm64 ? 'mac-aarch64' : 'mac'
-    } else if (osName.contains('linux') && (isArm64 || isX64)) {
-        javaFxPlatform = isArm64 ? 'linux-aarch64' : 'linux'
-    } else if (osName.startsWith('windows') && isX64) {
-        javaFxPlatform = 'win'
-    } else {
-        throw new GradleException("Unsupported JavaFX ${javaFxVersion} platform: ${osName} (${osArch})")
-    }
-
-    ['base', 'controls', 'fxml', 'graphics'].each { module ->
-        implementation "org.openjfx:javafx-${module}:${javaFxVersion}:${javaFxPlatform}"
-    }
+    implementation "org.openjfx:javafx-base:${javaFxVersion}:win"
+    implementation "org.openjfx:javafx-base:${javaFxVersion}:mac"
+    implementation "org.openjfx:javafx-base:${javaFxVersion}:linux"
+    implementation "org.openjfx:javafx-controls:${javaFxVersion}:win"
+    implementation "org.openjfx:javafx-controls:${javaFxVersion}:mac"
+    implementation "org.openjfx:javafx-controls:${javaFxVersion}:linux"
+    implementation "org.openjfx:javafx-fxml:${javaFxVersion}:win"
+    implementation "org.openjfx:javafx-fxml:${javaFxVersion}:mac"
+    implementation "org.openjfx:javafx-fxml:${javaFxVersion}:linux"
+    implementation "org.openjfx:javafx-graphics:${javaFxVersion}:win"
+    implementation "org.openjfx:javafx-graphics:${javaFxVersion}:mac"
+    implementation "org.openjfx:javafx-graphics:${javaFxVersion}:linux"
 
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.7.0'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.7.4'
