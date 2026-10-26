@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.model.ride.Ride;
@@ -80,14 +82,29 @@ public class RideCardTest {
     }
 
     @Test
-    public void formatRoster_phoneNumbers_areKeptWholeAndSeparatedByCommas() {
+    public void formatRoster_phoneNumbers_areKeptWholeAndEachOnItsOwnLine() {
         Ride ride = new RideBuilder().withRoster("+65 91234567", "+65 98765432").build();
 
-        assertEquals(DisplayText.keepTogether("+65 91234567") + ", " + DisplayText.keepTogether("+65 98765432"),
+        assertEquals(DisplayText.keepTogether("+65 91234567") + "\n" + DisplayText.keepTogether("+65 98765432"),
                 RideCard.formatRoster(ride));
         // a phone number is never split between the country code and the number
-        for (String entry : RideCard.formatRoster(ride).split(", ")) {
+        for (String entry : RideCard.formatRoster(ride).split("\n")) {
             assertFalse(entry.contains(" "));
         }
+    }
+
+    @Test
+    public void formatRoster_severalPhoneNumbers_oneLineEachInRosterOrder() {
+        Ride ride = new RideBuilder().withRoster("+65 91234567", "+65 98765432", "+65 81234567").build();
+
+        assertEquals(List.of(DisplayText.keepTogether("+65 91234567"), DisplayText.keepTogether("+65 98765432"),
+                DisplayText.keepTogether("+65 81234567")), List.of(RideCard.formatRoster(ride).split("\n")));
+    }
+
+    @Test
+    public void formatRoster_onePhoneNumber_hasNoLineBreak() {
+        Ride ride = new RideBuilder().withRoster("+65 91234567").build();
+
+        assertEquals(DisplayText.keepTogether("+65 91234567"), RideCard.formatRoster(ride));
     }
 }

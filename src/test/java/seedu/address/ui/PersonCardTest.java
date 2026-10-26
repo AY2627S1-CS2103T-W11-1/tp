@@ -59,7 +59,7 @@ public class PersonCardTest {
             Parent populatedCard = new RideCard(new RideBuilder()
                     .withRoster("+65 91234567", "+65 98765432").build()).getRoot();
             Label roster = getLabel(populatedCard, "roster");
-            assertEquals(DisplayText.keepTogether("+65 91234567") + ", " + DisplayText.keepTogether("+65 98765432"),
+            assertEquals(DisplayText.keepTogether("+65 91234567") + "\n" + DisplayText.keepTogether("+65 98765432"),
                     roster.getText());
             assertTrue(roster.isWrapText());
             assertTrue(roster.isManaged());

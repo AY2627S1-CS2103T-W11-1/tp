@@ -936,11 +936,8 @@ Check the panel after each step, and check the saved file `data/addressbook.json
 1. Enter `rideadd n/Same Time from/18-10-2026 0630 to/18-10-2026 0630 l/East Coast d/45 f/180 s/12`.
    Expected: The ride is added, because the end time may equal the start time.
 1. Enter `rideadd n/The Extraordinarily Long Weekend Charity Fundraiser Century Ride For Everyone from/31-12-2026 2300 to/01-01-2027 0100 l/Marina Bay Sands Waterfront Promenade and Gardens d/160.75 f/250 s/150 notes/Bring plenty of water and snacks for the whole day`.
-   Expected: The ride appears as a card whose long name, location and notes wrap onto further lines inside the card.
-   Make the window as narrow as it allows (it cannot go below 720 pixels wide). Expected: The Rides panel shows no
-   horizontal scrollbar and every card stays inside the column. Each date and time, the distance, the minimum power
-   and each roster phone number stays on one line instead of breaking in the middle, and the location wraps only
-   between words.
+   Expected: The ride appears as a card whose long name, location and notes wrap onto further lines inside the card. Make the window as narrow as it allows (it cannot go below 720 pixels wide). Expected: The Rides panel shows no horizontal scrollbar and every card stays inside the column. Each date and time, the distance and the minimum power stay on one line instead of breaking in the middle, and the location wraps only between words.
+1. Add two cyclists to the same ride with `rideaddcyclist ID PHONE`. Expected: The ride card lists each phone number on its own line, one below the other, even when the window is wide. Make the window as narrow as it allows. Expected: A phone number is still never broken in the middle.
 1. Enter `rideadd n/Any Place Ride from/21-10-2026 0600 to/21-10-2026 0800 l/any d/20 f/100 s/5`.
    Expected: The card's Location line shows `Any`, and the card has no Notes line.
 1. Click a ride card. Expected: The card is highlighted with a yellow border.

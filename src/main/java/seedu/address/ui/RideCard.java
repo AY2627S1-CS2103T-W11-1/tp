@@ -108,9 +108,9 @@ public class RideCard extends UiPart<Region> {
     }
 
     /**
-     * Returns the phone numbers on the ride's roster as display text, separated by commas, or
-     * {@code No cyclists} if the roster is empty. Each phone number is kept on one line, so the text can only
-     * wrap after a comma.
+     * Returns the phone numbers on the ride's roster as display text, one per line, or {@code No cyclists} if
+     * the roster is empty. Each phone number is kept whole, so it is never broken between its country code and
+     * its number, however narrow the card is.
      */
     static String formatRoster(Ride ride) {
         if (ride.getRoster().isEmpty()) {
@@ -118,6 +118,6 @@ public class RideCard extends UiPart<Region> {
         }
         return ride.getRoster().stream()
                 .map(phone -> DisplayText.keepTogether(phone.toString()))
-                .collect(Collectors.joining(", "));
+                .collect(Collectors.joining("\n"));
     }
 }
