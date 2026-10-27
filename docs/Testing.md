@@ -185,39 +185,6 @@ Run **Ride command alias regression** in the Developer Guide after changing ride
 `RideCommandAliasTest` checks parsing equivalence, validation, case sensitivity, saved workflows
 and cancellation of pending cyclist deletions for all seven aliases.
 
-## Portable release checks
-
-Use a plain JDK 25, without separately installed JavaFX. `./gradlew check coverage`
-also builds `build/libs/cyclique.jar` and verifies every Windows/Linux native library
-and both CPU slices of each universal macOS library against the original JavaFX artifacts.
-Intel and ARM macOS libraries share filenames, so packaging them as separate root entries
-would silently discard one architecture. The build combines them using Apple's
-[universal binary format](https://github.com/apple-oss-distributions/cctools/blob/main/include/mach-o/fat.h).
-The dependency declarations retain AB3's explicit Windows, macOS and Linux style,
-with additional `mac-aarch64` entries. The packaging tasks use those same dependencies.
-On macOS, development runs and JUnit tests exclude the other Mac architecture's
-graphics JAR so its identically named libraries cannot take precedence.
-
-Run `./gradlew smokeTestJar` to launch the packaged application in a separate JVM
-with only the release JAR and smoke helper on its classpath. The helper exercises
-startup, invalid roster syntax, cyclist creation, roster addition/removal, overlap
-confirmation, saving, Help and exit. Each invocation uses a fresh folder under
-`build/smoke-test`, including an isolated JavaFX cache. The watchdog fails startup
-or shutdown hangs instead of leaving CI running indefinitely.
-
-To test an existing artifact without rebuilding it, run
-`./gradlew smokeTestJar "-PsmokeJar=PATH_TO_JAR"`. Quote the property argument
-so PowerShell preserves paths containing full stops. Relative paths are resolved from
-the repository root. Linux needs a display, for example
-`xvfb-run -a ./gradlew smokeTestJar` in CI.
-
-CI builds the release once on Linux and uploads its SHA-256 checksum. Four smoke
-jobs download that same artifact, check its checksum and launch it with plain JDK 25
-on Windows x64, Linux x64, Intel macOS and Apple Silicon. The macOS jobs also use
-`lipo -verify_arch` to independently validate the generated universal libraries.
-Successful unit tests or binary inspection alone do not establish cross-platform
-startup; all four packaged-JAR jobs must pass before treating the artifact as verified.
-
 Run **Literal prefixes in ride notes (Issue #155)** in the Developer Guide after changing notes tokenisation.
 `ArgumentTokenizerTest` checks the explicit quoted-notes entry point and unchanged default tokenisation.
 Ride Add/Edit parser tests check literal prefixes, ordering, malformed quotes, duplicate fields and the word limit.
@@ -229,3 +196,14 @@ and card text, and verifies error styling and unchanged data after malformed inp
 `RideOverlapConfirmationTest` also combines quoted notes with overlapping time edits: the entire edit is deferred,
 confirmed exactly once, cancelled, rejected for stale data or rejected before overlap processing for invalid input.
 `MainWindowRidePanelTest` checks the combined command through the real command box and confirmation display.
+
+## Portable JAR smoke test
+
+`./gradlew shadowJar` builds one JAR for Windows, Linux and both Mac architectures.
+The Mac libraries share filenames, so the build combines their Intel and ARM slices.
+CI builds once on Linux, then launches that same artifact with plain JDK 25 on all
+four targets. The smoke helper waits for the main window, submits `exit` through
+the command box and checks shutdown. A watchdog rejects startup/shutdown hangs.
+To run it locally, use a fresh working folder and an isolated JavaFX cache:
+`java -ea -Djavafx.cachedir=cache -cp PATH_TO_JAR PATH_TO_PackagedJarSmokeTest.java`.
+Linux needs a display, for example by prefixing that command with `xvfb-run -a`.

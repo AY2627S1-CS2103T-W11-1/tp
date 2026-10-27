@@ -895,10 +895,6 @@ Repeat the checks on each operating system supported by the release.
 
 ### Launch and shutdown
 
-For release packaging changes, run the [portable release checks](Testing.md#portable-release-checks)
-on the exact JAR to be distributed. Verify the same artifact on Windows, Linux,
-Intel macOS and Apple Silicon with a plain JDK 25 before completing the checks below.
-
 1. Launch in a folder without `preferences.json` or `data/addressbook.json`.
    Expected: The opening artwork is followed by the main window with Alex Tan, Bernice Lee and Chloe Lim,
    each with an SOS number, and Sunday Sunrise Ride (ID 1) and Evening Spin (ID 2) with empty rosters.

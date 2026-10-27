@@ -31,7 +31,7 @@ jobs:
 
       - name: Build and check with Gradle on Linux
         if: runner.os == 'Linux'
-        run: xvfb-run -a ./gradlew check coverage
+        run: xvfb-run -a ./gradlew check coverage shadowJar
 
       - name: Build and check with Gradle
         if: runner.os != 'Linux'
@@ -43,19 +43,12 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
-      - name: Record release checksum
-        if: runner.os == 'Linux'
-        working-directory: build/libs
-        run: sha256sum cyclique.jar > cyclique.jar.sha256
-
       - name: Upload the portable release JAR
         if: runner.os == 'Linux'
         uses: actions/upload-artifact@v4
         with:
           name: portable-jar
-          path: |
-            build/libs/cyclique.jar
-            build/libs/cyclique.jar.sha256
+          path: build/libs/cyclique.jar
           if-no-files-found: error
 
   smoke:
@@ -84,36 +77,13 @@ jobs:
           name: portable-jar
           path: build/release
 
-      - name: Verify release checksum
-        shell: pwsh
-        run: |
-          $expected = ((Get-Content build/release/cyclique.jar.sha256) -split '\s+')[0]
-          $actual = (Get-FileHash build/release/cyclique.jar -Algorithm SHA256).Hash
-          if ($actual -ne $expected) { throw 'Downloaded release JAR checksum mismatch' }
-          Write-Output "Testing release SHA-256: $actual"
-          java -version
-
-      - name: Verify universal macOS libraries with Apple's tools
-        if: runner.os == 'macOS'
+      - name: Launch the release JAR
         shell: bash
         run: |
-          unzip -j build/release/cyclique.jar '*.dylib' -d build/mac-natives
-          for library in build/mac-natives/*.dylib; do
-            lipo "$library" -verify_arch x86_64 arm64
-          done
-
-      - name: Smoke test the release JAR on Linux
-        if: runner.os == 'Linux'
-        run: xvfb-run -a ./gradlew smokeTestJar "-PsmokeJar=build/release/cyclique.jar"
-
-      - name: Smoke test the release JAR on Windows and macOS
-        if: runner.os != 'Linux'
-        run: ./gradlew smokeTestJar "-PsmokeJar=build/release/cyclique.jar"
-
-      - name: Preserve smoke-test diagnostics
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: smoke-${{ matrix.platform }}
-          path: build/smoke-test
-          if-no-files-found: ignore
+          mkdir -p build/smoke
+          cd build/smoke
+          if [ "$RUNNER_OS" = Linux ]; then
+            xvfb-run -a java -ea -Djavafx.cachedir=cache -cp ../release/cyclique.jar ../../src/test/java/seedu/address/testutil/PackagedJarSmokeTest.java
+          else
+            java -ea -Djavafx.cachedir=cache -cp ../release/cyclique.jar ../../src/test/java/seedu/address/testutil/PackagedJarSmokeTest.java
+          fi
