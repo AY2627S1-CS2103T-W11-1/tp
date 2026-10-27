@@ -169,7 +169,7 @@ public class ReleaseCommandIntegrationTest {
         assertEquals(List.of(ALICE, JOHN), logic.getFilteredPersonList());
         logic.execute("edit +65 98765432 n/aaron Doe");
         Person aaron = new PersonBuilder(JOHN).withName("aaron Doe").build();
-        assertEquals(List.of(aaron, ALICE, bernice), logic.getFilteredPersonList());
+        assertEquals(List.of(ALICE), logic.getFilteredPersonList());
         assertSavedState();
 
         model = new ModelManager(storage.readAddressBook().orElseThrow(), new UserPrefs());
@@ -278,7 +278,8 @@ public class ReleaseCommandIntegrationTest {
         logic.execute(ADD_JOHN);
         String savedData = Files.readString(storage.getAddressBookFilePath());
         String[][] invalidEdits = {
-            {"n/!", "Names should only contain alphanumeric characters and spaces, and should not be blank."},
+            {"n/!", "Names should only contain Unicode letters, digits, combining marks and spaces, "
+                    + "and should start with a letter or digit. Combining marks must follow a letter or digit."},
             {"x/Expert", "Experience level should be one of: Beginner, Intermediate, Advanced (case-insensitive)."},
             {"n/John n/Ben", "Multiple values specified for the following single-valued field(s): n/."}
         };
@@ -293,14 +294,14 @@ public class ReleaseCommandIntegrationTest {
     }
 
     @Test
-    public void execute_editVisiblePerson_resetsFilterAndPreservesUnspecifiedFields() throws Exception {
+    public void execute_editVisiblePerson_preservesFilterAndUnspecifiedFields() throws Exception {
         logic.execute(ADD_JOHN);
         logic.execute(ADD_ALICE);
         logic.execute("find n/john");
         logic.execute("edit +65 98765432 n/John Updated");
 
         Person editedJohn = new PersonBuilder(JOHN).withName("John Updated").build();
-        assertEquals(List.of(ALICE, editedJohn), logic.getFilteredPersonList());
+        assertEquals(List.of(editedJohn), logic.getFilteredPersonList());
         assertSavedState();
     }
 
@@ -402,7 +403,10 @@ public class ReleaseCommandIntegrationTest {
         logic.execute("find n/alice");
         logic.execute("edit +65 91234567 p/+65 91111111");
         Person editedAlice = new PersonBuilder(ALICE).withPhone("+65 91111111").build();
-        assertEquals(List.of(editedAlice, JOHN), logic.getFilteredPersonList());
+        assertEquals(List.of(editedAlice), logic.getFilteredPersonList());
+        assertRejectedWithoutChanges("edit +65 98765432 p/+65 91111111",
+                String.format(EditCommand.MESSAGE_PERSON_NOT_FOUND, "+65 98765432"));
+        logic.execute("list");
         assertRejectedWithoutChanges("edit +65 98765432 p/+65 91111111",
                 EditCommand.MESSAGE_DUPLICATE_PERSON);
         assertSavedState();

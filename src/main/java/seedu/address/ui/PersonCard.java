@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Region;
+import seedu.address.model.person.Location;
 import seedu.address.model.person.Person;
 
 /**
@@ -37,6 +38,8 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label ftp;
     @FXML
+    private Label locationsLabel;
+    @FXML
     private Label locations;
     @FXML
     private Label experienceLevel;
@@ -49,21 +52,56 @@ public class PersonCard extends UiPart<Region> {
         this.person = person;
         id.setText(displayedIndex + ". ");
         name.setText(person.getName().fullName);
-        phone.setText(person.getPhone().value);
-        emergencyPhone.setText(person.getEmergencyPhone().map(number -> number.value).orElse("Not provided"));
+        phone.setText(formatPhone(person));
+        emergencyPhone.setText(formatEmergencyPhone(person));
         email.setText(person.getEmail().value);
         experienceLevel.setText(person.getExperienceLevel().value);
-        ftp.setText(person.getFtp().value + " W");
+        ftp.setText(formatFtp(person));
+        locationsLabel.setText(formatLocationsLabel(person));
         locations.setText(formatLocations(person));
     }
 
     /**
+     * Returns the person's phone number as display text, kept on one line so that it is never split between the
+     * country code and the number.
+     */
+    static String formatPhone(Person person) {
+        return DisplayText.keepTogether(person.getPhone().value);
+    }
+
+    /**
+     * Returns the person's emergency phone number as display text (kept on one line), or {@code Not provided} if
+     * the person has none.
+     */
+    static String formatEmergencyPhone(Person person) {
+        return person.getEmergencyPhone()
+                .map(number -> DisplayText.keepTogether(number.value))
+                .orElse("Not provided");
+    }
+
+    /**
+     * Returns the person's FTP in watts as display text, for example {@code 300 W}, kept on one line.
+     */
+    static String formatFtp(Person person) {
+        return DisplayText.keepTogether(person.getFtp().value + " W");
+    }
+
+    /**
+     * Returns the label for the person's locations: {@code Location} when there is exactly one,
+     * otherwise {@code Locations}.
+     */
+    static String formatLocationsLabel(Person person) {
+        return person.getLocations().size() == 1 ? "Location" : "Locations";
+    }
+
+    /**
      * Returns the person's preferred locations as display text.
-     * The special {@code any} value is humanized without changing its stored representation.
+     * The first letter of every word is capitalised, and {@code any} is shown as {@code Any}, without changing
+     * the stored representation.
      */
     static String formatLocations(Person person) {
         return person.getLocations().stream()
-                .map(location -> location.value.equalsIgnoreCase("any") ? "Any" : location.value)
+                .map(Location::toDisplayText)
                 .sorted(String.CASE_INSENSITIVE_ORDER)
                 .collect(Collectors.joining(", "));
     }

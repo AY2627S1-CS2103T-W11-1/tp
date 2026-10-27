@@ -8,7 +8,6 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_FTP;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LOCATION;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
-import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -47,8 +46,8 @@ public class EditCommand extends Command {
             + "[" + PREFIX_PHONE + "PHONE] "
             + "[" + PREFIX_EMERGENCY_PHONE + "EMERGENCY_PHONE] "
             + "[" + PREFIX_EMAIL + "EMAIL] "
-            + "[" + PREFIX_FTP + "FTP] "
-            + "[" + PREFIX_EXPERIENCE_LEVEL + "EXPERIENCE] "
+            + "[" + PREFIX_FTP + "FTP_LEVEL] "
+            + "[" + PREFIX_EXPERIENCE_LEVEL + "EXPERIENCE_LEVEL] "
             + "[" + PREFIX_LOCATION + "LOCATION]...\n"
             + "Example: " + COMMAND_WORD + " +65 91234567 "
             + PREFIX_PHONE + "+65 98765432 "
@@ -103,7 +102,6 @@ public class EditCommand extends Command {
             throw new CommandException(MESSAGE_DUPLICATE_PERSON);
         }
 
-        model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
         return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson)));
     }
 

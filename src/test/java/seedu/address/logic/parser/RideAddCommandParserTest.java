@@ -45,6 +45,32 @@ public class RideAddCommandParserTest {
     private RideAddCommandParser parser = new RideAddCommandParser();
 
     @Test
+    public void parse_quotedNotes_allPrefixesAreLiteralAndOrderingIsFlexible() {
+        for (String notes : new String[] {"Bring camera with aperture f/2",
+            "n/ from/ to/ l/ d/ f/ s/ notes/ q/test", "  Bring   water  ", "Bring \\\\camera",
+            "one two three four five six seven eight nine ten"}) {
+            RideAddCommand expected = new RideAddCommand(new RideBuilder().withNotes(notes).build());
+            assertParseSuccess(parser, ALL_REQUIRED + " notes/\"" + notes + "\"", expected);
+            assertParseSuccess(parser, " notes/\"" + notes + "\"" + ALL_REQUIRED, expected);
+            assertParseSuccess(parser, NAME_DESC + " notes/\"" + notes + "\"" + FROM_DESC + TO_DESC
+                    + LOCATION_DESC + DISTANCE_DESC + POWER_DESC + SIZE_DESC, expected);
+        }
+    }
+
+    @Test
+    public void parse_invalidQuotedNotes_failure() {
+        for (String notes : new String[] {"\"Bring camera f/2", "\"\"", "\"  \"", "\"Bring\"extra",
+            "\"Bring \"camera\"\""}) {
+            assertParseFailure(parser, ALL_REQUIRED + " notes/" + notes,
+                    ArgumentTokenizer.MESSAGE_INVALID_QUOTED_NOTES);
+        }
+        assertParseFailure(parser, ALL_REQUIRED
+                + " notes/\"one two three four five six seven eight nine ten eleven\"", Notes.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, ALL_REQUIRED + " notes/\"f/2\" f/200",
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_FTP));
+    }
+
+    @Test
     public void parse_allFieldsPresent_success() {
         Ride expectedRide = new RideBuilder().withNotes("Bring lights and a spare tube").build();
 

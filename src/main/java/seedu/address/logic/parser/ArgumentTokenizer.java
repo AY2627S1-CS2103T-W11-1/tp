@@ -1,9 +1,13 @@
 package seedu.address.logic.parser;
 
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTES;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import seedu.address.logic.parser.exceptions.ParseException;
 
 /**
  * Tokenizes arguments string of the form: {@code preamble <prefix>value <prefix>value ...}<br>
@@ -15,6 +19,52 @@ import java.util.stream.Collectors;
  */
 public class ArgumentTokenizer {
 
+    public static final String MESSAGE_INVALID_QUOTED_NOTES =
+            "Invalid quoted ride notes. Use notes/\"non-blank notes\" followed only by whitespace "
+            + "and another recognised parameter, or the end of the command. "
+            + "Double quotes inside quoted notes and escape sequences are not supported.";
+
+    /**
+     * Tokenizes ride add/edit arguments, allowing an optional double-quoted notes value.
+     * Only an opening quote immediately after notes/ enables quoting. The first following quote closes
+     * the value; backslashes are literal. Prefixes inside that value are ignored, and delimiters are removed.
+     * All other fields and unquoted values retain the behavior of {@link #tokenize(String, Prefix...)}.
+     *
+     * @throws ParseException if quoted notes are blank, unclosed, or followed by text before the next prefix.
+     */
+    public static ArgumentMultimap tokenizeWithQuotedNotes(String argsString, Prefix... prefixes)
+            throws ParseException {
+        List<PrefixPosition> positions = findAllPrefixPositions(argsString, prefixes);
+        positions.sort((first, second) -> Integer.compare(first.getStartPosition(), second.getStartPosition()));
+        List<PrefixPosition> outsidePositions = new ArrayList<>();
+        int quotedEnd = -1;
+        for (int i = 0; i < positions.size(); i++) {
+            PrefixPosition position = positions.get(i);
+            if (position.getStartPosition() < quotedEnd) {
+                continue;
+            }
+            outsidePositions.add(position);
+            int valueStart = position.getStartPosition() + position.getPrefix().getPrefix().length();
+            if (!position.getPrefix().equals(PREFIX_NOTES) || !argsString.startsWith("\"", valueStart)) {
+                continue;
+            }
+            quotedEnd = argsString.indexOf('"', valueStart + 1);
+            if (quotedEnd == -1 || argsString.substring(valueStart + 1, quotedEnd).isBlank()) {
+                throw new ParseException(MESSAGE_INVALID_QUOTED_NOTES);
+            }
+            int nextIndex = i + 1;
+            while (nextIndex < positions.size() && positions.get(nextIndex).getStartPosition() < quotedEnd) {
+                nextIndex++;
+            }
+            int nextStart = nextIndex < positions.size()
+                    ? positions.get(nextIndex).getStartPosition() : argsString.length();
+            if (!argsString.substring(quotedEnd + 1, nextStart).isBlank()) {
+                throw new ParseException(MESSAGE_INVALID_QUOTED_NOTES);
+            }
+        }
+        return extractArguments(argsString, outsidePositions, true);
+    }
+
     /**
      * Tokenizes an arguments string and returns an {@code ArgumentMultimap} object that maps prefixes to their
      * respective argument values. Only the given prefixes will be recognized in the arguments string.
@@ -25,7 +75,7 @@ public class ArgumentTokenizer {
      */
     public static ArgumentMultimap tokenize(String argsString, Prefix... prefixes) {
         List<PrefixPosition> positions = findAllPrefixPositions(argsString, prefixes);
-        return extractArguments(argsString, positions);
+        return extractArguments(argsString, positions, false);
     }
 
     /**
@@ -90,9 +140,11 @@ public class ArgumentTokenizer {
      *
      * @param argsString      Arguments string of the form: {@code preamble <prefix>value <prefix>value ...}
      * @param prefixPositions Zero-based positions of all prefixes in {@code argsString}
+     * @param hasQuotedNotes  Whether the positions have been validated and filtered for quoted ride notes.
      * @return                ArgumentMultimap object that maps prefixes to their arguments
      */
-    private static ArgumentMultimap extractArguments(String argsString, List<PrefixPosition> prefixPositions) {
+    private static ArgumentMultimap extractArguments(String argsString, List<PrefixPosition> prefixPositions,
+            boolean hasQuotedNotes) {
 
         // Sort by start position
         prefixPositions.sort((prefix1, prefix2) -> prefix1.getStartPosition() - prefix2.getStartPosition());
@@ -111,6 +163,11 @@ public class ArgumentTokenizer {
             // Extract and store prefixes and their arguments
             Prefix argPrefix = prefixPositions.get(i).getPrefix();
             String argValue = extractArgumentValue(argsString, prefixPositions.get(i), prefixPositions.get(i + 1));
+            int valueStart = prefixPositions.get(i).getStartPosition() + argPrefix.getPrefix().length();
+            if (hasQuotedNotes && argPrefix.equals(PREFIX_NOTES) && argsString.startsWith("\"", valueStart)) {
+                int closingQuote = argsString.indexOf('"', valueStart + 1);
+                argValue = argsString.substring(valueStart + 1, closingQuote);
+            }
             argMultimap.put(argPrefix, argValue);
         }
 

@@ -93,12 +93,17 @@ public class RideMatchesFindCriteriaPredicateTest {
     }
 
     @Test
-    public void test_notes_requiresExactValue() {
-        // EP: the complete notes value must match; a different value is rejected.
+    public void test_notes_matchesWholeWordsIgnoringCase() {
+        // EP: complete words match regardless of case, while partial or incomplete phrases do not.
         Ride ride = new RideBuilder().withNotes("Bring lights").build();
 
         assertTrue(predicateWithNotes("Bring lights").test(ride));
+        assertTrue(predicateWithNotes("Bring").test(ride));
+        assertTrue(predicateWithNotes("lights").test(ride));
+        assertTrue(predicateWithNotes("BRING").test(ride));
+        assertFalse(predicateWithNotes("lig").test(ride));
         assertFalse(predicateWithNotes("Bring water").test(ride));
+        assertFalse(predicateWithNotes("Bring lights and a spare tube").test(ride));
     }
 
     @Test

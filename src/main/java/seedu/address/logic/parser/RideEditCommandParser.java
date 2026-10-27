@@ -30,8 +30,8 @@ public class RideEditCommandParser implements Parser<RideEditCommand> {
      */
     @Override
     public RideEditCommand parse(String args) throws ParseException {
-        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_FROM, PREFIX_TO,
-                PREFIX_LOCATION, PREFIX_DISTANCE, PREFIX_FTP, PREFIX_GROUP_SIZE, PREFIX_NOTES);
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenizeWithQuotedNotes(args, PREFIX_NAME, PREFIX_FROM,
+                PREFIX_TO, PREFIX_LOCATION, PREFIX_DISTANCE, PREFIX_FTP, PREFIX_GROUP_SIZE, PREFIX_NOTES);
 
         int targetId = parseRideId(argMultimap.getPreamble());
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_FROM, PREFIX_TO, PREFIX_LOCATION,

@@ -18,7 +18,7 @@ end box
 participant "m:ModelManager" as Model MODEL_COLOR
 participant ":StorageManager" as Storage STORAGE_COLOR
 
-' Trace: LogicManager.java:55,81; AddressBookParser.java:96 (call, creation, call).
+' Trace: LogicManager#execute calls AddressBookParser#parseCommand, which creates and calls RideEditCommandParser.
 note over Logic, Parser : input = "rideedit ID ..."
 [-> Logic : execute(input)
 activate Logic
@@ -28,7 +28,7 @@ create EditParser
 Parser -> EditParser : new()
 Parser -> EditParser : parse(arguments)
 activate EditParser
-' RideEditCommandParser.java:33-46,55-87: internal calls/construction abstracted in a note.
+' RideEditCommandParser#parse, #parseRideId and #parseEditedFields: internal calls/construction abstracted in a note.
 note right of EditParser
   Validate positive ID;
   reject duplicate prefixes.
@@ -39,14 +39,80 @@ note right of EditParser
 end note
 create Command
 EditParser -> Command : new(targetId, descriptor)
-' RideEditCommand.java:77-82: defensive copy, not the parser's descriptor object.
+' RideEditCommand constructor: defensive copy, not the parser's descriptor object.
 note over Command : Copy EditRideDescriptor defensively.
 EditParser --> Parser : c
 deactivate EditParser
 Parser --> Logic : c
 deactivate Parser
 
-' LogicManager.java:91; RideEditCommand.java:89-92; ModelManager.java:87-89.
+' LogicManager#execute calls RideEditCommand#getOverlapWarning before storing or executing the command.
+group Check overlap before execution (no mutation or save)
+    Logic -> Command : getOverlapWarning(m)
+    activate Command
+    Command -> Model : getAddressBook()
+    activate Model
+    Model --> Command : book
+    deactivate Model
+    note right of Storage
+      Resolve target; combine fields;
+      validate period and roster eligibility.
+      If either endpoint changes, check
+      every roster member against all
+      other stored rides, including hidden rides.
+      Unchanged times, adjacent periods
+      and zero-duration rides do not warn.
+    end note
+    alt valid proposal
+        Command --> Logic : warning text or empty string
+    else invalid proposal
+        Command --> Logic : throws CommandException
+    end
+    deactivate Command
+end
+
+break invalid proposal
+    [<-- Logic : throws CommandException (no mutation or save)
+end
+
+opt non-empty warning
+    Logic -> Model : getAddressBook()
+    activate Model
+    Model --> Logic : book
+    deactivate Model
+    note left of Logic
+      Keep command, address-book copy and prompt in memory.
+      Do not execute or save any part of the edit.
+    end note
+    [<-- Logic : warning CommandResult
+    deactivate Logic
+
+    ... Await another command-box input ...
+    [-> Logic : execute(reply)
+    activate Logic
+    note left of Logic
+      Invalid replies repeat the warning and retain the request.
+      Reply matching ignores letter case.
+      Restart discards the pending request.
+    end note
+    break n/no or another recognised command
+        note left of Logic
+          Clear the pending edit without saving.
+          Process another recognised command normally.
+        end note
+        [<-- Logic : cancellation (plus new command result or error)
+    end
+    note left of Logic : y/yes: consume pending request before execution.
+    Logic -> Model : getAddressBook()
+    activate Model
+    Model --> Logic : current book
+    deactivate Model
+    break current book differs from saved copy
+        [<-- Logic : throws CommandException (no mutation or save)
+    end
+end
+
+' LogicManager#execute or #confirmRideChange calls RideEditCommand#execute after overlap checks/confirmation.
 Logic -> Command : execute(m)
 activate Command
 Command -> Model : getAddressBook()
@@ -60,7 +126,7 @@ note left of Command
   and calls Ride.isValidPeriod: end >= start.
 end note
 
-' RideEditCommand.java:93,104-125: static helpers are notes, not instance self-calls.
+' RideEditCommand#execute calls #createEditedRide: static helpers are notes, not instance self-calls.
 alt valid
     note left of Command
       Construct proposed immutable Ride
@@ -68,7 +134,7 @@ alt valid
       Omitted fields and notes are preserved.
       Supplied notes replace; notes/ clears.
     end note
-    ' RideEditCommand.java:94,131-151: capacity first; phone resolution only for an FTP edit.
+    ' RideEditCommand#validateRosterEligibility: capacity first; phone resolution only for an FTP edit.
     note left of Command
       Next, validateRosterEligibility:
       if size supplied: size >= roster count;
@@ -77,7 +143,7 @@ alt valid
       require FTP >= edited minimum.
     end note
     alt pass
-        ' RideEditCommand.java:96; ModelManager.java:128-131; AddressBook.java:179-190.
+        ' RideEditCommand#execute calls ModelManager#setRide, which delegates to AddressBook#setRide.
         Command -> Model : setRide(target, proposed)
         activate Model
         note right of Model
@@ -110,7 +176,7 @@ end
 deactivate Command
 
 opt result
-    ' LogicManager.java:92,148-156: internal helper invocation is abstracted in this note.
+    ' LogicManager#execute and #confirmRideChange call #saveAddressBook only after successful execution.
     note left of Logic : saveAddressBook():\nexisting storage path.
     Logic -> Model : getAddressBook()
     activate Model
@@ -147,6 +213,8 @@ legend bottom
   Guards: valid = target found and complete period valid; pass/fail = roster eligibility checks.
   result = command returned CommandResult; saved = command and saving both succeeded.
   Messages labelled "throws" propagate exceptions; they do not return values.
-  No confirmation is required.
+  Only time changes with roster conflicts require confirmation.
+  Warning/cancellation paths never execute or save the pending edit.
+  Execution repeats validation before replacing the stored ride.
 endlegend
 @enduml

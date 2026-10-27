@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import seedu.address.logic.parser.Prefix;
+import seedu.address.model.person.Location;
 import seedu.address.model.person.Person;
 import seedu.address.model.ride.Ride;
 
@@ -13,6 +14,7 @@ import seedu.address.model.ride.Ride;
  */
 public class Messages {
 
+    public static final String MESSAGE_OVERLAP_INSTRUCTIONS = "Enter y/yes to proceed or n/no to cancel.";
     public static final String MESSAGE_UNKNOWN_COMMAND = "Unknown command.";
     public static final String MESSAGE_INVALID_COMMAND_FORMAT = "Invalid command format.\n%1$s";
     public static final String MESSAGE_INVALID_PERSON_DISPLAYED_INDEX = "The cyclist index provided is invalid.";
@@ -54,7 +56,9 @@ public class Messages {
                 .append("; Experience Level: ")
                 .append(person.getExperienceLevel())
                 .append("; Locations: ")
-                .append(person.getLocations());
+                .append(person.getLocations().stream()
+                        .map(Location::toDisplayText)
+                        .collect(Collectors.joining(", ", "[", "]")));
         return builder.toString();
     }
 
@@ -65,7 +69,7 @@ public class Messages {
         return "Ride " + ride.getId() + ": " + ride.getName()
                 + "; From: " + ride.getFrom()
                 + "; To: " + ride.getTo()
-                + "; Location: " + ride.getLocation()
+                + "; Location: " + ride.getLocation().toDisplayText()
                 + "; Distance: " + ride.getDistance() + " km"
                 + "; Minimum power: " + ride.getMinimumPower() + " W"
                 + "; Max group size: " + ride.getMaxGroupSize()

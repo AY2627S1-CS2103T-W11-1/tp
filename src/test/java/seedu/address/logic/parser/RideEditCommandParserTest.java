@@ -36,6 +36,36 @@ public class RideEditCommandParserTest {
     private final RideEditCommandParser parser = new RideEditCommandParser();
 
     @Test
+    public void parse_quotedNotes_onlyExplicitFieldsAreEdited() {
+        EditRideDescriptor descriptor = new EditRideDescriptor();
+        descriptor.setNotes(Optional.of(new Notes("Bring camera with aperture f/2")));
+        assertParseSuccess(parser, VALID_ID + " notes/\"Bring camera with aperture f/2\"",
+                new RideEditCommand(101, descriptor));
+        descriptor.setMaxGroupSize(new GroupSize("5"));
+        assertParseSuccess(parser, VALID_ID + " notes/\"Bring camera with aperture f/2\" s/5",
+                new RideEditCommand(101, descriptor));
+        descriptor.setMinimumPower(new MinimumPower("200"));
+        assertParseSuccess(parser, VALID_ID + " f/200 notes/\"Bring camera with aperture f/2\" s/5",
+                new RideEditCommand(101, descriptor));
+    }
+
+    @Test
+    public void parse_malformedQuotedNotes_failure() {
+        for (String notes : new String[] {"\"Bring camera f/2", "\"\"", "\"  \"", "\"Bring\"tail",
+            "\"Bring\" tail f/200", "\"Bring \"camera\"\""}) {
+            assertParseFailure(parser, VALID_ID + " notes/" + notes,
+                    ArgumentTokenizer.MESSAGE_INVALID_QUOTED_NOTES);
+        }
+        assertParseFailure(parser, VALID_ID + " notes/\"f/2\" f/200 f/250",
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_FTP));
+        assertParseFailure(parser, VALID_ID + " notes/\"notes/literal\" notes/second",
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_NOTES));
+        assertParseFailure(parser, VALID_ID + " notes/\"f/2\" s/bad", GroupSize.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, VALID_ID
+                + " notes/\"one two three four five six seven eight nine ten eleven\"", Notes.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
     public void parse_eachEditableField_success() {
         EditRideDescriptor nameDescriptor = new EditRideDescriptor();
         nameDescriptor.setName(new Name("Night Ride"));

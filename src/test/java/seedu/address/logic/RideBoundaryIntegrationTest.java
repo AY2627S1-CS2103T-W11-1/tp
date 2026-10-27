@@ -21,6 +21,7 @@ import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
 import seedu.address.testutil.PersonBuilder;
+import seedu.address.testutil.RideBuilder;
 
 /**
  * Exercises equivalence partitions and adjacent boundaries through parsing, execution, and storage.
@@ -45,6 +46,73 @@ public class RideBoundaryIntegrationTest {
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json")));
         logic = new LogicManager(model, storage);
         logic.execute("rideadd " + DETAILS);
+    }
+
+    @Test
+    public void execute_quotedNotes_preservesOtherFieldsRosterAndPersistence() throws Exception {
+        logic.execute("rideaddcyclist 1 " + PHONE);
+        Ride original = currentRide();
+        String notes = "Bring camera with aperture f/2";
+        logic.execute("rideedit 1 notes/\"" + notes + "\"");
+        assertEquals(new RideBuilder(original).withNotes(notes).build(), currentRide());
+        assertSavedState();
+        logic.execute("re 1 notes/\"" + notes + "\" s/5");
+        assertEquals(new RideBuilder(original).withNotes(notes).withMaxGroupSize("5").build(), currentRide());
+        assertSavedState();
+        logic.execute("edit " + PHONE + " f/250");
+        logic.execute("rideedit 1 f/200 notes/\"" + notes + "\"");
+        assertEquals(new RideBuilder(original).withNotes(notes).withMaxGroupSize("5")
+                .withMinimumPower("200").build(), currentRide());
+        logic.execute("ra " + DETAILS + " notes/\"" + notes + "\"");
+        assertEquals(new RideBuilder().withId(2).withName("Boundary").withMaxGroupSize("2")
+                .withNotes(notes).build(), model.getAddressBook().getRideList().get(1));
+        assertSavedState();
+        model.setAddressBook(storage.readAddressBook().orElseThrow());
+        assertEquals(notes, currentRide().getNotes().orElseThrow().value);
+        assertEquals(original.getRoster(), currentRide().getRoster());
+    }
+
+    @Test
+    public void execute_invalidQuotedCommands_preservesBookFiltersFileAndNextId() throws Exception {
+        logic.execute("rideaddcyclist 1 " + PHONE);
+        model.updateFilteredPersonList(person -> false);
+        model.updateFilteredRideList(ride -> false);
+        for (String field : List.of("notes/\"camera f/2", "notes/\"\"", "notes/\"  \"",
+                "notes/\"camera\"tail f/2", "notes/\"camera\" extra f/2", "notes/\"camera\" q/test",
+                "notes/\"camera \"lens\"\"", "notes/\"camera\" s/bad", "notes/\"camera\" f/0",
+                "notes/\"one two three four five six seven eight nine ten eleven\"",
+                "notes/\"camera\" notes/second")) {
+            assertRejected("rideedit 1 " + field, ParseException.class);
+            assertRejected("rideadd " + DETAILS + " " + field, ParseException.class);
+        }
+        for (String field : List.of("n/Bad&Name", "l/Coast!", "from/invalid", "to/invalid",
+                "d/0", "f/601", "s/0", "f/180 f/200")) {
+            assertRejected("rideedit 1 notes/\"camera f/2\" " + field, ParseException.class);
+        }
+        assertRejected("rideedit 0 notes/\"camera f/2\"", ParseException.class);
+        assertRejected("rideedit 1 notes/\"camera f/2\" from/19-10-2026 0630", CommandException.class);
+        assertRejected("rideedit 1 notes/\"camera f/2\" f/181", CommandException.class);
+        model.addPerson(new PersonBuilder().withPhone("+65 92345678").withEmail("second@example.com")
+                .withFtp("180").build());
+        logic.execute("rideaddcyclist 1 +65 92345678");
+        assertRejected("rideedit 1 notes/\"camera f/2\" s/1", CommandException.class);
+        logic.execute("rideadd " + DETAILS + " notes/\"camera f/2\"");
+        assertEquals(2, model.getAddressBook().getRideList().get(1).getId());
+        assertSavedState();
+    }
+
+    @Test
+    public void execute_unquotedNotes_preservesAmbiguityAndExistingOrdering() throws Exception {
+        logic.execute("rideedit 1 notes/Bring camera with aperture f/2");
+        assertEquals("Bring camera with aperture", currentRide().getNotes().orElseThrow().value);
+        assertEquals("2", currentRide().getMinimumPower().toString());
+        for (String fields : List.of("notes/Bring water", "notes/Bring water f/200",
+                "f/200 notes/Bring water", "l/Marina Bay notes/Meet at the waterfront")) {
+            logic.execute("rideedit 1 " + fields);
+            assertSavedState();
+        }
+        logic.execute("rideadd " + DETAILS + " notes/Bring water");
+        assertSavedState();
     }
 
     @Test

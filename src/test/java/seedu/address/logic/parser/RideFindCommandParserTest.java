@@ -11,6 +11,12 @@ public class RideFindCommandParserTest {
     private final RideFindCommandParser parser = new RideFindCommandParser();
 
     @Test
+    public void parse_quotes_doNotProtectPrefixesInFind() {
+        assertThrows(ParseException.class, () -> parser.parse("notes/\"camera f/2\""));
+        assertThrows(ParseException.class, () -> parser.parse("notes/\"camera notes/other\""));
+    }
+
+    @Test
     public void parse_eachCriterionAlone_success() {
         // EP: each supported criterion is supplied individually.
         assertDoesNotThrow(() -> parser.parse("n/Sunday Sunrise Ride"));

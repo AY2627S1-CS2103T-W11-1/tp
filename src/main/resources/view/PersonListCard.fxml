@@ -25,14 +25,15 @@
     </HBox>
     <GridPane hgap="10" maxWidth="1.7976931348623157E308">
       <columnConstraints>
-        <ColumnConstraints percentWidth="40" hgrow="ALWAYS" />
-        <ColumnConstraints percentWidth="60" hgrow="ALWAYS" />
+        <ColumnConstraints percentWidth="50" hgrow="ALWAYS" />
+        <ColumnConstraints percentWidth="50" hgrow="ALWAYS" />
       </columnConstraints>
       <VBox maxWidth="1.7976931348623157E308" spacing="2" GridPane.hgrow="ALWAYS">
         <Label styleClass="person-section-heading" text="Contact" />
+        <!-- The same label column width as the Locations row below, so that all the values line up. -->
         <GridPane hgap="8" vgap="2" maxWidth="1.7976931348623157E308">
           <columnConstraints>
-            <ColumnConstraints minWidth="48" prefWidth="48" />
+            <ColumnConstraints minWidth="68" prefWidth="68" />
             <ColumnConstraints hgrow="ALWAYS" />
           </columnConstraints>
           <Label styleClass="person-field-label" text="Phone" GridPane.rowIndex="0" />
@@ -68,7 +69,7 @@
         <ColumnConstraints minWidth="68" prefWidth="68" />
         <ColumnConstraints hgrow="ALWAYS" />
       </columnConstraints>
-      <Label styleClass="person-field-label" text="Locations" />
+      <Label fx:id="locationsLabel" styleClass="person-field-label" text="Locations" />
       <Label fx:id="locations" maxWidth="1.7976931348623157E308" styleClass="person-field-value"
              text="\$locations" wrapText="true" GridPane.columnIndex="1" />
     </GridPane>
