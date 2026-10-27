@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
@@ -95,6 +96,50 @@ public class PersonCardTest {
                 .build();
 
         assertEquals("East Coast Park, Marina Bay", PersonCard.formatLocations(person));
+    }
+
+    @Test
+    public void formatLocationsLabel_oneLocation_isSingular() {
+        assertEquals("Location",
+                PersonCard.formatLocationsLabel(new PersonBuilder().withLocations("East Coast").build()));
+        assertEquals("Location", PersonCard.formatLocationsLabel(new PersonBuilder().withLocations("any").build()));
+    }
+
+    @Test
+    public void formatLocationsLabel_severalLocations_isPlural() {
+        assertEquals("Locations", PersonCard.formatLocationsLabel(
+                new PersonBuilder().withLocations("East Coast", "Marina Bay").build()));
+        assertEquals("Locations", PersonCard.formatLocationsLabel(
+                new PersonBuilder().withLocations("East Coast", "Marina Bay", "Punggol").build()));
+    }
+
+    @Test
+    public void constructor_locations_labelFollowsTheNumberOfLocations() throws Exception {
+        Person oneLocation = new PersonBuilder().withLocations("East Coast").build();
+        Person twoLocations = new PersonBuilder().withLocations("East Coast", "Marina Bay").build();
+
+        runOnJavaFxThread(() -> {
+            assertEquals("Location", getLabel(new PersonCard(oneLocation, 1).getRoot(), "locationsLabel").getText());
+            assertEquals("Locations", getLabel(new PersonCard(twoLocations, 1).getRoot(), "locationsLabel").getText());
+        });
+    }
+
+    @Test
+    public void layout_phoneEmailSosAndLocationValues_startAtTheSameHorizontalPosition() throws Exception {
+        Person person = new PersonBuilder().build();
+
+        runOnJavaFxThread(() -> {
+            Parent root = new PersonCard(person, 1).getRoot();
+            Scene scene = new Scene(root, 700, 400);
+            scene.getStylesheets().add(getClass().getResource("/view/DarkTheme.css").toExternalForm());
+            root.applyCss();
+            root.layout();
+
+            double phoneLeft = leftEdgeInScene(getLabel(root, "phone"));
+            assertEquals(phoneLeft, leftEdgeInScene(getLabel(root, "email")), 0.001);
+            assertEquals(phoneLeft, leftEdgeInScene(getLabel(root, "emergencyPhone")), 0.001);
+            assertEquals(phoneLeft, leftEdgeInScene(getLabel(root, "locations")), 0.001);
+        });
     }
 
     @Test
@@ -197,6 +242,10 @@ public class PersonCardTest {
             assertNull(root.lookup("#address"));
             assertFalse(getAllLabelTexts(root).contains("Address"));
         });
+    }
+
+    private static double leftEdgeInScene(Node node) {
+        return node.localToScene(node.getBoundsInLocal()).getMinX();
     }
 
     private static Label getLabel(Parent root, String id) {

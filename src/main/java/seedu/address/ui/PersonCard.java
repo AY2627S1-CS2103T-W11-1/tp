@@ -37,6 +37,8 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label ftp;
     @FXML
+    private Label locationsLabel;
+    @FXML
     private Label locations;
     @FXML
     private Label experienceLevel;
@@ -54,6 +56,7 @@ public class PersonCard extends UiPart<Region> {
         email.setText(person.getEmail().value);
         experienceLevel.setText(person.getExperienceLevel().value);
         ftp.setText(formatFtp(person));
+        locationsLabel.setText(formatLocationsLabel(person));
         locations.setText(formatLocations(person));
     }
 
@@ -80,6 +83,14 @@ public class PersonCard extends UiPart<Region> {
      */
     static String formatFtp(Person person) {
         return DisplayText.keepTogether(person.getFtp().value + " W");
+    }
+
+    /**
+     * Returns the label for the person's locations: {@code Location} when there is exactly one,
+     * otherwise {@code Locations}.
+     */
+    static String formatLocationsLabel(Person person) {
+        return person.getLocations().size() == 1 ? "Location" : "Locations";
     }
 
     /**
