@@ -132,6 +132,7 @@ public class ParserUtil {
         if (parsedLocations.isEmpty()) {
             parsedLocations.add(new Location("any"));
         }
+        assert !parsedLocations.isEmpty() : "Parsed locations must contain at least one location.";
         return parsedLocations;
     }
 

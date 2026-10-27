@@ -18,6 +18,7 @@ public class RideFindCommandParserTest {
 
     @Test
     public void parse_eachCriterionAlone_success() {
+        // EP: each supported criterion is supplied individually.
         assertDoesNotThrow(() -> parser.parse("n/Sunday Sunrise Ride"));
         assertDoesNotThrow(() -> parser.parse("from/18-10-2026"));
         assertDoesNotThrow(() -> parser.parse("to/18-10-2026 2359"));
@@ -30,11 +31,13 @@ public class RideFindCommandParserTest {
 
     @Test
     public void parse_noCriteria_failure() {
+        // EP: empty input contains no search criteria.
         assertThrows(ParseException.class, () -> parser.parse(" "));
     }
 
     @Test
     public void parse_all_success() {
+        // EP: the special "all" keyword requests every ride.
         assertDoesNotThrow(() -> parser.parse("all"));
     }
 
@@ -45,6 +48,7 @@ public class RideFindCommandParserTest {
 
     @Test
     public void parse_allWithArguments_failure() {
+        // EP: "all" cannot be combined with another criterion.
         assertThrows(ParseException.class, () -> parser.parse("all n/Ride"));
     }
 
@@ -55,22 +59,26 @@ public class RideFindCommandParserTest {
 
     @Test
     public void parse_toBeforeFrom_failure() {
+        // EP: the ending boundary occurs before the starting boundary.
         assertThrows(ParseException.class, () -> parser.parse(
                 "from/19-10-2026 0000 to/18-10-2026 2359"));
     }
 
     @Test
     public void parse_dateOnlyBounds_success() {
+        // EP: date-only boundaries are expanded to the start and end of the day.
         assertDoesNotThrow(() -> parser.parse("from/18-10-2026 to/18-10-2026"));
     }
 
     @Test
     public void parse_duplicateCriterion_failure() {
+        // EP: the same criterion prefix is repeated.
         assertThrows(ParseException.class, () -> parser.parse("l/East Coast l/Tampines"));
     }
 
     @Test
     public void parse_numericBoundaryValues_success() {
+        // EP: numeric criteria use their smallest and largest valid boundary values.
         assertDoesNotThrow(() -> parser.parse("d/0.01"));
         assertDoesNotThrow(() -> parser.parse("f/1"));
         assertDoesNotThrow(() -> parser.parse("f/600"));
@@ -79,6 +87,7 @@ public class RideFindCommandParserTest {
 
     @Test
     public void parse_numericValuesOutsideConstraints_failure() {
+        // EP: numeric criteria are below or above their allowed range.
         assertThrows(ParseException.class, () -> parser.parse("d/0"));
         assertThrows(ParseException.class, () -> parser.parse("f/0"));
         assertThrows(ParseException.class, () -> parser.parse("f/601"));
@@ -87,6 +96,7 @@ public class RideFindCommandParserTest {
 
     @Test
     public void parse_invalidDateOrTime_failure() {
+        // EP: date or time input is syntactically invalid or represents an impossible value.
         assertThrows(ParseException.class, () -> parser.parse("from/31-02-2026"));
         assertThrows(ParseException.class, () -> parser.parse("to/18-10-2026 2460"));
         assertThrows(ParseException.class, () -> parser.parse("from/18-10-2026 063"));

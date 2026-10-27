@@ -32,6 +32,7 @@ public class FindCommandParserTest {
 
     @Test
     public void parse_emptyArg_throwsParseException() {
+        // EP: input is empty, lacks a prefix, or has an empty criterion value.
         assertParseFailure(parser, "     ", String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
         assertParseFailure(parser, "alex david",
                 String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
@@ -42,6 +43,7 @@ public class FindCommandParserTest {
 
     @Test
     public void parse_validArgs_returnsFindCommand() {
+        // EP: valid name criteria can be repeated, reordered, and combined with phone criteria.
         FindCommand expectedFindCommand =
                 new FindCommand(new PersonMatchesFindCriteriaPredicate(List.of("Alice", "Bob"), List.of()));
         assertParseSuccess(parser, "n/Alice n/Bob", expectedFindCommand);
@@ -64,12 +66,14 @@ public class FindCommandParserTest {
 
     @Test
     public void parse_invalidPhone_throwsParseException() {
+        // EP: phone input is either malformed or missing its country code.
         assertParseFailure(parser, "p/+65 abc", Phone.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "p/", Phone.MESSAGE_MISSING_COUNTRY_CODE);
     }
 
     @Test
     public void parse_cyclingCriteria_returnsFindCommand() {
+        // EP: valid cycling criteria may be combined or repeated where supported.
         FindCommand expected = new FindCommand(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(),
                 java.util.List.of(new ExperienceLevel("Intermediate")),
                 java.util.Set.of(new Location("Punggol")), new Ftp("250")));
@@ -86,6 +90,7 @@ public class FindCommandParserTest {
 
     @Test
     public void parse_invalidCyclingCriteria_throwsParseException() {
+        // EP: cycling criteria contain invalid values or duplicate prefixes.
         assertParseFailure(parser, "f/0", Ftp.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "x/Expert", ExperienceLevel.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "l/", Location.MESSAGE_CONSTRAINTS);
