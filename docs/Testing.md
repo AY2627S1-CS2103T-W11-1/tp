@@ -37,6 +37,11 @@ This project has three types of tests:
 
 ## Release checks
 
+`CyclistFtpEditIntegrationTest` verifies registered-ride eligibility when editing FTP, including minimum-power
+boundaries, multiple/hidden rides and combined phone edits. It checks rejection without changes to cyclist
+records, rosters, both filters or saved JSON, and successful edits through JSON readback.
+Run **Registered cyclist FTP edit regression** in the Developer Guide after changing FTP edit validation.
+
 `FilteredEditIntegrationTest` checks that edits preserve find and live ride-roster filters, re-evaluate
 search membership, retain alphabetical order and update roster phone references. It also checks rejected
 edits without changes to records, filters or saved JSON, and successful edits through JSON readback.

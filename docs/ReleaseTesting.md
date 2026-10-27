@@ -1,5 +1,22 @@
 # Release testing results
 
+## Registered cyclist FTP edit eligibility (27 October 2026)
+
+Reject supplied FTP edits below any registered ride's minimum power before replacing the cyclist.
+Check the full ride list using the cyclist's original phone, including hidden rides and combined phone/FTP
+edits. The error names the conflicting ride ID, name and minimum FTP. Equality is accepted; rejected edits
+preserve all supplied fields, rosters, both filters and saved data. Unrelated edits preserve existing FTP.
+
+Using Eclipse Temurin JDK 25.0.4.1 and a temporary external ARM64 JavaFX dependency override,
+`check coverage shadowJar` passes: **859 tests**, no failures, errors or skips; both Checkstyle checks pass.
+Line coverage is **89.36%** (2,292 of 2,565 lines), above the 50% target. `build.gradle` is unchanged.
+Integration regressions cover below/equal/above-minimum FTP, multiple registrations, hidden rides,
+combined phone edits, no registrations, unchanged data on rejection and JSON readback on success.
+
+The ARM test JAR launched in a disposable folder, but the computer-use tool could not access its JavaFX
+window (`Invalid app: java`). The **Registered cyclist FTP edit regression** manual checks remain outstanding.
+The temporary application was stopped after this attempt.
+
 ## Preserve cyclist filters after edits (27 October 2026)
 
 Remove the successful edit command's unconditional reset of the cyclist filter. Existing observable

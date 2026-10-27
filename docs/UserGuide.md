@@ -179,6 +179,7 @@ Format: `edit PHONE [n/NAME] [p/PHONE] [sos/EMERGENCY_PHONE] [e/EMAIL] [f/FTP_LE
 * Supplied fields follow the [Add field rules](#adding-a-cyclist-add). Only `l/` may be repeated. Phone numbers and email addresses must remain unique across all cyclists, including hidden records; email comparisons ignore case. Keeping the cyclist's own current phone or email is allowed.
 * Omitted fields remain unchanged. Supplying one or more `l/` fields replaces the **entire** preferred location set; it does not append locations. Blank `l/` is invalid. Use `l/any` alone for no location preference.
 * Omitting `sos/` preserves the existing emergency contact number. Blank `sos/` is invalid and cannot remove the number.
+* An edited FTP must meet the minimum power of every ride the cyclist is registered for, including rides hidden by a filter. Equality with the minimum is allowed. If it is too low, the entire edit is rejected with the conflicting ride's ID, name and minimum FTP; accompanying field changes are not applied. Remove the cyclist from the affected rides first if they should no longer participate, or edit the ride requirements before lowering their FTP.
 
 On success, the result box shows `Edited person:` followed by the updated details and saves the changes.
 Any active `find` or `ridelist` filter remains applied. A cyclist who no longer matches the search disappears

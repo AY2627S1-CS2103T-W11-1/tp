@@ -1040,6 +1040,30 @@ Use a disposable test book. Check both cyclist names and card indexes after ever
    Enter `list`. Expected: Alex Adams, alex Zane, BERNICE and Zara are numbered 1 to 4.
    Enter `delete +65 94444444`, then `yes`. Expected: Zara is deleted; the remaining cyclists are numbered 1 to 3.
 
+### Registered cyclist FTP edit regression
+
+Use a disposable test book. Add Charlotte with
+`add n/Charlotte Ng p/+65 93210283 sos/+65 99999999 e/charlotte@example.com f/280 x/Beginner l/any`.
+Create a ride using
+`rideadd n/Hill Repeats from/29-10-2026 0630 to/29-10-2026 0930 l/Mandai d/40 f/250 s/5`.
+Use its assigned ID wherever `ID` appears below, and register Charlotte with `rideaddcyclist ID +65 93210283`.
+
+1. Enter `ridelist ID`, then `edit +65 93210283 f/200`.
+   Expected: The edit is rejected with
+   `Cannot edit cyclist: FTP 200 W is below the minimum 250 W for ride ID (Hill Repeats).`,
+   with the actual ride ID substituted. Charlotte retains FTP 280 and remains in the filtered roster.
+1. Enter `edit +65 93210283 n/Changed p/+65 91111111 f/249`.
+   Expected: The same conflict is reported for FTP 249. The name, phone, FTP, roster and saved data remain unchanged.
+1. Enter `ridefind n/NoSuchRide`, then `find n/Charlotte`, and repeat `edit +65 93210283 f/200`.
+   Expected: The hidden ride still prevents the edit; both filters and all stored details remain unchanged.
+1. Enter `edit +65 93210283 p/+65 91111111 f/250`.
+   Expected: Equality with the ride minimum is accepted. The phone changes in both the cyclist record and roster,
+   and the cyclist filter remains active. Enter `edit +65 91111111 f/251`. Expected: Success.
+1. Enter `rideedit ID f/250`. Expected: Success, with the roster still eligible.
+1. Remove Charlotte using `ridedeletecyclist ID +65 91111111`, then `edit +65 91111111 f/200`.
+   Expected: The FTP edit succeeds once no registration requires a higher FTP.
+1. Exit and relaunch. Expected: Successful edits and the roster removal persist; rejected field changes are absent.
+
 ### Filtered cyclist edit regression
 
 Use a disposable test book. Add John Doe (`+65 87438809`, `john.doe@example.com`), John Lee
