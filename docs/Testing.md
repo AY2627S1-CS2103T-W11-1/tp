@@ -193,6 +193,10 @@ and both CPU slices of each universal macOS library against the original JavaFX 
 Intel and ARM macOS libraries share filenames, so packaging them as separate root entries
 would silently discard one architecture. The build combines them using Apple's
 [universal binary format](https://github.com/apple-oss-distributions/cctools/blob/main/include/mach-o/fat.h).
+The dependency declarations retain AB3's explicit Windows, macOS and Linux style,
+with additional `mac-aarch64` entries. The packaging tasks use those same dependencies.
+On macOS, development runs and JUnit tests exclude the other Mac architecture's
+graphics JAR so its identically named libraries cannot take precedence.
 
 Run `./gradlew smokeTestJar` to launch the packaged application in a separate JVM
 with only the release JAR and smoke helper on its classpath. The helper exercises

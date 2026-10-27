@@ -2,15 +2,20 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.zip.ZipFile
 
-configurations {
-    javafxReleaseGraphics {
-        transitive = false
-    }
-}
+def graphicsJars = configurations.runtimeClasspath.filter { it.name.startsWith('javafx-graphics-') }
 
-dependencies {
-    ['win', 'linux', 'mac', 'mac-aarch64'].each { platform ->
-        javafxReleaseGraphics "org.openjfx:javafx-graphics:${javaFxVersion}:${platform}"
+// Development classpaths need one macOS architecture; the release merges both below.
+if (System.getProperty('os.name').startsWith('Mac')) {
+    String macPlatform = System.getProperty('os.arch') in ['aarch64', 'arm64'] ? 'mac-aarch64' : 'mac'
+    def usesHostMacNatives = { File archive ->
+        !archive.name.matches('javafx-graphics-.*-mac(-aarch64)?\\.jar')
+                || archive.name.endsWith("-${macPlatform}.jar")
+    }
+    tasks.withType(Test).configureEach {
+        classpath = sourceSets.test.runtimeClasspath.filter(usesHostMacNatives)
+    }
+    tasks.named('run') {
+        classpath = sourceSets.main.runtimeClasspath.filter(usesHostMacNatives)
     }
 }
 
@@ -19,11 +24,11 @@ def macNatives = layout.buildDirectory.dir('generated/universal-macos')
 // macOS loads either CPU slice from one universal binary, avoiding duplicate resource names.
 // Format: https://github.com/apple-oss-distributions/cctools/blob/main/include/mach-o/fat.h
 tasks.register('prepareMacNatives') {
-    inputs.files(configurations.javafxReleaseGraphics)
+    inputs.files(graphicsJars)
     outputs.dir(macNatives)
     doLast {
         def slices = ['mac', 'mac-aarch64'].collect { platform ->
-            File archive = configurations.javafxReleaseGraphics.files.find { it.name.endsWith("-${platform}.jar") }
+            File archive = graphicsJars.files.find { it.name.endsWith("-${platform}.jar") }
             new ZipFile(archive).withCloseable { zip ->
                 zip.entries().findAll { it.name.endsWith('.dylib') }.collectEntries { entry ->
                     [(entry.name): zip.getInputStream(entry).withCloseable { it.bytes }]
@@ -64,11 +69,10 @@ tasks.register('prepareMacNatives') {
 
 shadowJar {
     dependsOn tasks.named('prepareMacNatives')
-    archiveFileName = 'cyclique.jar'
-    // Development/tests use host natives; the release always includes all four targets.
+    // Replace the colliding macOS resources while retaining every platform's graphics classes and natives.
     configurations = [project.configurations.runtimeClasspath.copyRecursive()
             .exclude(group: 'org.openjfx', module: 'javafx-graphics')]
-    from({ project.configurations.javafxReleaseGraphics.collect { zipTree(it) } }) {
+    from({ graphicsJars.collect { zipTree(it) } }) {
         exclude '*.dylib'
     }
     from(macNatives)
@@ -97,14 +101,14 @@ tasks.register('smokeTestJar', JavaExec) {
 tasks.register('verifyPortableJar') {
     dependsOn tasks.named('shadowJar')
     inputs.file(tasks.named('shadowJar').flatMap { it.archiveFile })
-    inputs.files(configurations.javafxReleaseGraphics)
+    inputs.files(graphicsJars)
     doLast {
         File jar = tasks.named('shadowJar').get().archiveFile.get().asFile
         if (jar.length() > 100_000_000) {
             throw new GradleException('The release JAR exceeds the 100 MB course limit.')
         }
         new ZipFile(jar).withCloseable { release ->
-            configurations.javafxReleaseGraphics.files.each { archive ->
+            graphicsJars.files.each { archive ->
                 new ZipFile(archive).withCloseable { source ->
                     source.entries().findAll { it.name.endsWith('.dll') || it.name.endsWith('.so')
                             || it.name.endsWith('.dylib') }.each { entry ->

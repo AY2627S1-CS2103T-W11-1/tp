@@ -607,3 +607,15 @@ filename first: `lipo "$library" -verify_arch x86_64 arm64`. Correcting this
 invocation allows both macOS smoke checks to execute and pass.
 Interactive manual resize, focus, display-scaling and window-close checks remain
 pending; the smoke helper performs automated interaction with the actual UI.
+
+### Preserve the original dependency style
+
+Restore the original explicit JavaFX `implementation` declarations and add
+`mac-aarch64` alongside each `mac` entry. The packaging tasks consume those
+dependencies directly instead of declaring a second release dependency set.
+Keep both Mac architectures in the release while selecting only the matching
+graphics JAR for development runs and tests on macOS. The original
+`shadowJar { archiveFileName = 'cyclique.jar' }` configuration is retained.
+JDK 25.0.2 Windows checks, coverage and packaged-JAR smoke testing pass after
+this simplification; the four-platform CI workflow continues to enforce the
+same release verification described above.
