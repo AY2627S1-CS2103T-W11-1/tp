@@ -564,3 +564,36 @@ checks. JaCoCo reports 86.20% line coverage (2111 of 2449 lines), up from
 list panels, including their cells, have 100% line coverage. Automated checks
 cover warnings, confirmation/cancellation, stale data, persistence, error
 recovery, interval boundaries and recycled cards.
+
+## Portable JavaFX release packaging (27 October 2026)
+
+Branch `portable-javafx-jar` produces one `cyclique.jar` containing Windows
+and Linux x64 natives and universal Intel/ARM macOS natives. The universal files
+preserve both original JavaFX CPU slices, including their embedded signatures.
+The packaging verifier compares every native payload with its upstream artifact.
+
+Windows 11 x64, Oracle JDK 25.0.2: `./gradlew check coverage smokeTestJar` passes,
+including both Checkstyle tasks and all 852 tests (no failures, errors or skips).
+JaCoCo line coverage is 89.32%. The JAR is 12,946,763 bytes.
+Testing an unchanged copy with `smokeTestJar "-PsmokeJar=build/release/cyclique.jar"`
+also passes. A dry run confirms this supplied-artifact mode does not rebuild the JAR.
+
+The packaged smoke helper exercises startup, list, roster syntax errors, cyclist
+creation, roster addition/removal, overlapping registration and confirmation,
+JSON saving, Help and exit. Removing Windows native libraries from a disposable
+copy causes a native-renderer startup failure and a non-zero smoke-test exit.
+Quote the `-PsmokeJar=...` argument: an unquoted argument containing a full stop
+can be split by PowerShell before Gradle receives it.
+
+The identical JAR passes the same UI smoke helper on Ubuntu under WSL2 x64 with
+WSLg and plain Temurin JDK 25.0.5. Its SHA-256 is
+`83dacf4d2e364e96c0f4a1db97b4ee9d4eb04217c5e234efb8a7e549aed45c3c`.
+No separate JavaFX installation is used on either platform. A temporary Linux JDK
+is used only for this check; it is not a product dependency.
+
+Both macOS launches remain pending GitHub Actions. CI checks plain JDK 25 on
+Windows, Linux, Intel macOS and Apple Silicon, then downloads the single
+Linux-built artifact for all four smoke jobs and verifies its checksum. Both
+macOS jobs also validate every universal library with Apple's `lipo` tool.
+These local results do not claim that either macOS run has passed. Interactive
+manual resize, focus, display-scaling and window-close checks are also pending.

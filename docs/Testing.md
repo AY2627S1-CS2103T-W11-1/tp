@@ -185,6 +185,35 @@ Run **Ride command alias regression** in the Developer Guide after changing ride
 `RideCommandAliasTest` checks parsing equivalence, validation, case sensitivity, saved workflows
 and cancellation of pending cyclist deletions for all seven aliases.
 
+## Portable release checks
+
+Use a plain JDK 25, without separately installed JavaFX. `./gradlew check coverage`
+also builds `build/libs/cyclique.jar` and verifies every Windows/Linux native library
+and both CPU slices of each universal macOS library against the original JavaFX artifacts.
+Intel and ARM macOS libraries share filenames, so packaging them as separate root entries
+would silently discard one architecture. The build combines them using Apple's
+[universal binary format](https://github.com/apple-oss-distributions/cctools/blob/main/include/mach-o/fat.h).
+
+Run `./gradlew smokeTestJar` to launch the packaged application in a separate JVM
+with only the release JAR and smoke helper on its classpath. The helper exercises
+startup, invalid roster syntax, cyclist creation, roster addition/removal, overlap
+confirmation, saving, Help and exit. Each invocation uses a fresh folder under
+`build/smoke-test`, including an isolated JavaFX cache. The watchdog fails startup
+or shutdown hangs instead of leaving CI running indefinitely.
+
+To test an existing artifact without rebuilding it, run
+`./gradlew smokeTestJar "-PsmokeJar=PATH_TO_JAR"`. Quote the property argument
+so PowerShell preserves paths containing full stops. Relative paths are resolved from
+the repository root. Linux needs a display, for example
+`xvfb-run -a ./gradlew smokeTestJar` in CI.
+
+CI builds the release once on Linux and uploads its SHA-256 checksum. Four smoke
+jobs download that same artifact, check its checksum and launch it with plain JDK 25
+on Windows x64, Linux x64, Intel macOS and Apple Silicon. The macOS jobs also use
+`lipo -verify_arch` to independently validate the generated universal libraries.
+Successful unit tests or binary inspection alone do not establish cross-platform
+startup; all four packaged-JAR jobs must pass before treating the artifact as verified.
+
 Run **Literal prefixes in ride notes (Issue #155)** in the Developer Guide after changing notes tokenisation.
 `ArgumentTokenizerTest` checks the explicit quoted-notes entry point and unchanged default tokenisation.
 Ride Add/Edit parser tests check literal prefixes, ordering, malformed quotes, duplicate fields and the word limit.

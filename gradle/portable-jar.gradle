@@ -1,0 +1,142 @@
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import java.util.zip.ZipFile
+
+configurations {
+    javafxReleaseGraphics {
+        transitive = false
+    }
+}
+
+dependencies {
+    ['win', 'linux', 'mac', 'mac-aarch64'].each { platform ->
+        javafxReleaseGraphics "org.openjfx:javafx-graphics:${javaFxVersion}:${platform}"
+    }
+}
+
+def macNatives = layout.buildDirectory.dir('generated/universal-macos')
+
+// macOS loads either CPU slice from one universal binary, avoiding duplicate resource names.
+// Format: https://github.com/apple-oss-distributions/cctools/blob/main/include/mach-o/fat.h
+tasks.register('prepareMacNatives') {
+    inputs.files(configurations.javafxReleaseGraphics)
+    outputs.dir(macNatives)
+    doLast {
+        def slices = ['mac', 'mac-aarch64'].collect { platform ->
+            File archive = configurations.javafxReleaseGraphics.files.find { it.name.endsWith("-${platform}.jar") }
+            new ZipFile(archive).withCloseable { zip ->
+                zip.entries().findAll { it.name.endsWith('.dylib') }.collectEntries { entry ->
+                    [(entry.name): zip.getInputStream(entry).withCloseable { it.bytes }]
+                }
+            }
+        }
+        if (slices[0].isEmpty() || slices[0].keySet() != slices[1].keySet()) {
+            throw new GradleException('Intel and ARM macOS native library names must match.')
+        }
+        File destination = macNatives.get().asFile
+        destination.mkdirs()
+        slices[0].each { name, intel ->
+            def libraries = [intel, slices[1][name]]
+            def headers = libraries.collect { ByteBuffer.wrap(it).order(ByteOrder.LITTLE_ENDIAN) }
+            def cpuTypes = [0x01000007, 0x0100000c] // x86_64, arm64
+            headers.eachWithIndex { header, index ->
+                if (header.getInt(0) != (int) 0xfeedfacf || header.getInt(4) != cpuTypes[index]) {
+                    throw new GradleException("Unexpected Mach-O architecture in ${name}.")
+                }
+            }
+            // 16 KiB alignment supports both Intel and Apple Silicon page sizes.
+            int alignment = 16384
+            int armOffset = ((alignment + intel.length + alignment - 1).intdiv(alignment)) * alignment
+            ByteBuffer universal = ByteBuffer.allocate(armOffset + libraries[1].length)
+            universal.putInt((int) 0xcafebabe).putInt(2)
+            [alignment, armOffset].eachWithIndex { offset, index ->
+                universal.putInt(headers[index].getInt(4)).putInt(headers[index].getInt(8))
+                        .putInt(offset).putInt(libraries[index].length).putInt(14)
+            }
+            universal.position(alignment)
+            universal.put(libraries[0])
+            universal.position(armOffset)
+            universal.put(libraries[1])
+            new File(destination, name).bytes = universal.array()
+        }
+    }
+}
+
+shadowJar {
+    dependsOn tasks.named('prepareMacNatives')
+    archiveFileName = 'cyclique.jar'
+    // Development/tests use host natives; the release always includes all four targets.
+    configurations = [project.configurations.runtimeClasspath.copyRecursive()
+            .exclude(group: 'org.openjfx', module: 'javafx-graphics')]
+    from({ project.configurations.javafxReleaseGraphics.collect { zipTree(it) } }) {
+        exclude '*.dylib'
+    }
+    from(macNatives)
+}
+
+tasks.register('smokeTestJar', JavaExec) {
+    dependsOn tasks.named('testClasses')
+    def suppliedJar = providers.gradleProperty('smokeJar')
+    if (!suppliedJar.isPresent()) {
+        dependsOn tasks.named('verifyPortableJar')
+    }
+    classpath = files(suppliedJar.isPresent() ? file(suppliedJar.get())
+            : tasks.named('shadowJar').flatMap { it.archiveFile }, sourceSets.test.output)
+    mainClass = 'seedu.address.testutil.PackagedJarSmokeTest'
+    enableAssertions = true
+    def smokeDirectory = layout.buildDirectory.dir('smoke-test')
+    workingDir smokeDirectory
+    doFirst {
+        workingDir.mkdirs()
+        // Each launch must start without previous data or JavaFX cache masking missing resources.
+        workingDir = java.nio.file.Files.createTempDirectory(smokeDirectory.get().asFile.toPath(), 'run-').toFile()
+        systemProperty 'javafx.cachedir', new File(workingDir, 'javafx-cache').absolutePath
+    }
+}
+
+tasks.register('verifyPortableJar') {
+    dependsOn tasks.named('shadowJar')
+    inputs.file(tasks.named('shadowJar').flatMap { it.archiveFile })
+    inputs.files(configurations.javafxReleaseGraphics)
+    doLast {
+        File jar = tasks.named('shadowJar').get().archiveFile.get().asFile
+        if (jar.length() > 100_000_000) {
+            throw new GradleException('The release JAR exceeds the 100 MB course limit.')
+        }
+        new ZipFile(jar).withCloseable { release ->
+            configurations.javafxReleaseGraphics.files.each { archive ->
+                new ZipFile(archive).withCloseable { source ->
+                    source.entries().findAll { it.name.endsWith('.dll') || it.name.endsWith('.so')
+                            || it.name.endsWith('.dylib') }.each { entry ->
+                        def packaged = release.getEntry(entry.name)
+                        if (packaged == null) {
+                            throw new GradleException("Missing release native: ${entry.name}")
+                        }
+                        byte[] expected = source.getInputStream(entry).withCloseable { it.bytes }
+                        byte[] actual = release.getInputStream(packaged).withCloseable { it.bytes }
+                        if (entry.name.endsWith('.dylib')) {
+                            ByteBuffer header = ByteBuffer.wrap(actual)
+                            if (header.getInt(0) != (int) 0xcafebabe || header.getInt(4) != 2) {
+                                throw new GradleException("Not a universal macOS native: ${entry.name}")
+                            }
+                            int cpu = ByteBuffer.wrap(expected).order(ByteOrder.LITTLE_ENDIAN).getInt(4)
+                            int index = cpu == 0x01000007 ? 0 : 1
+                            int offset = header.getInt(8 + index * 20 + 8)
+                            int size = header.getInt(8 + index * 20 + 12)
+                            if (header.getInt(8 + index * 20) != cpu || offset % 16384 != 0) {
+                                throw new GradleException("Invalid macOS CPU slice: ${entry.name}")
+                            }
+                            actual = Arrays.copyOfRange(actual, offset, offset + size)
+                        }
+                        if (!Arrays.equals(expected, actual)) {
+                            throw new GradleException("Release native differs from its source: ${entry.name}")
+                        }
+                    }
+                }
+            }
+        }
+        logger.lifecycle('Verified Windows/Linux natives and both macOS CPU slices in {}.', jar.name)
+    }
+}
+
+check.dependsOn tasks.named('verifyPortableJar')

@@ -5,8 +5,9 @@ on: [push, pull_request]
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
-        platform: [ubuntu-latest, macos-latest, windows-latest]
+        platform: [ubuntu-latest, macos-15-intel, macos-15, windows-latest]
     runs-on: ${{ matrix.platform }}
 
     steps:
@@ -26,7 +27,7 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '25'
-          java-package: jdk+fx
+          java-package: jdk
 
       - name: Build and check with Gradle on Linux
         if: runner.os == 'Linux'
@@ -41,3 +42,78 @@ jobs:
         uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Record release checksum
+        if: runner.os == 'Linux'
+        working-directory: build/libs
+        run: sha256sum cyclique.jar > cyclique.jar.sha256
+
+      - name: Upload the portable release JAR
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: portable-jar
+          path: |
+            build/libs/cyclique.jar
+            build/libs/cyclique.jar.sha256
+          if-no-files-found: error
+
+  smoke:
+    name: Packaged JAR (${{ matrix.platform }})
+    needs: build
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ubuntu-latest, macos-15-intel, macos-15, windows-latest]
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Set up repository
+        uses: actions/checkout@v7
+
+      - name: Setup plain JDK 25
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: '25'
+          java-package: jdk
+
+      - name: Download the same portable JAR on every platform
+        uses: actions/download-artifact@v4
+        with:
+          name: portable-jar
+          path: build/release
+
+      - name: Verify release checksum
+        shell: pwsh
+        run: |
+          $expected = ((Get-Content build/release/cyclique.jar.sha256) -split '\s+')[0]
+          $actual = (Get-FileHash build/release/cyclique.jar -Algorithm SHA256).Hash
+          if ($actual -ne $expected) { throw 'Downloaded release JAR checksum mismatch' }
+          Write-Output "Testing release SHA-256: $actual"
+          java -version
+
+      - name: Verify universal macOS libraries with Apple's tools
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          unzip -j build/release/cyclique.jar '*.dylib' -d build/mac-natives
+          for library in build/mac-natives/*.dylib; do
+            lipo -verify_arch x86_64 arm64 "$library"
+          done
+
+      - name: Smoke test the release JAR on Linux
+        if: runner.os == 'Linux'
+        run: xvfb-run -a ./gradlew smokeTestJar "-PsmokeJar=build/release/cyclique.jar"
+
+      - name: Smoke test the release JAR on Windows and macOS
+        if: runner.os != 'Linux'
+        run: ./gradlew smokeTestJar "-PsmokeJar=build/release/cyclique.jar"
+
+      - name: Preserve smoke-test diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-${{ matrix.platform }}
+          path: build/smoke-test
+          if-no-files-found: ignore
