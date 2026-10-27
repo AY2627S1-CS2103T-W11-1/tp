@@ -59,7 +59,7 @@ public class ArgumentTokenizer {
             }
             int nextStart = nextIndex < positions.size()
                     ? positions.get(nextIndex).getStartPosition() : argsString.length();
-            if (!argsString.substring(quotedEnd + 1, nextStart).isBlank()) {
+            if (!Notes.isBlank(argsString.substring(quotedEnd + 1, nextStart))) {
                 throw new ParseException(MESSAGE_INVALID_QUOTED_NOTES);
             }
         }

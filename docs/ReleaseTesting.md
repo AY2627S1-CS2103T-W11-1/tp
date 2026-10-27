@@ -622,9 +622,41 @@ preservation, explicit repair/restart followed by command saves, continued rejec
 quoted literal prefixes, JSON round trips, malformed JSON and missing-file/empty-book startup. All original
 Issue #169 production validation, tokenisation and regression tests remain unchanged.
 
-`./gradlew.bat clean check coverage shadowJar` passes with Temurin **25.0.4+7-LTS**: **868 tests**,
+Earlier legacy-data safety verification passed with Temurin **25.0.4+7-LTS** using
+`./gradlew.bat clean check coverage shadowJar`: **868 tests**,
 **0 failures**, **0 errors**, **0 skips**, and both Checkstyle tasks passing. Line coverage is **90.54%**
 (2,327/2,570); branch coverage is **93.39%** (1,031/1,104). `build/libs/cyclique.jar` is 12,594,553 bytes.
 Four additional packaged-JAR launches, one per invalid legacy case, exit with code 1 before UI startup,
 report the notes constraint and protection/recovery message, and preserve the original JSON byte for byte.
 These are automated startup checks, not manual visual passes. The manual scenarios above remain outstanding.
+
+### PR #209 requested review corrections
+
+The post-quote whitespace check now uses `Notes.isBlank`, accepting NBSP, NARROW NBSP and other supported
+Unicode whitespace at command end or before a recognised parameter. Prefix detection is unchanged:
+use an ordinary space immediately before a following prefix when the preceding separator is NBSP/NARROW NBSP.
+Non-whitespace trailing characters remain invalid. Tokenizer and command/storage tests cover these cases.
+
+A data-loading failure now defers only its error display from `init()` to `start()`, without creating a model,
+command handler or normal UI. The shared UiManager fatal dialog shows the absolute path and backup/correction
+instructions on the JavaFX Application Thread. It is standalone because the unused primary stage has no scene.
+Dismissal requests `Platform.exit()`; `stop()` tolerates the absent model without saving preferences or data.
+The original loading exception remains in logs and the cause chain. No automatic data repair is performed.
+
+`MainAppNotesLoadingTest` displays and dismisses the actual JavaFX dialog, checks the path and recovery text,
+confirms that only OK is offered, and verifies no main window or writes for invalid legacy notes, malformed JSON,
+duplicate phones and other invalid stored values. Missing, valid empty and valid non-empty books remain covered.
+
+Final verification with Temurin **25.0.4+7-LTS**: `./gradlew.bat clean check coverage shadowJar` passed with
+**874 tests**, **0 failures**, **0 errors**, **0 skips**, and both Checkstyle tasks passing.
+Line coverage is **91.10%** (2,386/2,619); branch coverage is **92.73%** (1,046/1,128).
+`build/libs/cyclique.jar` is 12,596,629 bytes.
+The fatal dialog now uses a short header, displays the actual loading-error reason in a wrapped, scrollable
+area, and stays within screen bounds with accessible dismissal controls.
+Codex ran **nine automated `javaw` launches** using the built JAR, covering blank EM SPACE/NBSP notes,
+eleven-word EM SPACE/NBSP notes, malformed JSON, duplicate phones, invalid ride IDs, a missing cyclist list
+and a long file path. A JavaFX observer checked the dialog and dismissed it through OK or a window-close event.
+Each process returns normally with exit code 0, does not open the normal UI and leaves the original JSON
+byte-for-byte intact.
+These checks exercise real shutdown without the test toolkit override. Manual double-click visibility and
+visual layout were not verified; the affected Developer Guide scenarios remain outstanding.

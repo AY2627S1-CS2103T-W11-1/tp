@@ -50,6 +50,22 @@ public class RideBoundaryIntegrationTest {
     }
 
     @Test
+    public void execute_unicodeWhitespaceAfterQuotes_preservesNotesParametersAndJson() throws Exception {
+        logic.execute("rideaddcyclist 1 " + PHONE);
+        Ride original = currentRide();
+        String notes = "Bring camera with aperture f/2";
+        for (String separator : List.of(" ", "\u2003", "\u00a0", "\u202f", "\u3000", "\u00a0\u2003\u202f")) {
+            logic.execute("rideedit 1 notes/\"" + notes + "\"" + separator + " s/5");
+            assertEquals(new RideBuilder(original).withNotes(notes).withMaxGroupSize("5").build(), currentRide());
+            logic.execute("rideadd " + DETAILS + " notes/\"" + notes + "\"" + separator);
+            Ride added = model.getAddressBook().getRideList().getLast();
+            assertEquals(notes, added.getNotes().orElseThrow().value);
+            assertEquals(original.getMinimumPower(), added.getMinimumPower());
+            assertSavedState();
+        }
+    }
+
+    @Test
     public void read_legacyUnicodeNotes_validatesWithoutRewritingSourceJson() throws Exception {
         logic.execute("rideaddcyclist 1 " + PHONE);
         logic.execute("rideedit 1 notes/Bring lights");

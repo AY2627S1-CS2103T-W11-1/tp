@@ -4,34 +4,59 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.FutureTask;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import javafx.application.Platform;
+import javafx.geometry.Bounds;
+import javafx.geometry.Rectangle2D;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.DialogPane;
+import javafx.scene.control.TextArea;
+import javafx.stage.Screen;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import javafx.stage.Window;
 import seedu.address.commons.exceptions.DataLoadingException;
+import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
+import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.ride.Notes;
 import seedu.address.model.ride.Ride;
 import seedu.address.model.util.SampleDataUtil;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.Storage;
 import seedu.address.storage.StorageManager;
+import seedu.address.testutil.JavaFxToolkit;
 import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.RideBuilder;
+import seedu.address.ui.UiManager;
 
 /**
  * Exercises application initialization and subsequent command saves using disposable legacy data.
@@ -48,6 +73,11 @@ public class MainAppNotesLoadingTest {
     private Storage storage;
     private AddressBook originalBook;
     private String templateJson;
+
+    @BeforeAll
+    public static void startJavaFxToolkit() throws InterruptedException {
+        JavaFxToolkit.start();
+    }
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -67,17 +97,23 @@ public class MainAppNotesLoadingTest {
         for (String notes : INVALID_LEGACY_NOTES) {
             String legacyJson = writeLegacyNotes(notes);
             IsolatedMainApp app = new IsolatedMainApp(storage);
-            IllegalStateException error = assertThrows(IllegalStateException.class, app::init);
+            IllegalStateException error = assertThrows(IllegalStateException.class, () ->
+                    app.initModelManager(storage, new UserPrefs()));
             assertTrue(error.getMessage().contains(storage.getAddressBookFilePath().toString()));
-            assertTrue(error.getMessage().contains("Startup stopped to protect the original data"));
+            assertTrue(error.getMessage().contains("The original file was not overwritten"));
             assertTrue(error.getMessage().contains("Back up and correct the file"));
             assertInstanceOf(DataLoadingException.class, error.getCause());
+            app.init();
             assertNull(app.model);
             assertNull(app.logic, "A failed startup must not expose commands that could save an empty book.");
             assertNull(app.ui);
             assertArrayEquals(legacyJson.getBytes(StandardCharsets.UTF_8),
                     Files.readAllBytes(storage.getAddressBookFilePath()));
-            assertThrows(IllegalStateException.class, new IsolatedMainApp(storage)::init);
+            assertFatalDialogAndShutdown(app, Notes.MESSAGE_CONSTRAINTS);
+            IsolatedMainApp repeated = new IsolatedMainApp(storage);
+            repeated.init();
+            assertNull(repeated.logic);
+            assertFatalDialogAndShutdown(repeated, Notes.MESSAGE_CONSTRAINTS);
             assertEquals(legacyJson, Files.readString(storage.getAddressBookFilePath()));
         }
     }
@@ -103,7 +139,10 @@ public class MainAppNotesLoadingTest {
     @Test
     public void init_repairedFile_allowsCommandsWithoutWeakeningNotesValidation() throws Exception {
         writeLegacyNotes(INVALID_LEGACY_NOTES.getLast());
-        assertThrows(IllegalStateException.class, new IsolatedMainApp(storage)::init);
+        IsolatedMainApp failed = new IsolatedMainApp(storage);
+        failed.init();
+        assertNull(failed.logic);
+        assertFatalDialogAndShutdown(failed, Notes.MESSAGE_CONSTRAINTS);
         writeLegacyNotes(TEN_WORDS.replace(" ", "\u00a0")); // Explicit user repair, not automatic truncation.
         IsolatedMainApp app = new IsolatedMainApp(storage);
         app.init();
@@ -132,12 +171,38 @@ public class MainAppNotesLoadingTest {
 
     @Test
     public void init_malformedJson_alsoStopsWithoutReplacingExistingFile() throws Exception {
-        String malformed = "{invalid json";
+        String malformed = "{\"private\": \"DO_NOT_DISPLAY\", broken}";
         Files.writeString(storage.getAddressBookFilePath(), malformed);
         IsolatedMainApp app = new IsolatedMainApp(storage);
-        assertThrows(IllegalStateException.class, app::init);
+        app.init();
         assertNull(app.logic);
+        assertFatalDialogAndShutdown(app, "The file is not valid JSON");
         assertEquals(malformed, Files.readString(storage.getAddressBookFilePath()));
+    }
+
+    @Test
+    public void start_duplicatePhoneAndOtherInvalidData_showsFatalDialogWithoutCommandsOrWrites() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode duplicate = (ObjectNode) mapper.readTree(templateJson);
+        ArrayNode people = (ArrayNode) duplicate.get("persons");
+        people.add(people.get(0).deepCopy());
+        ObjectNode invalidRide = (ObjectNode) mapper.readTree(templateJson);
+        ObjectNode firstInvalidRide = (ObjectNode) invalidRide.get("rides").get(0);
+        firstInvalidRide.put("id", 0);
+        for (String[] fixture : new String[][] {
+            {mapper.writeValueAsString(duplicate), "Cyclist list contains duplicate cyclists."},
+            {mapper.writeValueAsString(invalidRide), "Ride's id should be a positive whole number."},
+            {"{}", "Cyclist list is missing."},
+            {"null", "The data could not be read."}
+        }) {
+            String invalid = fixture[0];
+            Files.writeString(storage.getAddressBookFilePath(), invalid);
+            IsolatedMainApp app = new IsolatedMainApp(storage);
+            app.init();
+            assertFatalDialogAndShutdown(app, fixture[1]);
+            assertArrayEquals(invalid.getBytes(StandardCharsets.UTF_8),
+                    Files.readAllBytes(storage.getAddressBookFilePath()));
+        }
     }
 
     @Test
@@ -162,6 +227,39 @@ public class MainAppNotesLoadingTest {
         assertEquals(empty.model.getAddressBook(), storage.readAddressBook().orElseThrow());
     }
 
+    @Test
+    public void start_longPathAndValidationReason_wrapsWithinScreenWithAccessibleDismissal() throws Exception {
+        Path longFile = temporaryFolder.resolve("long-directory-name-".repeat(3))
+                .resolve("long-data-file-name-".repeat(2) + ".json");
+        String reason = "The stored ride has an invalid field. ".repeat(120);
+        storage = storageWithFailure(longFile, new IllegalValueException(reason));
+        storage.saveAddressBook(originalBook);
+        IsolatedMainApp app = new IsolatedMainApp(storage);
+        app.init();
+        assertFatalDialogAndShutdown(app, reason);
+    }
+
+    @Test
+    public void start_unhelpfulOrUntrustedCause_usesSafeFallbackWithoutExceptionDetails() throws Exception {
+        for (Exception cause : List.of(new IOException(), new IOException("DO_NOT_DISPLAY"),
+                new IllegalValueException("   "))) {
+            storage = storageWithFailure(storage.getAddressBookFilePath(), cause);
+            IsolatedMainApp app = new IsolatedMainApp(storage);
+            app.init();
+            assertFatalDialogAndShutdown(app, "The data could not be read.");
+        }
+    }
+
+    private Storage storageWithFailure(Path file, Exception cause) {
+        return new StorageManager(new JsonAddressBookStorage(file),
+                new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))) {
+            @Override
+            public Optional<ReadOnlyAddressBook> readAddressBook() throws DataLoadingException {
+                throw new DataLoadingException(cause);
+            }
+        };
+    }
+
     private String writeLegacyNotes(String notes) throws Exception {
         String json = templateJson.replace("LegacyMarker", notes);
         Files.writeString(storage.getAddressBookFilePath(), json);
@@ -175,11 +273,87 @@ public class MainAppNotesLoadingTest {
         return expected;
     }
 
+    private void assertFatalDialogAndShutdown(IsolatedMainApp app, String expectedReason) throws Exception {
+        byte[] before = Files.readAllBytes(storage.getAddressBookFilePath());
+        assertNull(app.model);
+        assertNull(app.logic);
+        assertNull(app.ui);
+        JavaFxToolkit.call(() -> {
+            Stage primaryStage = new Stage();
+            List<Window> previousWindows = List.copyOf(Window.getWindows());
+            FutureTask<Void> dismissDialog = new FutureTask<>(() -> {
+                List<Window> newWindows = Window.getWindows().stream()
+                        .filter(window -> !previousWindows.contains(window)).toList();
+                try {
+                    assertEquals(1, newWindows.size(), "Only the fatal dialog should become visible.");
+                    Stage dialog = (Stage) newWindows.getFirst();
+                    assertTrue(dialog.isShowing());
+                    assertNull(dialog.getOwner(), "Startup has no owner scene.");
+                    assertEquals("Could not load Cyclique data", dialog.getTitle());
+                    DialogPane pane = (DialogPane) dialog.getScene().lookup("#" + UiManager.ALERT_DIALOG_PANE_FIELD_ID);
+                    assertEquals("Could not load Cyclique data", pane.getHeaderText());
+                    TextArea content = (TextArea) pane.getContent();
+                    String message = content.getText();
+                    assertTrue(content.isWrapText());
+                    assertFalse(content.isEditable());
+                    assertTrue(message.contains(expectedReason));
+                    assertTrue(message.contains("The original file was not overwritten"));
+                    assertFalse(message.contains("DO_NOT_DISPLAY"));
+                    assertFalse(message.contains("IllegalStateException"));
+                    assertFalse(message.contains("JsonParseException"));
+                    assertTrue(message.contains(storage.getAddressBookFilePath().toAbsolutePath().toString()));
+                    assertTrue(message.contains("Could not load data file"));
+                    assertTrue(message.contains("Back up and correct the file before restarting Cyclique"));
+                    assertEquals(List.of(ButtonType.OK), pane.getButtonTypes());
+                    assertFalse(app.exitRequested);
+                    Button dismissButton = (Button) pane.lookupButton(ButtonType.OK);
+                    Rectangle2D screen = Screen.getScreensForRectangle(dialog.getX(), dialog.getY(),
+                            dialog.getWidth(), dialog.getHeight()).getFirst().getVisualBounds();
+                    assertTrue(dialog.getWidth() <= screen.getWidth() * 0.9 + 2);
+                    assertTrue(dialog.getHeight() <= screen.getHeight() * 0.9 + 2);
+                    assertTrue(screen.contains(dialog.getX(), dialog.getY(), dialog.getWidth(), dialog.getHeight()));
+                    assertEquals(StageStyle.DECORATED, dialog.getStyle());
+                    Bounds buttonBounds = dismissButton.localToScreen(dismissButton.getBoundsInLocal());
+                    assertNotNull(buttonBounds);
+                    assertTrue(dismissButton.isVisible());
+                    assertTrue(screen.contains(buttonBounds.getMinX(), buttonBounds.getMinY(),
+                            buttonBounds.getWidth(), buttonBounds.getHeight()));
+                    assertTrue(pane.getScene().getRoot().getBoundsInLocal().contains(
+                            pane.getScene().getRoot().sceneToLocal(dismissButton.localToScene(
+                                    dismissButton.getBoundsInLocal()))));
+                    if (expectedReason.length() > 2000) {
+                        content.setScrollTop(Double.MAX_VALUE);
+                        assertTrue(content.getScrollTop() > 0, "Long messages must remain scrollable.");
+                    }
+                    dismissButton.fire();
+                    assertFalse(dialog.isShowing());
+                } finally {
+                    newWindows.forEach(Window::hide);
+                }
+                return null;
+            });
+            Platform.runLater(dismissDialog);
+            app.start(primaryStage);
+            dismissDialog.get();
+            assertTrue(app.exitRequested);
+            assertFalse(primaryStage.isShowing());
+            assertNull(primaryStage.getScene());
+            app.stop(); // The real stop() must tolerate failed initialization without writing preferences.
+            return null;
+        });
+        assertNull(app.model);
+        assertNull(app.logic);
+        assertNull(app.ui);
+        assertArrayEquals(before, Files.readAllBytes(storage.getAddressBookFilePath()));
+        assertFalse(Files.exists(storage.getUserPrefsFilePath()));
+    }
+
     /**
      * Runs the real init lifecycle while redirecting all data access to disposable test storage.
      */
     private static class IsolatedMainApp extends MainApp {
         private final Storage testStorage;
+        private boolean exitRequested;
 
         IsolatedMainApp(Storage testStorage) {
             this.testStorage = testStorage;
@@ -194,6 +368,11 @@ public class MainAppNotesLoadingTest {
         protected Model initModelManager(Storage ignoredStorage, ReadOnlyUserPrefs userPrefs) {
             storage = testStorage;
             return super.initModelManager(testStorage, userPrefs);
+        }
+
+        @Override
+        protected void exitAfterStartupFailure() {
+            exitRequested = true; // Keep the shared test toolkit alive; real application shutdown is tested separately.
         }
     }
 }

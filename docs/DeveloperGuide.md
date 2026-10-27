@@ -193,6 +193,9 @@ and `Notes` apply word-count validation and whitespace normalisation.
 
 Missing closing quotes, blank quoted values and non-whitespace text between the closing quote and the next
 recognised prefix (or command end) throw `ParseException` with `MESSAGE_INVALID_QUOTED_NOTES`.
+Both the quoted content and trailing whitespace use `Notes.isBlank`. Prefix recognition still uses
+`Character.isWhitespace`: NBSP and NARROW NBSP are accepted after the quote but need an ordinary space
+immediately before any following prefix.
 Backslashes are literal; embedded double quotes and escape sequences are unsupported.
 Bare `notes/` still clears notes in Ride Edit, while `notes/""` is rejected rather than treated as clearing.
 The tokenizer owns quote syntax; the parsers and commands retain field, ID, period and roster validation.
@@ -230,9 +233,16 @@ A new recognised command still cancels any pending overlap request before parsin
 are invalid. Normalised notes are serialised as strings and cleared notes as absent optional values
 (`null` in JSON). Reload uses the same `Notes` validation and normalisation. Valid legacy Unicode-spaced
 notes therefore normalise in memory and are written in normalised form on the next successful save.
-Legacy blank or over-ten-word notes are rejected. `MainApp.initModelManager` stops startup on a
-`DataLoadingException`, reporting the file path and recovery instructions in the console and log. No model,
-command handler or UI is created, so a command cannot overwrite the rejected file with an empty book.
+Legacy blank or over-ten-word notes are rejected. On a loading failure, `MainApp.init()` retains the error
+and returns before creating a model, command handler or normal UI. `start()` displays the shared UiManager
+fatal error dialog on the JavaFX Application Thread. Its short header identifies the failure; a read-only,
+wrapped, scrollable content area shows the absolute file path, loading reason, confirmation that the file was
+not overwritten, and backup/correction instructions. The window is bounded to the current screen's usable area
+so its buttons remain accessible. Validation reasons use application-defined messages; JSON parsing failures
+use a safe explanation without file excerpts or exception class names. Full technical details remain in logs.
+The dialog is standalone: the primary stage has no scene and cannot own the JavaFX 17 alert safely.
+After dismissal, `Platform.exit()` requests shutdown; `stop()` skips preference saving when there is no model.
+The original exception remains in the cause chain and logs. No commands can overwrite the rejected file.
 The original JSON remains unchanged, including unrelated cyclists, rides, rosters and the ID counter.
 Back up and correct the file before restarting. There is no automatic deletion or truncation of legacy notes;
 missing files still use sample data, and valid empty books still load normally.
@@ -1276,9 +1286,11 @@ paste the actual character where `<SEP>` appears; do not type the placeholder or
 1. Restart after successful additions, edits and clearing. Expected: normalised notes, absent cleared notes,
    persistent IDs and roster membership survive reload. In a backed-up disposable JSON file, valid legacy
    Unicode-spaced notes load normalised. Test blank EM SPACE, blank NBSP and eleven-word EM SPACE/NBSP
-   values separately: startup must stop before opening the command UI. The console/log identifies the file
-   and asks for backup and correction. Compare the whole file with the backup: it must be unchanged,
-   including unrelated cyclists, rides, rosters and the ID counter. A second launch must also refuse the file.
+   values separately: startup must stop before opening the command UI. A fatal dialog identifies the file
+   and asks for backup and correction; dismiss it and verify the application exits without a main window.
+   Check that the short header, loading reason, file path and recovery instructions are readable, with OK and
+   the window close button on-screen. Compare the whole file with the backup: it must be unchanged, including
+   unrelated cyclists, rides, rosters and the ID counter. A second launch must also refuse the file.
    Explicitly correct the notes in the disposable file and relaunch; run `list` and restart to verify all
    records survive saving. Never perform this corrupt-data check on a real user book.
 
@@ -1295,6 +1307,9 @@ then `rideaddcyclist 1 +65 91234567`. Record all ride fields and the roster.
    180 W. ID, roster and every other field are unchanged.
 1. Enter `rideedit 1 notes/"Bring camera with aperture f/2" s/5`.
    Expected: only maximum group size additionally changes to 5; minimum power remains 180 W.
+1. Repeat the preceding quoted edit with actual U+00A0 NBSP and U+202F NARROW NBSP after the closing quote,
+   first at command end, then followed by an ordinary space and `s/5`. Expected: both forms succeed;
+   non-whitespace trailing text is rejected. NBSP/NARROW NBSP alone before `s/5` still does not introduce a prefix.
 1. Enter `rideedit 1 f/200 notes/"Bring camera with aperture f/2"`.
    Expected: minimum power becomes 200 W; the complete notes, ID, roster and other fields are preserved.
 1. Enter `rideedit 1 notes/"Bring camera with aperture f/2` (no closing quote),
@@ -1350,8 +1365,9 @@ Use disposable test data and note the number of cyclist records before starting.
 1. With the application closed, back up the disposable `data/addressbook.json`, then remove it.
    Launch again. Expected: Sample contacts are loaded.
 1. Close the application and replace the disposable data file contents with `{invalid json`.
-   Launch again. Expected: startup stops before the command UI; the console/log reports the loading error
-   and asks for backup and correction. The original data file remains unchanged. Restore the valid backup
+   Launch again. Expected: startup stops before the command UI; a fatal dialog reports the file and loading error
+   and asks for backup and correction. Dismiss it to exit. The original data file remains unchanged.
+   Restore the valid backup
    and relaunch before entering commands.
 1. With the application closed, replace disposable `preferences.json` with `{invalid json`.
    Launch again. Expected: Default window preferences are used without crashing.
@@ -1394,8 +1410,9 @@ Use disposable test data and note the number of cyclist records before starting.
    Expected: John at `+65 98765432` and John at `+65 92345678` retain all saved details.
 1. Close the application and back up the disposable `data/addressbook.json`. In the working copy,
    change the second cyclist's phone to `+65 98765432`, then relaunch.
-   Expected: the duplicate JSON stops startup; the console/log reports the loading error and the original
-   file remains unchanged. Neither duplicate record is made available for interactive repair.
+   Expected: the duplicate JSON stops startup; a fatal dialog reports the file and loading error; after dismissal
+   the application exits and the original file remains unchanged. Neither duplicate record is made available
+   for interactive repair.
    Restore the valid backup and relaunch.
 1. In another working copy of the backup, keep the phone numbers unique but change the second cyclist's
    email to `JOHN@EXAMPLE.COM`, then relaunch.
@@ -1530,14 +1547,14 @@ Use JDK 25, a disposable folder and a copy of the release JAR. Enable assertions
 `java -ea -jar cyclique.jar`. Close the application before each saved-file edit.
 
 1. Test saved books containing `{}`, `{"persons":null}` and `{"persons":[null]}` separately.
-   Expected: startup stops before command handling; the console/log explains the loading failure and the
-   original file remains unchanged. Restore a valid fixture before continuing.
+   Expected: startup stops before command handling; a fatal dialog explains the loading failure and recovery steps.
+   Dismissal exits without changing the original file. Restore a valid fixture before continuing.
 1. Start with `{"persons":[],"rides":[],"nextRideId":2147483646}` and add a valid ride.
    Expected: the assigned ID is `2147483646`. Try adding another ride.
    Expected: `No more ride IDs are available.` appears, and no second ride is added.
 1. Restart and repeat the add attempt. Expected: the same error and unchanged saved ride.
 1. Change the saved ride ID to `2147483647` and restart.
-   Expected: startup handles the loading failure; the log explains the invalid ride ID.
+   Expected: a fatal dialog reports the loading failure; dismissal exits without changing the file.
 1. Run the **Deletion confirmation regression** with assertions enabled.
    Expected: valid confirmation, cancellation and replacement requests complete without assertion failures.
 
@@ -1561,8 +1578,8 @@ a loading failure stops startup before command handling and leaves the original 
 1. Run the **Ride roster regression**, **Ride list regression**, and **Find and ridefind regression**
    scenarios for roster changes, live filters, persistence and layout.
 1. Close the application, replace the disposable `data/addressbook.json` contents with `null` and relaunch.
-   Expected: startup stops before the command UI; the console/log reports the loading error and recovery
-   instructions. The original file remains unchanged.
+   Expected: startup stops before the command UI; a fatal dialog reports the file and recovery instructions.
+   Dismiss it and verify that the application exits and the original file remains unchanged.
 1. Restore a valid fixture with a cyclist on a ride. Close before each edit. Separately duplicate the phone
    in its saved roster, add a valid-format phone with no corresponding cyclist, and set maximum group size
    below the saved roster size. Relaunch each fixture.

@@ -206,6 +206,10 @@ reload and rejected-command atomicity including the next ID. `JsonAdaptedRideTes
 row after clearing. These automated JavaFX checks complement the outstanding manual visual scenarios.
 
 `MainAppNotesLoadingTest` runs the actual application initialisation lifecycle against disposable JSON.
-It verifies that invalid legacy notes stop startup before command handling, preserving the entire file;
-valid notes, explicit repair/restart, subsequent command saves and missing-file/empty-book startup are also
-covered. Corrupt-data manual scenarios now expect startup to stop instead of opening an empty book.
+It verifies that invalid legacy notes stop normal startup before command handling, preserving the entire file.
+JavaFX checks show the real fatal dialog, inspect its file path/recovery instructions, dismiss it and verify
+shutdown is requested without a main window or data writes. They also cover malformed JSON, duplicate phones
+and other invalid stored values. Valid notes, explicit repair/restart, subsequent saves and missing-file/empty-book
+startup remain covered. The shared test toolkit stays alive; packaged-process checks verify actual termination.
+`ArgumentTokenizerTest` and `RideBoundaryIntegrationTest` check Unicode whitespace after closing quotes,
+unchanged prefix recognition and rejection of non-whitespace trailing text.

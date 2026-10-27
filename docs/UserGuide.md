@@ -330,7 +330,9 @@ Ordinary notes such as `notes/Bring water` do not need quotation marks. To inclu
 (`n/`, `from/`, `to/`, `l/`, `d/`, `f/`, `s/` or `notes/`) literally, put a double quote immediately after
 `notes/` and another at the end of the notes: `notes/"Bring camera with aperture f/2"`.
 The surrounding quotes are not stored, and recognised prefixes inside them do not create or change other fields.
-Other parameters may appear before or after quoted notes; put whitespace between the closing quote and the next prefix.
+Other parameters may appear before or after quoted notes. Unicode whitespace is allowed after the closing quote,
+including at the end of the command. For a following parameter, use an ordinary space immediately before its
+prefix; non-breaking and narrow non-breaking spaces alone do not introduce a parameter.
 The same 1–10-word limit and whitespace rules apply.
 
 The first double quote after the opening quote closes the value. Missing closing quotes, empty or whitespace-only
@@ -624,7 +626,8 @@ normal saving behaviour.
 
 Saved books containing duplicate phone numbers or email addresses (ignoring email case)
 are rejected during loading. Cyclique stops startup before accepting commands and leaves the data file
-unchanged. The console and log identify the loading failure. Back up `data/addressbook.json`.
+unchanged. A fatal error dialog identifies the file and explains recovery; dismissing it closes Cyclique.
+Back up `data/addressbook.json`.
 Correct conflicting phone numbers and email addresses in a copy
 of the file, then relaunch. Identical cyclist names are allowed when phone numbers and
 email addresses are unique.
@@ -634,7 +637,7 @@ email addresses are unique.
 Cyclique stores data in `data/addressbook.json`, relative to the folder from which you launch the application. Following the Quick start steps places it in your chosen home folder. Older cyclist records without an `emergencyPhone` field load with **SOS: Not provided**; adding an emergency number through `edit` saves it for future sessions. Group rides are saved in the same file under `rides`, together with a `nextRideId` number that stops ride IDs from being reused; data files saved before rides existed still load, with no rides. Advanced users are welcome to update data directly by editing that data file.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-Close Cyclique and back up the file before editing it. If the file cannot be loaded, Cyclique stops startup before accepting commands and leaves the original data file unchanged. The console and log identify the file and ask you to back up and correct it before restarting. This includes legacy blank or over-ten-word Unicode-spaced notes; notes are not automatically discarded or truncated. Restore or repair your backup, then relaunch. Direct edits must follow the supported data format and field constraints.
+Close Cyclique and back up the file before editing it. If the file cannot be loaded, Cyclique stops startup before accepting commands and leaves the original data file unchanged. A fatal error dialog identifies the file and asks you to back up and correct it before restarting. Dismiss the dialog to close Cyclique; no command window opens. This includes legacy blank or over-ten-word Unicode-spaced notes; notes are not automatically discarded or truncated. Restore or repair your backup, then relaunch. Direct edits must follow the supported data format and field constraints.
 </div>
 
 ### Archiving data files `[coming in v2.0]`
