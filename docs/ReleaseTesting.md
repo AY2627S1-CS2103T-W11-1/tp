@@ -1,5 +1,22 @@
 # Release testing results
 
+## Preserve cyclist filters after edits (27 October 2026)
+
+Remove the successful edit command's unconditional reset of the cyclist filter. Existing observable
+lists re-evaluate find criteria and retain the live ride-roster selection, including after phone edits.
+Update earlier tests and manual expectations that assumed successful edits show every cyclist.
+
+Using Eclipse Temurin JDK 25.0.4.1 and a temporary external init script selecting ARM64 JavaFX dependencies,
+`check coverage shadowJar` passes: **852 tests**, no failures, errors or skips; both Checkstyle checks pass.
+Line coverage is **89.32%** (2,282 of 2,555 lines), above the 50% target. `build.gradle` is unchanged.
+New integration tests cover multiple edits under one find filter, removal of non-matching names/phone
+numbers, alphabetical roster ordering, updated roster phone references, subsequent live roster changes,
+rejected edits without changes and JSON readback of successful edits.
+
+The ARM test JAR launched in a disposable folder, but the computer-use tool could not access its JavaFX
+window (`Invalid app: java`). The **Filtered cyclist edit regression** manual checks remain outstanding.
+The temporary application was stopped after this attempt.
+
 ## PR #201 integration with latest master (27 October 2026)
 
 Combine feature HEAD `aaa7e9d3` with master `e89f88ba`, retaining optional quoted ride notes and the new

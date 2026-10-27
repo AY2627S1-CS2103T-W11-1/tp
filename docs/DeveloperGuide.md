@@ -1040,6 +1040,29 @@ Use a disposable test book. Check both cyclist names and card indexes after ever
    Enter `list`. Expected: Alex Adams, alex Zane, BERNICE and Zara are numbered 1 to 4.
    Enter `delete +65 94444444`, then `yes`. Expected: Zara is deleted; the remaining cyclists are numbered 1 to 3.
 
+### Filtered cyclist edit regression
+
+Use a disposable test book. Add John Doe (`+65 87438809`, `john.doe@example.com`), John Lee
+(`+65 87438808`, `john.lee@example.com`) and Alex Yeoh (`+65 87438807`, `alex@example.com`), each with
+`sos/+65 99999999 f/280 x/Beginner l/any`. Keep their phone numbers and emails unique.
+
+1. Enter `find n/John`, then `edit +65 87438809 f/200` and `edit +65 87438808 f/210`.
+   Expected: Both edits succeed without repeating the search. Only the two Johns remain displayed,
+   in alphabetical order with consecutive card indexes. Their cards show the edited FTP values.
+1. Enter `edit +65 87438809 n/James Doe`, then `edit +65 87438808 n/James Lee`.
+   Expected: Each cyclist disappears after no longer matching `John`; the final display is empty.
+   Enter `list`. Expected: Alex, James Doe and James Lee appear, with both edits retained.
+1. Add a ride requiring 1 W, register both James cyclists, and enter `ridelist ID` using its assigned ID.
+   Enter `edit +65 87438809 n/Zed Rider p/+65 91111111 f/220`.
+   Expected: Only James Lee and Zed Rider appear, in that order. The ride roster contains Zed's new phone.
+1. Enter `edit +65 87438808 f/230`, then register Alex on the same ride.
+   Expected: The edit retains the roster filter and Alex appears immediately after registration.
+1. While the roster filter is active, try `edit +65 87438808 f/601` and
+   `edit +65 87438808 p/+65 87438807`. Expected: Both are rejected without changing the display or saved data.
+1. Enter `find p/+65 91111111`, then `edit +65 91111111 p/+65 92222222`.
+   Expected: The cyclist disappears because their number no longer matches the search; the ride roster uses
+   the new number. Enter `list`, exit and relaunch. Expected: All successful edits and roster references persist.
+
 ### Phone target error regression
 
 Use a disposable test book with a cyclist visible in the left panel.
@@ -1291,7 +1314,8 @@ Use disposable test data and note the number of cyclist records before starting.
    checks the entire directory, including filtered-out cyclists. The filtered list,
    both cyclist records and saved data remain unchanged.
 1. Enter `edit +65 91234567 p/+65 91234567 e/jane@example.com`.
-   Expected: Retaining the cyclist's own phone and email succeeds and both cyclists are displayed.
+   Expected: Retaining the cyclist's own phone and email succeeds; the phone filter remains active,
+   so only the second John Doe is displayed.
 1. Enter `edit +65 91234567 p/+65 92345678 e/jane.updated@example.com`.
    Expected: Both unique values are applied, with all other cyclist fields unchanged.
 1. Exit and relaunch the application.

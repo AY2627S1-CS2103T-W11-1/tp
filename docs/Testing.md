@@ -37,6 +37,11 @@ This project has three types of tests:
 
 ## Release checks
 
+`FilteredEditIntegrationTest` checks that edits preserve find and live ride-roster filters, re-evaluate
+search membership, retain alphabetical order and update roster phone references. It also checks rejected
+edits without changes to records, filters or saved JSON, and successful edits through JSON readback.
+Run **Filtered cyclist edit regression** in the Developer Guide after changing cyclist edit filtering.
+
 `EditCommandParserTest`, `DeleteCommandParserTest` and `PhoneValidationIntegrationTest` verify specific
 phone errors for malformed edit/delete targets, usage for missing targets, and consistency with add/find.
 Integration checks preserve cyclist records, ride rosters, the active filter and saved JSON on rejection.
