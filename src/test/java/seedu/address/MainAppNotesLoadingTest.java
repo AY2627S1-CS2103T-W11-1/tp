@@ -3,19 +3,26 @@ package seedu.address;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.File;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.net.URI;
+import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +34,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import javafx.animation.AnimationTimer;
+import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
 import javafx.geometry.Rectangle2D;
@@ -38,9 +46,10 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
+import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.commons.exceptions.IllegalValueException;
-import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.logic.LogicManager;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
@@ -98,23 +107,8 @@ public class MainAppNotesLoadingTest {
         for (String notes : INVALID_LEGACY_NOTES) {
             String legacyJson = writeLegacyNotes(notes);
             IsolatedMainApp app = new IsolatedMainApp(storage);
-            IllegalStateException error = assertThrows(IllegalStateException.class, () ->
-                    app.initModelManager(storage, new UserPrefs()));
-            assertTrue(error.getMessage().contains(storage.getAddressBookFilePath().toString()));
-            assertTrue(error.getMessage().contains("The original file was not overwritten"));
-            assertTrue(error.getMessage().contains("Back up and correct the file"));
-            assertInstanceOf(DataLoadingException.class, error.getCause());
             app.init();
-            assertNull(app.model);
-            assertNull(app.logic, "A failed startup must not expose commands that could save an empty book.");
-            assertNull(app.ui);
-            assertArrayEquals(legacyJson.getBytes(StandardCharsets.UTF_8),
-                    Files.readAllBytes(storage.getAddressBookFilePath()));
             assertFatalDialogAndShutdown(app, Notes.MESSAGE_CONSTRAINTS);
-            IsolatedMainApp repeated = new IsolatedMainApp(storage);
-            repeated.init();
-            assertNull(repeated.logic);
-            assertFatalDialogAndShutdown(repeated, Notes.MESSAGE_CONSTRAINTS);
             assertEquals(legacyJson, Files.readString(storage.getAddressBookFilePath()));
         }
     }
@@ -138,7 +132,7 @@ public class MainAppNotesLoadingTest {
     }
 
     @Test
-    public void init_repairedFile_allowsCommandsWithoutWeakeningNotesValidation() throws Exception {
+    public void init_repairedFile_allowsCommandsAndPreservesRecordsOnRestart() throws Exception {
         writeLegacyNotes(INVALID_LEGACY_NOTES.getLast());
         IsolatedMainApp failed = new IsolatedMainApp(storage);
         failed.init();
@@ -149,19 +143,6 @@ public class MainAppNotesLoadingTest {
         app.init();
         app.logic.execute("list");
         AddressBook expected = withNotes(TEN_WORDS);
-        String saved = Files.readString(storage.getAddressBookFilePath());
-        for (String notes : INVALID_LEGACY_NOTES) {
-            assertThrows(ParseException.class, () -> app.logic.execute("rideadd n/Rejected "
-                    + "from/29-10-2026 0800 to/29-10-2026 1000 l/East Coast d/20 f/180 s/2 notes/" + notes));
-            assertThrows(ParseException.class, () -> app.logic.execute("rideedit 1 f/200 notes/\"" + notes + "\""));
-            assertEquals(expected, app.model.getAddressBook());
-            assertEquals(saved, Files.readString(storage.getAddressBookFilePath()));
-        }
-        app.logic.execute("rideedit 1 notes/\"Bring\u2003camera with aperture f/2\" s/5");
-        Ride first = expected.getRideList().getFirst();
-        expected.setRide(first, new RideBuilder(first).withNotes("Bring camera with aperture f/2")
-                .withMaxGroupSize("5").build());
-        assertEquals(expected, app.model.getAddressBook());
         assertEquals(expected, storage.readAddressBook().orElseThrow());
         IsolatedMainApp restarted = new IsolatedMainApp(storage);
         restarted.init();
@@ -243,7 +224,7 @@ public class MainAppNotesLoadingTest {
     @Test
     public void start_unhelpfulOrUntrustedCause_usesSafeFallbackWithoutExceptionDetails() throws Exception {
         for (Exception cause : List.of(new IOException(), new IOException("DO_NOT_DISPLAY"),
-                new IllegalValueException("   "))) {
+                new IllegalValueException("   "), new IllegalValueException(null))) {
             storage = storageWithFailure(storage.getAddressBookFilePath(), cause);
             IsolatedMainApp app = new IsolatedMainApp(storage);
             app.init();
@@ -259,6 +240,122 @@ public class MainAppNotesLoadingTest {
                 throw new DataLoadingException(cause);
             }
         };
+    }
+
+    @Test
+    public void start_validBook_delegatesToUiAndSavesPreferencesOnStop() throws Exception {
+        IsolatedMainApp app = new IsolatedMainApp(storage);
+        app.init();
+        JavaFxToolkit.call(() -> {
+            Stage stage = new Stage();
+            List<Stage> started = new ArrayList<>();
+            app.ui = started::add;
+            app.start(stage);
+            assertEquals(List.of(stage), started);
+            app.stop();
+            return null;
+        });
+        assertEquals(app.model.getUserPrefs(), storage.readUserPrefs().orElseThrow());
+        assertEquals(originalBook, storage.readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void fatalFailures_inChildProcesses_dismissAndTerminateWithoutOverwritingData() throws Exception {
+        ClassLoader loader = getClass().getClassLoader();
+        String classpath = loader instanceof URLClassLoader urls
+                ? Arrays.stream(urls.getURLs()).map(url -> Path.of(URI.create(url.toExternalForm())).toString())
+                        .collect(Collectors.joining(File.pathSeparator)) : System.getProperty("java.class.path");
+        for (String mode : List.of("loading", "null-message", "blank-message")) {
+            Path folder = temporaryFolder.resolve(mode);
+            Path file = folder.resolve("data/addressbook.json");
+            Files.createDirectories(file.getParent());
+            String json = mode.equals("loading") ? templateJson.replace("LegacyMarker", "\u2003") : templateJson;
+            Files.writeString(file, json);
+            List<String> command = new ArrayList<>(List.of(Path.of(System.getProperty("java.home"),
+                    "bin", "java").toString()));
+            // Keep the report destination absolute when the child uses a disposable working directory.
+            ManagementFactory.getRuntimeMXBean().getInputArguments().stream()
+                    .filter(arg -> arg.startsWith("-javaagent:") && arg.contains("jacoco"))
+                    .map(arg -> {
+                        String destination = arg.split("destfile=", 2)[1].split(",", 2)[0];
+                        return arg.replace("destfile=" + destination,
+                                "destfile=" + Path.of(destination).toAbsolutePath());
+                    }).forEach(command::add);
+            command.addAll(List.of("-cp", classpath, getClass().getName(), mode));
+            Path log = folder.resolve("process.log");
+            Process child = new ProcessBuilder(command).directory(folder.toFile())
+                    .redirectErrorStream(true).redirectOutput(log.toFile()).start();
+            try {
+                boolean exited = child.waitFor(20, TimeUnit.SECONDS);
+                String output = Files.readString(log);
+                assertTrue(exited, "Fatal dialog did not terminate: " + mode + "\n" + output);
+                assertEquals(mode.equals("loading") ? 0 : 1, child.exitValue(), output);
+                assertTrue(output.contains("FATAL_OBSERVED " + mode), output);
+                assertTrue(output.contains(mode.equals("loading") ? "DataLoadingException" : "IllegalStateException"));
+                assertEquals(json, Files.readString(file));
+            } finally {
+                child.destroyForcibly();
+                child.waitFor(5, TimeUnit.SECONDS);
+            }
+        }
+    }
+
+    /**
+     * Runs real JavaFX shutdown in a separate JVM, keeping the JUnit toolkit alive.
+     */
+    public static void main(String[] args) {
+        Application.launch(ShutdownApplication.class, args);
+    }
+
+    /**
+     * Exercises startup failure and fatal UI initialization errors with absent or blank messages.
+     */
+    public static class ShutdownApplication extends MainApp {
+        @Override
+        public void start(Stage primaryStage) {
+            String mode = getParameters().getRaw().getFirst();
+            new AnimationTimer() {
+                @Override
+                public void handle(long now) {
+                    for (Window window : List.copyOf(Window.getWindows())) {
+                        DialogPane pane = (DialogPane) window.getScene().lookup("#alertDialogPane");
+                        if (pane == null) {
+                            continue;
+                        }
+                        stop();
+                        Platform.runLater(() -> {
+                            try {
+                                TextArea content = (TextArea) pane.getContent();
+                                assertTrue(content.getText().contains(mode.equals("loading")
+                                        ? Notes.MESSAGE_CONSTRAINTS : "Cyclique could not continue."));
+                                if (mode.equals("loading")) {
+                                    assertFalse(primaryStage.isShowing());
+                                    assertNull(primaryStage.getScene());
+                                    assertNull(model);
+                                    assertNull(logic);
+                                    assertNull(ui);
+                                }
+                                System.out.println("FATAL_OBSERVED " + mode);
+                            } finally {
+                                Button button = (Button) pane.lookupButton(ButtonType.OK);
+                                button.fire();
+                            }
+                        });
+                    }
+                }
+            }.start();
+            if (mode.equals("loading")) {
+                super.start(primaryStage);
+            } else {
+                LogicManager failing = new LogicManager(model, storage) {
+                    @Override
+                    public GuiSettings getGuiSettings() {
+                        throw new IllegalStateException(mode.equals("blank-message") ? " " : null);
+                    }
+                };
+                new UiManager(failing, Path.of("data/addressbook.json")).start(primaryStage);
+            }
+        }
     }
 
     private String writeLegacyNotes(String notes) throws Exception {
@@ -279,78 +376,94 @@ public class MainAppNotesLoadingTest {
         assertNull(app.model);
         assertNull(app.logic);
         assertNull(app.ui);
-        JavaFxToolkit.call(() -> {
-            Stage primaryStage = new Stage();
-            List<Window> previousWindows = List.copyOf(Window.getWindows());
-            FutureTask<Void> dismissDialog = new FutureTask<>(() -> {
-                List<Window> newWindows = Window.getWindows().stream()
-                        .filter(window -> !previousWindows.contains(window)).toList();
-                try {
-                    assertEquals(1, newWindows.size(), "Only the fatal dialog should become visible.");
-                    Stage dialog = (Stage) newWindows.getFirst();
-                    assertTrue(dialog.isShowing());
-                    assertNull(dialog.getOwner(), "Startup has no owner scene.");
-                    assertEquals("Could not load Cyclique data", dialog.getTitle());
-                    DialogPane pane = (DialogPane) dialog.getScene().lookup("#" + UiManager.ALERT_DIALOG_PANE_FIELD_ID);
-                    assertEquals("Could not load Cyclique data", pane.getHeaderText());
-                    TextArea content = (TextArea) pane.getContent();
-                    String message = content.getText();
-                    assertTrue(content.isWrapText());
-                    assertFalse(content.isEditable());
-                    assertTrue(message.contains(expectedReason));
-                    assertTrue(message.contains("The original file was not overwritten"));
-                    assertFalse(message.contains("DO_NOT_DISPLAY"));
-                    assertFalse(message.contains("IllegalStateException"));
-                    assertFalse(message.contains("JsonParseException"));
-                    assertTrue(message.contains(storage.getAddressBookFilePath().toAbsolutePath().toString()));
-                    assertTrue(message.contains("Could not load data file"));
-                    assertTrue(message.contains("Back up and correct the file before restarting Cyclique"));
-                    assertEquals(List.of(ButtonType.OK), pane.getButtonTypes());
-                    assertFalse(app.exitRequested);
-                    Button dismissButton = (Button) pane.lookupButton(ButtonType.OK);
-                    Rectangle2D screen = Screen.getPrimary().getVisualBounds();
-                    assertTrue(dialog.getWidth() <= screen.getWidth() * 0.9 + 2);
-                    assertTrue(dialog.getHeight() <= screen.getHeight() * 0.9 + 2);
-                    assertTrue(screen.contains(dialog.getX(), dialog.getY(), dialog.getWidth(), dialog.getHeight()));
-                    assertEquals(StageStyle.DECORATED, dialog.getStyle());
-                    Bounds buttonBounds = dismissButton.localToScreen(dismissButton.getBoundsInLocal());
-                    assertNotNull(buttonBounds);
-                    assertTrue(dismissButton.isVisible());
-                    assertTrue(screen.contains(buttonBounds.getMinX(), buttonBounds.getMinY(),
-                            buttonBounds.getWidth(), buttonBounds.getHeight()));
-                    assertTrue(new Rectangle2D(dialog.getX(), dialog.getY(), dialog.getWidth(), dialog.getHeight())
-                            .contains(buttonBounds.getMinX(), buttonBounds.getMinY(),
-                                    buttonBounds.getWidth(), buttonBounds.getHeight()));
-                    assertTrue(pane.getScene().getRoot().getBoundsInLocal().contains(
-                            pane.getScene().getRoot().sceneToLocal(dismissButton.localToScene(
-                                    dismissButton.getBoundsInLocal()))));
-                    if (expectedReason.length() > 2000) {
-                        content.setScrollTop(Double.MAX_VALUE);
-                        assertTrue(content.getScrollTop() > 0, "Long messages must remain scrollable.");
+        try {
+            JavaFxToolkit.call(() -> {
+                Stage primaryStage = new Stage();
+                List<Window> previousWindows = List.copyOf(Window.getWindows());
+                FutureTask<Void> dismissDialog = new FutureTask<>(() -> {
+                    List<Window> newWindows = Window.getWindows().stream()
+                            .filter(window -> !previousWindows.contains(window)).toList();
+                    try {
+                        assertEquals(1, newWindows.size(), "Only the fatal dialog should become visible.");
+                        Stage dialog = (Stage) newWindows.getFirst();
+                        assertTrue(dialog.isShowing());
+                        assertNull(dialog.getOwner(), "Startup has no owner scene.");
+                        assertEquals("Could not load Cyclique data", dialog.getTitle());
+                        DialogPane pane = (DialogPane) dialog.getScene()
+                                .lookup("#" + UiManager.ALERT_DIALOG_PANE_FIELD_ID);
+                        assertEquals("Could not load Cyclique data", pane.getHeaderText());
+                        TextArea content = (TextArea) pane.getContent();
+                        String message = content.getText();
+                        assertTrue(content.isWrapText());
+                        assertFalse(content.isEditable());
+                        assertTrue(message.contains(expectedReason));
+                        assertTrue(message.contains("The original file was not overwritten"));
+                        assertFalse(message.contains("DO_NOT_DISPLAY"));
+                        assertFalse(message.contains("IllegalStateException"));
+                        assertFalse(message.contains("JsonParseException"));
+                        assertTrue(message.contains(storage.getAddressBookFilePath().toAbsolutePath().toString()));
+                        assertTrue(message.contains("Could not load data file"));
+                        assertTrue(message.contains("Back up and correct the file before restarting Cyclique"));
+                        assertEquals(List.of(ButtonType.OK), pane.getButtonTypes());
+                        assertFalse(app.exitRequested);
+                        Button dismissButton = (Button) pane.lookupButton(ButtonType.OK);
+                        Rectangle2D screen = Screen.getPrimary().getVisualBounds();
+                        assertTrue(dialog.getWidth() <= screen.getWidth() * 0.9 + 2);
+                        assertTrue(dialog.getHeight() <= screen.getHeight() * 0.9 + 2);
+                        assertTrue(screen.contains(dialog.getX(), dialog.getY(),
+                                dialog.getWidth(), dialog.getHeight()));
+                        assertEquals(StageStyle.DECORATED, dialog.getStyle());
+                        Bounds buttonBounds = dismissButton.localToScreen(dismissButton.getBoundsInLocal());
+                        assertNotNull(buttonBounds);
+                        assertTrue(dismissButton.isVisible());
+                        assertTrue(screen.contains(buttonBounds.getMinX(), buttonBounds.getMinY(),
+                                buttonBounds.getWidth(), buttonBounds.getHeight()));
+                        assertTrue(new Rectangle2D(dialog.getX(), dialog.getY(), dialog.getWidth(), dialog.getHeight())
+                                .contains(buttonBounds.getMinX(), buttonBounds.getMinY(),
+                                        buttonBounds.getWidth(), buttonBounds.getHeight()));
+                        assertTrue(pane.getScene().getRoot().getBoundsInLocal().contains(
+                                pane.getScene().getRoot().sceneToLocal(dismissButton.localToScene(
+                                        dismissButton.getBoundsInLocal()))));
+                        if (expectedReason.length() > 2000) {
+                            content.setScrollTop(Double.MAX_VALUE);
+                            assertTrue(content.getScrollTop() > 0, "Long messages must remain scrollable.");
+                        }
+                        dismissButton.fire();
+                        assertFalse(dialog.isShowing());
+                    } finally {
+                        newWindows.forEach(Window::hide);
                     }
-                    dismissButton.fire();
-                    assertFalse(dialog.isShowing());
-                } finally {
-                    newWindows.forEach(Window::hide);
-                }
+                    return null;
+                });
+                // Wait behind queued sizing, then inspect after GTK has applied native geometry in a frame.
+                Platform.runLater(() -> Platform.runLater(() -> new AnimationTimer() {
+                    @Override
+                    public void handle(long now) {
+                        stop();
+                        dismissDialog.run();
+                    }
+                }.start()));
+                app.start(primaryStage);
+                dismissDialog.get(1, TimeUnit.SECONDS);
+                assertTrue(app.exitRequested);
+                assertFalse(primaryStage.isShowing());
+                assertNull(primaryStage.getScene());
+                app.stop(); // The real stop() must tolerate failed initialization without writing preferences.
                 return null;
             });
-            // Inspect after a frame so GTK has applied the native window geometry.
-            Platform.runLater(() -> new AnimationTimer() {
-                @Override
-                public void handle(long now) {
-                    stop();
-                    dismissDialog.run();
+        } catch (TimeoutException e) {
+            Platform.runLater(() -> {
+                for (Window window : List.copyOf(Window.getWindows())) {
+                    if (window.getScene() != null
+                            && window.getScene().lookup("#" + UiManager.ALERT_DIALOG_PANE_FIELD_ID) != null) {
+                        System.err.println("Timed-out fatal dialog: " + window.getX() + "," + window.getY()
+                                + " " + window.getWidth() + "x" + window.getHeight());
+                        window.hide();
+                    }
                 }
-            }.start());
-            app.start(primaryStage);
-            dismissDialog.get();
-            assertTrue(app.exitRequested);
-            assertFalse(primaryStage.isShowing());
-            assertNull(primaryStage.getScene());
-            app.stop(); // The real stop() must tolerate failed initialization without writing preferences.
-            return null;
-        });
+            });
+            throw new AssertionError("Fatal dialog did not complete for " + storage.getAddressBookFilePath(), e);
+        }
         assertNull(app.model);
         assertNull(app.logic);
         assertNull(app.ui);

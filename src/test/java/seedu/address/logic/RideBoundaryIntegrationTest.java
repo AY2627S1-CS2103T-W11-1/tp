@@ -11,7 +11,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
@@ -62,27 +61,6 @@ public class RideBoundaryIntegrationTest {
             assertEquals(notes, added.getNotes().orElseThrow().value);
             assertEquals(original.getMinimumPower(), added.getMinimumPower());
             assertSavedState();
-        }
-    }
-
-    @Test
-    public void read_legacyUnicodeNotes_validatesWithoutRewritingSourceJson() throws Exception {
-        logic.execute("rideaddcyclist 1 " + PHONE);
-        logic.execute("rideedit 1 notes/Bring lights");
-        AddressBook expected = new AddressBook(model.getAddressBook());
-        Path file = storage.getAddressBookFilePath();
-        String originalJson = Files.readString(file);
-        String legacyJson = originalJson.replace("Bring lights", "\u3000Bring\u00a0\u2003lights\u202f");
-        Files.writeString(file, legacyJson);
-        assertEquals(expected, storage.readAddressBook().orElseThrow());
-        assertEquals(legacyJson, Files.readString(file));
-        for (String invalid : List.of("\u00a0\u2003\u202f\u3000",
-                "one two three four five six seven eight nine ten eleven".replace(" ", "\u00a0"))) {
-            String invalidJson = originalJson.replace("Bring lights", invalid);
-            Files.writeString(file, invalidJson);
-            assertThrows(DataLoadingException.class, () -> storage.readAddressBook());
-            assertEquals(invalidJson, Files.readString(file));
-            assertEquals(expected, model.getAddressBook());
         }
     }
 

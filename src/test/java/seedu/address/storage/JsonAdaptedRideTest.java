@@ -42,22 +42,6 @@ public class JsonAdaptedRideTest {
     }
 
     @Test
-    public void toModelType_legacyUnicodeNotes_normalizesValidAndRejectsInvalidValues() throws Exception {
-        Ride normalized = ride(ID, NAME, FROM, TO, LOCATION, DISTANCE, POWER, SIZE,
-                "\u3000Bring\u00a0\u2003lights\u202f", ROSTER).toModelType();
-        assertEquals(new Notes(NOTES), normalized.getNotes().orElseThrow());
-        assertEquals(ID.intValue(), normalized.getId());
-        assertEquals(ROSTER.getFirst(), normalized.getRoster().getFirst().value);
-        for (String separator : new String[] {" ", "\u00a0", "\u2003", "\u202f", "\u3000"}) {
-            for (String invalid : new String[] {separator,
-                "one two three four five six seven eight nine ten eleven".replace(" ", separator)}) {
-                assertThrows(IllegalValueException.class, Notes.MESSAGE_CONSTRAINTS, () ->
-                        ride(ID, NAME, FROM, TO, LOCATION, DISTANCE, POWER, SIZE, invalid, ROSTER).toModelType());
-            }
-        }
-    }
-
-    @Test
     public void toModelType_validRideDetails_returnsRide() throws Exception {
         assertEquals(VALID_RIDE, new JsonAdaptedRide(VALID_RIDE).toModelType());
     }

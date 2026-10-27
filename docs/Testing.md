@@ -197,19 +197,10 @@ and card text, and verifies error styling and unchanged data after malformed inp
 confirmed exactly once, cancelled, rejected for stale data or rejected before overlap processing for invalid input.
 `MainWindowRidePanelTest` checks the combined command through the real command box and confirmation display.
 
-Run **Unicode whitespace in ride notes (Issue #169)** in the Developer Guide after notes validation changes.
-`NotesTest` and Ride Add/Edit parser tests cover explicit Unicode separators, normalisation, blank values
-and word boundaries. `RideBoundaryIntegrationTest` checks clearing, roster and filter preservation, JSON
-reload and rejected-command atomicity including the next ID. `JsonAdaptedRideTest` covers legacy notes;
-`RideOverlapConfirmationTest` checks deferred Unicode notes and rejection before overlap processing.
-`MainWindowRidePanelTest` checks command-box errors, normalised card text and the hidden, unmanaged Notes
-row after clearing. These automated JavaFX checks complement the outstanding manual visual scenarios.
-
-`MainAppNotesLoadingTest` runs the actual application initialisation lifecycle against disposable JSON.
-It verifies that invalid legacy notes stop normal startup before command handling, preserving the entire file.
-JavaFX checks show the real fatal dialog, inspect its file path/recovery instructions, dismiss it and verify
-shutdown is requested without a main window or data writes. They also cover malformed JSON, duplicate phones
-and other invalid stored values. Valid notes, explicit repair/restart, subsequent saves and missing-file/empty-book
-startup remain covered. The shared test toolkit stays alive; packaged-process checks verify actual termination.
-`ArgumentTokenizerTest` and `RideBoundaryIntegrationTest` check Unicode whitespace after closing quotes,
-unchanged prefix recognition and rejection of non-whitespace trailing text.
+Run **Unicode whitespace in ride notes (Issue #169)** in the Developer Guide after notes changes.
+Model/parser tests cover Unicode blank detection, normalisation and word boundaries; tokenizer tests preserve
+quote and prefix rules. Command, overlap and JavaFX tests cover atomicity, IDs, rosters, filters, persistence,
+feedback and Notes-row removal. `MainAppNotesLoadingTest` covers legacy data, explicit repair/restart, real
+fatal dialogs and shutdown (including separate JVMs), original-file preservation and normal startup.
+These automated checks complement the manual visual scenarios; they do not establish native focus or layout
+on untested operating systems.

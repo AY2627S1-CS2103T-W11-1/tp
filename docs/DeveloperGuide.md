@@ -213,42 +213,21 @@ changing or saving any ride fields. The manual regression scenario below covers 
 
 #### Unicode whitespace in ride notes (Issue #169)
 
-`Notes` defines a separator by code point as `Character.isWhitespace(cp) || Character.isSpaceChar(cp)`.
-This includes ASCII spaces, tabs, line separators, NBSP (U+00A0), EM SPACE (U+2003), NARROW NBSP (U+202F)
-and IDEOGRAPHIC SPACE (U+3000). `trim()` only removes characters up to U+0020; `strip()` and `isBlank()`
-miss NBSP and NARROW NBSP. Default regex `\s` also misses these Unicode spaces.
+`Notes` uses `Character.isWhitespace(cp) || Character.isSpaceChar(cp)` for blank detection and
+normalisation, including NBSP, EM SPACE, NARROW NBSP and IDEOGRAPHIC SPACE. It trims separators, collapses
+runs to ordinary spaces and validates 1–10 words, preserving all other code points. `trim()`, `isBlank()`
+and default regex `\s` alone do not cover this rule. Ride Edit clears unquoted blank values through
+`Notes.isBlank`; quoted blanks remain errors. Prefix recognition and the single-line command interface
+are unchanged. Valid legacy notes normalise on loading; invalid notes are neither discarded nor truncated.
 
-`Notes` trims these separators, collapses each run to one ordinary space, and validates 1–10 resulting
-words. All other code points, case and punctuation are preserved. `ParserUtil.parseNotes` reports the
-existing notes constraint before command creation. Ride Edit uses `Notes.isBlank` to produce an absent
-optional value for an unquoted blank edit. The quoted-notes tokenizer uses the same blank check before
-unwrapping, retaining `MESSAGE_INVALID_QUOTED_NOTES` for blank quoted values. Its prefix recognition,
-quote boundaries and default tokenisation are unchanged; Unicode word separators inside notes do not
-broaden command-prefix recognition. The command box remains a single-line interface; model and direct
-parser tests additionally cover line-separator normalisation.
-
-Ride commands still replace immutable rides through the model and save only after successful execution;
-invalid notes never reach ID allocation, overlap proposal handling, model mutation or JSON saving.
-A new recognised command still cancels any pending overlap request before parsing, including if its notes
-are invalid. Normalised notes are serialised as strings and cleared notes as absent optional values
-(`null` in JSON). Reload uses the same `Notes` validation and normalisation. Valid legacy Unicode-spaced
-notes therefore normalise in memory and are written in normalised form on the next successful save.
-Legacy blank or over-ten-word notes are rejected. On a loading failure, `MainApp.init()` retains the error
-and returns before creating a model, command handler or normal UI. `start()` displays the shared UiManager
-fatal error dialog on the JavaFX Application Thread. Its short header identifies the failure; a read-only,
-wrapped, scrollable content area shows the absolute file path, loading reason, confirmation that the file was
-not overwritten, and backup/correction instructions. The window is bounded to the current screen's usable area
-so its buttons remain accessible. Validation reasons use application-defined messages; JSON parsing failures
-use a safe explanation without file excerpts or exception class names. Full technical details remain in logs.
-The dialog is standalone: the primary stage has no scene and cannot own the JavaFX 17 alert safely.
-After dismissal, `Platform.exit()` requests shutdown; `stop()` skips preference saving when there is no model.
-The original exception remains in the cause chain and logs. No commands can overwrite the rejected file.
-The original JSON remains unchanged, including unrelated cyclists, rides, rosters and the ID counter.
-Back up and correct the file before restarting. There is no automatic deletion or truncation of legacy notes;
-missing files still use sample data, and valid empty books still load normally.
-
-No UML change is required: the Ride Edit sequence diagram already abstracts field parsing and validation,
-and the same parser, command, model and storage interactions remain in place.
+If loading fails, `MainApp.init()` retains the exception without creating model, logic or normal UI.
+`start()` shows UiManager's standalone fatal dialog on the JavaFX Application Thread: a short header and
+wrapped, scrollable content explain the file, safe loading reason and backup/correction steps. JSON excerpts
+stay out of the dialog; full details remain logged. Sizing is deferred with `Platform.runLater` because
+Dialog's shown event precedes native-window creation on GTK. The window stays within the usable screen.
+Dismissal requests `Platform.exit()`; `stop()` skips saving when there is no model. The source file remains
+unchanged until the user repairs it and restarts. Missing files still use sample data; valid empty books load.
+No UML changes are needed: field validation remains internal to the existing command interactions.
 
 ### Model component
 **API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
@@ -1260,39 +1239,24 @@ steps use this roster to exercise Ride Edit validation.
 ### Unicode whitespace in ride notes (Issue #169)
 
 Use the disposable ride and registered cyclist from **Literal prefixes in ride notes (Issue #155)** below.
-Record the ride ID, all fields, roster and saved JSON. Substitute the actual ID for `1`.
-For each of U+0020 SPACE, U+2003 EM SPACE, U+00A0 NBSP, U+202F NARROW NBSP and U+3000 IDEOGRAPHIC SPACE,
-paste the actual character where `<SEP>` appears; do not type the placeholder or a Java escape literally.
+Record its ID, fields, roster and JSON. Substitute the actual ID for `1` and paste the actual character for
+`<SEP>`, testing ASCII SPACE, U+2003 EM SPACE, U+00A0 NBSP, U+202F NARROW NBSP and U+3000 IDEOGRAPHIC SPACE.
 
-1. Enter `rideedit 1 notes/Bring<SEP><SEP>lights` with separators at both ends of the value too.
-   Expected: feedback and the card show `Bring lights`, with ordinary single spaces; all other fields
-   and the roster stay unchanged. Repeat inside double quotes. Quotes are removed before storage.
-1. Enter `rideedit 1 notes/one<SEP>two<SEP>three<SEP>four<SEP>five<SEP>six<SEP>seven<SEP>eight<SEP>nine<SEP>ten`.
-   Expected: ten words are accepted. Append `<SEP>eleven` and repeat quoted and unquoted.
-   Expected: `Notes should not be blank and should contain at most 10 words.`, with no changes to any fields,
-   roster, filters or saved JSON. Repeat with Ride Add using all required fields; rejected adds consume no ID.
-1. Apply `ridefind notes/lights` and `ridelist 1`, then restore `Bring lights` as the notes.
-   Enter `rideedit 1 notes/<SEP>`. Expected: notes become absent, feedback includes `Notes: None`, the Notes
-   row disappears and the ride leaves the notes search results. The cyclist roster filter remains active.
-   Use `ridefind all` to inspect the card. Repeat with bare `notes/` and mixed separators.
-1. Enter `rideedit 1 notes/"<SEP>"` and a Ride Add with only `<SEP>` as notes.
-   Expected: the edit reports the quoted-notes syntax error; the add reports the notes constraint.
-   Neither changes data. A quoted whitespace-only Ride Add also reports the quoted-notes syntax error.
-1. Repeat Issue #155's literal `f/2`, following `s/5`, malformed quote and unquoted-prefix scenarios below.
-   With the overlap fixture, combine a conflicting time edit with valid Unicode-spaced notes: both changes
-   wait for confirmation. Cancel and confirm separately. Invalid notes report an error without creating a
-   pending request; a subsequent `yes` does not apply an edit. A new invalid notes command cancels an already
-   pending request under the existing cancellation rule.
-1. Restart after successful additions, edits and clearing. Expected: normalised notes, absent cleared notes,
-   persistent IDs and roster membership survive reload. In a backed-up disposable JSON file, valid legacy
-   Unicode-spaced notes load normalised. Test blank EM SPACE, blank NBSP and eleven-word EM SPACE/NBSP
-   values separately: startup must stop before opening the command UI. A fatal dialog identifies the file
-   and asks for backup and correction; dismiss it and verify the application exits without a main window.
-   Check that the short header, loading reason, file path and recovery instructions are readable, with OK and
-   the window close button on-screen. Compare the whole file with the backup: it must be unchanged, including
-   unrelated cyclists, rides, rosters and the ID counter. A second launch must also refuse the file.
-   Explicitly correct the notes in the disposable file and relaunch; run `list` and restart to verify all
-   records survive saving. Never perform this corrupt-data check on a real user book.
+1. Enter `rideedit 1 notes/Bring<SEP><SEP>lights`, also adding separators at both ends; repeat quoted.
+   Expected: `Bring lights` in feedback/card/JSON, with single ordinary spaces; other fields and roster unchanged.
+1. Supply `one two three four five six seven eight nine ten` with every space replaced by `<SEP>`.
+   Expected: accepted, quoted and unquoted. Append `<SEP>eleven` and repeat with Ride Edit and Ride Add.
+   Expected: the notes constraint; unchanged records, filters and JSON; rejected additions consume no ID.
+1. Apply `ridefind notes/lights` and `ridelist 1`, restore `Bring lights`, then enter `rideedit 1 notes/<SEP>`.
+   Expected: absent notes, `Notes: None`, hidden Notes row, ride removed from notes search, roster filter retained.
+   Repeat bare `notes/` and mixed separators. Blank Ride Add and quoted blanks must be rejected without changes.
+1. Repeat Issue #155 below and **Ride overlap confirmation regression** with Unicode-spaced notes.
+   Valid notes and time changes wait for confirmation together; invalid notes create no pending request.
+1. Restart after successful additions, replacement and clearing; verify notes, IDs and rosters persist.
+   In a backed-up disposable JSON file, test blank EM SPACE/NBSP and eleven-word EM SPACE/NBSP notes.
+   Expected: a readable fatal dialog with file, reason and recovery instructions; OK/close stay on-screen.
+   Dismiss and relaunch: no main window or JSON changes. Correct the file explicitly, restart and run `list`;
+   all unrelated records and rosters must survive. Never corrupt a real user book for these checks.
 
 ### Literal prefixes in ride notes (Issue #155)
 
@@ -1367,8 +1331,7 @@ Use disposable test data and note the number of cyclist records before starting.
 1. Close the application and replace the disposable data file contents with `{invalid json`.
    Launch again. Expected: startup stops before the command UI; a fatal dialog reports the file and loading error
    and asks for backup and correction. Dismiss it to exit. The original data file remains unchanged.
-   Restore the valid backup
-   and relaunch before entering commands.
+   Restore the valid backup and relaunch before entering commands.
 1. With the application closed, replace disposable `preferences.json` with `{invalid json`.
    Launch again. Expected: Default window preferences are used without crashing.
 

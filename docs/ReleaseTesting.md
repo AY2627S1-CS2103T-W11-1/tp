@@ -567,96 +567,47 @@ recovery, interval boundaries and recycled cards.
 
 ## Unicode whitespace in ride notes â€” Issue #169 (27 October 2026)
 
-Verified locally on Windows with Eclipse Temurin OpenJDK **25.0.4+7-LTS**.
-Initial branch: `169-fix-unicode-ride-notes`; working tree and index clean.
-HEAD and merge base with local `master`: `ad4a48526b1efa331812fbe1f8babed358a55bd8`.
-No remote updates, branch changes, staging or commits were performed.
+Historical Windows runs used Temurin **25.0.4+7-LTS** and `./gradlew.bat clean check coverage shadowJar`.
+Every successful run below had zero failures, errors and skips, and passed both Checkstyle tasks.
+Initial checkout: clean `169-fix-unicode-ride-notes`, HEAD/merge base `ad4a48526b1efa331812fbe1f8babed358a55bd8`.
 
-Before the fix, a temporary Java/JUnit probe using actual code points reproduced acceptance of eleven
-words and blank Ride Add notes, and invisible stored Ride Edit notes, for U+2003, U+00A0, U+202F and U+3000.
-ASCII spaces behaved correctly. Quoted blank NBSP and NARROW NBSP were also accepted, while quoted blank
-EM SPACE and IDEOGRAPHIC SPACE were rejected. Four new regression tests failed against the original code;
-the temporary probe was removed after reproduction.
+| Earlier verification stage | Tests | Line coverage | Branch coverage | JAR bytes |
+| --- | ---: | ---: | ---: | ---: |
+| Unicode validation | 863 | 89.37% (2,296/2,569) | 93.21% (1,029/1,104) | 12,594,450 |
+| Legacy-data protection | 868 | 90.54% (2,327/2,570) | 93.39% (1,031/1,104) | 12,594,553 |
+| PR #209 dialog corrections | 874 | 91.10% (2,386/2,619) | 92.73% (1,046/1,128) | 12,596,629 |
 
-The initial Unicode validation pass of `./gradlew.bat clean check coverage shadowJar` passed:
-**863 tests**, **0 failures**, **0 errors**, **0 skips**, with both Checkstyle tasks passing. JaCoCo line coverage is **89.37%** (2,296/2,569), above the
-50% target; branch coverage is **93.21%** (1,029/1,104). The generated release JAR is
-`build/libs/cyclique.jar` (12,594,450 bytes). Reports are at `build/reports/tests/test/index.html` and
-`build/reports/jacoco/coverage/html/index.html` (XML: `build/reports/jacoco/coverage/coverage.xml`).
-The initial full run exposed an obsolete Help-text assertion; it was updated to check the expanded
-whitespace guidance before the successful clean rerun. Existing JavaFX native-access and deprecated-API
-warnings did not fail the build. Build configuration and JavaFX packaging are unchanged.
+Before the Unicode fix, actual U+2003, U+00A0, U+202F and U+3000 reproduced eleven-word acceptance,
+blank Ride Add acceptance and invisible Ride Edit notes; ASCII spaces behaved correctly. Quoted blank
+NBSP/NARROW NBSP were accepted, unlike EM/IDEOGRAPHIC SPACE. Four new regressions failed before the fix.
+The initial full run also exposed an obsolete Help assertion, corrected before the successful rerun.
+Eleven initial regression methods covered validation, commands, storage and UI; Issue #155 tests stayed enabled.
 
-Eleven new test methods and expanded existing assertions cover Unicode blank and word boundaries,
-normalisation, punctuation/case/non-whitespace Unicode preservation, quoted-prefix compatibility,
-clearing without other field or roster changes, live filters, no ID consumption, rejected commands without
-JSON changes, legacy-file validation without rewriting, reload and overlap confirmation/cancellation.
-Automated JavaFX tests enter commands through the real command box and check feedback, errors, normalised
-card text and a hidden, unmanaged Notes row after clearing. Existing Issue #155 tests remain enabled.
+The legacy-data audit reproduced empty-model substitution for blank EM SPACE/NBSP and eleven-word
+EM SPACE/NBSP notes: loading left JSON intact, then `list` overwrote it, losing the unrelated cyclist and
+both rides. Valid ten-word Unicode and ordinary notes preserved all records. Five startup regression methods
+were added. Four packaged-JAR launches verified protection at that stage: exit code 1 before UI startup,
+notes constraint/recovery diagnostics and byte-for-byte unchanged JSON.
 
-Manual visual checks remain outstanding. Run the Developer Guide's **Unicode whitespace in ride notes
-(Issue #169)** and **Literal prefixes in ride notes (Issue #155)** scenarios manually before
-release, including restart and overlap interactions. Automated JavaFX assertions do not establish visual
-layout, focus or cross-platform behaviour. The command interface still rejects embedded line breaks before
-field parsing; direct parser/model tests cover line-separator normalisation. Legacy-data startup protection
-is covered by the correction pass below.
-UML diagrams require no changes because the documented interactions remain the same.
+The review correction accepts supported Unicode whitespace after closing quotes without broadening prefix
+recognition. The fatal dialog uses a short header and a bounded, wrapped, scrollable reason/recovery area.
+Nine automated `javaw` launches using the corrected JAR covered blank EM SPACE/NBSP, eleven-word EM SPACE/NBSP,
+malformed JSON, duplicate phones, invalid ride IDs, a missing cyclist list and a long path. A JavaFX observer
+checked the dialog and dismissed it through OK or window-close events. Every process exited normally with
+code 0, opened no command UI and preserved JSON byte for byte. This exercised real shutdown, not a toolkit stub.
 
-### Legacy-data safety correction after independent audit
+Manual double-click visibility, native focus and visual layout remain unverified. Run **Unicode whitespace
+in ride notes (Issue #169)** and **Literal prefixes in ride notes (Issue #155)** in the Developer Guide before
+release. Automated JavaFX assertions do not replace these checks. Embedded command line breaks remain rejected;
+direct parser/model tests cover their normalisation. Build configuration, JavaFX packaging and UML are unchanged.
+Existing native-access/deprecated-API warnings did not fail the recorded builds. Reports:
+`build/reports/tests/test/index.html`, `build/reports/jacoco/coverage/html/index.html` and
+`build/reports/jacoco/coverage/coverage.xml`; JAR: `build/libs/cyclique.jar`.
 
-The overwrite risk was reproduced through `MainApp` loading, `LogicManager` commands and real JSON storage
-using disposable files. Blank EM SPACE, blank NBSP, eleven-word EM SPACE and eleven-word NBSP notes each
-caused an empty model to be substituted. The source JSON remained intact immediately after loading, but
-`list` then saved that empty model over it, losing the unrelated cyclist and both rides. Ten-word
-Unicode-separated notes and ordinary valid notes loaded with all records intact.
-
-The correction stops startup on data-loading failure, before creating the model, command handler or UI.
-The console and log identify the file and request backup and correction before restart. This preserves
-the complete source file without discarding or truncating meaningful notes. Blank-note migration alone
-would not protect over-limit legacy notes; a separate permissive loading model would add a second validity
-policy. Missing files still use sample data, and valid empty books and normal saving remain supported.
-
-Five new `MainAppNotesLoadingTest` methods run the real initialisation lifecycle with disposable storage.
-They cover all four invalid legacy cases, valid EM SPACE/NBSP ten-word notes, ordinary notes, complete-file
-preservation, explicit repair/restart followed by command saves, continued rejection of new invalid notes,
-quoted literal prefixes, JSON round trips, malformed JSON and missing-file/empty-book startup. All original
-Issue #169 production validation, tokenisation and regression tests remain unchanged.
-
-Earlier legacy-data safety verification passed with Temurin **25.0.4+7-LTS** using
-`./gradlew.bat clean check coverage shadowJar`: **868 tests**,
-**0 failures**, **0 errors**, **0 skips**, and both Checkstyle tasks passing. Line coverage is **90.54%**
-(2,327/2,570); branch coverage is **93.39%** (1,031/1,104). `build/libs/cyclique.jar` is 12,594,553 bytes.
-Four additional packaged-JAR launches, one per invalid legacy case, exit with code 1 before UI startup,
-report the notes constraint and protection/recovery message, and preserve the original JSON byte for byte.
-These are automated startup checks, not manual visual passes. The manual scenarios above remain outstanding.
-
-### PR #209 requested review corrections
-
-The post-quote whitespace check now uses `Notes.isBlank`, accepting NBSP, NARROW NBSP and other supported
-Unicode whitespace at command end or before a recognised parameter. Prefix detection is unchanged:
-use an ordinary space immediately before a following prefix when the preceding separator is NBSP/NARROW NBSP.
-Non-whitespace trailing characters remain invalid. Tokenizer and command/storage tests cover these cases.
-
-A data-loading failure now defers only its error display from `init()` to `start()`, without creating a model,
-command handler or normal UI. The shared UiManager fatal dialog shows the absolute path and backup/correction
-instructions on the JavaFX Application Thread. It is standalone because the unused primary stage has no scene.
-Dismissal requests `Platform.exit()`; `stop()` tolerates the absent model without saving preferences or data.
-The original loading exception remains in logs and the cause chain. No automatic data repair is performed.
-
-`MainAppNotesLoadingTest` displays and dismisses the actual JavaFX dialog, checks the path and recovery text,
-confirms that only OK is offered, and verifies no main window or writes for invalid legacy notes, malformed JSON,
-duplicate phones and other invalid stored values. Missing, valid empty and valid non-empty books remain covered.
-
-Final verification with Temurin **25.0.4+7-LTS**: `./gradlew.bat clean check coverage shadowJar` passed with
-**874 tests**, **0 failures**, **0 errors**, **0 skips**, and both Checkstyle tasks passing.
-Line coverage is **91.10%** (2,386/2,619); branch coverage is **92.73%** (1,046/1,128).
-`build/libs/cyclique.jar` is 12,596,629 bytes.
-The fatal dialog now uses a short header, displays the actual loading-error reason in a wrapped, scrollable
-area, and stays within screen bounds with accessible dismissal controls.
-Codex ran **nine automated `javaw` launches** using the built JAR, covering blank EM SPACE/NBSP notes,
-eleven-word EM SPACE/NBSP notes, malformed JSON, duplicate phones, invalid ride IDs, a missing cyclist list
-and a long file path. A JavaFX observer checked the dialog and dismissed it through OK or a window-close event.
-Each process returns normally with exit code 0, does not open the normal UI and leaves the original JSON
-byte-for-byte intact.
-These checks exercise real shutdown without the test toolkit override. Manual double-click visibility and
-visual layout were not verified; the affected Developer Guide scenarios remain outstanding.
+Final scope/coverage pass: `clean check coverage shadowJar` passed on Windows (Temurin JDK **25.0.4**)
+and Linux/Xvfb (Zulu **25.0.4+7-LTS**): **874 tests**, zero failures/errors/skips and both Checkstyle tasks passing.
+JaCoCo: **92.09%** lines (2,411/2,618), **93.58%** branches (1,050/1,122); JAR: **12,596,400 bytes**.
+Local patch coverage: **100% — 76/76 executable lines and 42/42 branches**; Codecov must verify the next uploaded report.
+Four further automated `javaw` launches checked EM SPACE/NBSP blank/eleven-word notes, on-screen dialog/OK,
+normal exit, no main window and unchanged JSON. No manual visual check was performed. macOS is unverified locally;
+the current head's macOS CI job was cancelled before any steps ran because of runner-capacity issues.

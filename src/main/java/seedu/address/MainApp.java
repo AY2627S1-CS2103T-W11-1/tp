@@ -156,7 +156,7 @@ public class MainApp extends Application {
         if (startupError != null) {
             try {
                 // There is no owner scene during failed startup, so the dialog must be standalone.
-                UiManager.showFatalErrorDialog(null, "Could not load Cyclique data", startupError);
+                UiManager.showFatalErrorDialog("Could not load Cyclique data", startupError);
             } finally {
                 exitAfterStartupFailure();
             }
