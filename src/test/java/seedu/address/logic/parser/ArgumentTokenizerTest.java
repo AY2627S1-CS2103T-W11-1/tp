@@ -113,9 +113,9 @@ public class ArgumentTokenizerTest {
 
     @Test
     public void tokenize_whitespaceSeparators_recognisesPrefixesWithoutSplittingValues() {
-        for (String separator : java.util.List.of(" ", "  ", "\t", "\n", "\r\n")) {
+        for (String separator : List.of(" ", "  ", "\t", "\n", "\r\n", "\u2003", "\u3000")) {
             ArgumentMultimap arguments = ArgumentTokenizer.tokenize(
-                    separator + "p/first" + separator + "-tsecond", pSlash, dashT);
+                    separator + "p/" + separator + "first" + separator + "-tsecond" + separator, pSlash, dashT);
             assertPreambleEmpty(arguments);
             assertArgumentPresent(arguments, pSlash, "first");
             assertArgumentPresent(arguments, dashT, "second");
@@ -124,6 +124,22 @@ public class ArgumentTokenizerTest {
         ArgumentMultimap embedded = ArgumentTokenizer.tokenize(" p/first-tsecond", pSlash, dashT);
         assertArgumentPresent(embedded, pSlash, "first-tsecond");
         assertArgumentAbsent(embedded, dashT);
+    }
+
+    @Test
+    public void tokenize_nonBreakingSpaces_preservesValuesAndDoesNotIntroducePrefixes() throws Exception {
+        for (String separator : List.of("\u00a0", "\u202f")) {
+            String value = separator + "first" + separator + "f/180" + separator;
+            for (ArgumentMultimap arguments : List.of(
+                    ArgumentTokenizer.tokenize(" notes/" + value, PREFIX_NOTES, PREFIX_FTP),
+                    ArgumentTokenizer.tokenizeWithQuotedNotes(" notes/" + value, PREFIX_NOTES, PREFIX_FTP))) {
+                assertArgumentPresent(arguments, PREFIX_NOTES, value);
+                assertArgumentAbsent(arguments, PREFIX_FTP);
+            }
+        }
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" p/first\u2003\u3000second -tlast",
+                pSlash, dashT);
+        assertArgumentPresent(arguments, pSlash, "first\u2003\u3000second");
     }
 
     @Test
