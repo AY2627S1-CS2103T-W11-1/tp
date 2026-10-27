@@ -180,10 +180,12 @@ Format: `edit PHONE [n/NAME] [p/PHONE] [sos/EMERGENCY_PHONE] [e/EMAIL] [f/FTP_LE
 * Omitted fields remain unchanged. Supplying one or more `l/` fields replaces the **entire** preferred location set; it does not append locations. Blank `l/` is invalid. Use `l/any` alone for no location preference.
 * Omitting `sos/` preserves the existing emergency contact number. Blank `sos/` is invalid and cannot remove the number.
 
-On success, the result box shows `Edited person:` followed by the updated details. Cyclique restores
-all cyclists in alphabetical order and saves the changes. A name edit may move a card to a different
-position. Changing the cyclist's own phone number also updates that number in every ride roster
-they belong to, preserving their memberships.
+On success, the result box shows `Edited person:` followed by the updated details and saves the changes.
+Any active `find` or `ridelist` filter remains applied. A cyclist who no longer matches the search disappears
+from the displayed results; use `list` to show all cyclists again. Matching cyclists remain in alphabetical
+order, so a name edit may move a card to a different position. Changing the cyclist's own phone number also
+updates that number in every ride roster they belong to, preserving their memberships and visibility in
+the active `ridelist` view.
 
 Examples, starting with John from the Add example:
 
