@@ -62,6 +62,10 @@ Cyclists are displayed alphabetically by their full name, ignoring letter case, 
 * Parameters with prefixes can be in any order. Positional arguments must follow the order shown in the command format.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
+* In `rideadd` and `rideedit` only, use `notes/"NOTES"` to keep prefix-looking text inside notes literal.
+  Ordinary notes need no quotes. See [Ride Add](#adding-a-group-ride-rideadd) for the quoting rules;
+  this syntax does not apply to other fields or to `ridefind`.
+
 * Extraneous parameters for commands that take no parameters, such as `help`, `list` and `exit`, are ignored.<br>
   For example, `help 123` is interpreted as `help`. The exception is [`clear`](#clearing-all-entries-clear), which rejects any extra text because it deletes all your data.
 
@@ -318,6 +322,23 @@ Field | Meaning and rules
 
 Every field except `notes/` is required and must have a value. Each prefix can be used only once, in any order. Put whitespace before each prefix; spaces around values are trimmed. Command words and prefixes are case-sensitive: use `rideadd` and `from/`, for example. Names, locations and notes retain the capitalisation you enter. Enter numeric values without units, signs, commas or scientific notation; zero and negative values are rejected. Leading zeroes count towards the digit limits and are removed from stored numeric values.
 
+**Optional quoted notes**
+
+Ordinary notes such as `notes/Bring water` do not need quotation marks. To include recognised ride prefixes
+(`n/`, `from/`, `to/`, `l/`, `d/`, `f/`, `s/` or `notes/`) literally, put a double quote immediately after
+`notes/` and another at the end of the notes: `notes/"Bring camera with aperture f/2"`.
+The surrounding quotes are not stored, and recognised prefixes inside them do not create or change other fields.
+Other parameters may appear before or after quoted notes; put whitespace between the closing quote and the next prefix.
+The same 1–10-word limit and whitespace rules apply.
+
+The first double quote after the opening quote closes the value. Missing closing quotes, empty or whitespace-only
+quoted notes, and extra text after the closing quote before the next recognised parameter are rejected.
+For example, `notes/"Bring water"extra` and `notes/"Bring water" q/test` are invalid.
+In unquoted notes, double quotes away from the beginning are literal, as in `notes/Bring a "camera"`.
+A double quote immediately after `notes/` always starts quoted-notes syntax; it is not stored as a literal quote.
+Quoted notes cannot contain literal double quotes, and escaping is unsupported: backslashes are literal and do
+not escape quotes. These quoting rules apply only to `rideadd` and `rideedit`, including their aliases.
+
 Rides may be in the past, cross midnight or span multiple days. The end must be on or after the start: for an overnight ride, enter the later date in `to/` as well as the time. Equal start and end date/times are allowed.
 
 Each new ride gets a persistent ID automatically. A new empty book starts at 1; an existing book continues from its saved counter. IDs increase in creation order and are never reused, including after deletion, `clear` or restarting. Check the assigned ID in the result or ride card; it is not the card's list position. A new ride has no cyclists on its roster yet. Even rides with identical details are allowed, because their IDs differ.
@@ -328,8 +349,11 @@ Examples:
 
 * `rideadd n/Sunday Sunrise Ride from/25-10-2026 0630 to/25-10-2026 0930 l/East Coast Park d/45 f/180 s/3 notes/Bring lights and a spare tube`
 * `rideadd n/Evening Spin from/27-10-2026 1800 to/27-10-2026 1930 l/Punggol d/30.5 f/150 s/8`
+* `rideadd n/Camera Ride from/29-10-2026 1600 to/29-10-2026 1800 l/East Coast d/20 f/180 s/2 notes/"Bring camera with aperture f/2"`
 
 The first example adds a 45 km ride with minimum power 180 W and room for three cyclists. The second adds a ride without notes; its feedback includes `Notes: None`. If the sample rides already exist, these commands add separate rides with new IDs.
+The Camera Ride example stores `Bring camera with aperture f/2` as its notes, without the quotes,
+and has minimum power 180 W.
 
 **Screenshot walkthrough: add, edit and delete Ride 3**
 
@@ -349,7 +373,7 @@ The three screenshots in these sections show a separate walkthrough starting wit
 * An end before the start reports `The end date and time (to/) cannot be earlier than the start date and time (from/).`
 * If the ID counter is exhausted, Cyclique reports `No more ride IDs are available.`
 
-These rejected commands add no ride and consume no ID. Use only the listed prefixes: unsupported prefix-like text is not checked separately and becomes part of the preceding value (or the text before the first prefix). For example, `notes/Bring lights q/test` can be accepted as notes containing `q/test`; it is not a separate parameter. Text after a recognised prefix belongs to that value until the next recognised prefix.
+These rejected commands add no ride and consume no ID. In unquoted values, unsupported prefix-like text is not checked separately and becomes part of the preceding value (or the text before the first prefix). For example, `notes/Bring lights q/test` can be accepted as notes containing `q/test`; it is not a separate parameter. Unquoted text after a recognised prefix belongs to that value until the next recognised prefix.
 
 ### Finding group rides: `ridefind`
 
@@ -370,6 +394,10 @@ The fields are matched as follows:
 * `f/MIN_POWER` matches rides whose minimum power is greater than or equal to the supplied value.
 * `notes/NOTES` matches complete words or phrases in the ride's notes, ignoring case. For example,
   `notes/lights` matches `Bring lights`, but `notes/lig` does not. Rides without notes do not match a notes criterion.
+
+`ridefind` does not support the quoted-notes syntax of `rideadd` and `rideedit`. Quotes in search values are
+ordinary characters and do not protect recognised prefixes. Use an unquoted criterion such as `notes/camera`
+to find a complete word in notes containing literal `f/2`; whole-word and phrase matching are unchanged.
 
 The date and time format is `DD-MM-YYYY TTTT`, using the 24-hour clock. A date-only `from/` value means `0000`,
 while a date-only `to/` value means `2359`. When both bounds are supplied, `to/` cannot be earlier than `from/`.
@@ -402,6 +430,17 @@ Format: `rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f
 
 Supply at least one field after the ID. All eight fields shown in the format are editable. Fields follow the [`rideadd` rules](#adding-a-group-ride-rideadd), including case-sensitive command words and prefixes, digit limits, whitespace handling and duplicate-prefix rejection. Prefixed fields can be in any order after the ID. Only supplied fields are replaced; all unspecified fields are preserved. Supplied values must not be empty, except that `notes/` with no value clears existing notes. Non-empty `notes/NOTES` replaces the notes with 1–10 words; omitting it preserves them.
 
+For literal prefixes, use `rideedit 1 notes/"Bring camera with aperture f/2"` (substitute the actual ride ID).
+This stores `Bring camera with aperture f/2` and preserves minimum power, ID, roster and all other fields.
+The [optional quoting rules](#adding-a-group-ride-rideadd), including malformed-input rejection, also apply here;
+use bare `notes/` to clear notes.
+
+Parameters remain valid on either side: `rideedit 1 notes/"Bring camera with aperture f/2" s/5` also sets
+the maximum group size to 5, subject to roster capacity. `rideedit 1 f/200 notes/"Bring camera with aperture f/2"`
+intentionally sets minimum power to 200 W, subject to roster eligibility.
+Without quotes, `rideedit 1 notes/Bring camera with aperture f/2` still sets minimum power to 2 W and stores
+only `Bring camera with aperture` as notes. Cyclique cannot infer whether an unquoted prefix was intended literally.
+
 **Dates and roster constraints**
 
 * `from/START` and `to/END` require `DD-MM-YYYY TTTT`, just as for `rideadd`. Cyclique checks the complete resulting period, including any preserved endpoint. The end cannot be earlier than the start; equal date/times are allowed.
@@ -412,6 +451,11 @@ Supply at least one field after the ID. All eight fields shown in the format are
 If the resulting start or end changes and a registered cyclist has another ride with overlapping times, Cyclique warns before applying any part of the edit. The warning lists every affected cyclist's phone number and conflicting ride IDs, names and times. Enter `y`/`yes` to apply the whole edit anyway or `n`/`no` to cancel it, ignoring letter case. Adjacent periods and zero-duration rides do not overlap; travel time is not checked. Rides hidden by filters are included. Edits that preserve both endpoints do not warn about existing overlaps.
 
 While an overlap warning is pending, an invalid reply repeats the warning. Entering another recognised command cancels the pending change and processes the new command, including reporting errors in its arguments. Restarting discards pending confirmation. No data is changed or saved until confirmation; if cyclist or ride data changes before confirmation, enter the original command again to review it. These confirmation rules also apply to `rideaddcyclist` overlap warnings.
+
+Quoted notes follow the same confirmation rules. For example,
+`rideedit 3 notes/"Bring camera with aperture f/2" from/29-10-2026 1700 to/29-10-2026 1900`
+preserves literal `f/2`. If the new period creates a roster conflict, both the notes and times remain unchanged
+until `y`/`yes`; `n`/`no` cancels the whole edit. Substitute the actual ride ID.
 
 On success, Cyclique displays `Edited ride:` followed by the complete updated ride and saves the change automatically. The ride ID, roster membership, stored ride order, other rides, cyclist records and next ride ID are unchanged. The Rides panel refreshes immediately using the existing `ridefind` filter: an edited ride may disappear if it no longer matches, or appear if it now matches. Use `ridefind all` to see all rides. If input or ride validation fails, none of the supplied changes is applied.
 
@@ -570,6 +614,10 @@ Format: `exit`
 
 Cyclique saves successful additions, edits and confirmed deletions automatically; you do not need to save manually. It also saves after other successfully executed commands, including commands that only change the display. A deletion request, an explicit cancellation reply (`n`/`no`) or an invalid confirmation reply does not write the data file. When another recognised command cancels a pending deletion, that command follows its normal saving behaviour. Rejected commands do not save changes.
 
+An overlap warning likewise leaves the pending ride change unsaved. Confirmation applies and saves the whole
+change; cancellation preserves the saved data. A new recognised command cancels the request and follows its own
+normal saving behaviour.
+
 ### Repairing duplicate phone numbers in an existing book
 
 Saved books containing duplicate phone numbers or email addresses (ignoring email case)
@@ -608,6 +656,10 @@ _Details coming soon ..._
 --------------------------------------------------------------------------------------------------------------------
 
 ## Command summary
+
+For **Rideadd** and **Rideedit**, notes may optionally be quoted to preserve prefixes literally:
+`rideedit 1 notes/"Bring camera with aperture f/2"` (use the actual ride ID). Quotes are removed;
+this quoting syntax does not apply to **Ridefind**. See the [Ride Add rules](#adding-a-group-ride-rideadd).
 
 Action | Format, Examples
 --------|------------------

@@ -36,8 +36,8 @@ public class RideAddCommandParser implements Parser<RideAddCommand> {
      * @throws ParseException if the user input does not conform to the expected format
      */
     public RideAddCommand parse(String args) throws ParseException {
-        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_FROM, PREFIX_TO,
-                PREFIX_LOCATION, PREFIX_DISTANCE, PREFIX_FTP, PREFIX_GROUP_SIZE, PREFIX_NOTES);
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenizeWithQuotedNotes(args, PREFIX_NAME, PREFIX_FROM,
+                PREFIX_TO, PREFIX_LOCATION, PREFIX_DISTANCE, PREFIX_FTP, PREFIX_GROUP_SIZE, PREFIX_NOTES);
 
         if (!arePrefixesPresent(argMultimap, PREFIX_NAME, PREFIX_FROM, PREFIX_TO, PREFIX_LOCATION,
                 PREFIX_DISTANCE, PREFIX_FTP, PREFIX_GROUP_SIZE)

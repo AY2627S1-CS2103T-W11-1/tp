@@ -24,6 +24,19 @@ import seedu.address.logic.commands.RideRosterCommand;
 public class HelpWindowTest {
 
     @Test
+    public void commandList_rideNotes_explainsOptionalQuotesAndTheirLimits() {
+        for (String usage : new String[] {RideAddCommand.MESSAGE_USAGE, RideEditCommand.MESSAGE_USAGE}) {
+            assertTrue(HelpWindow.COMMAND_LIST.contains(usage));
+            assertTrue(usage.contains("Notes may be unquoted."));
+            assertTrue(usage.contains("notes/\"Bring camera with aperture f/2\""));
+            assertTrue(usage.contains("other parameters may precede or follow"));
+            assertTrue(usage.contains("escaping are unsupported"));
+        }
+        assertTrue(HelpWindow.RIDE_EDIT_HELP.contains(
+                "Time changes causing overlapping registrations require y/yes to proceed or n/no to cancel."));
+    }
+
+    @Test
     public void userGuideUrl_pointsToCycliqueUserGuide() {
         assertEquals("https://ay2627s1-cs2103t-w11-1.github.io/tp/UserGuide.html", HelpWindow.USERGUIDE_URL);
         assertFalse(HelpWindow.USERGUIDE_URL.contains("addressbook-level3"));

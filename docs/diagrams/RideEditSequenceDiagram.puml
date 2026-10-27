@@ -18,7 +18,7 @@ end box
 participant "m:ModelManager" as Model MODEL_COLOR
 participant ":StorageManager" as Storage STORAGE_COLOR
 
-' Trace: LogicManager.java:55,81; AddressBookParser.java:96 (call, creation, call).
+' Trace: LogicManager#execute calls AddressBookParser#parseCommand, which creates and calls RideEditCommandParser.
 note over Logic, Parser : input = "rideedit ID ..."
 [-> Logic : execute(input)
 activate Logic
@@ -28,7 +28,7 @@ create EditParser
 Parser -> EditParser : new()
 Parser -> EditParser : parse(arguments)
 activate EditParser
-' RideEditCommandParser.java:33-46,55-87: internal calls/construction abstracted in a note.
+' RideEditCommandParser#parse, #parseRideId and #parseEditedFields: internal calls/construction abstracted in a note.
 note right of EditParser
   Validate positive ID;
   reject duplicate prefixes.
@@ -39,13 +39,14 @@ note right of EditParser
 end note
 create Command
 EditParser -> Command : new(targetId, descriptor)
-' RideEditCommand.java:77-82: defensive copy, not the parser's descriptor object.
+' RideEditCommand constructor: defensive copy, not the parser's descriptor object.
 note over Command : Copy EditRideDescriptor defensively.
 EditParser --> Parser : c
 deactivate EditParser
 Parser --> Logic : c
 deactivate Parser
 
+' LogicManager#execute calls RideEditCommand#getOverlapWarning before storing or executing the command.
 group Check overlap before execution (no mutation or save)
     Logic -> Command : getOverlapWarning(m)
     activate Command
@@ -111,7 +112,7 @@ opt non-empty warning
     end
 end
 
-' No warning, or confirmed against unchanged data: execute and save normally.
+' LogicManager#execute or #confirmRideChange calls RideEditCommand#execute after overlap checks/confirmation.
 Logic -> Command : execute(m)
 activate Command
 Command -> Model : getAddressBook()
@@ -125,7 +126,7 @@ note left of Command
   and calls Ride.isValidPeriod: end >= start.
 end note
 
-' Static validation and construction helpers are summarised in notes.
+' RideEditCommand#execute calls #createEditedRide: static helpers are notes, not instance self-calls.
 alt valid
     note left of Command
       Construct proposed immutable Ride
@@ -133,7 +134,7 @@ alt valid
       Omitted fields and notes are preserved.
       Supplied notes replace; notes/ clears.
     end note
-    ' Capacity first; phone resolution only for an FTP edit.
+    ' RideEditCommand#validateRosterEligibility: capacity first; phone resolution only for an FTP edit.
     note left of Command
       Next, validateRosterEligibility:
       if size supplied: size >= roster count;
@@ -142,7 +143,7 @@ alt valid
       require FTP >= edited minimum.
     end note
     alt pass
-        ' ModelManager delegates replacement to AddressBook.
+        ' RideEditCommand#execute calls ModelManager#setRide, which delegates to AddressBook#setRide.
         Command -> Model : setRide(target, proposed)
         activate Model
         note right of Model
@@ -175,7 +176,7 @@ end
 deactivate Command
 
 opt result
-    ' Saving uses the existing storage path after successful execution.
+    ' LogicManager#execute and #confirmRideChange call #saveAddressBook only after successful execution.
     note left of Logic : saveAddressBook():\nexisting storage path.
     Logic -> Model : getAddressBook()
     activate Model

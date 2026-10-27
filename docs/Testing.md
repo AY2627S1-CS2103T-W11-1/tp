@@ -55,11 +55,11 @@ This runs JUnit, checks production and test code with Checkstyle, generates cove
 Review `build/reports/tests/test/index.html` and `build/reports/jacoco/coverage/html/index.html`.
 The coverage report does not enforce the 50% target automatically; check the measured coverage explicitly.
 
-Gradle selects JavaFX native libraries for the operating system and architecture of its JVM:
-ARM64 or x64 on macOS/Linux, and x64 on Windows. Use a JDK matching your machine's architecture.
-The `shadowJar` output targets that platform; build a separate JAR on each target platform for distribution.
-After changing this selection, run `./gradlew run` and check that the main window opens without native-library
-errors. The CI matrix checks the build on Windows, macOS and Linux; other architectures need separate checks.
+The current build bundles JavaFX native libraries using the `win`, `mac` and `linux` classifiers.
+Automatic operating-system and architecture selection was reverted in `e99c52ca`; ARM-specific classifiers
+are not currently included. After changing native dependencies, run `./gradlew run` and check that the main
+window opens without native-library errors. The CI matrix checks Windows, macOS and Linux builds;
+other architectures need separate compatibility checks.
 
 `ReleaseCommandIntegrationTest` covers command sequences through parsing, the model, filtering and JSON storage.
 It checks cyclist data without retired fields, repeated locations, edit replacement and preservation of fields,
@@ -179,3 +179,15 @@ Run **Ride boundary and corrupt-data regression** in the Developer Guide after t
 Run **Ride command alias regression** in the Developer Guide after changing ride command dispatch.
 `RideCommandAliasTest` checks parsing equivalence, validation, case sensitivity, saved workflows
 and cancellation of pending cyclist deletions for all seven aliases.
+
+Run **Literal prefixes in ride notes (Issue #155)** in the Developer Guide after changing notes tokenisation.
+`ArgumentTokenizerTest` checks the explicit quoted-notes entry point and unchanged default tokenisation.
+Ride Add/Edit parser tests check literal prefixes, ordering, malformed quotes, duplicate fields and the word limit.
+`RideBoundaryIntegrationTest` checks quoted notes with a roster, intentional additional edits, JSON round trips,
+unchanged records/filters/files after rejection, non-consumed IDs and legacy unquoted behaviour.
+Ride Find keeps its existing unquoted whole-word and phrase semantics.
+`MainWindowRidePanelTest` submits quoted notes through the JavaFX command box, checks displayed feedback
+and card text, and verifies error styling and unchanged data after malformed input.
+`RideOverlapConfirmationTest` also combines quoted notes with overlapping time edits: the entire edit is deferred,
+confirmed exactly once, cancelled, rejected for stale data or rejected before overlap processing for invalid input.
+`MainWindowRidePanelTest` checks the combined command through the real command box and confirmation display.

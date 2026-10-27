@@ -1,16 +1,55 @@
 # Release testing results
 
-## JavaFX native platform selection (26 October 2026)
+## PR #201 integration with latest master (27 October 2026)
 
-Select one JavaFX native dependency classifier matching the operating system and architecture of the
-Gradle JVM, including `mac-aarch64` for Apple Silicon. Unsupported combinations fail during configuration
-with an explicit message. The generated release JAR targets the build platform; distribution requires
+Combine feature HEAD `aaa7e9d3` with master `e89f88ba`, retaining optional quoted ride notes and the new
+specific phone errors for supplied Edit/Delete targets. Both branches' release-testing records are preserved.
+
+On Windows with Oracle JDK 25.0.4, `./gradlew clean check coverage shadowJar` passes **826 tests**, with no
+failures, errors or skips; both Checkstyle tasks pass. Line coverage is **89.26%** (2,270 of 2,543 lines), and
+branch coverage is **93.08%** (1,009 of 1,084 branches). Existing quoted-notes, overlap/deletion confirmation,
+roster, persistence, Unicode name, email and JavaFX regression tests remain present and pass.
+
+The final master build configuration is retained, including the platform-selection revert in `e99c52ca`.
+The JAR bundles Windows, Linux and Intel macOS native libraries. Native manual phone-error checks and
+non-Windows execution were not repeated during this agent run. Subsequent user verification of Issue #155
+is recorded below.
+
+### Subsequent Issue #155 manual verification
+
+The user tested a freshly built merged Cyclique JAR on Windows using Temurin OpenJDK 25.0.4, in a disposable
+folder with sample data. **All 11 manual scenarios passed:**
+
+1. Create a ride with ordinary unquoted notes.
+1. Edit notes using `notes/"Bring camera with aperture f/2"`.
+1. Preserve literal `f/2` without changing minimum power.
+1. Edit quoted notes alongside another parameter, such as `s/6`.
+1. Trigger an overlap warning for a cyclist registered for both rides.
+1. Confirm with `yes`, preserving complete notes and applying the intended time changes.
+1. Cancel with `no`, preserving the original ride.
+1. Reject malformed quoted notes without changing ride data.
+1. Retain the existing unquoted interpretation of `f/200`.
+1. Preserve multiple literal prefixes, including `f/2` and `s/3`, inside quoted notes.
+1. Retain updated ride details after restarting Cyclique.
+
+This completes the Issue #155 command and restart verification that agents initially could not perform.
+Window-resize testing was not reported. This run does not verify Linux, macOS, Apple Silicon or Windows ARM64
+compatibility; the existing cross-platform limitations remain.
+
+## JavaFX native platform selection (26 October 2026; reverted)
+
+Historical verification of the platform-selection change: `e99c52ca` subsequently reverted this selection.
+The current build bundles the `win`, `mac` and `linux` classifiers; ARM-specific selection is not active.
+
+The change selected one JavaFX native dependency classifier matching the operating system and architecture
+of the Gradle JVM, including `mac-aarch64` for Apple Silicon. Unsupported combinations failed during
+configuration with an explicit message. Its generated release JAR targeted the build platform, requiring
 separate builds for each supported platform.
 
-The standard `./gradlew check coverage shadowJar` now passes on macOS ARM64 using Eclipse Temurin
+Before that revert, `./gradlew check coverage shadowJar` passed on macOS ARM64 using Eclipse Temurin
 JDK 25.0.4.1 without an init-script override: **804 tests**, no failures, errors or skips; both Checkstyle
 checks pass. Line coverage is **89.15%** (2,243 of 2,516 lines).
-The standard `./gradlew run` reaches UI initialisation using ARM64 JavaFX libraries without the previous
+At that revision, `./gradlew run` reached UI initialisation using ARM64 JavaFX libraries without the previous
 incompatible-architecture or missing-toolkit errors. The smoke-test application was then stopped.
 Visual inspection remains unavailable because the computer-use tool cannot bind to the JavaFX application.
 Windows, Linux and Intel macOS were not tested locally.
@@ -31,6 +70,28 @@ The repository build configuration is unchanged.
 The rebuilt JAR launched in a disposable folder, but the computer-use tool could not access its
 JavaFX window (`Invalid app: java`). The **Phone target error regression** manual checks remain
 outstanding. The temporary application was stopped after this attempt.
+
+## Issue #155 integration with master (26 October 2026)
+
+Integrate `3732943a` (optional quoted ride notes) with master `d2c023f3` (including overlap confirmation).
+Retain deferred execution and saving for overlapping edits, and preserve literal prefix text in notes.
+
+On Windows with Oracle JDK 25.0.4, focused parser, integration and JavaFX checks pass **190 tests** and both
+Checkstyle tasks. `./gradlew clean check coverage shadowJar` passes **821 tests**, with no failures, errors or
+skips. Line coverage is **89.27%** (2,272 of 2,545 lines); branch coverage is **93.06%** (1,005 of 1,080 branches).
+All existing test methods from both branches remain present. New integration tests cover quoted notes with
+overlap confirmation, cancellation, invalid replies, stale data, malformed input, roster constraints and saving
+exactly once. A JavaFX main-window test checks the combined command and confirmation display.
+
+The Ride Edit PNG is regenerated from the combined overlap-aware PlantUML source, with its complete source
+embedded and its native-resolution rendering inspected. The release JAR contains Windows, Linux and macOS
+native libraries. Linux/macOS execution and ARM compatibility are not verified by this Windows run.
+
+During this earlier agent run, the packaged JAR launched with assertions enabled in a disposable folder.
+Native desktop focus could not be maintained reliably for safe command entry, leaving standalone command,
+resize and restart scenarios unverified at that time. The disposable application was stopped. The subsequent
+user verification recorded above covers Issue #155 commands and restart persistence; resize testing remains
+unverified.
 
 ## Unicode names (26 October 2026)
 

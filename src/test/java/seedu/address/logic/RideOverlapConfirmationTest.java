@@ -15,8 +15,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.DeleteCommand;
+import seedu.address.logic.commands.RideEditCommand;
 import seedu.address.logic.commands.RideRosterCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.logic.parser.ArgumentTokenizer;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ModelManager;
@@ -38,6 +40,9 @@ public class RideOverlapConfirmationTest {
     private static final String OTHER_PHONE = "+65 98765432";
     private static final String JOIN = "rideaddcyclist 2 " + PHONE;
     private static final String EDIT = "rideedit 2 from/29-10-2026 0900 to/29-10-2026 1100";
+    private static final String LITERAL_NOTES = "Bring camera with aperture f/2";
+    private static final String QUOTED_EDIT = "rideedit 3 notes/\"" + LITERAL_NOTES
+            + "\" from/29-10-2026 1700 to/29-10-2026 1900";
 
     @TempDir
     public Path temporaryFolder;
@@ -276,6 +281,132 @@ public class RideOverlapConfirmationTest {
         logic.execute("yes");
         assertEquals("29-10-2026 1130", ride(2).getTo().toString());
         assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_quotedNotesOnly_preservesOtherFieldsWithoutWarningForExistingOverlap() throws Exception {
+        prepareQuotedEdit();
+        model.setRide(ride(1), new RideBuilder(ride(1)).withFrom("29-10-2026 1700").build());
+        saveBaseline();
+        Ride original = ride(3);
+        String feedback = logic.execute("re 3 notes/\"" + LITERAL_NOTES + "\"").getFeedbackToUser();
+        assertTrue(feedback.startsWith("Edited ride:"));
+        assertEquals(new RideBuilder(original).withNotes(LITERAL_NOTES).build(), ride(3));
+        assertEquals(1, bookStorage.saveCalls);
+        assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
+        assertThrows(ParseException.class, () -> logic.execute("yes"));
+    }
+
+    @Test
+    public void execute_quotedTimeEdit_defersAllFieldsThenConfirmsAndPersistsExactlyOnce() throws Exception {
+        prepareQuotedEdit();
+        model.updateFilteredPersonList(person -> false);
+        model.updateFilteredRideList(ride -> ride.getId() == 3);
+        Ride original = ride(3);
+        String prompt = logic.execute(QUOTED_EDIT).getFeedbackToUser();
+        assertTrue(prompt.startsWith("Warning: overlapping ride times."));
+        assertTrue(prompt.contains("Cyclist " + PHONE));
+        assertTrue(prompt.contains("ride 1 (Ride A)"));
+        assertUnchanged();
+        assertTrue(model.getFilteredPersonList().isEmpty());
+        assertEquals(List.of(original), model.getFilteredRideList());
+        assertEquals(String.format(LogicManager.MESSAGE_INVALID_OVERLAP_REPLY, prompt),
+                assertThrows(CommandException.class, () -> logic.execute("maybe")).getMessage());
+        assertUnchanged();
+
+        assertTrue(logic.execute(" YeS ").getFeedbackToUser().startsWith("Edited ride:"));
+        AddressBook expected = new AddressBook(originalBook);
+        expected.setRide(original, new RideBuilder(original).withNotes(LITERAL_NOTES)
+                .withFrom("29-10-2026 1700").withTo("29-10-2026 1900").build());
+        assertEquals(expected, model.getAddressBook());
+        assertTrue(model.getFilteredPersonList().isEmpty());
+        assertEquals(List.of(ride(3)), model.getFilteredRideList());
+        assertEquals(1, bookStorage.saveCalls);
+        assertEquals(expected, storage.readAddressBook().orElseThrow());
+        assertThrows(ParseException.class, () -> logic.execute("yes"));
+        assertEquals(1, bookStorage.saveCalls);
+    }
+
+    @Test
+    public void execute_quotedTimeEdit_cancelPreservesAllDataAndFilters() throws Exception {
+        prepareQuotedEdit();
+        logic.execute("ridelist 3");
+        model.updateFilteredRideList(ride -> ride.getId() == 1);
+        saveBaseline();
+        var visibleCyclists = List.copyOf(model.getFilteredPersonList());
+        var visibleRides = List.copyOf(model.getFilteredRideList());
+        assertTrue(logic.execute(QUOTED_EDIT.replace("rideedit", "re")).getFeedbackToUser().contains("Warning:"));
+        assertUnchanged();
+        assertEquals(LogicManager.MESSAGE_OVERLAP_CANCELLED, logic.execute("nO").getFeedbackToUser());
+        assertUnchanged();
+        assertEquals(visibleCyclists, model.getFilteredPersonList());
+        assertEquals(visibleRides, model.getFilteredRideList());
+        assertThrows(ParseException.class, () -> logic.execute("yes"));
+    }
+
+    @Test
+    public void execute_malformedQuotedTimeEdit_rejectsBeforeCreatingPendingRequest() throws Exception {
+        prepareQuotedEdit();
+        for (String command : List.of(
+                "rideedit 3 notes/\"Bring camera f/2 from/29-10-2026 1700 to/29-10-2026 1900",
+                "rideedit 3 from/29-10-2026 1700 to/29-10-2026 1900 notes/\"Bring camera f/2")) {
+            assertEquals(ArgumentTokenizer.MESSAGE_INVALID_QUOTED_NOTES,
+                    assertThrows(ParseException.class, () -> logic.execute(command)).getMessage());
+            assertUnchanged();
+            assertThrows(ParseException.class, () -> logic.execute("yes"));
+        }
+    }
+
+    @Test
+    public void execute_quotedTimeEdit_invalidConstraintsRejectBeforeOverlapProcessing() throws Exception {
+        prepareQuotedEdit();
+        for (String[] invalid : new String[][] {
+            {QUOTED_EDIT + " f/251", RideEditCommand.MESSAGE_MINIMUM_POWER_TOO_HIGH},
+            {QUOTED_EDIT + " s/1", RideEditCommand.MESSAGE_GROUP_SIZE_TOO_SMALL},
+            {QUOTED_EDIT.replace("1900", "1600"), Ride.MESSAGE_INVALID_PERIOD}
+        }) {
+            assertEquals(invalid[1],
+                    assertThrows(CommandException.class, () -> logic.execute(invalid[0])).getMessage());
+            assertUnchanged();
+            assertThrows(ParseException.class, () -> logic.execute("yes"));
+        }
+        assertThrows(ParseException.class, () -> logic.execute(QUOTED_EDIT + " f/180 f/200"));
+        assertUnchanged();
+    }
+
+    @Test
+    public void execute_quotedTimeEdit_changedDataRejectsStaleNotesAndTimeChanges() throws Exception {
+        prepareQuotedEdit();
+        logic.execute(QUOTED_EDIT);
+        model.setRide(ride(1), new RideBuilder(ride(1)).withName("Changed Ride").build());
+        AddressBook changedBook = new AddressBook(model.getAddressBook());
+        assertEquals(LogicManager.MESSAGE_OVERLAP_DATA_CHANGED,
+                assertThrows(CommandException.class, () -> logic.execute("yes")).getMessage());
+        assertEquals(changedBook, model.getAddressBook());
+        assertEquals(originalJson, Files.readString(storage.getAddressBookFilePath()));
+        assertEquals(0, bookStorage.saveCalls);
+        assertThrows(ParseException.class, () -> logic.execute("yes"));
+    }
+
+    @Test
+    public void execute_malformedQuotedCommand_replacesPendingRequestWithCancellationAndParseError() throws Exception {
+        prepareQuotedEdit();
+        logic.execute(QUOTED_EDIT);
+        String malformed = "rideedit 3 notes/\"camera f/2";
+        assertEquals(LogicManager.MESSAGE_OVERLAP_CANCELLED + "\n" + ArgumentTokenizer.MESSAGE_INVALID_QUOTED_NOTES,
+                assertThrows(ParseException.class, () -> logic.execute(malformed)).getMessage());
+        assertUnchanged();
+        assertThrows(ParseException.class, () -> logic.execute("yes"));
+    }
+
+    /** Creates adjacent commitments so moving ride 3 to 1700 introduces an overlap for its roster. */
+    private void prepareQuotedEdit() throws IOException {
+        model.setRide(ride(1), new RideBuilder(ride(1)).withFrom("29-10-2026 1800")
+                .withTo("29-10-2026 2000").build());
+        model.addRide(new RideBuilder().withName("Alpha Ride").withFrom("29-10-2026 1600")
+                .withTo("29-10-2026 1800").withDistance("20").withMaxGroupSize("5")
+                .withNotes("Bring water").withRoster(PHONE, OTHER_PHONE).build());
+        saveBaseline();
     }
 
     private Ride ride(int id) {
