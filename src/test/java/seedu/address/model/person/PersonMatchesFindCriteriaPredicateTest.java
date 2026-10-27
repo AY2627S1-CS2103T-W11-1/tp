@@ -73,6 +73,7 @@ public class PersonMatchesFindCriteriaPredicateTest {
     public void test_location_matchesCaseInsensitivelyAndAnyIsWildcard() {
         Person punggolCyclist = new PersonBuilder(alice).withLocations("Punggol").build();
         Person unrestrictedCyclist = new PersonBuilder(alice).withLocations("any").build();
+        Person cyclistAtAnyPark = new PersonBuilder(alice).withLocations("Any Park").build();
         Set<Location> punggol = Set.of(new Location("pUnGgOl"));
 
         PersonMatchesFindCriteriaPredicate predicate = new PersonMatchesFindCriteriaPredicate(
@@ -81,6 +82,10 @@ public class PersonMatchesFindCriteriaPredicateTest {
         assertTrue(predicate.test(unrestrictedCyclist));
         assertTrue(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(), List.of(),
                 Set.of(new Location("any"), new Location("Punggol")), null).test(unrestrictedCyclist));
+        assertTrue(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(), List.of(),
+                Set.of(new Location("ANy")), null).test(unrestrictedCyclist));
+        assertFalse(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(), List.of(),
+                Set.of(new Location("ANy")), null).test(cyclistAtAnyPark));
         assertFalse(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(), List.of(),
                 Set.of(new Location("any")), null).test(punggolCyclist));
         assertFalse(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(), List.of(),

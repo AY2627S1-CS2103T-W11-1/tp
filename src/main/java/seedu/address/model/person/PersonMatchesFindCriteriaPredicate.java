@@ -58,14 +58,21 @@ public class PersonMatchesFindCriteriaPredicate implements Predicate<Person> {
         boolean matchesExperience = experienceLevels.isEmpty()
                 || experienceLevels.contains(person.getExperienceLevel());
         boolean matchesLocation = locations.isEmpty()
-                || person.getLocations().stream().anyMatch(location -> location.value.equalsIgnoreCase("any"))
                 || person.getLocations().stream().anyMatch(personLocation -> locations.stream()
-                        .anyMatch(searchLocation -> containsLocationWords(
-                                personLocation.value, searchLocation.value)));
+                        .anyMatch(searchLocation -> matchesLocation(personLocation, searchLocation)));
         boolean matchesFtp = minimumFtp == null
                 || Integer.parseInt(person.getFtp().value) >= Integer.parseInt(minimumFtp.value);
         return matchesName && matchesPhone && matchesEmergencyPhone && matchesExperience
                 && matchesLocation && matchesFtp;
+    }
+
+    /** Returns whether a stored location matches a requested location criterion. */
+    private boolean matchesLocation(Location personLocation, Location searchLocation) {
+        if (searchLocation.value.equalsIgnoreCase("any")) {
+            return personLocation.value.equalsIgnoreCase("any");
+        }
+        return personLocation.value.equalsIgnoreCase("any")
+                || containsLocationWords(personLocation.value, searchLocation.value);
     }
 
     /** Returns whether the location contains the search words in order. */
