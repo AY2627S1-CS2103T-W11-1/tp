@@ -591,9 +591,19 @@ WSLg and plain Temurin JDK 25.0.5. Its SHA-256 is
 No separate JavaFX installation is used on either platform. A temporary Linux JDK
 is used only for this check; it is not a product dependency.
 
-Both macOS launches remain pending GitHub Actions. CI checks plain JDK 25 on
-Windows, Linux, Intel macOS and Apple Silicon, then downloads the single
-Linux-built artifact for all four smoke jobs and verifies its checksum. Both
-macOS jobs also validate every universal library with Apple's `lipo` tool.
-These local results do not claim that either macOS run has passed. Interactive
-manual resize, focus, display-scaling and window-close checks are also pending.
+[GitHub Actions run 40510232591](https://github.com/juinron/tp/actions/runs/40510232591)
+passes all eight jobs at code commit `70bda3f2`: four build/check jobs and four
+packaged-JAR smoke jobs with plain Zulu JDK 25.0.5. The same Linux-built JAR passes
+on Windows Server 2025 x64, Linux x64, Intel macOS and Apple Silicon. Both macOS
+jobs also validate every universal library with Apple's `lipo` tool.
+Each smoke log confirms SHA-256
+`57b303436252fd095060f371ba820987b5d1595e37ea0ae4f5aceb03f3756e69`.
+Use the `portable-jar` artifact from that run for the exact verified binary;
+the earlier Windows-built local JAR has a different checksum.
+
+The first CI attempt stopped before macOS startup because the `lipo` command
+placed the input filename after its variable-length architecture list. Put the
+filename first: `lipo "$library" -verify_arch x86_64 arm64`. Correcting this
+invocation allows both macOS smoke checks to execute and pass.
+Interactive manual resize, focus, display-scaling and window-close checks remain
+pending; the smoke helper performs automated interaction with the actual UI.
