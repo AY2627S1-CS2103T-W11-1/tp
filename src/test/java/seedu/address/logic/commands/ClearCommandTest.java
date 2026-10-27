@@ -23,7 +23,7 @@ public class ClearCommandTest {
         Model model = new ModelManager();
         Model expectedModel = new ModelManager();
 
-        assertCommandSuccess(new ClearCommand(), model, ClearCommand.MESSAGE_SUCCESS, expectedModel);
+        assertCommandSuccess(new ClearCommand(), model, String.format(ClearCommand.MESSAGE_SUCCESS, 1), expectedModel);
     }
 
     @Test
@@ -32,7 +32,7 @@ public class ClearCommandTest {
         Model expectedModel = new ModelManager(getTypicalAddressBook(), new UserPrefs());
         expectedModel.setAddressBook(new AddressBook());
 
-        assertCommandSuccess(new ClearCommand(), model, ClearCommand.MESSAGE_SUCCESS, expectedModel);
+        assertCommandSuccess(new ClearCommand(), model, String.format(ClearCommand.MESSAGE_SUCCESS, 1), expectedModel);
     }
 
     @Test
@@ -41,7 +41,8 @@ public class ClearCommandTest {
         model.addRide(new RideBuilder().build());
         model.addRide(new RideBuilder().withName("Evening Spin").build());
 
-        assertCommandSuccess(new ClearCommand(), model, ClearCommand.MESSAGE_SUCCESS, expectedClearedModel(3));
+        assertCommandSuccess(new ClearCommand(), model, String.format(ClearCommand.MESSAGE_SUCCESS, 3),
+                expectedClearedModel(3));
 
         assertTrue(model.getAddressBook().getPersonList().isEmpty());
         assertTrue(model.getAddressBook().getRideList().isEmpty());
@@ -61,6 +62,32 @@ public class ClearCommandTest {
         assertEquals(1, rides.size());
         assertEquals(3, rides.get(0).getId());
         assertEquals(4, model.getAddressBook().getNextRideId());
+    }
+
+    @Test
+    public void execute_withRides_messageExplainsThatRideNumberingContinues() throws Exception {
+        Model model = new ModelManager();
+        new RideAddCommand(new RideBuilder().build()).execute(model);
+        new RideAddCommand(new RideBuilder().withName("Evening Spin").build()).execute(model);
+
+        CommandResult result = new ClearCommand().execute(model);
+
+        assertEquals("All cyclists and rides have been cleared. "
+                + "Ride IDs are never reused, so the next ride you add will be ride 3.", result.getFeedbackToUser());
+    }
+
+    @Test
+    public void execute_messageNamesTheIdTheNextRideActuallyGets() throws Exception {
+        Model model = new ModelManager();
+        new RideAddCommand(new RideBuilder().build()).execute(model);
+        new RideAddCommand(new RideBuilder().withName("Evening Spin").build()).execute(model);
+        new RideAddCommand(new RideBuilder().withName("Night Ride").build()).execute(model);
+
+        CommandResult result = new ClearCommand().execute(model);
+        new RideAddCommand(new RideBuilder().withName("Dawn Ride").build()).execute(model);
+
+        int newRideId = model.getAddressBook().getRideList().get(0).getId();
+        assertTrue(result.getFeedbackToUser().endsWith("will be ride " + newRideId + "."));
     }
 
     @Test

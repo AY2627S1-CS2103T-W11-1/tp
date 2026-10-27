@@ -19,14 +19,16 @@ public class ClearCommand extends Command {
             + "Takes no parameters and does not ask for confirmation.\n"
             + "Example: " + COMMAND_WORD;
 
-    public static final String MESSAGE_SUCCESS = "Address book has been cleared!";
+    public static final String MESSAGE_SUCCESS = "All cyclists and rides have been cleared. "
+            + "Ride IDs are never reused, so the next ride you add will be ride %1$d.";
 
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
+        int nextRideId = model.getAddressBook().getNextRideId();
         AddressBook clearedAddressBook = new AddressBook();
-        clearedAddressBook.setRides(List.of(), model.getAddressBook().getNextRideId());
+        clearedAddressBook.setRides(List.of(), nextRideId);
         model.setAddressBook(clearedAddressBook);
-        return new CommandResult(MESSAGE_SUCCESS);
+        return new CommandResult(String.format(MESSAGE_SUCCESS, nextRideId));
     }
 }
