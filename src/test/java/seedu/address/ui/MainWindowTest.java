@@ -69,6 +69,17 @@ public class MainWindowTest {
     }
 
     @Test
+    public void constructor_setsWindowTitleToCyclique() throws Exception {
+        Logic logic = createLogic();
+
+        String title = JavaFxToolkit.call(() ->
+                new MainWindow(new Stage(), logic, testFolder.resolve("addressbook.json"))
+                        .getPrimaryStage().getTitle());
+
+        assertEquals("Cyclique", title);
+    }
+
+    @Test
     public void helpMenu_opened_fitsItsEntriesInsideTheWindow() throws Exception {
         Logic logic = createLogic();
 
