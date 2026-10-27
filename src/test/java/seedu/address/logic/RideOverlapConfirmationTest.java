@@ -72,6 +72,37 @@ public class RideOverlapConfirmationTest {
     }
 
     @Test
+    public void execute_unicodeNotes_validEditIsDeferredAndInvalidNotesCreateNoPendingRequest() throws Exception {
+        prepareQuotedEdit();
+        String unicodeEdit = QUOTED_EDIT.replace("Bring camera", "Bring\u00a0\u2003camera");
+        logic.execute(unicodeEdit);
+        assertUnchanged();
+        logic.execute("no");
+        assertUnchanged();
+        String eleven = "one two three four five six seven eight nine ten eleven".replace(" ", "\u202f");
+        for (String notes : List.of("\"\u00a0\u202f\"", "\"" + eleven + "\"", eleven)) {
+            assertThrows(ParseException.class, () -> logic.execute(
+                    "rideedit 3 from/29-10-2026 1700 to/29-10-2026 1900 f/200 notes/" + notes));
+            assertUnchanged();
+            assertThrows(ParseException.class, () -> logic.execute("yes"));
+        }
+        logic.execute(unicodeEdit);
+        assertEquals(LogicManager.MESSAGE_OVERLAP_CANCELLED + "\n" + ArgumentTokenizer.MESSAGE_INVALID_QUOTED_NOTES,
+                assertThrows(ParseException.class, () -> logic.execute("rideedit 3 notes/\"\u00a0\u202f\""))
+                        .getMessage());
+        assertUnchanged();
+        assertThrows(ParseException.class, () -> logic.execute("yes"));
+        logic.execute(unicodeEdit);
+        assertUnchanged();
+        logic.execute("yes");
+        assertEquals(LITERAL_NOTES, ride(3).getNotes().orElseThrow().value);
+        assertEquals("29-10-2026 1700", ride(3).getFrom().toString());
+        assertEquals(originalBook.getRideList().get(2).getRoster(), ride(3).getRoster());
+        assertEquals(1, bookStorage.saveCalls);
+        assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
+    }
+
+    @Test
     public void execute_join_warnsWithDetailsWithoutMutationOrSaveEvenWhenFiltered() throws Exception {
         model.updateFilteredPersonList(person -> false);
         model.updateFilteredRideList(ride -> ride.getId() == 2);

@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
@@ -46,6 +47,79 @@ public class RideBoundaryIntegrationTest {
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json")));
         logic = new LogicManager(model, storage);
         logic.execute("rideadd " + DETAILS);
+    }
+
+    @Test
+    public void read_legacyUnicodeNotes_validatesWithoutRewritingSourceJson() throws Exception {
+        logic.execute("rideaddcyclist 1 " + PHONE);
+        logic.execute("rideedit 1 notes/Bring lights");
+        AddressBook expected = new AddressBook(model.getAddressBook());
+        Path file = storage.getAddressBookFilePath();
+        String originalJson = Files.readString(file);
+        String legacyJson = originalJson.replace("Bring lights", "\u3000Bring\u00a0\u2003lights\u202f");
+        Files.writeString(file, legacyJson);
+        assertEquals(expected, storage.readAddressBook().orElseThrow());
+        assertEquals(legacyJson, Files.readString(file));
+        for (String invalid : List.of("\u00a0\u2003\u202f\u3000",
+                "one two three four five six seven eight nine ten eleven".replace(" ", "\u00a0"))) {
+            String invalidJson = originalJson.replace("Bring lights", invalid);
+            Files.writeString(file, invalidJson);
+            assertThrows(DataLoadingException.class, () -> storage.readAddressBook());
+            assertEquals(invalidJson, Files.readString(file));
+            assertEquals(expected, model.getAddressBook());
+        }
+    }
+
+    @Test
+    public void execute_unicodeNotes_normalizesAndClearsWithoutChangingOtherFieldsOrFilters() throws Exception {
+        logic.execute("rideaddcyclist 1 " + PHONE);
+        logic.execute("ridelist 1");
+        Ride original = currentRide();
+        List<Person> visiblePeople = List.copyOf(model.getFilteredPersonList());
+        logic.execute("ridefind notes/Bring");
+        for (String separator : new String[] {" ", "\t", "\u2003", "\u00a0", "\u202f", "\u3000"}) {
+            logic.execute("rideedit 1 notes/\"" + separator + "Bring" + separator + "camera"
+                    + separator + "with aperture f/2" + separator + "\"");
+            assertEquals(new RideBuilder(original).withNotes("Bring camera with aperture f/2").build(), currentRide());
+            assertEquals(List.of(currentRide()), model.getFilteredRideList());
+            assertSavedState();
+            logic.execute("rideedit 1 notes/" + separator);
+            assertEquals(original, currentRide());
+            assertEquals(java.util.Optional.empty(), currentRide().getNotes());
+            assertEquals(List.of(), model.getFilteredRideList());
+            assertEquals(visiblePeople, model.getFilteredPersonList());
+            assertSavedState();
+            model.setAddressBook(storage.readAddressBook().orElseThrow());
+            assertEquals(original, currentRide());
+        }
+        logic.execute("rideadd " + DETAILS + " notes/\u3000Bring\u2003\u00a0CAF\u00c9,\u202f\u6c34!\u3000");
+        Ride added = model.getAddressBook().getRideList().get(1);
+        assertEquals(2, added.getId());
+        assertEquals("Bring CAF\u00c9, \u6c34!", added.getNotes().orElseThrow().value);
+        assertEquals(List.of(added), model.getFilteredRideList());
+        assertSavedState();
+    }
+
+    @Test
+    public void execute_invalidUnicodeNotes_preservesBookFiltersJsonAndNextId() throws Exception {
+        logic.execute("rideaddcyclist 1 " + PHONE);
+        logic.execute("rideedit 1 notes/Bring lights");
+        logic.execute("ridelist 1");
+        logic.execute("ridefind notes/lights");
+        for (String separator : new String[] {" ", "\t", "\r\n", "\u2003", "\u00a0", "\u202f", "\u3000"}) {
+            String eleven = "one two three four five six seven eight nine ten eleven".replace(" ", separator);
+            assertRejected("rideadd " + DETAILS + " notes/" + separator, ParseException.class);
+            for (String quote : new String[] {"", "\""}) {
+                assertRejected("rideadd " + DETAILS + " notes/" + quote + eleven + quote, ParseException.class);
+                assertRejected("rideedit 1 f/100 notes/" + quote + eleven + quote, ParseException.class);
+            }
+            assertRejected("rideadd " + DETAILS + " notes/\"" + separator + "\"", ParseException.class);
+            assertRejected("rideedit 1 f/100 notes/\"" + separator + "\"", ParseException.class);
+            assertThrows(ParseException.class, () -> logic.execute("yes"));
+        }
+        logic.execute("rideadd " + DETAILS + " notes/\"one\u2003two three four five six seven eight nine ten\"");
+        assertEquals(2, model.getAddressBook().getRideList().get(1).getId());
+        assertSavedState();
     }
 
     @Test

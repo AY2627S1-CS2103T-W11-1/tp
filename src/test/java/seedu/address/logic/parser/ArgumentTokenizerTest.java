@@ -49,7 +49,8 @@ public class ArgumentTokenizerTest {
 
     @Test
     public void tokenizeWithQuotedNotes_malformedQuotes_rejected() {
-        for (String notes : List.of("\"camera f/2", "\"\"", "\"   \"", "\"\u2003\"", "\"camera\"tail",
+        for (String notes : List.of("\"camera f/2", "\"\"", "\"   \"", "\"\u2003\"", "\"\u00a0\"", "\"\u202f\"",
+                "\"\u3000\"", "\"camera\"tail",
                 "\"camera\" tail f/200", "\"camera\"f/200", "\"camera \"lens\"\"",
                 "\"camera\" \"extra\"", "\"camera\" q/test", "\"camera \\\"lens\"")) {
             ParseException exception = assertThrows(ParseException.class, () ->
