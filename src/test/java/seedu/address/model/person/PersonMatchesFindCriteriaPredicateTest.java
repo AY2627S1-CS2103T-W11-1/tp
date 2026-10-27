@@ -80,20 +80,14 @@ public class PersonMatchesFindCriteriaPredicateTest {
         Person punggolCyclist = new PersonBuilder(alice).withLocations("Punggol").build();
         Person unrestrictedCyclist = new PersonBuilder(alice).withLocations("any").build();
         Person cyclistAtAnyPark = new PersonBuilder(alice).withLocations("Any Park").build();
-        Set<Location> punggol = Set.of(new Location("pUnGgOl"));
-
-        PersonMatchesFindCriteriaPredicate predicate = new PersonMatchesFindCriteriaPredicate(
-                List.of(), List.of(), List.of(), List.of(), punggol, null);
+        PersonMatchesFindCriteriaPredicate predicate = predicateWithLocation("pUnGgOl");
         assertTrue(predicate.test(punggolCyclist));
         assertTrue(predicate.test(unrestrictedCyclist));
         assertTrue(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(), List.of(),
                 Set.of(new Location("any"), new Location("Punggol")), null).test(unrestrictedCyclist));
-        assertTrue(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(), List.of(),
-                Set.of(new Location("ANy")), null).test(unrestrictedCyclist));
-        assertFalse(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(), List.of(),
-                Set.of(new Location("ANy")), null).test(cyclistAtAnyPark));
-        assertFalse(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(), List.of(),
-                Set.of(new Location("any")), null).test(punggolCyclist));
+        assertTrue(predicateWithLocation("ANy").test(unrestrictedCyclist));
+        assertFalse(predicateWithLocation("ANy").test(cyclistAtAnyPark));
+        assertFalse(predicateWithLocation("any").test(punggolCyclist));
         assertFalse(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(), List.of(),
                 Set.of(new Location("Tampines")), null).test(punggolCyclist));
         Person cyclistAtEastCoast = new PersonBuilder(alice).withLocations("East Coast Park").build();
@@ -123,8 +117,7 @@ public class PersonMatchesFindCriteriaPredicateTest {
         // EP: the minimum FTP boundary is accepted.
         Person cyclist = new PersonBuilder(alice).withFtp("300").build();
 
-        assertTrue(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(), List.of(), Set.of(),
-                new Ftp("300")).test(cyclist));
+        assertTrue(predicateWithFtp("300").test(cyclist));
     }
 
     @Test
@@ -167,5 +160,15 @@ public class PersonMatchesFindCriteriaPredicateTest {
         PersonMatchesFindCriteriaPredicate ftpPredicate = new PersonMatchesFindCriteriaPredicate(
                 List.of(), List.of(), List.of(), List.of(), Set.of(), new Ftp("250"));
         assertFalse(locationPredicate.equals(ftpPredicate));
+    }
+
+    private PersonMatchesFindCriteriaPredicate predicateWithLocation(String location) {
+        return new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(), List.of(),
+                Set.of(new Location(location)), null);
+    }
+
+    private PersonMatchesFindCriteriaPredicate predicateWithFtp(String ftp) {
+        return new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(), List.of(),
+                Set.of(), new Ftp(ftp));
     }
 }

@@ -69,12 +69,8 @@ public class RideMatchesFindCriteriaPredicateTest {
         // EP: location matching ignores case and rejects a different location.
         Ride ride = new RideBuilder().withLocation("Tampines").build();
 
-        assertTrue(new RideMatchesFindCriteriaPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
-                Optional.of(new Location("tampines")), Optional.empty(), Optional.empty(), Optional.empty(),
-                Optional.empty()).test(ride));
-        assertFalse(new RideMatchesFindCriteriaPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
-                Optional.of(new Location("Punggol")), Optional.empty(), Optional.empty(), Optional.empty(),
-                Optional.empty()).test(ride));
+        assertTrue(predicateWithLocation("tampines").test(ride));
+        assertFalse(predicateWithLocation("Punggol").test(ride));
     }
 
     @Test
@@ -158,5 +154,11 @@ public class RideMatchesFindCriteriaPredicateTest {
     private RideMatchesFindCriteriaPredicate predicate() {
         return new RideMatchesFindCriteriaPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
                 Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+    }
+
+    private RideMatchesFindCriteriaPredicate predicateWithLocation(String location) {
+        return new RideMatchesFindCriteriaPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.of(new Location(location)), Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.empty());
     }
 }
