@@ -320,7 +320,7 @@ Field | Meaning and rules
 `d/DISTANCE` | The distance in kilometres, from `0.01` to `999999.99`. Use 1–6 digits before the decimal point and, optionally, 1–2 digits after it, such as `45` or `45.5`.
 `f/MIN_POWER` | The minimum power a cyclist needs to join, in watts. Use 1–3 digits representing a whole number from 1 to 600, the same range as a cyclist's FTP.
 `s/MAX_GROUP_SIZE` | The most cyclists that can join. Use 1–9 digits representing a whole number from 1 to 999999999.
-`notes/NOTES` | Optional. If supplied, it must contain 1–10 words separated by whitespace. Repeated whitespace is stored as single spaces. Omit the prefix for no notes; empty `notes/` is rejected when adding a ride.
+`notes/NOTES` | Optional. If supplied, it must contain 1–10 words separated by whitespace, including Unicode spaces such as non-breaking, EM, narrow non-breaking and ideographic spaces. Leading and trailing whitespace is removed; repeated whitespace is stored as single ordinary spaces. Omit the prefix for no notes; empty or whitespace-only `notes/` is rejected when adding a ride. These rules also apply inside quoted notes.
 
 Every field except `notes/` is required and must have a value. Each prefix can be used only once, in any order. Put whitespace before each prefix; spaces around values are trimmed. Command words and prefixes are case-sensitive: use `rideadd` and `from/`, for example. Names, locations and notes retain the capitalisation you enter. Enter numeric values without units, signs, commas or scientific notation; zero and negative values are rejected. Leading zeroes count towards the digit limits and are removed from stored numeric values.
 
@@ -430,7 +430,7 @@ Format: `rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f
 
 `ID` is the persistent number assigned when the ride is created and displayed on its card, not its position in the Rides panel. Enter a whole number from 1 to 2147483647 without a sign or decimal point, before any prefixed fields. It must identify a saved ride; rides hidden by `ridefind` can still be edited. The ID itself cannot be edited.
 
-Supply at least one field after the ID. All eight fields shown in the format are editable. Fields follow the [`rideadd` rules](#adding-a-group-ride-rideadd), including case-sensitive command words and prefixes, digit limits, whitespace handling and duplicate-prefix rejection. Prefixed fields can be in any order after the ID. Only supplied fields are replaced; all unspecified fields are preserved. Supplied values must not be empty, except that `notes/` with no value clears existing notes. Non-empty `notes/NOTES` replaces the notes with 1–10 words; omitting it preserves them.
+Supply at least one field after the ID. All eight fields shown in the format are editable. Fields follow the [`rideadd` rules](#adding-a-group-ride-rideadd), including case-sensitive command words and prefixes, digit limits, whitespace handling and duplicate-prefix rejection. Prefixed fields can be in any order after the ID. Only supplied fields are replaced; all unspecified fields are preserved. Supplied values must not be empty, except that empty or whitespace-only unquoted `notes/` clears existing notes, including Unicode spaces. For example, `rideedit 1 notes/` followed only by an EM SPACE clears the notes and removes the card's Notes line. Non-blank `notes/NOTES` replaces the notes with 1–10 words; omitting it preserves them.
 
 For literal prefixes, use `rideedit 1 notes/"Bring camera with aperture f/2"` (substitute the actual ride ID).
 This stores `Bring camera with aperture f/2` and preserves minimum power, ID, roster and all other fields.
@@ -623,9 +623,9 @@ normal saving behaviour.
 ### Repairing duplicate phone numbers in an existing book
 
 Saved books containing duplicate phone numbers or email addresses (ignoring email case)
-are rejected during loading. Cyclique starts with an empty directory and logs the error.
-Before entering commands that could overwrite the file, close the application and back up
-`data/addressbook.json`. Correct conflicting phone numbers and email addresses in a copy
+are rejected during loading. Cyclique stops startup before accepting commands and leaves the data file
+unchanged. The console and log identify the loading failure. Back up `data/addressbook.json`.
+Correct conflicting phone numbers and email addresses in a copy
 of the file, then relaunch. Identical cyclist names are allowed when phone numbers and
 email addresses are unique.
 
@@ -634,7 +634,7 @@ email addresses are unique.
 Cyclique stores data in `data/addressbook.json`, relative to the folder from which you launch the application. Following the Quick start steps places it in your chosen home folder. Older cyclist records without an `emergencyPhone` field load with **SOS: Not provided**; adding an emergency number through `edit` saves it for future sessions. Group rides are saved in the same file under `rides`, together with a `nextRideId` number that stops ride IDs from being reused; data files saved before rides existed still load, with no rides. Advanced users are welcome to update data directly by editing that data file.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-Close Cyclique and back up the file before editing it. If your changes make the file invalid, Cyclique starts with an empty directory at the next launch. A subsequent successful command that saves data can overwrite the invalid file with that empty directory. Restore or repair your backup before entering commands. Direct edits must follow the supported data format and field constraints.
+Close Cyclique and back up the file before editing it. If the file cannot be loaded, Cyclique stops startup before accepting commands and leaves the original data file unchanged. The console and log identify the file and ask you to back up and correct it before restarting. This includes legacy blank or over-ten-word Unicode-spaced notes; notes are not automatically discarded or truncated. Restore or repair your backup, then relaunch. Direct edits must follow the supported data format and field constraints.
 </div>
 
 ### Archiving data files `[coming in v2.0]`

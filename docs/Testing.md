@@ -196,3 +196,16 @@ and card text, and verifies error styling and unchanged data after malformed inp
 `RideOverlapConfirmationTest` also combines quoted notes with overlapping time edits: the entire edit is deferred,
 confirmed exactly once, cancelled, rejected for stale data or rejected before overlap processing for invalid input.
 `MainWindowRidePanelTest` checks the combined command through the real command box and confirmation display.
+
+Run **Unicode whitespace in ride notes (Issue #169)** in the Developer Guide after notes validation changes.
+`NotesTest` and Ride Add/Edit parser tests cover explicit Unicode separators, normalisation, blank values
+and word boundaries. `RideBoundaryIntegrationTest` checks clearing, roster and filter preservation, JSON
+reload and rejected-command atomicity including the next ID. `JsonAdaptedRideTest` covers legacy notes;
+`RideOverlapConfirmationTest` checks deferred Unicode notes and rejection before overlap processing.
+`MainWindowRidePanelTest` checks command-box errors, normalised card text and the hidden, unmanaged Notes
+row after clearing. These automated JavaFX checks complement the outstanding manual visual scenarios.
+
+`MainAppNotesLoadingTest` runs the actual application initialisation lifecycle against disposable JSON.
+It verifies that invalid legacy notes stop startup before command handling, preserving the entire file;
+valid notes, explicit repair/restart, subsequent command saves and missing-file/empty-book startup are also
+covered. Corrupt-data manual scenarios now expect startup to stop instead of opening an empty book.

@@ -189,7 +189,7 @@ after a recognised `notes/` starts a quoted value; the first subsequent double q
 Prefix positions inside that range are excluded from argument extraction. Prefixes outside it retain their
 normal meaning and ordering, including duplicates for `ArgumentMultimap#verifyNoDuplicatePrefixesFor` to reject.
 During extraction, only quoted notes have their surrounding delimiters removed, before `ParserUtil#parseNotes`
-and `Notes` apply the existing word-count validation and whitespace normalisation.
+and `Notes` apply word-count validation and whitespace normalisation.
 
 Missing closing quotes, blank quoted values and non-whitespace text between the closing quote and the next
 recognised prefix (or command end) throw `ParseException` with `MESSAGE_INVALID_QUOTED_NOTES`.
@@ -207,6 +207,38 @@ For example, `rideedit 1 notes/"Bring camera with aperture f/2" s/5` supplies li
 group size 5, leaving minimum power, ID and roster unchanged. Use an existing ride ID; normal roster constraints
 still apply. `rideedit 1 notes/"camera f/2` and `rideedit 1 notes/"camera"extra f/2` are rejected without
 changing or saving any ride fields. The manual regression scenario below covers these cases and explicit power edits.
+
+#### Unicode whitespace in ride notes (Issue #169)
+
+`Notes` defines a separator by code point as `Character.isWhitespace(cp) || Character.isSpaceChar(cp)`.
+This includes ASCII spaces, tabs, line separators, NBSP (U+00A0), EM SPACE (U+2003), NARROW NBSP (U+202F)
+and IDEOGRAPHIC SPACE (U+3000). `trim()` only removes characters up to U+0020; `strip()` and `isBlank()`
+miss NBSP and NARROW NBSP. Default regex `\s` also misses these Unicode spaces.
+
+`Notes` trims these separators, collapses each run to one ordinary space, and validates 1–10 resulting
+words. All other code points, case and punctuation are preserved. `ParserUtil.parseNotes` reports the
+existing notes constraint before command creation. Ride Edit uses `Notes.isBlank` to produce an absent
+optional value for an unquoted blank edit. The quoted-notes tokenizer uses the same blank check before
+unwrapping, retaining `MESSAGE_INVALID_QUOTED_NOTES` for blank quoted values. Its prefix recognition,
+quote boundaries and default tokenisation are unchanged; Unicode word separators inside notes do not
+broaden command-prefix recognition. The command box remains a single-line interface; model and direct
+parser tests additionally cover line-separator normalisation.
+
+Ride commands still replace immutable rides through the model and save only after successful execution;
+invalid notes never reach ID allocation, overlap proposal handling, model mutation or JSON saving.
+A new recognised command still cancels any pending overlap request before parsing, including if its notes
+are invalid. Normalised notes are serialised as strings and cleared notes as absent optional values
+(`null` in JSON). Reload uses the same `Notes` validation and normalisation. Valid legacy Unicode-spaced
+notes therefore normalise in memory and are written in normalised form on the next successful save.
+Legacy blank or over-ten-word notes are rejected. `MainApp.initModelManager` stops startup on a
+`DataLoadingException`, reporting the file path and recovery instructions in the console and log. No model,
+command handler or UI is created, so a command cannot overwrite the rejected file with an empty book.
+The original JSON remains unchanged, including unrelated cyclists, rides, rosters and the ID counter.
+Back up and correct the file before restarting. There is no automatic deletion or truncation of legacy notes;
+missing files still use sample data, and valid empty books still load normally.
+
+No UML change is required: the Ride Edit sequence diagram already abstracts field parsing and validation,
+and the same parser, command, model and storage interactions remain in place.
 
 ### Model component
 **API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
@@ -425,8 +457,8 @@ cancelled edits are distinguished from successful replacement.
 **Parsing.** `RideEditCommandParser` separates the positive ride ID from the prefixed fields and builds an
 `EditRideDescriptor`. Each supplied value is parsed by the same `ParserUtil` method used by `rideadd`, while
 duplicate prefixes, malformed IDs and a command with no editable field are rejected. Notes have three explicit
-states: an omitted `notes/` preserves the existing value, a non-empty value replaces it and bare `notes/` clears
-it. Tokenisation uses the explicit quoted-notes entry point described in
+states: an omitted `notes/` preserves the existing value, a non-blank value replaces it and empty or
+whitespace-only unquoted `notes/` clears it. Tokenisation uses the explicit quoted-notes entry point described in
 [Optional quoted ride notes](#optional-quoted-ride-notes); quoted empty values are rejected.
 
 **Replacement and validation.** `RideEditCommand` finds the target by its unique ID and combines the descriptor
@@ -1215,6 +1247,41 @@ steps use this roster to exercise Ride Edit validation.
 1. Exit and relaunch. Expected: Successful edits remain visible and failed edits have not changed the saved ride.
    Add another ride. Expected: Its ID follows the previous counter rather than being affected by edits.
 
+### Unicode whitespace in ride notes (Issue #169)
+
+Use the disposable ride and registered cyclist from **Literal prefixes in ride notes (Issue #155)** below.
+Record the ride ID, all fields, roster and saved JSON. Substitute the actual ID for `1`.
+For each of U+0020 SPACE, U+2003 EM SPACE, U+00A0 NBSP, U+202F NARROW NBSP and U+3000 IDEOGRAPHIC SPACE,
+paste the actual character where `<SEP>` appears; do not type the placeholder or a Java escape literally.
+
+1. Enter `rideedit 1 notes/Bring<SEP><SEP>lights` with separators at both ends of the value too.
+   Expected: feedback and the card show `Bring lights`, with ordinary single spaces; all other fields
+   and the roster stay unchanged. Repeat inside double quotes. Quotes are removed before storage.
+1. Enter `rideedit 1 notes/one<SEP>two<SEP>three<SEP>four<SEP>five<SEP>six<SEP>seven<SEP>eight<SEP>nine<SEP>ten`.
+   Expected: ten words are accepted. Append `<SEP>eleven` and repeat quoted and unquoted.
+   Expected: `Notes should not be blank and should contain at most 10 words.`, with no changes to any fields,
+   roster, filters or saved JSON. Repeat with Ride Add using all required fields; rejected adds consume no ID.
+1. Apply `ridefind notes/lights` and `ridelist 1`, then restore `Bring lights` as the notes.
+   Enter `rideedit 1 notes/<SEP>`. Expected: notes become absent, feedback includes `Notes: None`, the Notes
+   row disappears and the ride leaves the notes search results. The cyclist roster filter remains active.
+   Use `ridefind all` to inspect the card. Repeat with bare `notes/` and mixed separators.
+1. Enter `rideedit 1 notes/"<SEP>"` and a Ride Add with only `<SEP>` as notes.
+   Expected: the edit reports the quoted-notes syntax error; the add reports the notes constraint.
+   Neither changes data. A quoted whitespace-only Ride Add also reports the quoted-notes syntax error.
+1. Repeat Issue #155's literal `f/2`, following `s/5`, malformed quote and unquoted-prefix scenarios below.
+   With the overlap fixture, combine a conflicting time edit with valid Unicode-spaced notes: both changes
+   wait for confirmation. Cancel and confirm separately. Invalid notes report an error without creating a
+   pending request; a subsequent `yes` does not apply an edit. A new invalid notes command cancels an already
+   pending request under the existing cancellation rule.
+1. Restart after successful additions, edits and clearing. Expected: normalised notes, absent cleared notes,
+   persistent IDs and roster membership survive reload. In a backed-up disposable JSON file, valid legacy
+   Unicode-spaced notes load normalised. Test blank EM SPACE, blank NBSP and eleven-word EM SPACE/NBSP
+   values separately: startup must stop before opening the command UI. The console/log identifies the file
+   and asks for backup and correction. Compare the whole file with the backup: it must be unchanged,
+   including unrelated cyclists, rides, rosters and the ID counter. A second launch must also refuse the file.
+   Explicitly correct the notes in the disposable file and relaunch; run `list` and restart to verify all
+   records survive saving. Never perform this corrupt-data check on a real user book.
+
 ### Literal prefixes in ride notes (Issue #155)
 
 Use a disposable book. Enter
@@ -1283,8 +1350,9 @@ Use disposable test data and note the number of cyclist records before starting.
 1. With the application closed, back up the disposable `data/addressbook.json`, then remove it.
    Launch again. Expected: Sample contacts are loaded.
 1. Close the application and replace the disposable data file contents with `{invalid json`.
-   Launch again. Expected: An empty book is loaded without crashing; the log records the loading error.
-   A successful add creates valid saved data. Restore the backup after the check if needed.
+   Launch again. Expected: startup stops before the command UI; the console/log reports the loading error
+   and asks for backup and correction. The original data file remains unchanged. Restore the valid backup
+   and relaunch before entering commands.
 1. With the application closed, replace disposable `preferences.json` with `{invalid json`.
    Launch again. Expected: Default window preferences are used without crashing.
 
@@ -1321,15 +1389,14 @@ Use disposable test data and note the number of cyclist records before starting.
 1. Exit and relaunch the application.
 
    **Important:** Perform the following JSON tests using disposable test data only.
-   After an invalid-data startup, close Cyclique without executing any commands,
-   then restore the valid JSON backup before continuing. A successful command may
-   overwrite the invalid data file.
+   Invalid data stops startup before commands are available and leaves the original file unchanged.
+   Restore the valid JSON backup and relaunch before continuing.
    Expected: John at `+65 98765432` and John at `+65 92345678` retain all saved details.
 1. Close the application and back up the disposable `data/addressbook.json`. In the working copy,
    change the second cyclist's phone to `+65 98765432`, then relaunch.
-   Expected: The duplicate JSON is rejected through the invalid-data handling path. Cyclique starts
-   with an empty directory and logs the loading error; neither duplicate record is silently discarded
-   or made available for interactive repair. Close Cyclique and restore the backup.
+   Expected: the duplicate JSON stops startup; the console/log reports the loading error and the original
+   file remains unchanged. Neither duplicate record is made available for interactive repair.
+   Restore the valid backup and relaunch.
 1. In another working copy of the backup, keep the phone numbers unique but change the second cyclist's
    email to `JOHN@EXAMPLE.COM`, then relaunch.
    Expected: The case-insensitive duplicate email causes the JSON to be rejected in the same way.
@@ -1463,7 +1530,8 @@ Use JDK 25, a disposable folder and a copy of the release JAR. Enable assertions
 `java -ea -jar cyclique.jar`. Close the application before each saved-file edit.
 
 1. Test saved books containing `{}`, `{"persons":null}` and `{"persons":[null]}` separately.
-   Expected: startup handles the loading failure and opens an empty book; the log explains the invalid data.
+   Expected: startup stops before command handling; the console/log explains the loading failure and the
+   original file remains unchanged. Restore a valid fixture before continuing.
 1. Start with `{"persons":[],"rides":[],"nextRideId":2147483646}` and add a valid ride.
    Expected: the assigned ID is `2147483646`. Try adding another ride.
    Expected: `No more ride IDs are available.` appears, and no second ride is added.
@@ -1478,7 +1546,7 @@ Use JDK 25, a disposable folder and a copy of the release JAR. Enable assertions
 
 Use JDK 25 and a disposable folder with a copy of the release JAR. Launch with
 `java -ea -jar cyclique.jar`. Back up disposable fixtures before corruption checks;
-the existing recovery behaviour starts with an empty book after a loading failure.
+a loading failure stops startup before command handling and leaves the original file unchanged.
 
 1. Create `rideadd n/Boundary from/18-10-2026 0000 to/18-10-2026 2359 l/East Coast d/0.01 f/1 s/1`.
    Expected: a positive ID, the exact period and distance appear on the ride card.
@@ -1493,7 +1561,8 @@ the existing recovery behaviour starts with an empty book after a loading failur
 1. Run the **Ride roster regression**, **Ride list regression**, and **Find and ridefind regression**
    scenarios for roster changes, live filters, persistence and layout.
 1. Close the application, replace the disposable `data/addressbook.json` contents with `null` and relaunch.
-   Expected: a loading warning is logged and startup reaches the empty-book UI without an uncaught exception.
+   Expected: startup stops before the command UI; the console/log reports the loading error and recovery
+   instructions. The original file remains unchanged.
 1. Restore a valid fixture with a cyclist on a ride. Close before each edit. Separately duplicate the phone
    in its saved roster, add a valid-format phone with no corresponding cyclist, and set maximum group size
    below the saved roster size. Relaunch each fixture.

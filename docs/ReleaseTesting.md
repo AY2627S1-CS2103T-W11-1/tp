@@ -564,3 +564,67 @@ checks. JaCoCo reports 86.20% line coverage (2111 of 2449 lines), up from
 list panels, including their cells, have 100% line coverage. Automated checks
 cover warnings, confirmation/cancellation, stale data, persistence, error
 recovery, interval boundaries and recycled cards.
+
+## Unicode whitespace in ride notes — Issue #169 (27 October 2026)
+
+Verified locally on Windows with Eclipse Temurin OpenJDK **25.0.4+7-LTS**.
+Initial branch: `169-fix-unicode-ride-notes`; working tree and index clean.
+HEAD and merge base with local `master`: `ad4a48526b1efa331812fbe1f8babed358a55bd8`.
+No remote updates, branch changes, staging or commits were performed.
+
+Before the fix, a temporary Java/JUnit probe using actual code points reproduced acceptance of eleven
+words and blank Ride Add notes, and invisible stored Ride Edit notes, for U+2003, U+00A0, U+202F and U+3000.
+ASCII spaces behaved correctly. Quoted blank NBSP and NARROW NBSP were also accepted, while quoted blank
+EM SPACE and IDEOGRAPHIC SPACE were rejected. Four new regression tests failed against the original code;
+the temporary probe was removed after reproduction.
+
+The initial Unicode validation pass of `./gradlew.bat clean check coverage shadowJar` passed:
+**863 tests**, **0 failures**, **0 errors**, **0 skips**, with both Checkstyle tasks passing. JaCoCo line coverage is **89.37%** (2,296/2,569), above the
+50% target; branch coverage is **93.21%** (1,029/1,104). The generated release JAR is
+`build/libs/cyclique.jar` (12,594,450 bytes). Reports are at `build/reports/tests/test/index.html` and
+`build/reports/jacoco/coverage/html/index.html` (XML: `build/reports/jacoco/coverage/coverage.xml`).
+The initial full run exposed an obsolete Help-text assertion; it was updated to check the expanded
+whitespace guidance before the successful clean rerun. Existing JavaFX native-access and deprecated-API
+warnings did not fail the build. Build configuration and JavaFX packaging are unchanged.
+
+Eleven new test methods and expanded existing assertions cover Unicode blank and word boundaries,
+normalisation, punctuation/case/non-whitespace Unicode preservation, quoted-prefix compatibility,
+clearing without other field or roster changes, live filters, no ID consumption, rejected commands without
+JSON changes, legacy-file validation without rewriting, reload and overlap confirmation/cancellation.
+Automated JavaFX tests enter commands through the real command box and check feedback, errors, normalised
+card text and a hidden, unmanaged Notes row after clearing. Existing Issue #155 tests remain enabled.
+
+Manual visual checks remain outstanding. Run the Developer Guide's **Unicode whitespace in ride notes
+(Issue #169)** and **Literal prefixes in ride notes (Issue #155)** scenarios manually before
+release, including restart and overlap interactions. Automated JavaFX assertions do not establish visual
+layout, focus or cross-platform behaviour. The command interface still rejects embedded line breaks before
+field parsing; direct parser/model tests cover line-separator normalisation. Legacy-data startup protection
+is covered by the correction pass below.
+UML diagrams require no changes because the documented interactions remain the same.
+
+### Legacy-data safety correction after independent audit
+
+The overwrite risk was reproduced through `MainApp` loading, `LogicManager` commands and real JSON storage
+using disposable files. Blank EM SPACE, blank NBSP, eleven-word EM SPACE and eleven-word NBSP notes each
+caused an empty model to be substituted. The source JSON remained intact immediately after loading, but
+`list` then saved that empty model over it, losing the unrelated cyclist and both rides. Ten-word
+Unicode-separated notes and ordinary valid notes loaded with all records intact.
+
+The correction stops startup on data-loading failure, before creating the model, command handler or UI.
+The console and log identify the file and request backup and correction before restart. This preserves
+the complete source file without discarding or truncating meaningful notes. Blank-note migration alone
+would not protect over-limit legacy notes; a separate permissive loading model would add a second validity
+policy. Missing files still use sample data, and valid empty books and normal saving remain supported.
+
+Five new `MainAppNotesLoadingTest` methods run the real initialisation lifecycle with disposable storage.
+They cover all four invalid legacy cases, valid EM SPACE/NBSP ten-word notes, ordinary notes, complete-file
+preservation, explicit repair/restart followed by command saves, continued rejection of new invalid notes,
+quoted literal prefixes, JSON round trips, malformed JSON and missing-file/empty-book startup. All original
+Issue #169 production validation, tokenisation and regression tests remain unchanged.
+
+`./gradlew.bat clean check coverage shadowJar` passes with Temurin **25.0.4+7-LTS**: **868 tests**,
+**0 failures**, **0 errors**, **0 skips**, and both Checkstyle tasks passing. Line coverage is **90.54%**
+(2,327/2,570); branch coverage is **93.39%** (1,031/1,104). `build/libs/cyclique.jar` is 12,594,553 bytes.
+Four additional packaged-JAR launches, one per invalid legacy case, exit with code 1 before UI startup,
+report the notes constraint and protection/recovery message, and preserve the original JSON byte for byte.
+These are automated startup checks, not manual visual passes. The manual scenarios above remain outstanding.
