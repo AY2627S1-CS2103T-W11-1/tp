@@ -624,7 +624,8 @@ Existing native-access/deprecated-API warnings did not fail the recorded builds.
 Final scope/coverage pass: `clean check coverage shadowJar` passed on Windows (Temurin JDK **25.0.4**)
 and Linux/Xvfb (Zulu **25.0.4+7-LTS**): **874 tests**, zero failures/errors/skips and both Checkstyle tasks passing.
 JaCoCo: **92.09%** lines (2,411/2,618), **93.58%** branches (1,050/1,122); JAR: **12,596,400 bytes**.
-Local patch coverage: **100% — 76/76 executable lines and 42/42 branches**; Codecov must verify the next uploaded report.
+Local patch coverage: **100% - 76/76 executable lines and 42/42 branches**.
 Four further automated `javaw` launches checked EM SPACE/NBSP blank/eleven-word notes, on-screen dialog/OK,
-normal exit, no main window and unchanged JSON. No manual visual check was performed. macOS is unverified locally;
-the current head's macOS CI job was cancelled before any steps ran because of runner-capacity issues.
+normal exit, no main window and unchanged JSON. No manual visual check was performed.
+An earlier macOS CI run was cancelled before any steps ran because no hosted runner was available.
+Final PR head `b9c635a3`: macOS, Ubuntu and Windows CI passed; Codecov patch coverage was **100.00%**.
