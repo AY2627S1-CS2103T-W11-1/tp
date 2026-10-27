@@ -99,7 +99,7 @@ jobs:
         run: |
           unzip -j build/release/cyclique.jar '*.dylib' -d build/mac-natives
           for library in build/mac-natives/*.dylib; do
-            lipo -verify_arch x86_64 arm64 "$library"
+            lipo "$library" -verify_arch x86_64 arm64
           done
 
       - name: Smoke test the release JAR on Linux
