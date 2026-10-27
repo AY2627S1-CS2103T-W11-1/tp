@@ -117,7 +117,7 @@ public class ModelManager implements Model {
     public Ride addRide(Ride ride) {
         requireNonNull(ride);
         Ride addedRide = addressBook.addRide(ride);
-        updateFilteredRideList(PREDICATE_SHOW_ALL_RIDES);
+        resetRideFilterIfHidden(addedRide);
         return addedRide;
     }
 
@@ -131,7 +131,7 @@ public class ModelManager implements Model {
     public void setRide(Ride target, Ride editedRide) {
         requireAllNonNull(target, editedRide);
         addressBook.setRide(target, editedRide);
-        updateFilteredRideList(PREDICATE_SHOW_ALL_RIDES);
+        resetRideFilterIfHidden(editedRide);
     }
 
     //=========== Filtered Person List Accessors =============================================================
@@ -153,6 +153,14 @@ public class ModelManager implements Model {
     @Override
     public void updateFilteredRideList(Predicate<Ride> predicate) {
         filteredRides.setPredicate(predicate);
+    }
+
+    /** Resets the ride filter when a changed ride would otherwise remain hidden. */
+    private void resetRideFilterIfHidden(Ride changedRide) {
+        Predicate<? super Ride> currentPredicate = filteredRides.getPredicate();
+        if (currentPredicate != null && !currentPredicate.test(changedRide)) {
+            updateFilteredRideList(PREDICATE_SHOW_ALL_RIDES);
+        }
     }
 
     @Override

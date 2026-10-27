@@ -347,7 +347,7 @@ Rides may be in the past, cross midnight or span multiple days. The end must be 
 
 Each new ride gets a persistent ID automatically. A new empty book starts at 1; an existing book continues from its saved counter. IDs increase in creation order and are never reused, including after deletion, `clear` or restarting. Check the assigned ID in the result or ride card; it is not the card's list position. A new ride has no cyclists on its roster yet. Even rides with identical details are allowed, because their IDs differ.
 
-On success, the result box shows `New ride added:` followed by the assigned ID and complete ride details, and the change is saved automatically. The right-hand **Rides** panel updates immediately and resets any active `ridefind` filter, so the new ride is visible after existing rides. Cyclist records and the current cyclist filter are unchanged. Each ride card shows its ID and name, period, location, distance, minimum power, maximum group size and roster, plus a **Notes** line if notes are present.
+On success, the result box shows `New ride added:` followed by the assigned ID and complete ride details, and the change is saved automatically. The right-hand **Rides** panel updates immediately. If an active `ridefind` filter would hide the new ride, the filter resets so the new ride is visible; otherwise, the filter remains active. Cyclist records and the current cyclist filter are unchanged. Each ride card shows its ID and name, period, location, distance, minimum power, maximum group size and roster, plus a **Notes** line if notes are present.
 
 Examples:
 
@@ -461,7 +461,7 @@ Quoted notes follow the same confirmation rules. For example,
 preserves literal `f/2`. If the new period creates a roster conflict, both the notes and times remain unchanged
 until `y`/`yes`; `n`/`no` cancels the whole edit. Substitute the actual ride ID.
 
-On success, Cyclique displays `Edited ride:` followed by the complete updated ride and saves the change automatically. The ride ID, roster membership, stored ride order, other rides, cyclist records and next ride ID are unchanged. The Rides panel refreshes immediately and resets any active `ridefind` filter, so the edited ride remains visible. If input or ride validation fails, none of the supplied changes is applied.
+On success, Cyclique displays `Edited ride:` followed by the complete updated ride and saves the change automatically. The ride ID, roster membership, stored ride order, other rides, cyclist records and next ride ID are unchanged. The Rides panel refreshes immediately. If an active `ridefind` filter would hide the edited ride, the filter resets so the edited ride remains visible; otherwise, the filter remains active. If input or ride validation fails, none of the supplied changes is applied.
 
 Examples:
 
