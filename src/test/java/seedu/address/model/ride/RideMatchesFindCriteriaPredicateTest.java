@@ -57,9 +57,7 @@ public class RideMatchesFindCriteriaPredicateTest {
     public void test_optionalNotes_requiresNotesWhenSpecified() {
         // EP: a ride without notes belongs to the non-matching partition when notes are requested.
         Ride ride = new RideBuilder().build();
-        RideMatchesFindCriteriaPredicate predicate = new RideMatchesFindCriteriaPredicate(Optional.empty(),
-                Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
-                Optional.empty(), Optional.of(new Notes("Bring lights")));
+        RideMatchesFindCriteriaPredicate predicate = predicateWithNotes("Bring lights");
 
         assertFalse(predicate.test(ride));
     }
@@ -78,12 +76,8 @@ public class RideMatchesFindCriteriaPredicateTest {
         // EP: numerically equivalent values match, while a different distance does not.
         Ride ride = new RideBuilder().withDistance("45.5").build();
 
-        assertTrue(new RideMatchesFindCriteriaPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
-                Optional.empty(), Optional.of(new Distance("45.50")), Optional.empty(), Optional.empty(),
-                Optional.empty()).test(ride));
-        assertFalse(new RideMatchesFindCriteriaPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
-                Optional.empty(), Optional.of(new Distance("45.51")), Optional.empty(), Optional.empty(),
-                Optional.empty()).test(ride));
+        assertTrue(predicateWithDistance("45.50").test(ride));
+        assertFalse(predicateWithDistance("45.51").test(ride));
     }
 
     @Test
@@ -91,19 +85,11 @@ public class RideMatchesFindCriteriaPredicateTest {
         // EP: minimum power is inclusive, while maximum group size requires an exact value.
         Ride ride = new RideBuilder().withMinimumPower("600").withMaxGroupSize("1").build();
 
-        assertTrue(new RideMatchesFindCriteriaPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
-                Optional.empty(), Optional.empty(), Optional.of(new MinimumPower("600")),
-                Optional.of(new GroupSize("1")), Optional.empty()).test(ride));
-        assertTrue(new RideMatchesFindCriteriaPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
-                Optional.empty(), Optional.empty(), Optional.of(new MinimumPower("599")),
-                Optional.empty(), Optional.empty()).test(ride));
+        assertTrue(predicateWithMinimumPower("600").test(ride));
+        assertTrue(predicateWithMinimumPower("599").test(ride));
         Ride lowerPowerRide = new RideBuilder().withMinimumPower("599").build();
-        assertFalse(new RideMatchesFindCriteriaPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
-                Optional.empty(), Optional.empty(), Optional.of(new MinimumPower("600")),
-                Optional.empty(), Optional.empty()).test(lowerPowerRide));
-        assertFalse(new RideMatchesFindCriteriaPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
-                Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(new GroupSize("2")),
-                Optional.empty()).test(ride));
+        assertFalse(predicateWithMinimumPower("600").test(lowerPowerRide));
+        assertFalse(predicateWithGroupSize("2").test(ride));
     }
 
     @Test
@@ -111,12 +97,8 @@ public class RideMatchesFindCriteriaPredicateTest {
         // EP: the complete notes value must match; a different value is rejected.
         Ride ride = new RideBuilder().withNotes("Bring lights").build();
 
-        assertTrue(new RideMatchesFindCriteriaPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
-                Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
-                Optional.of(new Notes("Bring lights"))).test(ride));
-        assertFalse(new RideMatchesFindCriteriaPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
-                Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
-                Optional.of(new Notes("Bring water"))).test(ride));
+        assertTrue(predicateWithNotes("Bring lights").test(ride));
+        assertFalse(predicateWithNotes("Bring water").test(ride));
     }
 
     @Test
@@ -124,12 +106,8 @@ public class RideMatchesFindCriteriaPredicateTest {
         // EP: name matching ignores case but rejects a different name.
         Ride ride = new RideBuilder().withName("Sunday Sunrise Ride").build();
 
-        assertTrue(new RideMatchesFindCriteriaPredicate(Optional.of(new Name("sunday sunrise ride")),
-                Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
-                Optional.empty(), Optional.empty()).test(ride));
-        assertFalse(new RideMatchesFindCriteriaPredicate(Optional.of(new Name("Sunday Sunset Ride")),
-                Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
-                Optional.empty(), Optional.empty()).test(ride));
+        assertTrue(predicateWithName("sunday sunrise ride").test(ride));
+        assertFalse(predicateWithName("Sunday Sunset Ride").test(ride));
     }
 
     @Test
@@ -159,6 +137,36 @@ public class RideMatchesFindCriteriaPredicateTest {
     private RideMatchesFindCriteriaPredicate predicateWithLocation(String location) {
         return new RideMatchesFindCriteriaPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
                 Optional.of(new Location(location)), Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.empty());
+    }
+
+    private RideMatchesFindCriteriaPredicate predicateWithDistance(String distance) {
+        return new RideMatchesFindCriteriaPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.empty(), Optional.of(new Distance(distance)), Optional.empty(), Optional.empty(),
+                Optional.empty());
+    }
+
+    private RideMatchesFindCriteriaPredicate predicateWithMinimumPower(String minimumPower) {
+        return new RideMatchesFindCriteriaPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.empty(), Optional.empty(), Optional.of(new MinimumPower(minimumPower)),
+                Optional.empty(), Optional.empty());
+    }
+
+    private RideMatchesFindCriteriaPredicate predicateWithGroupSize(String groupSize) {
+        return new RideMatchesFindCriteriaPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(new GroupSize(groupSize)),
+                Optional.empty());
+    }
+
+    private RideMatchesFindCriteriaPredicate predicateWithNotes(String notes) {
+        return new RideMatchesFindCriteriaPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.of(new Notes(notes)));
+    }
+
+    private RideMatchesFindCriteriaPredicate predicateWithName(String name) {
+        return new RideMatchesFindCriteriaPredicate(Optional.of(new Name(name)), Optional.empty(),
+                Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
                 Optional.empty());
     }
 }
