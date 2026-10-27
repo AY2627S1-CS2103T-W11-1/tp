@@ -376,7 +376,7 @@ The three screenshots in these sections show a separate walkthrough starting wit
 
 * Missing required prefixes or text before the first prefix produces `Invalid command format.` followed by the command usage.
 * Repeating a prefix is rejected. For example, repeating `d/` reports `Multiple values specified for the following single-valued field(s): d/.`
-* Invalid field values report the relevant constraint. For example, `d/0` reports `Distance should be a positive number of kilometres with at most 2 decimal places, for example 45 or 45.5.` Empty `notes/` reports `Notes should not be blank and should contain at most 10 words.`
+* Invalid field values report the relevant constraint. For example, `d/1000000` reports the distance constraint, including the six-digit limit before the decimal point. Empty `notes/` reports `Notes should not be blank and should contain at most 10 words.`
 * An end before the start reports `The end date and time (to/) cannot be earlier than the start date and time (from/).`
 * If the ID counter is exhausted, Cyclique reports `No more ride IDs are available.`
 

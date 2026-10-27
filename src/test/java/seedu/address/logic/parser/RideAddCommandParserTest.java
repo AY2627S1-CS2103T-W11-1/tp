@@ -45,6 +45,16 @@ public class RideAddCommandParserTest {
     private RideAddCommandParser parser = new RideAddCommandParser();
 
     @Test
+    public void parse_numericDigitLimits_propagatesConstraintsAndAcceptsThreeDigitPower() {
+        for (String distance : new String[] {"1000000", "0000001"}) {
+            assertParseFailure(parser, ALL_REQUIRED.replace("d/45", "d/" + distance), Distance.MESSAGE_CONSTRAINTS);
+        }
+        assertParseFailure(parser, ALL_REQUIRED.replace("f/180", "f/0001"), MinimumPower.MESSAGE_CONSTRAINTS);
+        assertParseSuccess(parser, ALL_REQUIRED.replace("f/180", "f/001"),
+                new RideAddCommand(new RideBuilder().withMinimumPower("1").build()));
+    }
+
+    @Test
     public void parse_unicodeNotes_enforcesBlankAndWordLimitRules() {
         for (String separator : new String[] {" ", "\t", "\r\n", "\u2003", "\u00a0", "\u202f", "\u3000"}) {
             assertParseFailure(parser, ALL_REQUIRED + " notes/" + separator, Notes.MESSAGE_CONSTRAINTS);
