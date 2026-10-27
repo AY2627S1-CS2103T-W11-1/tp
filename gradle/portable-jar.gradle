@@ -62,6 +62,11 @@ tasks.register('prepareMacNatives') {
             universal.put(libraries[0])
             universal.position(armOffset)
             universal.put(libraries[1])
+            [alignment, armOffset].eachWithIndex { offset, index ->
+                assert Arrays.equals(libraries[index], Arrays.copyOfRange(universal.array(),
+                        offset, offset + libraries[index].length))
+                        : "Universal library must preserve ${name}'s original CPU slices."
+            }
             new File(destination, name).bytes = universal.array()
         }
     }

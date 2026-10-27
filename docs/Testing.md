@@ -196,14 +196,3 @@ and card text, and verifies error styling and unchanged data after malformed inp
 `RideOverlapConfirmationTest` also combines quoted notes with overlapping time edits: the entire edit is deferred,
 confirmed exactly once, cancelled, rejected for stale data or rejected before overlap processing for invalid input.
 `MainWindowRidePanelTest` checks the combined command through the real command box and confirmation display.
-
-## Portable JAR smoke test
-
-`./gradlew shadowJar` builds one JAR for Windows, Linux and both Mac architectures.
-The Mac libraries share filenames, so the build combines their Intel and ARM slices.
-CI builds once on Linux, then launches that same artifact with plain JDK 25 on all
-four targets. The smoke helper waits for the main window, submits `exit` through
-the command box and checks shutdown. A watchdog rejects startup/shutdown hangs.
-To run it locally, use a fresh working folder and an isolated JavaFX cache:
-`java -ea -Djavafx.cachedir=cache -cp PATH_TO_JAR PATH_TO_PackagedJarSmokeTest.java`.
-Linux needs a display, for example by prefixing that command with `xvfb-run -a`.

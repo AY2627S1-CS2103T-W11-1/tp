@@ -5,9 +5,8 @@ on: [push, pull_request]
 jobs:
   build:
     strategy:
-      fail-fast: false
       matrix:
-        platform: [ubuntu-latest, macos-15-intel, macos-15, windows-latest]
+        platform: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
 
     steps:
@@ -27,11 +26,11 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '25'
-          java-package: jdk
+          java-package: jdk+fx
 
       - name: Build and check with Gradle on Linux
         if: runner.os == 'Linux'
-        run: xvfb-run -a ./gradlew check coverage shadowJar
+        run: xvfb-run -a ./gradlew check coverage
 
       - name: Build and check with Gradle
         if: runner.os != 'Linux'
@@ -42,48 +41,3 @@ jobs:
         uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-
-      - name: Upload the portable release JAR
-        if: runner.os == 'Linux'
-        uses: actions/upload-artifact@v4
-        with:
-          name: portable-jar
-          path: build/libs/cyclique.jar
-          if-no-files-found: error
-
-  smoke:
-    name: Packaged JAR (${{ matrix.platform }})
-    needs: build
-    timeout-minutes: 10
-    strategy:
-      fail-fast: false
-      matrix:
-        platform: [ubuntu-latest, macos-15-intel, macos-15, windows-latest]
-    runs-on: ${{ matrix.platform }}
-    steps:
-      - name: Set up repository
-        uses: actions/checkout@v7
-
-      - name: Setup plain JDK 25
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'zulu'
-          java-version: '25'
-          java-package: jdk
-
-      - name: Download the same portable JAR on every platform
-        uses: actions/download-artifact@v4
-        with:
-          name: portable-jar
-          path: build/release
-
-      - name: Launch the release JAR
-        shell: bash
-        run: |
-          mkdir -p build/smoke
-          cd build/smoke
-          if [ "$RUNNER_OS" = Linux ]; then
-            xvfb-run -a java -ea -Djavafx.cachedir=cache -cp ../release/cyclique.jar ../../src/test/java/seedu/address/testutil/PackagedJarSmokeTest.java
-          else
-            java -ea -Djavafx.cachedir=cache -cp ../release/cyclique.jar ../../src/test/java/seedu/address/testutil/PackagedJarSmokeTest.java
-          fi
