@@ -114,7 +114,8 @@ public class UiManager implements Ui {
         alert.getDialogPane().setContent(content);
         alert.getDialogPane().setPrefWidth(Math.min(640, maxWidth));
         alert.setResizable(true);
-        alert.setOnShown(event -> {
+        // Dialog's SHOWN event precedes native window creation on GTK.
+        alert.setOnShown(event -> Platform.runLater(() -> {
             Stage window = (Stage) alert.getDialogPane().getScene().getWindow();
             window.setMaxWidth(maxWidth);
             window.setMaxHeight(maxHeight);
@@ -122,7 +123,7 @@ public class UiManager implements Ui {
             window.setHeight(Math.min(window.getHeight(), maxHeight));
             window.setX(bounds.getMinX() + (bounds.getWidth() - window.getWidth()) / 2);
             window.setY(bounds.getMinY() + (bounds.getHeight() - window.getHeight()) / 2);
-        });
+        }));
     }
 
     /**

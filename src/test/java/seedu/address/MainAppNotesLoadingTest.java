@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
 import javafx.geometry.Rectangle2D;
@@ -307,8 +308,7 @@ public class MainAppNotesLoadingTest {
                     assertEquals(List.of(ButtonType.OK), pane.getButtonTypes());
                     assertFalse(app.exitRequested);
                     Button dismissButton = (Button) pane.lookupButton(ButtonType.OK);
-                    Rectangle2D screen = Screen.getScreensForRectangle(dialog.getX(), dialog.getY(),
-                            dialog.getWidth(), dialog.getHeight()).getFirst().getVisualBounds();
+                    Rectangle2D screen = Screen.getPrimary().getVisualBounds();
                     assertTrue(dialog.getWidth() <= screen.getWidth() * 0.9 + 2);
                     assertTrue(dialog.getHeight() <= screen.getHeight() * 0.9 + 2);
                     assertTrue(screen.contains(dialog.getX(), dialog.getY(), dialog.getWidth(), dialog.getHeight()));
@@ -318,6 +318,9 @@ public class MainAppNotesLoadingTest {
                     assertTrue(dismissButton.isVisible());
                     assertTrue(screen.contains(buttonBounds.getMinX(), buttonBounds.getMinY(),
                             buttonBounds.getWidth(), buttonBounds.getHeight()));
+                    assertTrue(new Rectangle2D(dialog.getX(), dialog.getY(), dialog.getWidth(), dialog.getHeight())
+                            .contains(buttonBounds.getMinX(), buttonBounds.getMinY(),
+                                    buttonBounds.getWidth(), buttonBounds.getHeight()));
                     assertTrue(pane.getScene().getRoot().getBoundsInLocal().contains(
                             pane.getScene().getRoot().sceneToLocal(dismissButton.localToScene(
                                     dismissButton.getBoundsInLocal()))));
@@ -332,7 +335,14 @@ public class MainAppNotesLoadingTest {
                 }
                 return null;
             });
-            Platform.runLater(dismissDialog);
+            // Inspect after a frame so GTK has applied the native window geometry.
+            Platform.runLater(() -> new AnimationTimer() {
+                @Override
+                public void handle(long now) {
+                    stop();
+                    dismissDialog.run();
+                }
+            }.start());
             app.start(primaryStage);
             dismissDialog.get();
             assertTrue(app.exitRequested);
