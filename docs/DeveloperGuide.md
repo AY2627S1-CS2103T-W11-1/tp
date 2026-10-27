@@ -1434,6 +1434,9 @@ Use the valid ride and cyclists created in the preceding roster scenario, and no
 
 ### Find and ridefind regression (manual testing)
 
+The ride panel resets its active `ridefind` filter after a ride is added or edited, and when the address book is
+cleared. This keeps successful changes visible instead of making them appear to have been lost.
+
 Use disposable cyclist and ride data. Record the original details before applying filters.
 
 1. Enter `list`. Expected: all cyclists appear in alphabetical order.

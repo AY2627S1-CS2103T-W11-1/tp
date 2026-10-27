@@ -150,6 +150,8 @@ public class HelpWindowTest {
         assertTrue(RideAddCommand.MESSAGE_USAGE.contains("MIN_POWER is in watts"));
         assertTrue(RideEditCommand.MESSAGE_USAGE.contains("[f/MIN_POWER] [s/MAX_GROUP_SIZE]"));
         assertTrue(RideFindCommand.MESSAGE_USAGE.contains("[f/MIN_POWER] [s/MAX_GROUP_SIZE]"));
+        assertTrue(RideFindCommand.MESSAGE_USAGE.contains("ridefind (rf) all\n  ridefind (rf) [n/NAME]"));
+        assertTrue(RideFindCommand.MESSAGE_USAGE.contains("[to/DATE [TIME]]\n    [l/LOCATION]"));
         // Help menu
         for (String commandWord : new String[] {RideAddCommand.COMMAND_WORD, RideEditCommand.COMMAND_WORD,
             RideFindCommand.COMMAND_WORD}) {

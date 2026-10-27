@@ -80,6 +80,7 @@ public class ModelManager implements Model {
     public void setAddressBook(ReadOnlyAddressBook addressBook) {
         requireNonNull(addressBook);
         updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+        updateFilteredRideList(PREDICATE_SHOW_ALL_RIDES);
         this.addressBook.resetData(addressBook);
     }
 
@@ -115,7 +116,9 @@ public class ModelManager implements Model {
     @Override
     public Ride addRide(Ride ride) {
         requireNonNull(ride);
-        return addressBook.addRide(ride);
+        Ride addedRide = addressBook.addRide(ride);
+        updateFilteredRideList(PREDICATE_SHOW_ALL_RIDES);
+        return addedRide;
     }
 
     @Override
@@ -128,6 +131,7 @@ public class ModelManager implements Model {
     public void setRide(Ride target, Ride editedRide) {
         requireAllNonNull(target, editedRide);
         addressBook.setRide(target, editedRide);
+        updateFilteredRideList(PREDICATE_SHOW_ALL_RIDES);
     }
 
     //=========== Filtered Person List Accessors =============================================================
