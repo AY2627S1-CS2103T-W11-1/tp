@@ -95,8 +95,8 @@ public class CommandTemplates {
                     + ") ID PHONE", RideRosterCommand.LEAVE_COMMAND_WORD + " "),
             new Template(RideListCommand.COMMAND_WORD + " (" + RideListCommand.COMMAND_ALIAS + ") ID",
                     RideListCommand.COMMAND_WORD + " "),
-            new Template(RideFindCommand.COMMAND_WORD + " (" + RideFindCommand.COMMAND_ALIAS + ") all OR "
-                    + RideFindCommand.COMMAND_WORD
+            new Template(RideFindCommand.COMMAND_WORD + " (" + RideFindCommand.COMMAND_ALIAS + ") all\n"
+                    + RideFindCommand.COMMAND_WORD + " (" + RideFindCommand.COMMAND_ALIAS + ")"
                     + " [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] "
                     + "[l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]",
                     RideFindCommand.COMMAND_WORD + " "),

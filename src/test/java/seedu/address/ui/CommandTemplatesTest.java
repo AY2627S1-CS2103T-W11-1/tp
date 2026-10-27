@@ -126,6 +126,7 @@ public class CommandTemplatesTest {
         String display = templateFor(RideFindCommand.COMMAND_WORD).display();
 
         assertTrue(display.contains("ridefind (rf) all"));
+        assertTrue(display.contains("ridefind (rf) all\nridefind (rf) [n/NAME]"));
     }
 
     @Test
