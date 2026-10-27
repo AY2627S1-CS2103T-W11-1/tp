@@ -29,6 +29,7 @@ import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.exceptions.DuplicatePersonException;
+import seedu.address.model.ride.Ride;
 
 /**
  * Edits the details of an existing person in the address book.
@@ -60,6 +61,8 @@ public class EditCommand extends Command {
             + "Choose a unique phone number.";
     public static final String MESSAGE_AMBIGUOUS_PHONE = Messages.MESSAGE_AMBIGUOUS_PHONE;
     public static final String MESSAGE_PERSON_NOT_FOUND = Messages.MESSAGE_CYCLIST_NOT_FOUND;
+    public static final String MESSAGE_FTP_BELOW_RIDE_MINIMUM =
+            "Cannot edit cyclist: FTP %1$d W is below the minimum %2$d W for ride %3$d (%4$s).";
 
     private final Phone targetPhone;
     private final EditPersonDescriptor editPersonDescriptor;
@@ -95,6 +98,9 @@ public class EditCommand extends Command {
 
         Person personToEdit = matchingPersons.get(0);
         Person editedPerson = createEditedPerson(personToEdit, editPersonDescriptor);
+        if (editPersonDescriptor.getFtp().isPresent()) {
+            validateRideEligibility(model, personToEdit, editedPerson);
+        }
 
         try {
             model.setPerson(personToEdit, editedPerson);
@@ -103,6 +109,22 @@ public class EditCommand extends Command {
         }
 
         return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson)));
+    }
+
+    /**
+     * Rejects an FTP edit that would violate any existing registration before changing stored data.
+     * Uses the original phone number so a simultaneous phone edit cannot bypass validation.
+     */
+    private static void validateRideEligibility(Model model, Person originalPerson, Person editedPerson)
+            throws CommandException {
+        int updatedFtp = Integer.parseInt(editedPerson.getFtp().value);
+        for (Ride ride : model.getAddressBook().getRideList()) {
+            if (ride.getRoster().contains(originalPerson.getPhone())
+                    && updatedFtp < Integer.parseInt(ride.getMinimumPower().value)) {
+                throw new CommandException(String.format(MESSAGE_FTP_BELOW_RIDE_MINIMUM, updatedFtp,
+                        Integer.parseInt(ride.getMinimumPower().value), ride.getId(), ride.getName().fullName));
+            }
+        }
     }
 
     /**
