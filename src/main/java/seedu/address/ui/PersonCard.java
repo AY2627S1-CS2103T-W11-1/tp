@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Region;
+import seedu.address.model.person.Location;
 import seedu.address.model.person.Person;
 
 /**
@@ -84,11 +85,12 @@ public class PersonCard extends UiPart<Region> {
 
     /**
      * Returns the person's preferred locations as display text.
-     * The special {@code any} value is humanized without changing its stored representation.
+     * The first letter of every word is capitalised, and {@code any} is shown as {@code Any}, without changing
+     * the stored representation.
      */
     static String formatLocations(Person person) {
         return person.getLocations().stream()
-                .map(location -> location.value.equalsIgnoreCase("any") ? "Any" : location.value)
+                .map(Location::toDisplayText)
                 .sorted(String.CASE_INSENSITIVE_ORDER)
                 .collect(Collectors.joining(", "));
     }

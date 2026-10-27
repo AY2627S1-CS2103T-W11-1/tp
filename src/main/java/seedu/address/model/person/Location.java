@@ -25,6 +25,25 @@ public class Location {
         return value != null && !value.trim().isEmpty() && VALIDATION_PATTERN.matcher(value.trim()).matches();
     }
 
+    /**
+     * Returns this location as display text, with the first letter of every word as a capital letter, for example
+     * {@code Marina Bay} for {@code marina bay}. The rest of each word is left as it was entered, so that
+     * an abbreviation such as {@code ECP} stays as it is. The special location {@code any} is shown as {@code Any}.
+     * The stored value is not changed.
+     */
+    public String toDisplayText() {
+        if (value.equalsIgnoreCase("any")) {
+            return "Any";
+        }
+        StringBuilder displayText = new StringBuilder();
+        boolean startOfWord = true;
+        for (char character : value.toCharArray()) {
+            displayText.append(startOfWord ? Character.toUpperCase(character) : character);
+            startOfWord = character == ' ';
+        }
+        return displayText.toString();
+    }
+
     @Override
     public boolean equals(Object other) {
         return other instanceof Location otherLocation
