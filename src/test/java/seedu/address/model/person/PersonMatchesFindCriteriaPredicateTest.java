@@ -16,6 +16,7 @@ public class PersonMatchesFindCriteriaPredicateTest {
 
     @Test
     public void test_emergencyPhone_matchesOwnFieldAndAllCriteria() {
+        // EP: emergency-phone criteria match the emergency field and combine with other fields using AND.
         Person cyclist = new PersonBuilder(alice).withEmergencyPhone("+65 99999999").build();
         List<Phone> emergencyPhones = List.of(new Phone("+65 88888888"), new Phone("+65 99999999"));
         assertTrue(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), emergencyPhones).test(cyclist));
@@ -35,6 +36,7 @@ public class PersonMatchesFindCriteriaPredicateTest {
 
     @Test
     public void equals_differentEmergencyCriteria_returnsFalse() {
+        // This verifies that emergency-phone criteria participate in predicate equality.
         PersonMatchesFindCriteriaPredicate predicate = new PersonMatchesFindCriteriaPredicate(
                 List.of(), List.of(), List.of(new Phone("+65 99999999")));
         assertFalse(predicate.equals(new PersonMatchesFindCriteriaPredicate(List.of(), List.of())));
@@ -44,6 +46,7 @@ public class PersonMatchesFindCriteriaPredicateTest {
 
     @Test
     public void test_nameKeywords_matchCompleteWordsIgnoringCase() {
+        // EP: complete words match case-insensitively, while partial or incorrectly ordered words do not.
         assertTrue(new PersonMatchesFindCriteriaPredicate(List.of("carol", "aLIce"), List.of()).test(alice));
         assertFalse(new PersonMatchesFindCriteriaPredicate(List.of("Ali"), List.of()).test(alice));
         assertTrue(new PersonMatchesFindCriteriaPredicate(List.of("alice bob"), List.of()).test(alice));
@@ -53,6 +56,7 @@ public class PersonMatchesFindCriteriaPredicateTest {
 
     @Test
     public void test_phoneNumbers_matchAnyExactNumber() {
+        // EP: phone criteria use exact matching with OR semantics across repeated values.
         assertTrue(new PersonMatchesFindCriteriaPredicate(List.of(),
                 List.of(new Phone("+65 12345678"), new Phone("+65 96320842"))).test(alice));
         assertFalse(new PersonMatchesFindCriteriaPredicate(List.of(),
@@ -61,6 +65,7 @@ public class PersonMatchesFindCriteriaPredicateTest {
 
     @Test
     public void test_nameAndPhone_bothMustMatch() {
+        // EP: different criteria use AND semantics, so one mismatch rejects the person.
         assertTrue(new PersonMatchesFindCriteriaPredicate(List.of("bob"),
                 List.of(new Phone("+65 96320842"))).test(alice));
         assertFalse(new PersonMatchesFindCriteriaPredicate(List.of("bob"),
@@ -71,6 +76,7 @@ public class PersonMatchesFindCriteriaPredicateTest {
 
     @Test
     public void test_location_matchesCaseInsensitivelyAndAnyIsWildcard() {
+        // EP: locations support case-insensitive words, the reserved any value, and invalid partial words.
         Person punggolCyclist = new PersonBuilder(alice).withLocations("Punggol").build();
         Person unrestrictedCyclist = new PersonBuilder(alice).withLocations("any").build();
         Person cyclistAtAnyPark = new PersonBuilder(alice).withLocations("Any Park").build();
@@ -101,6 +107,7 @@ public class PersonMatchesFindCriteriaPredicateTest {
 
     @Test
     public void test_experienceAndMinimumFtp_matchExpectedValues() {
+        // EP: experience must match exactly, while FTP must meet the minimum threshold.
         Person cyclist = new PersonBuilder(alice).withExperienceLevel("Intermediate").withFtp("300").build();
 
         assertTrue(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(),
@@ -113,6 +120,7 @@ public class PersonMatchesFindCriteriaPredicateTest {
 
     @Test
     public void test_minimumFtp_matchesExactBoundary() {
+        // EP: the minimum FTP boundary is accepted.
         Person cyclist = new PersonBuilder(alice).withFtp("300").build();
 
         assertTrue(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(), List.of(), Set.of(),
@@ -121,6 +129,7 @@ public class PersonMatchesFindCriteriaPredicateTest {
 
     @Test
     public void test_locationExperienceAndMinimumFtp_requireAllFieldsToMatch() {
+        // EP: each supplied field is independently necessary for a match.
         Person cyclist = new PersonBuilder(alice).withLocations("Punggol")
                 .withExperienceLevel("Intermediate").withFtp("300").build();
         Person wrongLocation = new PersonBuilder(cyclist).withLocations("Tampines").build();
@@ -138,6 +147,7 @@ public class PersonMatchesFindCriteriaPredicateTest {
 
     @Test
     public void test_allFindCriteria_requireEveryFieldToMatch() {
+        // EP: a person matches only when every supplied find criterion matches.
         Person cyclist = new PersonBuilder(alice).withEmergencyPhone("+65 99999999")
                 .withLocations("Tampines").withExperienceLevel("Intermediate").withFtp("300").build();
         Person wrongEmergencyPhone = new PersonBuilder(cyclist).withEmergencyPhone("+65 88888888").build();
@@ -151,6 +161,7 @@ public class PersonMatchesFindCriteriaPredicateTest {
 
     @Test
     public void equals_differentCyclingCriteria_returnsFalse() {
+        // This verifies that cycling criteria participate in predicate equality.
         PersonMatchesFindCriteriaPredicate locationPredicate = new PersonMatchesFindCriteriaPredicate(
                 List.of(), List.of(), List.of(), List.of(), Set.of(new Location("Punggol")), null);
         PersonMatchesFindCriteriaPredicate ftpPredicate = new PersonMatchesFindCriteriaPredicate(

@@ -15,11 +15,13 @@ public class RideMatchesFindCriteriaPredicateTest {
 
     @Test
     public void test_noCriteria_matchesRide() {
+        // EP: no supplied criteria represents the match-all case.
         assertTrue(predicate().test(new RideBuilder().build()));
     }
 
     @Test
     public void test_fromAndTo_areInclusiveAtRideBoundaries() {
+        // EP: boundary values are included, while values just outside either boundary are rejected.
         Ride ride = new RideBuilder().withFrom("18-10-2026 0630").withTo("18-10-2026 0930").build();
         RideMatchesFindCriteriaPredicate predicate = new RideMatchesFindCriteriaPredicate(Optional.empty(),
                 Optional.of(new RideDateTime("18-10-2026 0630")), Optional.of(new RideDateTime("18-10-2026 0930")),
@@ -36,6 +38,7 @@ public class RideMatchesFindCriteriaPredicateTest {
 
     @Test
     public void test_allFields_requireEveryFieldToMatch() {
+        // EP: all supplied fields must match; one incorrect field rejects the ride.
         Ride ride = new RideBuilder().withName("Evening Loop").withLocation("Tampines").withDistance("50")
                 .withMinimumPower("200").withMaxGroupSize("15").withNotes("Bring lights").build();
         RideMatchesFindCriteriaPredicate predicate = new RideMatchesFindCriteriaPredicate(
@@ -52,6 +55,7 @@ public class RideMatchesFindCriteriaPredicateTest {
 
     @Test
     public void test_optionalNotes_requiresNotesWhenSpecified() {
+        // EP: a ride without notes belongs to the non-matching partition when notes are requested.
         Ride ride = new RideBuilder().build();
         RideMatchesFindCriteriaPredicate predicate = new RideMatchesFindCriteriaPredicate(Optional.empty(),
                 Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
@@ -62,6 +66,7 @@ public class RideMatchesFindCriteriaPredicateTest {
 
     @Test
     public void test_location_isCaseInsensitive() {
+        // EP: location matching ignores case and rejects a different location.
         Ride ride = new RideBuilder().withLocation("Tampines").build();
 
         assertTrue(new RideMatchesFindCriteriaPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
@@ -74,6 +79,7 @@ public class RideMatchesFindCriteriaPredicateTest {
 
     @Test
     public void test_distance_requiresExactValue() {
+        // EP: numerically equivalent values match, while a different distance does not.
         Ride ride = new RideBuilder().withDistance("45.5").build();
 
         assertTrue(new RideMatchesFindCriteriaPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
@@ -86,6 +92,7 @@ public class RideMatchesFindCriteriaPredicateTest {
 
     @Test
     public void test_minimumPower_isAtLeastTheSpecifiedValueAndGroupSizeIsExact() {
+        // EP: minimum power is inclusive, while maximum group size requires an exact value.
         Ride ride = new RideBuilder().withMinimumPower("600").withMaxGroupSize("1").build();
 
         assertTrue(new RideMatchesFindCriteriaPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
@@ -105,6 +112,7 @@ public class RideMatchesFindCriteriaPredicateTest {
 
     @Test
     public void test_notes_requiresExactValue() {
+        // EP: the complete notes value must match; a different value is rejected.
         Ride ride = new RideBuilder().withNotes("Bring lights").build();
 
         assertTrue(new RideMatchesFindCriteriaPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
@@ -117,6 +125,7 @@ public class RideMatchesFindCriteriaPredicateTest {
 
     @Test
     public void test_name_isCaseInsensitive() {
+        // EP: name matching ignores case but rejects a different name.
         Ride ride = new RideBuilder().withName("Sunday Sunrise Ride").build();
 
         assertTrue(new RideMatchesFindCriteriaPredicate(Optional.of(new Name("sunday sunrise ride")),
@@ -129,6 +138,7 @@ public class RideMatchesFindCriteriaPredicateTest {
 
     @Test
     public void test_fromOnlyAndToOnly_applyOneSidedBounds() {
+        // EP: each optional time boundary works independently of the other boundary.
         Ride ride = new RideBuilder().withFrom("18-10-2026 0630").withTo("18-10-2026 0930").build();
 
         assertTrue(new RideMatchesFindCriteriaPredicate(Optional.empty(),
