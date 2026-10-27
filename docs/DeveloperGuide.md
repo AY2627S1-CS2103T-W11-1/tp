@@ -240,9 +240,9 @@ emergency phone, `f/` for a minimum FTP, `x/` for experience level and `l/` for 
 location. At least one criterion is required. The `n/`, `p/`, `sos/`, `x/` and `l/` prefixes
 can each be repeated: values within one field use OR matching, while different fields use
 AND. The `f/` prefix accepts only one minimum FTP value, and a cyclist matches when their
-FTP is greater than or equal to that value. Names match complete words case-insensitively;
+FTP is greater than or equal to that value. Names and preferred locations match complete words case-insensitively;
 a name containing spaces matches when all supplied words are present in the same order, even
-when other words appear between them. For example,
+when other words appear between them. A multi-word location criterion follows the same rule. For example,
 `find l/Punggol x/Intermediate f/250` finds intermediate cyclists who prefer Punggol and have
 an FTP of at least 250 watts. Preferred locations match case-insensitively against any
 supplied `l/` value. A cyclist whose stored preferred location is `any` matches every
@@ -886,6 +886,8 @@ Use John and Alice from the previous section.
    phone numbers or full name words, rather than substrings.
 1. Enter `find n/John Doe`. Expected: Cyclists whose names contain `John` followed by `Doe` appear,
    ignoring case. `find n/Doe John` does not match the same names.
+1. Enter `find l/East Coast`. Expected: Cyclists with a preferred location containing the complete
+   words `East Coast` in order appear; a location such as `East Coast Park` matches.
 1. Try `find`, `find john alice`, and `find p/`. Expected: Each shows an error without changing the current
    displayed list.
 1. Enter `find n/john`, then `edit +65 91234567 n/Alice Updated`.

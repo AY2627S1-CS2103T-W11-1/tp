@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 
-import seedu.address.commons.util.StringUtil;
 import seedu.address.commons.util.ToStringBuilder;
 
 /**
@@ -61,12 +60,30 @@ public class PersonMatchesFindCriteriaPredicate implements Predicate<Person> {
         boolean matchesLocation = locations.isEmpty()
                 || person.getLocations().stream().anyMatch(location -> location.value.equalsIgnoreCase("any"))
                 || person.getLocations().stream().anyMatch(personLocation -> locations.stream()
-                        .anyMatch(searchLocation -> StringUtil.containsWordIgnoreCase(
+                        .anyMatch(searchLocation -> containsLocationWords(
                                 personLocation.value, searchLocation.value)));
         boolean matchesFtp = minimumFtp == null
                 || Integer.parseInt(person.getFtp().value) >= Integer.parseInt(minimumFtp.value);
         return matchesName && matchesPhone && matchesEmergencyPhone && matchesExperience
                 && matchesLocation && matchesFtp;
+    }
+
+    /** Returns whether the location contains the search words in order. */
+    private boolean containsLocationWords(String location, String searchLocation) {
+        String[] locationWords = location.split("\\s+");
+        String[] searchWords = searchLocation.trim().split("\\s+");
+        int locationIndex = 0;
+        for (String searchWord : searchWords) {
+            while (locationIndex < locationWords.length
+                    && !locationWords[locationIndex].equalsIgnoreCase(searchWord)) {
+                locationIndex++;
+            }
+            if (locationIndex == locationWords.length) {
+                return false;
+            }
+            locationIndex++;
+        }
+        return true;
     }
 
     private boolean matchesName(Person person, String keyword) {

@@ -88,6 +88,8 @@ public class PersonMatchesFindCriteriaPredicateTest {
         Person cyclistAtEastCoast = new PersonBuilder(alice).withLocations("East Coast Park").build();
         assertTrue(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(), List.of(),
                 Set.of(new Location("coast")), null).test(cyclistAtEastCoast));
+        assertTrue(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(), List.of(),
+                Set.of(new Location("east coast")), null).test(cyclistAtEastCoast));
         assertFalse(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(), List.of(),
                 Set.of(new Location("coas")), null).test(cyclistAtEastCoast));
     }

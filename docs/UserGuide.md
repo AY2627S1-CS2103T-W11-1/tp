@@ -192,7 +192,7 @@ Field | Meaning and rules
 `sos/EMERGENCY_PHONE` | A complete emergency contact number using the same validation and exact matching as `p/`. Only cyclists with an emergency number matching the supplied value are shown. Cyclists whose emergency number is missing or different are not shown.
 `f/MIN_FTP` | A whole number from 1 to 600, inclusive. Matches cyclists whose FTP is greater than or equal to the supplied value in watts; both `f/1` and `f/600` are valid.
 `x/EXPERIENCE` | `Beginner`, `Intermediate` or `Advanced`, ignoring case. Repeat `x/` to match any of the supplied experience levels.
-`l/LOCATION` | A preferred location, ignoring case. Complete words within the supplied location are matched, so `l/Coast` matches `East Coast Park` but `l/Coas` does not. Repeat `l/` to match any supplied location. A cyclist with `l/any` matches every location criterion.
+`l/LOCATION` | A preferred location, ignoring case. Complete words within the supplied location are matched in order, so `l/Coast` and `l/East Coast` match `East Coast Park` but `l/Coas` does not. Repeat `l/` to match any supplied location. A cyclist with `l/any` matches every location criterion.
 
 At least one criterion is required. Each prefix may be repeated except `f/`, which accepts only one value. Values
 within the same field use `OR`, while different fields use `AND`; for example, `find n/Hans n/Bo f/250` matches
@@ -216,6 +216,7 @@ Examples:
 * `find n/alex p/+65 96320842` returns only people whose name contains `alex` and whose phone number is `+65 96320842`.
 * `find l/Punggol x/Intermediate f/250` returns cyclists whose preferred location is Punggol, experience level is Intermediate,
   and FTP is at least 250 W.
+* `find l/East Coast` returns cyclists whose preferred location contains `East Coast`, such as `East Coast Park`.
 * `find sos/+65 99999999` returns cyclists with that emergency contact number.
 * `find x/Beginner x/Intermediate` returns cyclists with either experience level.
 
