@@ -5,11 +5,47 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 
+import java.util.Collections;
+
 import org.junit.jupiter.api.Test;
 
 public class NotesTest {
 
     private static final String TEN_WORDS = "one two three four five six seven eight nine ten";
+
+    @Test
+    public void isBlank_usesTheSameWhitespaceDefinitionAsValidation() {
+        assertThrows(NullPointerException.class, () -> Notes.isBlank(null));
+        assertTrue(Notes.isBlank(""));
+        assertTrue(Notes.isBlank(" \t\r\n\u00a0\u2003\u202f\u3000"));
+        assertFalse(Notes.isBlank("\u00a0Bring\u2003"));
+        assertFalse(Notes.isBlank("\u200b"));
+    }
+
+    @Test
+    public void constructor_unicodeSeparators_normalizesAndEnforcesWordLimit() {
+        for (String separator : new String[] {" ", "\t", "\r\n", "\u00a0", "\u2003", "\u202f", "\u3000"}) {
+            assertFalse(Notes.isValidNotes(separator));
+            assertThrows(IllegalArgumentException.class, () -> new Notes(separator));
+            for (int words = 1; words <= Notes.MAX_WORDS; words++) {
+                String expected = String.join(" ", Collections.nCopies(words, "word"));
+                String input = separator + expected.replace(" ", separator + separator) + separator;
+                assertEquals(expected, new Notes(input).value);
+            }
+            String eleven = (TEN_WORDS + " eleven").replace(" ", separator);
+            assertFalse(Notes.isValidNotes(eleven));
+            assertThrows(IllegalArgumentException.class, () -> new Notes(eleven));
+        }
+    }
+
+    @Test
+    public void constructor_mixedSeparators_preservesUnicodeCasePunctuationAndPrefixes() {
+        assertEquals("Bring CAF\u00c9, \u6c34! f/2 \ud83d\udeb2\u200b", new Notes(
+                "\u3000Bring\u00a0\tCAF\u00c9,\u2003\u6c34!\r\nf/2\u202f\ud83d\udeb2\u200b\u3000").value);
+        assertFalse(Notes.isValidNotes(" \t\r\n\u00a0\u2003\u202f\u3000"));
+        assertFalse(Notes.isValidNotes("one\ttwo\nthree\u00a0four\u2003five\u202fsix\u3000seven "
+                + "eight\u2003\u00a0nine ten eleven"));
+    }
 
     @Test
     public void constructor_null_throwsNullPointerException() {

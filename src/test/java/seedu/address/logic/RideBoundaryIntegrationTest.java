@@ -49,6 +49,74 @@ public class RideBoundaryIntegrationTest {
     }
 
     @Test
+    public void execute_unicodeWhitespaceAfterQuotes_preservesNotesParametersAndJson() throws Exception {
+        logic.execute("rideaddcyclist 1 " + PHONE);
+        Ride original = currentRide();
+        String notes = "Bring camera with aperture f/2";
+        for (String separator : List.of(" ", "\u2003", "\u00a0", "\u202f", "\u3000", "\u00a0\u2003\u202f")) {
+            logic.execute("rideedit 1 notes/\"" + notes + "\"" + separator + " s/5");
+            assertEquals(new RideBuilder(original).withNotes(notes).withMaxGroupSize("5").build(), currentRide());
+            logic.execute("rideadd " + DETAILS + " notes/\"" + notes + "\"" + separator);
+            Ride added = model.getAddressBook().getRideList().getLast();
+            assertEquals(notes, added.getNotes().orElseThrow().value);
+            assertEquals(original.getMinimumPower(), added.getMinimumPower());
+            assertSavedState();
+        }
+    }
+
+    @Test
+    public void execute_unicodeNotes_normalizesAndClearsWithoutChangingOtherFieldsOrFilters() throws Exception {
+        logic.execute("rideaddcyclist 1 " + PHONE);
+        logic.execute("ridelist 1");
+        Ride original = currentRide();
+        List<Person> visiblePeople = List.copyOf(model.getFilteredPersonList());
+        logic.execute("ridefind notes/Bring");
+        for (String separator : new String[] {" ", "\t", "\u2003", "\u00a0", "\u202f", "\u3000"}) {
+            logic.execute("rideedit 1 notes/\"" + separator + "Bring" + separator + "camera"
+                    + separator + "with aperture f/2" + separator + "\"");
+            assertEquals(new RideBuilder(original).withNotes("Bring camera with aperture f/2").build(), currentRide());
+            assertEquals(List.of(currentRide()), model.getFilteredRideList());
+            assertSavedState();
+            logic.execute("rideedit 1 notes/" + separator);
+            assertEquals(original, currentRide());
+            assertEquals(java.util.Optional.empty(), currentRide().getNotes());
+            assertEquals(List.of(), model.getFilteredRideList());
+            assertEquals(visiblePeople, model.getFilteredPersonList());
+            assertSavedState();
+            model.setAddressBook(storage.readAddressBook().orElseThrow());
+            assertEquals(original, currentRide());
+        }
+        logic.execute("rideadd " + DETAILS + " notes/\u3000Bring\u2003\u00a0CAF\u00c9,\u202f\u6c34!\u3000");
+        Ride added = model.getAddressBook().getRideList().get(1);
+        assertEquals(2, added.getId());
+        assertEquals("Bring CAF\u00c9, \u6c34!", added.getNotes().orElseThrow().value);
+        assertEquals(List.of(added), model.getFilteredRideList());
+        assertSavedState();
+    }
+
+    @Test
+    public void execute_invalidUnicodeNotes_preservesBookFiltersJsonAndNextId() throws Exception {
+        logic.execute("rideaddcyclist 1 " + PHONE);
+        logic.execute("rideedit 1 notes/Bring lights");
+        logic.execute("ridelist 1");
+        logic.execute("ridefind notes/lights");
+        for (String separator : new String[] {" ", "\t", "\r\n", "\u2003", "\u00a0", "\u202f", "\u3000"}) {
+            String eleven = "one two three four five six seven eight nine ten eleven".replace(" ", separator);
+            assertRejected("rideadd " + DETAILS + " notes/" + separator, ParseException.class);
+            for (String quote : new String[] {"", "\""}) {
+                assertRejected("rideadd " + DETAILS + " notes/" + quote + eleven + quote, ParseException.class);
+                assertRejected("rideedit 1 f/100 notes/" + quote + eleven + quote, ParseException.class);
+            }
+            assertRejected("rideadd " + DETAILS + " notes/\"" + separator + "\"", ParseException.class);
+            assertRejected("rideedit 1 f/100 notes/\"" + separator + "\"", ParseException.class);
+            assertThrows(ParseException.class, () -> logic.execute("yes"));
+        }
+        logic.execute("rideadd " + DETAILS + " notes/\"one\u2003two three four five six seven eight nine ten\"");
+        assertEquals(2, model.getAddressBook().getRideList().get(1).getId());
+        assertSavedState();
+    }
+
+    @Test
     public void execute_quotedNotes_preservesOtherFieldsRosterAndPersistence() throws Exception {
         logic.execute("rideaddcyclist 1 " + PHONE);
         Ride original = currentRide();

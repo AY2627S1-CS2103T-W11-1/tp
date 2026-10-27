@@ -201,3 +201,11 @@ and card text, and verifies error styling and unchanged data after malformed inp
 `RideOverlapConfirmationTest` also combines quoted notes with overlapping time edits: the entire edit is deferred,
 confirmed exactly once, cancelled, rejected for stale data or rejected before overlap processing for invalid input.
 `MainWindowRidePanelTest` checks the combined command through the real command box and confirmation display.
+
+Run **Unicode whitespace in ride notes (Issue #169)** in the Developer Guide after notes changes.
+Model/parser tests cover Unicode blank detection, normalisation and word boundaries; tokenizer tests preserve
+quote and prefix rules. Command, overlap and JavaFX tests cover atomicity, IDs, rosters, filters, persistence,
+feedback and Notes-row removal. `MainAppNotesLoadingTest` covers legacy data, explicit repair/restart, real
+fatal dialogs and shutdown (including separate JVMs), original-file preservation and normal startup.
+These automated checks complement the manual visual scenarios; they do not establish native focus or layout
+on untested operating systems.

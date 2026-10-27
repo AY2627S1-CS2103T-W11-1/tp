@@ -581,3 +581,50 @@ checks. JaCoCo reports 86.20% line coverage (2111 of 2449 lines), up from
 list panels, including their cells, have 100% line coverage. Automated checks
 cover warnings, confirmation/cancellation, stale data, persistence, error
 recovery, interval boundaries and recycled cards.
+
+## Unicode whitespace in ride notes â€” Issue #169 (27 October 2026)
+
+Historical Windows runs used Temurin **25.0.4+7-LTS** and `./gradlew.bat clean check coverage shadowJar`.
+Every successful run below had zero failures, errors and skips, and passed both Checkstyle tasks.
+Initial checkout: clean `169-fix-unicode-ride-notes`, HEAD/merge base `ad4a48526b1efa331812fbe1f8babed358a55bd8`.
+
+| Earlier verification stage | Tests | Line coverage | Branch coverage | JAR bytes |
+| --- | ---: | ---: | ---: | ---: |
+| Unicode validation | 863 | 89.37% (2,296/2,569) | 93.21% (1,029/1,104) | 12,594,450 |
+| Legacy-data protection | 868 | 90.54% (2,327/2,570) | 93.39% (1,031/1,104) | 12,594,553 |
+| PR #209 dialog corrections | 874 | 91.10% (2,386/2,619) | 92.73% (1,046/1,128) | 12,596,629 |
+
+Before the Unicode fix, actual U+2003, U+00A0, U+202F and U+3000 reproduced eleven-word acceptance,
+blank Ride Add acceptance and invisible Ride Edit notes; ASCII spaces behaved correctly. Quoted blank
+NBSP/NARROW NBSP were accepted, unlike EM/IDEOGRAPHIC SPACE. Four new regressions failed before the fix.
+The initial full run also exposed an obsolete Help assertion, corrected before the successful rerun.
+Eleven initial regression methods covered validation, commands, storage and UI; Issue #155 tests stayed enabled.
+
+The legacy-data audit reproduced empty-model substitution for blank EM SPACE/NBSP and eleven-word
+EM SPACE/NBSP notes: loading left JSON intact, then `list` overwrote it, losing the unrelated cyclist and
+both rides. Valid ten-word Unicode and ordinary notes preserved all records. Five startup regression methods
+were added. Four packaged-JAR launches verified protection at that stage: exit code 1 before UI startup,
+notes constraint/recovery diagnostics and byte-for-byte unchanged JSON.
+
+The review correction accepts supported Unicode whitespace after closing quotes without broadening prefix
+recognition. The fatal dialog uses a short header and a bounded, wrapped, scrollable reason/recovery area.
+Nine automated `javaw` launches using the corrected JAR covered blank EM SPACE/NBSP, eleven-word EM SPACE/NBSP,
+malformed JSON, duplicate phones, invalid ride IDs, a missing cyclist list and a long path. A JavaFX observer
+checked the dialog and dismissed it through OK or window-close events. Every process exited normally with
+code 0, opened no command UI and preserved JSON byte for byte. This exercised real shutdown, not a toolkit stub.
+
+Manual double-click visibility, native focus and visual layout remain unverified. Run **Unicode whitespace
+in ride notes (Issue #169)** and **Literal prefixes in ride notes (Issue #155)** in the Developer Guide before
+release. Automated JavaFX assertions do not replace these checks. Embedded command line breaks remain rejected;
+direct parser/model tests cover their normalisation. Build configuration, JavaFX packaging and UML are unchanged.
+Existing native-access/deprecated-API warnings did not fail the recorded builds. Reports:
+`build/reports/tests/test/index.html`, `build/reports/jacoco/coverage/html/index.html` and
+`build/reports/jacoco/coverage/coverage.xml`; JAR: `build/libs/cyclique.jar`.
+
+Final scope/coverage pass: `clean check coverage shadowJar` passed on Windows (Temurin JDK **25.0.4**)
+and Linux/Xvfb (Zulu **25.0.4+7-LTS**): **874 tests**, zero failures/errors/skips and both Checkstyle tasks passing.
+JaCoCo: **92.09%** lines (2,411/2,618), **93.58%** branches (1,050/1,122); JAR: **12,596,400 bytes**.
+Local patch coverage: **100% — 76/76 executable lines and 42/42 branches**; Codecov must verify the next uploaded report.
+Four further automated `javaw` launches checked EM SPACE/NBSP blank/eleven-word notes, on-screen dialog/OK,
+normal exit, no main window and unchanged JSON. No manual visual check was performed. macOS is unverified locally;
+the current head's macOS CI job was cancelled before any steps ran because of runner-capacity issues.
