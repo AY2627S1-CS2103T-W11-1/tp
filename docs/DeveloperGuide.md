@@ -241,7 +241,8 @@ location. At least one criterion is required. The `n/`, `p/`, `sos/`, `x/` and `
 can each be repeated: values within one field use OR matching, while different fields use
 AND. The `f/` prefix accepts only one minimum FTP value, and a cyclist matches when their
 FTP is greater than or equal to that value. Names match complete words case-insensitively;
-a name containing spaces is matched as a complete full name. For example,
+a name containing spaces matches when all supplied words are present in the same order, even
+when other words appear between them. For example,
 `find l/Punggol x/Intermediate f/250` finds intermediate cyclists who prefer Punggol and have
 an FTP of at least 250 watts. Preferred locations match case-insensitively against any
 supplied `l/` value. A cyclist whose stored preferred location is `any` matches every
@@ -883,8 +884,8 @@ Use John and Alice from the previous section.
 1. Enter `find n/john p/+65 91234567`. Expected: No contacts appear; both fields must match.
 1. Enter `find n/Jo` and `find p/+65 967`. Expected: No contacts appear; matches are exact
    phone numbers or full name words, rather than substrings.
-1. Enter `find n/John Doe`. Expected: Only the cyclist with the complete full name `John Doe` appears,
-   ignoring case.
+1. Enter `find n/John Doe`. Expected: Cyclists whose names contain `John` followed by `Doe` appear,
+   ignoring case. `find n/Doe John` does not match the same names.
 1. Try `find`, `find john alice`, and `find p/`. Expected: Each shows an error without changing the current
    displayed list.
 1. Enter `find n/john`, then `edit +65 91234567 n/Alice Updated`.

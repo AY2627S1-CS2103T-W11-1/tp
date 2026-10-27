@@ -187,12 +187,12 @@ Format: `find [n/NAME_KEYWORD]… [p/PHONE]… [sos/EMERGENCY_PHONE]… [f/MIN_F
 
 Field | Meaning and rules
 ------|------------------
-`n/NAME_KEYWORD` | A single name word or a complete full name. Single-word matching is case-insensitive and requires a full word; `n/hans` matches `Hans` but `n/Han` does not. A multi-word value such as `n/John Doe` matches the complete full name, ignoring case.
+`n/NAME_KEYWORD` | A single name word or multiple complete name words. Matching is case-insensitive and each supplied word must appear as a complete word in the same order; `n/hans` matches `Hans` but `n/Han` does not. A multi-word value such as `n/John Doe` matches names containing `John` followed by `Doe`, even when other words appear between them.
 `p/PHONE` | A complete phone number using a `+`, a 1–3 digit country code, one space and at least 3 digits. Matching is exact; `p/+65 963` does not match `+65 96320842`.
 `sos/EMERGENCY_PHONE` | A complete emergency contact number using the same validation and exact matching as `p/`. Only cyclists with an emergency number matching the supplied value are shown. Cyclists whose emergency number is missing or different are not shown.
 `f/MIN_FTP` | A whole number from 1 to 600, inclusive. Matches cyclists whose FTP is greater than or equal to the supplied value in watts; both `f/1` and `f/600` are valid.
 `x/EXPERIENCE` | `Beginner`, `Intermediate` or `Advanced`, ignoring case. Repeat `x/` to match any of the supplied experience levels.
-`l/LOCATION` | A preferred location, ignoring case. Repeat `l/` to match any supplied location. A cyclist with `l/any` matches every location criterion.
+`l/LOCATION` | A preferred location, ignoring case. Complete words within the supplied location are matched, so `l/Coast` matches `East Coast Park` but `l/Coas` does not. Repeat `l/` to match any supplied location. A cyclist with `l/any` matches every location criterion.
 
 At least one criterion is required. Each prefix may be repeated except `f/`, which accepts only one value. Values
 within the same field use `OR`, while different fields use `AND`; for example, `find n/Hans n/Bo f/250` matches
@@ -209,7 +209,8 @@ field; emergency contact numbers are not treated as the cyclist's own phone numb
 
 Examples:
 * `find n/John` returns `john` and `John Doe`
-* `find n/John Doe` returns only the cyclist with the complete full name `John Doe`, ignoring case.
+* `find n/John Doe` returns cyclists whose names contain `John` followed by `Doe`, ignoring case,
+  even if there are other words in between.
 * `find n/alex n/david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find n/alex n/david'](images/findAlexDavidResult.png)
 * `find n/alex p/+65 96320842` returns only people whose name contains `alex` and whose phone number is `+65 96320842`.

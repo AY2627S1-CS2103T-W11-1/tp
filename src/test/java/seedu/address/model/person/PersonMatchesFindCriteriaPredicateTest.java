@@ -43,9 +43,12 @@ public class PersonMatchesFindCriteriaPredicateTest {
     }
 
     @Test
-    public void test_nameKeywords_matchAnyFullWordIgnoringCase() {
+    public void test_nameKeywords_matchCompleteWordsIgnoringCase() {
         assertTrue(new PersonMatchesFindCriteriaPredicate(List.of("carol", "aLIce"), List.of()).test(alice));
         assertFalse(new PersonMatchesFindCriteriaPredicate(List.of("Ali"), List.of()).test(alice));
+        assertTrue(new PersonMatchesFindCriteriaPredicate(List.of("alice bob"), List.of()).test(alice));
+        assertFalse(new PersonMatchesFindCriteriaPredicate(List.of("bob alice"), List.of()).test(alice));
+        assertFalse(new PersonMatchesFindCriteriaPredicate(List.of("alice tan"), List.of()).test(alice));
     }
 
     @Test
@@ -82,6 +85,11 @@ public class PersonMatchesFindCriteriaPredicateTest {
                 Set.of(new Location("any")), null).test(punggolCyclist));
         assertFalse(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(), List.of(),
                 Set.of(new Location("Tampines")), null).test(punggolCyclist));
+        Person cyclistAtEastCoast = new PersonBuilder(alice).withLocations("East Coast Park").build();
+        assertTrue(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(), List.of(),
+                Set.of(new Location("coast")), null).test(cyclistAtEastCoast));
+        assertFalse(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(), List.of(),
+                Set.of(new Location("coas")), null).test(cyclistAtEastCoast));
     }
 
     @Test

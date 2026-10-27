@@ -60,7 +60,9 @@ public class PersonMatchesFindCriteriaPredicate implements Predicate<Person> {
                 || experienceLevels.contains(person.getExperienceLevel());
         boolean matchesLocation = locations.isEmpty()
                 || person.getLocations().stream().anyMatch(location -> location.value.equalsIgnoreCase("any"))
-                || person.getLocations().stream().anyMatch(locations::contains);
+                || person.getLocations().stream().anyMatch(personLocation -> locations.stream()
+                        .anyMatch(searchLocation -> StringUtil.containsWordIgnoreCase(
+                                personLocation.value, searchLocation.value)));
         boolean matchesFtp = minimumFtp == null
                 || Integer.parseInt(person.getFtp().value) >= Integer.parseInt(minimumFtp.value);
         return matchesName && matchesPhone && matchesEmergencyPhone && matchesExperience
@@ -69,9 +71,20 @@ public class PersonMatchesFindCriteriaPredicate implements Predicate<Person> {
 
     private boolean matchesName(Person person, String keyword) {
         String trimmedKeyword = keyword.trim();
-        return trimmedKeyword.contains(" ")
-                ? person.getName().fullName.equalsIgnoreCase(trimmedKeyword)
-                : StringUtil.containsWordIgnoreCase(person.getName().fullName, trimmedKeyword);
+        String[] nameWords = person.getName().fullName.split("\\s+");
+        String[] searchWords = trimmedKeyword.split("\\s+");
+        int nameIndex = 0;
+        for (String searchWord : searchWords) {
+            while (nameIndex < nameWords.length
+                    && !nameWords[nameIndex].equalsIgnoreCase(searchWord)) {
+                nameIndex++;
+            }
+            if (nameIndex == nameWords.length) {
+                return false;
+            }
+            nameIndex++;
+        }
+        return true;
     }
 
     @Override
