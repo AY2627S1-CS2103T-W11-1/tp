@@ -150,10 +150,26 @@ public class PersonCardTest {
     }
 
     @Test
-    public void formatLocations_mixedCaseLocation_preservesStoredCase() {
-        Person person = new PersonBuilder().withLocations("eAsT Coast Park").build();
+    public void formatLocations_lowercaseLocations_capitaliseEveryWord() {
+        Person person = new PersonBuilder().withLocations("marina bay", "east coast park").build();
 
-        assertEquals("eAsT Coast Park", PersonCard.formatLocations(person));
+        assertEquals("East Coast Park, Marina Bay", PersonCard.formatLocations(person));
+    }
+
+    @Test
+    public void formatLocations_restOfEachWord_isLeftAsEntered() {
+        Person person = new PersonBuilder().withLocations("ECP", "east COAST").build();
+
+        assertEquals("East COAST, ECP", PersonCard.formatLocations(person));
+    }
+
+    @Test
+    public void formatLocations_doesNotChangeTheStoredLocations() {
+        Person person = new PersonBuilder().withLocations("marina bay").build();
+
+        PersonCard.formatLocations(person);
+
+        assertEquals("marina bay", person.getLocations().iterator().next().value);
     }
 
     @Test

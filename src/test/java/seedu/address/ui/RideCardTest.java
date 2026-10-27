@@ -44,6 +44,13 @@ public class RideCardTest {
     }
 
     @Test
+    public void formatLocation_lowercaseLocation_capitalisesEveryWord() {
+        assertEquals("Marina Bay", RideCard.formatLocation(new RideBuilder().withLocation("marina bay").build()));
+        assertEquals("East Coast Park",
+                RideCard.formatLocation(new RideBuilder().withLocation("east coast park").build()));
+    }
+
+    @Test
     public void formatLocation_anyInAnyCase_isShownAsAny() {
         assertEquals("Any", RideCard.formatLocation(new RideBuilder().withLocation("any").build()));
         assertEquals("Any", RideCard.formatLocation(new RideBuilder().withLocation("ANY").build()));

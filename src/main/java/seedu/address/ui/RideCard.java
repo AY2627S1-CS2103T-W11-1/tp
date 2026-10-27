@@ -84,11 +84,11 @@ public class RideCard extends UiPart<Region> {
 
     /**
      * Returns the location of the ride as display text.
-     * The special {@code any} value is humanized without changing its stored representation.
+     * The first letter of every word is capitalised, and {@code any} is shown as {@code Any}, without changing
+     * the stored representation.
      */
     static String formatLocation(Ride ride) {
-        String location = ride.getLocation().value;
-        return location.equalsIgnoreCase("any") ? "Any" : location;
+        return ride.getLocation().toDisplayText();
     }
 
     /**
