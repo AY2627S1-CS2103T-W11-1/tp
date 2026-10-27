@@ -55,7 +55,8 @@ public class CommandTemplatesTest {
                 FindCommand.COMMAND_WORD, RideAddCommand.COMMAND_WORD, RideEditCommand.COMMAND_WORD,
                 RideDeleteCommand.COMMAND_WORD,
                 RideRosterCommand.JOIN_COMMAND_WORD, RideRosterCommand.LEAVE_COMMAND_WORD,
-                RideListCommand.COMMAND_WORD, RideFindCommand.COMMAND_WORD, ListCommand.COMMAND_WORD,
+                RideListCommand.COMMAND_WORD, RideFindCommand.COMMAND_WORD, RideFindCommand.COMMAND_WORD,
+                ListCommand.COMMAND_WORD,
                 ClearCommand.COMMAND_WORD, HelpCommand.COMMAND_WORD, ExitCommand.COMMAND_WORD), commandWords);
     }
 
@@ -126,7 +127,9 @@ public class CommandTemplatesTest {
         String display = templateFor(RideFindCommand.COMMAND_WORD).display();
 
         assertTrue(display.contains("ridefind (rf) all"));
-        assertTrue(display.contains("ridefind (rf) all\nridefind (rf) [n/NAME]"));
+        assertTrue(CommandTemplates.ALL.stream().anyMatch(template ->
+                template.display().contains("ridefind (rf) [n/NAME]")
+                        && template.insertText().equals("ridefind ")));
     }
 
     @Test

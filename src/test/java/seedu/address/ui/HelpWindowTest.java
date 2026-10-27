@@ -157,6 +157,8 @@ public class HelpWindowTest {
             RideFindCommand.COMMAND_WORD}) {
             String menuEntry = CommandTemplates.ALL.stream()
                     .filter(template -> template.insertText().trim().split(" ")[0].equals(commandWord))
+                    .filter(template -> !commandWord.equals(RideFindCommand.COMMAND_WORD)
+                            || template.display().contains("f/MIN_POWER"))
                     .findFirst().orElseThrow().display();
             assertTrue(menuEntry.contains("f/MIN_POWER"), menuEntry);
         }
