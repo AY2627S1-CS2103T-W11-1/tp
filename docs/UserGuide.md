@@ -461,7 +461,7 @@ Quoted notes follow the same confirmation rules. For example,
 preserves literal `f/2`. If the new period creates a roster conflict, both the notes and times remain unchanged
 until `y`/`yes`; `n`/`no` cancels the whole edit. Substitute the actual ride ID.
 
-On success, Cyclique displays `Edited ride:` followed by the complete updated ride and saves the change automatically. The ride ID, roster membership, stored ride order, other rides, cyclist records and next ride ID are unchanged. The Rides panel refreshes immediately. If an active `ridefind` filter would hide the edited ride, the filter resets so the edited ride remains visible; otherwise, the filter remains active. If input or ride validation fails, none of the supplied changes is applied.
+On success, Cyclique displays `Edited ride:` followed by the complete updated ride and saves the change automatically. The ride ID, roster membership, stored ride order, other rides, cyclist records and next ride ID are unchanged. The Rides panel refreshes immediately using the existing `ridefind` filter; an edited ride may disappear if it no longer matches. Use `ridefind all` to see every ride. If input or ride validation fails, none of the supplied changes is applied.
 
 Examples:
 

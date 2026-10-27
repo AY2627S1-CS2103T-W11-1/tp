@@ -131,7 +131,6 @@ public class ModelManager implements Model {
     public void setRide(Ride target, Ride editedRide) {
         requireAllNonNull(target, editedRide);
         addressBook.setRide(target, editedRide);
-        resetRideFilterIfHidden(editedRide);
     }
 
     //=========== Filtered Person List Accessors =============================================================
