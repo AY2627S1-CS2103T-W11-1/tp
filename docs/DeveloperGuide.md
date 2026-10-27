@@ -1562,6 +1562,11 @@ a loading failure stops startup before command handling and leaves the original 
    Expected: the ride is excluded in both cases. `ridefind all` restores it.
 1. Enter `rideedit ID notes/Bring lights<TAB>s/2`, replacing `<TAB>` with a literal tab.
    Expected: notes read `Bring lights`, and maximum group size becomes 2. Restart and check both fields.
+1. Enter `rideedit ID d/20<SEP>f/180` using actual SPACE, TAB, U+2003 EM SPACE and U+3000 IDEOGRAPHIC SPACE
+   in turn. Expected: distance 20 km and minimum power 180 W; other fields and the roster stay unchanged.
+   Repeat Ride Add with these separators between `d/20` and `f/180`; expected: the same numeric values.
+   Repeat with U+00A0 NBSP and U+202F NARROW NBSP; expected: rejection, as neither introduces a parameter.
+   If the command box removes pasted TAB characters, verify TAB through the parser and integration tests.
 1. Try edits with distance 0, power 0 and 601, group size 0, an end one minute before the start,
    and notes containing 11 words. Expected: each reports an error and preserves the previous data.
    Exactly 10 words are accepted; an empty `notes/` edit clears notes.

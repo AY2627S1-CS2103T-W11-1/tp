@@ -36,6 +36,16 @@ public class RideEditCommandParserTest {
     private final RideEditCommandParser parser = new RideEditCommandParser();
 
     @Test
+    public void parse_recognisedParameterSeparators_parsesDistanceAndPower() {
+        EditRideDescriptor descriptor = new EditRideDescriptor();
+        descriptor.setDistance(new Distance("20"));
+        descriptor.setMinimumPower(new MinimumPower("180"));
+        for (String separator : new String[] {" ", "\t", "\u2003", "\u3000"}) {
+            assertParseSuccess(parser, " 1 d/20" + separator + "f/180", new RideEditCommand(1, descriptor));
+        }
+    }
+
+    @Test
     public void parse_unicodeNotes_enforcesBlankAndWordLimitRules() {
         for (String separator : new String[] {" ", "\t", "\r\n", "\u2003", "\u00a0", "\u202f", "\u3000"}) {
             EditRideDescriptor cleared = new EditRideDescriptor();
