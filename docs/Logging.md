@@ -9,3 +9,5 @@ title: Logging guide
 * Log messages are written to the console and a `.log` file.
 * The output logging level can be controlled by changing the `LOG_LEVEL` constant in the `LogsCenter` class.
 * **When choosing a level for a log message**, follow the conventions given in [_[se-edu/guides] Java: Logging conventions_](https://se-education.org/guides/conventions/java/logging.html).
+* `RideRosterCommandParser` logs rejected ride IDs at `FINE`, identifying addition or removal without
+  recording the raw command or cyclist's phone number. Expected input errors do not need a warning or stack trace.
