@@ -95,10 +95,14 @@ v1.4.
 When a new or edited ride overlaps an existing ride, Cyclique explains the
 conflict before saving and lets the organiser confirm or cancel the change.
 
+![Ride overlap warning](../images/release-v1.5/ride-overlap-warning.png)
+
 ### Managing rides with aliases
 
 The Help menu shows aliases such as `rf` beside the full ride commands, and the
 command box can be populated directly from the selected Help entry.
+
+![Ridefind formats in Help](../images/release-v1.5/ridefind-help-formats.png)
 
 ### Searching across multiple fields
 
@@ -106,3 +110,4 @@ Organisers can combine ride name, location and note criteria; a ride must satisf
 every supplied criterion. A changed ride remains visible if an active filter
 would otherwise hide it.
 
+![Ridefind filter reset after editing](../images/release-v1.5/ridefind-edit-filter-reset.png)
