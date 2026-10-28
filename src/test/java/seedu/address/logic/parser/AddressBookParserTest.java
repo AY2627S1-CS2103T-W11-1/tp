@@ -80,7 +80,7 @@ public class AddressBookParserTest {
     public void parseCommand_delete() throws Exception {
         DeleteCommand command = (DeleteCommand) parser.parseCommand(
                 DeleteCommand.COMMAND_WORD + " " + VALID_PHONE_AMY);
-        // EP: the top-level parser dispatches a valid delete command.
+        // EP: a recognised delete command is dispatched to the delete parser with its phone argument intact.
         assertEquals(new DeleteCommand(new Phone(VALID_PHONE_AMY)), command);
     }
 

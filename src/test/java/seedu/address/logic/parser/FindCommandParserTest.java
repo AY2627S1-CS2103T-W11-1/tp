@@ -77,7 +77,7 @@ public class FindCommandParserTest {
         FindCommand expected = new FindCommand(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(),
                 java.util.List.of(new ExperienceLevel("Intermediate")),
                 java.util.Set.of(new Location("Punggol")), new Ftp("250")));
-        // EP: one value in each of the location, experience, and minimum-FTP fields.
+        // EP: valid location, experience, and FTP criteria can be combined in one search expression.
         assertParseSuccess(parser, "l/punggol x/intermediate f/250", expected);
         FindCommand multipleExperienceLevels = new FindCommand(new PersonMatchesFindCriteriaPredicate(
                 List.of(), List.of(), List.of(), java.util.List.of(new ExperienceLevel("Beginner"),

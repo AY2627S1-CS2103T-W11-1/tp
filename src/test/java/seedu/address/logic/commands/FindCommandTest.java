@@ -100,7 +100,7 @@ public class FindCommandTest {
         FindCommand command = new FindCommand(predicate);
         expectedModel.updateFilteredPersonList(predicate);
 
-        // EP: an exact full-name criterion returns one matching person.
+        // EP: an exact full-name criterion selects one person from the available person list.
         assertCommandSuccess(command, model, String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 1), expectedModel);
         assertEquals(List.of(ALICE), model.getFilteredPersonList());
     }
@@ -112,7 +112,7 @@ public class FindCommandTest {
         FindCommand command = new FindCommand(predicate);
         expectedModel.updateFilteredPersonList(predicate);
 
-        // EP: repeated full-name criteria return every matching person.
+        // EP: repeated name criteria use OR semantics and select all persons matching either name.
         assertCommandSuccess(command, model, String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 2), expectedModel);
         assertEquals(List.of(ALICE, CARL), model.getFilteredPersonList());
     }

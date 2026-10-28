@@ -16,7 +16,7 @@ public class DeleteCommandParserTest {
 
     @Test
     public void parse_validPhone_returnsDeleteCommand() {
-        // EP: a valid phone argument produces a delete command.
+        // EP: a valid phone argument belongs to the successful parsing partition and produces the matching command.
         assertParseSuccess(parser, VALID_PHONE_AMY, new DeleteCommand(new Phone(VALID_PHONE_AMY)));
     }
 
