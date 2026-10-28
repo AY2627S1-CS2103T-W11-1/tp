@@ -42,14 +42,31 @@ public class AddCommandParser implements Parser<AddCommand> {
         ArgumentMultimap argMultimap =
                 ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMERGENCY_PHONE,
                         PREFIX_EMAIL, PREFIX_FTP, PREFIX_EXPERIENCE_LEVEL, PREFIX_LOCATION);
+        validateRequiredPrefixes(argMultimap);
 
-        if (!argMultimap.getValue(PREFIX_FTP).isPresent()
+        Name name = ParserUtil.parseName(argMultimap.getValue(PREFIX_NAME).get());
+        Phone phone = ParserUtil.parsePhone(argMultimap.getValue(PREFIX_PHONE).get());
+        Phone emergencyPhone = ParserUtil.parsePhone(argMultimap.getValue(PREFIX_EMERGENCY_PHONE).get());
+        Email email = ParserUtil.parseEmail(argMultimap.getValue(PREFIX_EMAIL).get());
+        Ftp ftp = ParserUtil.parseFtp(argMultimap.getValue(PREFIX_FTP).get());
+        ExperienceLevel experienceLevel =
+                ParserUtil.parseExperienceLevel(argMultimap.getValue(PREFIX_EXPERIENCE_LEVEL).get());
+        Set<Location> locations = ParserUtil.parseLocations(argMultimap.getAllValues(PREFIX_LOCATION));
+        Person person = new Person(name, phone, email, ftp, experienceLevel, locations, Optional.of(emergencyPhone));
+        return new AddCommand(person);
+    }
+
+    /**
+     * Checks required and single-valued prefixes, preserving specific missing-field errors.
+     */
+    private void validateRequiredPrefixes(ArgumentMultimap argMultimap) throws ParseException {
+        if (argMultimap.getValue(PREFIX_FTP).isEmpty()
                 && arePrefixesPresent(argMultimap, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMERGENCY_PHONE, PREFIX_EMAIL,
                 PREFIX_EXPERIENCE_LEVEL, PREFIX_LOCATION)) {
             throw new ParseException(AddCommand.MESSAGE_MISSING_FTP);
         }
 
-        if (!argMultimap.getValue(PREFIX_LOCATION).isPresent()
+        if (argMultimap.getValue(PREFIX_LOCATION).isEmpty()
                 && arePrefixesPresent(argMultimap, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMERGENCY_PHONE, PREFIX_EMAIL,
                 PREFIX_EXPERIENCE_LEVEL, PREFIX_FTP)) {
             throw new ParseException(AddCommand.MESSAGE_MISSING_LOCATION);
@@ -63,21 +80,6 @@ public class AddCommandParser implements Parser<AddCommand> {
 
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMERGENCY_PHONE,
                 PREFIX_EMAIL, PREFIX_FTP, PREFIX_EXPERIENCE_LEVEL);
-
-        Name name = ParserUtil.parseName(argMultimap.getValue(PREFIX_NAME).get());
-        Phone phone = ParserUtil.parsePhone(argMultimap.getValue(PREFIX_PHONE).get());
-        Phone emergencyPhone = ParserUtil.parsePhone(argMultimap.getValue(PREFIX_EMERGENCY_PHONE).get());
-        Email email = ParserUtil.parseEmail(argMultimap.getValue(PREFIX_EMAIL).get());
-        Ftp ftp = ParserUtil.parseFtp(argMultimap.getValue(PREFIX_FTP).get());
-
-        ExperienceLevel experienceLevel =
-                ParserUtil.parseExperienceLevel(argMultimap.getValue(PREFIX_EXPERIENCE_LEVEL).get());
-
-        Set<Location> locations = ParserUtil.parseLocations(argMultimap.getAllValues(PREFIX_LOCATION));
-
-        Person person = new Person(name, phone, email, ftp, experienceLevel, locations, Optional.of(emergencyPhone));
-
-        return new AddCommand(person);
     }
 
     /**

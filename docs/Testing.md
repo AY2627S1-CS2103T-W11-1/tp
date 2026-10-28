@@ -37,6 +37,11 @@ This project has three types of tests:
 
 ## Release checks
 
+`CyclistFtpEditIntegrationTest` verifies registered-ride eligibility when editing FTP, including minimum-power
+boundaries, multiple/hidden rides and combined phone edits. It checks rejection without changes to cyclist
+records, rosters, both filters or saved JSON, and successful edits through JSON readback.
+Run **Registered cyclist FTP edit regression** in the Developer Guide after changing FTP edit validation.
+
 `FilteredEditIntegrationTest` checks that edits preserve find and live ride-roster filters, re-evaluate
 search membership, retain alphabetical order and update roster phone references. It also checks rejected
 edits without changes to records, filters or saved JSON, and successful edits through JSON readback.
@@ -60,11 +65,26 @@ This runs JUnit, checks production and test code with Checkstyle, generates cove
 Review `build/reports/tests/test/index.html` and `build/reports/jacoco/coverage/html/index.html`.
 The coverage report does not enforce the 50% target automatically; check the measured coverage explicitly.
 
-The current build bundles JavaFX native libraries using the `win`, `mac` and `linux` classifiers.
-Automatic operating-system and architecture selection was reverted in `e99c52ca`; ARM-specific classifiers
-are not currently included. After changing native dependencies, run `./gradlew run` and check that the main
-window opens without native-library errors. The CI matrix checks Windows, macOS and Linux builds;
-other architectures need separate compatibility checks.
+The build follows the original tP packaging: one Shadow JAR containing JavaFX dependencies for the
+`win`, `mac` and `linux` classifiers. On macOS, use the prescribed Azul Zulu JDK 25 with JavaFX included,
+following the [SE-EDU Mac Java installation guide](https://se-education.org/guides/tutorials/javaInstallationMac.html).
+After changing native dependencies, run `./gradlew run` and launch the packaged JAR in a disposable folder
+to check that the main window opens without native-library errors. The CI matrix checks Windows, macOS
+and Linux builds; verify the same release JAR separately on each required platform, using the prescribed
+JDK+FX on both Intel and ARM Macs.
+
+For `./gradlew run` and `./gradlew test` on macOS, Gradle selects JavaFX libraries matching the
+architecture of its JVM. This development classpath does not change the release JAR's dependencies.
+The Mac build jobs use plain JDK 25 so bundled JavaFX cannot hide incorrect development dependencies.
+Windows and Linux retain the original JDK+FX setup.
+The `mac-release` CI jobs download the same Linux-built JAR, check its checksum, and verify that its
+main window opens and the `exit` command shuts it down on Intel and ARM Macs with Zulu JDK+FX 25.0.3.
+These smoke checks use a fresh native-library cache and do not rebuild the JAR on either Mac.
+The Intel hosted VM uses OpenGL (`-Dprism.order=es2,sw`): default rendering with the prescribed
+JDK+FX 25.0.3 aborts there, whereas OpenGL passes. This is consistent with the
+[JavaFX Metal renderer bug on virtual machines](https://docs.oracle.com/en/java/java-components/javafx/25/release-notes/),
+fixed in JavaFX 25.0.4. The ARM check uses default rendering. Default rendering on a physical Intel Mac
+still requires a manual check; the CI OpenGL setting does not change application defaults.
 
 `ReleaseCommandIntegrationTest` covers command sequences through parsing, the model, filtering and JSON storage.
 It checks cyclist data without retired fields, repeated locations, edit replacement and preservation of fields,
@@ -196,3 +216,11 @@ and card text, and verifies error styling and unchanged data after malformed inp
 `RideOverlapConfirmationTest` also combines quoted notes with overlapping time edits: the entire edit is deferred,
 confirmed exactly once, cancelled, rejected for stale data or rejected before overlap processing for invalid input.
 `MainWindowRidePanelTest` checks the combined command through the real command box and confirmation display.
+
+Run **Unicode whitespace in ride notes (Issue #169)** in the Developer Guide after notes changes.
+Model/parser tests cover Unicode blank detection, normalisation and word boundaries; tokenizer tests preserve
+quote and prefix rules. Command, overlap and JavaFX tests cover atomicity, IDs, rosters, filters, persistence,
+feedback and Notes-row removal. `MainAppNotesLoadingTest` covers legacy data, explicit repair/restart, real
+fatal dialogs and shutdown (including separate JVMs), original-file preservation and normal startup.
+These automated checks complement the manual visual scenarios; they do not establish native focus or layout
+on untested operating systems.

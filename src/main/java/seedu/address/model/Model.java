@@ -14,6 +14,9 @@ public interface Model {
     /** {@code Predicate} that always evaluates to true */
     Predicate<Person> PREDICATE_SHOW_ALL_PERSONS = unused -> true;
 
+    /** {@code Predicate} that always evaluates to true for rides. */
+    Predicate<Ride> PREDICATE_SHOW_ALL_RIDES = unused -> true;
+
     /**
      * Returns the user prefs.
      */

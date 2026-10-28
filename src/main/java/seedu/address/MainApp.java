@@ -6,14 +6,17 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.logging.Logger;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.stage.Stage;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.exceptions.DataLoadingException;
+import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.Logic;
 import seedu.address.logic.LogicManager;
-import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
@@ -43,6 +46,9 @@ public class MainApp extends Application {
     protected Storage storage;
     protected Model model;
 
+    /** Loading failure retained until start() can display it on the JavaFX Application Thread. */
+    private IllegalStateException startupError;
+
     @Override
     public void init() throws Exception {
         logger.info("=============================[ Initializing AddressBook ]===========================");
@@ -53,7 +59,12 @@ public class MainApp extends Application {
         JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(ADDRESS_BOOK_FILE_PATH);
         storage = new StorageManager(addressBookStorage, userPrefsStorage);
 
-        model = initModelManager(storage, userPrefs);
+        try {
+            model = initModelManager(storage, userPrefs);
+        } catch (IllegalStateException e) {
+            startupError = e;
+            return;
+        }
 
         logic = new LogicManager(model, storage);
 
@@ -62,10 +73,12 @@ public class MainApp extends Application {
 
     /**
      * Returns a {@code ModelManager} with the data from {@code storage}'s address book and {@code userPrefs}. <br>
-     * The data from the sample address book will be used instead if {@code storage}'s address book is not found,
-     * or an empty address book will be used instead if errors occur when reading {@code storage}'s address book.
+     * Uses sample data only if the file is missing. Stops startup if an existing file cannot be loaded,
+     * before command handling can save an empty model over the original data.
+     *
+     * @throws IllegalStateException if the stored address book cannot be loaded.
      */
-    private Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
+    protected Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
         logger.info("Using data file : " + storage.getAddressBookFilePath());
 
         Optional<ReadOnlyAddressBook> addressBookOptional;
@@ -78,12 +91,32 @@ public class MainApp extends Application {
             }
             initialData = addressBookOptional.orElseGet(SampleDataUtil::getSampleAddressBook);
         } catch (DataLoadingException e) {
-            logger.warning("Data file at " + storage.getAddressBookFilePath() + " could not be loaded."
-                    + " Will be starting with an empty AddressBook.");
-            initialData = new AddressBook();
+            String message = "Could not load data file:\n" + storage.getAddressBookFilePath().toAbsolutePath()
+                    + "\n\nReason: " + getLoadingErrorReason(e)
+                    + "\n\nThe original file was not overwritten."
+                    + "\nBack up and correct the file before restarting Cyclique.";
+            logger.severe(message);
+            throw new IllegalStateException(message, e);
         }
 
         return new ModelManager(initialData, userPrefs);
+    }
+
+    /**
+     * Returns a safe loading explanation without JSON excerpts, exception class names, or stack traces.
+     * Storage validation messages are application-defined; other exception messages may contain user data.
+     */
+    private static String getLoadingErrorReason(Throwable error) {
+        for (Throwable cause = error; cause != null; cause = cause.getCause()) {
+            if (cause instanceof IllegalValueException && cause.getMessage() != null
+                    && !cause.getMessage().isBlank()) {
+                return cause.getMessage();
+            }
+            if (cause instanceof JsonProcessingException) {
+                return "The file is not valid JSON or does not match Cyclique's saved-data format.";
+            }
+        }
+        return "The data could not be read. Check that the file is accessible and uses Cyclique's saved-data format.";
     }
 
     /**
@@ -120,13 +153,32 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        if (startupError != null) {
+            try {
+                // There is no owner scene during failed startup, so the dialog must be standalone.
+                UiManager.showFatalErrorDialog("Could not load Cyclique data", startupError);
+            } finally {
+                exitAfterStartupFailure();
+            }
+            return;
+        }
         logger.info("Starting AddressBook " + MainApp.VERSION);
         ui.start(primaryStage);
+    }
+
+    /**
+     * Requests JavaFX shutdown after the startup error dialog has been dismissed.
+     */
+    protected void exitAfterStartupFailure() {
+        Platform.exit();
     }
 
     @Override
     public void stop() {
         logger.info("============================ [ Stopping AddressBook ] =============================");
+        if (model == null) {
+            return;
+        }
         try {
             storage.saveUserPrefs(model.getUserPrefs());
         } catch (IOException e) {

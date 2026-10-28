@@ -31,12 +31,14 @@ public class RideTest {
 
     @Test
     public void constructor_endBeforeStart_throwsIllegalArgumentException() {
+        // Boundary value: end 0929 is one minute before start 0930.
         assertThrows(IllegalArgumentException.class, Ride.MESSAGE_INVALID_PERIOD, () ->
                 new RideBuilder().withFrom("18-10-2026 0930").withTo("18-10-2026 0929").build());
     }
 
     @Test
     public void constructor_endSameAsStart_isAllowed() {
+        // Boundary value: duration zero (end equals start) is valid.
         Ride ride = new RideBuilder().withFrom("18-10-2026 0930").withTo("18-10-2026 0930").build();
 
         assertEquals(ride.getFrom(), ride.getTo());
@@ -44,6 +46,7 @@ public class RideTest {
 
     @Test
     public void constructor_negativeId_throwsIllegalArgumentException() {
+        // Boundary value: ID -1 is just below the minimum constructor ID 0 (the unassigned marker).
         assertThrows(IllegalArgumentException.class, Ride.MESSAGE_INVALID_ID, () ->
                 new RideBuilder().withId(-1).build());
     }
@@ -60,6 +63,8 @@ public class RideTest {
 
     @Test
     public void isValidPeriod() {
+        // EP: end after start, end equal to start, and end before start.
+        // Boundary value: equality separates valid from invalid periods.
         RideDateTime early = new RideDateTime("18-10-2026 0630");
         RideDateTime late = new RideDateTime("18-10-2026 0930");
 

@@ -242,6 +242,17 @@ public class ModelManagerTest {
     }
 
     @Test
+    public void addRide_activeRideFilter_showsAllRidesAfterAddition() {
+        Ride firstRide = modelManager.addRide(new RideBuilder().withName("Morning Ride").build());
+        modelManager.updateFilteredRideList(ride -> ride.equals(firstRide));
+
+        Ride secondRide = modelManager.addRide(new RideBuilder().withName("Evening Ride").build());
+
+        // EP: a new ride is added while a ride filter is active.
+        assertEquals(List.of(firstRide, secondRide), modelManager.getFilteredRideList());
+    }
+
+    @Test
     public void addRide_secondRide_getsNextId() {
         modelManager.addRide(new RideBuilder().build());
 
@@ -265,6 +276,32 @@ public class ModelManagerTest {
 
         assertEquals(List.of(replacement), observedRides);
         assertEquals(2, modelManager.getAddressBook().getNextRideId());
+    }
+
+    @Test
+    public void setRide_activeRideFilter_resetsWhenEditedRideIsHidden() {
+        Ride original = modelManager.addRide(new RideBuilder().withName("Morning Ride").build());
+        modelManager.updateFilteredRideList(ride -> ride.equals(original));
+        Ride edited = new RideBuilder(original).withName("Renamed Ride").build();
+
+        modelManager.setRide(original, edited);
+
+        // EP: an edited ride no longer matches the active ride filter.
+        assertEquals(List.of(edited), modelManager.getFilteredRideList());
+    }
+
+    @Test
+    public void setAddressBook_activeRideFilter_clearsRideFilter() {
+        Ride ride = modelManager.addRide(new RideBuilder().withName("Morning Ride").build());
+        modelManager.updateFilteredRideList(candidate -> candidate.equals(ride));
+        Ride replacementRide = new RideBuilder().withName("Evening Ride").build();
+        AddressBook replacementBook = new AddressBook();
+        Ride addedReplacement = replacementBook.addRide(replacementRide);
+
+        modelManager.setAddressBook(replacementBook);
+
+        // EP: the address book is replaced while a ride filter is active.
+        assertEquals(List.of(addedReplacement), modelManager.getFilteredRideList());
     }
 
     @Test

@@ -4,9 +4,12 @@ import java.nio.file.Path;
 import java.util.logging.Logger;
 
 import javafx.application.Platform;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import seedu.address.MainApp;
@@ -87,9 +90,38 @@ public class UiManager implements Ui {
         alert.initOwner(owner);
         alert.setTitle(title);
         alert.setHeaderText(headerText);
-        alert.setContentText(contentText);
         alert.getDialogPane().setId(ALERT_DIALOG_PANE_FIELD_ID);
+        configureErrorContent(alert, contentText);
         alert.showAndWait();
+    }
+
+    /**
+     * Keeps messages readable and window controls on-screen, even for long paths or validation messages.
+     */
+    private static void configureErrorContent(Alert alert, String message) {
+        Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
+        double maxWidth = bounds.getWidth() * 0.9;
+        double maxHeight = bounds.getHeight() * 0.9;
+        TextArea content = new TextArea(message);
+        content.setEditable(false);
+        content.setWrapText(true);
+        content.setMinSize(0, 0);
+        content.setPrefHeight(Math.min(240, maxHeight / 2));
+        alert.getDialogPane().setContent(content);
+        alert.getDialogPane().setPrefWidth(Math.min(640, maxWidth));
+        alert.setResizable(true);
+        // Dialog's SHOWN event precedes native window creation on GTK.
+        alert.setOnShown(event -> {
+            Stage window = (Stage) alert.getDialogPane().getScene().getWindow();
+            Platform.runLater(() -> {
+                window.setMaxWidth(maxWidth);
+                window.setMaxHeight(maxHeight);
+                window.setWidth(Math.min(window.getWidth(), maxWidth));
+                window.setHeight(Math.min(window.getHeight(), maxHeight));
+                window.setX(bounds.getMinX() + (bounds.getWidth() - window.getWidth()) / 2);
+                window.setY(bounds.getMinY() + (bounds.getHeight() - window.getHeight()) / 2);
+            });
+        });
     }
 
     /**
@@ -97,10 +129,22 @@ public class UiManager implements Ui {
      * and exits the application after the user has closed the alert dialog.
      */
     private void showFatalErrorDialogAndShutdown(String title, Throwable e) {
-        logger.severe(title + " " + e.getMessage() + StringUtil.getDetails(e));
-        showAlertDialogAndWait(Alert.AlertType.ERROR, title, e.getMessage(), e.toString());
+        showFatalErrorDialog(title, e);
         Platform.exit();
         System.exit(1);
+    }
+
+    /**
+     * Shows and waits for a fatal error dialog on the JavaFX Application Thread without creating a main window.
+     * The dialog is standalone on the primary screen. The caller controls shutdown after dismissal.
+     */
+    public static void showFatalErrorDialog(String title, Throwable error) {
+        logger.severe(title + " " + error.getMessage() + StringUtil.getDetails(error));
+        String message = error.getMessage();
+        if (message == null || message.isBlank()) {
+            message = "Cyclique could not continue. See the log for details.";
+        }
+        showAlertDialogAndWait(null, AlertType.ERROR, title, title, message);
     }
 
 }

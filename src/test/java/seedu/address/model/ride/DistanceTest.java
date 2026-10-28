@@ -24,7 +24,7 @@ public class DistanceTest {
         // null distance
         assertThrows(NullPointerException.class, () -> Distance.isValidDistance(null));
 
-        // invalid distances
+        // EP: blank/nonpositive values, nonnumeric text, unsupported numeric syntax, and excess digits.
         assertFalse(Distance.isValidDistance("")); // empty string
         assertFalse(Distance.isValidDistance(" ")); // spaces only
         assertFalse(Distance.isValidDistance("0")); // zero
@@ -34,19 +34,19 @@ public class DistanceTest {
         assertFalse(Distance.isValidDistance("45km")); // unit included
         assertFalse(Distance.isValidDistance("45.")); // trailing decimal point
         assertFalse(Distance.isValidDistance(".5")); // no whole part
-        assertFalse(Distance.isValidDistance("45.123")); // three decimal places
+        assertFalse(Distance.isValidDistance("45.123")); // Boundary value: 3 decimal places; maximum is 2.
         assertFalse(Distance.isValidDistance("4,5")); // comma
-        assertFalse(Distance.isValidDistance("1234567")); // more than 6 digits
+        assertFalse(Distance.isValidDistance("1234567")); // Boundary value: 7 integer digits; maximum is 6.
         assertFalse(Distance.isValidDistance("4 5")); // inner space
 
-        // valid distances
+        // EP: positive whole and decimal distances within the digit and precision limits.
         assertTrue(Distance.isValidDistance("1"));
         assertTrue(Distance.isValidDistance("45"));
         assertTrue(Distance.isValidDistance("45.5"));
         assertTrue(Distance.isValidDistance("45.25"));
         assertTrue(Distance.isValidDistance("0.5")); // less than one kilometre
-        assertTrue(Distance.isValidDistance("0.01")); // smallest allowed
-        assertTrue(Distance.isValidDistance("999999")); // largest whole number allowed
+        assertTrue(Distance.isValidDistance("0.01")); // Boundary value: minimum distance, 0.01 km.
+        assertTrue(Distance.isValidDistance("999999")); // Boundary value: maximum of 6 integer digits.
     }
 
     @Test

@@ -29,6 +29,7 @@ import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.exceptions.DuplicatePersonException;
+import seedu.address.model.ride.Ride;
 
 /**
  * Edits the details of an existing person in the address book.
@@ -60,13 +61,17 @@ public class EditCommand extends Command {
             + "Choose a unique phone number.";
     public static final String MESSAGE_AMBIGUOUS_PHONE = Messages.MESSAGE_AMBIGUOUS_PHONE;
     public static final String MESSAGE_PERSON_NOT_FOUND = Messages.MESSAGE_CYCLIST_NOT_FOUND;
+    public static final String MESSAGE_FTP_BELOW_RIDE_MINIMUM =
+            "Cannot edit cyclist: FTP %1$d W is below the minimum %2$d W for ride %3$d (%4$s).";
 
     private final Phone targetPhone;
     private final EditPersonDescriptor editPersonDescriptor;
 
     /**
-     * @param targetPhone phone number of the person in the filtered person list to edit
-     * @param editPersonDescriptor details to edit the person with
+     * Creates a command to edit the displayed person with the given phone number.
+     *
+     * @param targetPhone Phone number of the person in the filtered person list to edit.
+     * @param editPersonDescriptor Details to edit the person with.
      */
     public EditCommand(Phone targetPhone, EditPersonDescriptor editPersonDescriptor) {
         requireNonNull(targetPhone);
@@ -79,9 +84,26 @@ public class EditCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        List<Person> lastShownList = model.getFilteredPersonList();
+        Person personToEdit = getPersonToEdit(model);
+        Person editedPerson = createEditedPerson(personToEdit, editPersonDescriptor);
+        if (editPersonDescriptor.getFtp().isPresent()) {
+            validateRideEligibility(model, personToEdit, editedPerson);
+        }
 
-        List<Person> matchingPersons = lastShownList.stream()
+        try {
+            model.setPerson(personToEdit, editedPerson);
+        } catch (DuplicatePersonException e) {
+            throw new CommandException(MESSAGE_DUPLICATE_PERSON);
+        }
+
+        return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson)));
+    }
+
+    /**
+     * Resolves the unique displayed cyclist before validating or applying edits.
+     */
+    private Person getPersonToEdit(Model model) throws CommandException {
+        List<Person> matchingPersons = model.getFilteredPersonList().stream()
                 .filter(person -> person.getPhone().equals(targetPhone))
                 .toList();
 
@@ -93,16 +115,24 @@ public class EditCommand extends Command {
             throw new CommandException(MESSAGE_AMBIGUOUS_PHONE);
         }
 
-        Person personToEdit = matchingPersons.get(0);
-        Person editedPerson = createEditedPerson(personToEdit, editPersonDescriptor);
+        return matchingPersons.get(0);
+    }
 
-        try {
-            model.setPerson(personToEdit, editedPerson);
-        } catch (DuplicatePersonException e) {
-            throw new CommandException(MESSAGE_DUPLICATE_PERSON);
+    /**
+     * Rejects an FTP edit that would violate any existing registration before changing stored data.
+     * Uses the original phone number so a simultaneous phone edit cannot bypass validation.
+     */
+    private static void validateRideEligibility(Model model, Person originalPerson, Person editedPerson)
+            throws CommandException {
+        int updatedFtp = Integer.parseInt(editedPerson.getFtp().value);
+        for (Ride ride : model.getAddressBook().getRideList()) {
+            int minimumPower = Integer.parseInt(ride.getMinimumPower().value);
+            if (ride.getRoster().contains(originalPerson.getPhone())
+                    && updatedFtp < minimumPower) {
+                throw new CommandException(String.format(MESSAGE_FTP_BELOW_RIDE_MINIMUM, updatedFtp,
+                        minimumPower, ride.getId(), ride.getName().fullName));
+            }
         }
-
-        return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson)));
     }
 
     /**
@@ -162,6 +192,9 @@ public class EditCommand extends Command {
         private ExperienceLevel experienceLevel;
         private Set<Location> locations;
 
+        /**
+         * Creates a descriptor with no fields selected for editing.
+         */
         public EditPersonDescriptor() {}
 
         /**

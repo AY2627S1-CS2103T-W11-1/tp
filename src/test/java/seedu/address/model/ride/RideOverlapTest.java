@@ -18,6 +18,7 @@ public class RideOverlapTest {
 
     @Test
     public void overlaps_partialContainedContainingAndIdentical_returnsTrueSymmetrically() {
+        // EP: partial overlap at either end, containment in either direction, and identical periods.
         for (Ride other : List.of(ride("29-10-2026 0900", "29-10-2026 1100"),
                 ride("29-10-2026 0700", "29-10-2026 0900"),
                 ride("29-10-2026 0830", "29-10-2026 0930"),
@@ -30,6 +31,8 @@ public class RideOverlapTest {
 
     @Test
     public void overlaps_adjacentSeparateAndZeroDuration_returnsFalseSymmetrically() {
+        // EP: adjacent periods, separate dates, and zero-duration periods do not overlap.
+        // Boundary values: touching 0800/1000 endpoints and duration zero, including at an endpoint.
         for (Ride other : List.of(ride("29-10-2026 1000", "29-10-2026 1100"),
                 ride("29-10-2026 0700", "29-10-2026 0800"),
                 ride("30-10-2026 0800", "30-10-2026 1000"),
@@ -42,8 +45,10 @@ public class RideOverlapTest {
 
     @Test
     public void overlaps_crossingMidnight_comparesCompleteDateTimes() {
+        // EP: overlapping periods may cross midnight; comparison includes both the date and time.
         Ride overnight = ride("28-10-2026 2330", "29-10-2026 0830");
         assertTrue(morning.overlaps(overnight));
+        // Boundary value: the overnight period ends exactly when the morning ride starts.
         assertFalse(morning.overlaps(ride("28-10-2026 2330", "29-10-2026 0800")));
     }
 

@@ -73,62 +73,64 @@ public class LogicManager implements Logic {
                 : "Pending deletion and cyclist must be present or absent together.";
         logger.info("----------------[USER COMMAND][" + commandText + "]");
 
-        String cancellationNotice = "";
         if (pendingRideChange != null) {
-            String reply = commandText.trim();
-            if (reply.equalsIgnoreCase("y") || reply.equalsIgnoreCase("yes")) {
-                return confirmRideChange();
-            }
-            if (reply.equalsIgnoreCase("n") || reply.equalsIgnoreCase("no")) {
-                cancelRideChange();
-                return new CommandResult(MESSAGE_OVERLAP_CANCELLED);
-            }
-            if (!addressBookParser.isRecognisedCommand(commandText)) {
-                throw new CommandException(String.format(MESSAGE_INVALID_OVERLAP_REPLY, pendingOverlapPrompt));
-            }
-            cancelRideChange();
-            cancellationNotice = MESSAGE_OVERLAP_CANCELLED + "\n";
+            return handleRideConfirmation(commandText);
         }
         if (pendingDeletion != null) {
-            String reply = commandText.trim();
-            if (reply.equalsIgnoreCase("y") || reply.equalsIgnoreCase("yes")) {
-                return confirmDeletion();
-            }
-            if (reply.equalsIgnoreCase("n") || reply.equalsIgnoreCase("no")) {
-                cancelDeletion();
-                logger.fine("Pending deletion cancelled by user reply.");
-                return new CommandResult(DeleteCommand.MESSAGE_DELETE_CANCELLED);
-            }
-            if (!addressBookParser.isRecognisedCommand(commandText)) {
-                throw new CommandException(String.format(DeleteCommand.MESSAGE_INVALID_CONFIRMATION,
-                        Messages.format(pendingCyclist)));
-            }
-            cancelDeletion();
-            logger.fine("Pending deletion cancelled by a subsequent command.");
-            cancellationNotice = DeleteCommand.MESSAGE_DELETE_CANCELLED + "\n";
+            return handleDeletionConfirmation(commandText);
         }
+        return executeCommand(commandText, "");
+    }
 
+    /**
+     * Handles a ride confirmation reply, or cancels the request before processing a new command.
+     */
+    private CommandResult handleRideConfirmation(String commandText) throws CommandException, ParseException {
+        String reply = commandText.trim();
+        if (reply.equalsIgnoreCase("y") || reply.equalsIgnoreCase("yes")) {
+            return confirmRideChange();
+        }
+        if (reply.equalsIgnoreCase("n") || reply.equalsIgnoreCase("no")) {
+            cancelRideChange();
+            return new CommandResult(MESSAGE_OVERLAP_CANCELLED);
+        }
+        if (!addressBookParser.isRecognisedCommand(commandText)) {
+            throw new CommandException(String.format(MESSAGE_INVALID_OVERLAP_REPLY, pendingOverlapPrompt));
+        }
+        cancelRideChange();
+        return executeCommand(commandText, MESSAGE_OVERLAP_CANCELLED + "\n");
+    }
+
+    /**
+     * Handles a deletion confirmation reply, or cancels the request before processing a new command.
+     */
+    private CommandResult handleDeletionConfirmation(String commandText) throws CommandException, ParseException {
+        String reply = commandText.trim();
+        if (reply.equalsIgnoreCase("y") || reply.equalsIgnoreCase("yes")) {
+            return confirmDeletion();
+        }
+        if (reply.equalsIgnoreCase("n") || reply.equalsIgnoreCase("no")) {
+            cancelDeletion();
+            logger.fine("Pending deletion cancelled by user reply.");
+            return new CommandResult(DeleteCommand.MESSAGE_DELETE_CANCELLED);
+        }
+        if (!addressBookParser.isRecognisedCommand(commandText)) {
+            throw new CommandException(String.format(DeleteCommand.MESSAGE_INVALID_CONFIRMATION,
+                    Messages.format(pendingCyclist)));
+        }
+        cancelDeletion();
+        logger.fine("Pending deletion cancelled by a subsequent command.");
+        return executeCommand(commandText, DeleteCommand.MESSAGE_DELETE_CANCELLED + "\n");
+    }
+
+    /**
+     * Parses and processes a command, retaining any cancellation notice in its feedback or error.
+     */
+    private CommandResult executeCommand(String commandText, String cancellationNotice)
+            throws CommandException, ParseException {
         try {
             Command command = addressBookParser.parseCommand(commandText);
-            String overlapWarning = command instanceof OverlapAwareCommand overlapAware
-                    ? overlapAware.getOverlapWarning(model) : "";
-            CommandResult result;
-            if (command instanceof DeleteCommand deletion) {
-                Person cyclist = deletion.getPersonToDelete(model);
-                pendingDeletion = deletion;
-                pendingCyclist = cyclist;
-                logger.fine("Deletion confirmation requested.");
-                result = new CommandResult(String.format(DeleteCommand.MESSAGE_CONFIRM_DELETE,
-                        Messages.format(cyclist)));
-            } else if (!overlapWarning.isEmpty()) {
-                pendingRideChange = command;
-                pendingRideSnapshot = new AddressBook(model.getAddressBook());
-                pendingOverlapPrompt = String.format(MESSAGE_CONFIRM_OVERLAP, overlapWarning);
-                result = new CommandResult(pendingOverlapPrompt);
-            } else {
-                result = command.execute(model);
-                saveAddressBook();
-            }
+            CommandResult result = executeOrRequestConfirmation(command);
             return !cancellationNotice.isEmpty()
                     ? new CommandResult(cancellationNotice + result.getFeedbackToUser(),
                             result.isShowHelp(), result.isExit()) : result;
@@ -143,6 +145,44 @@ public class LogicManager implements Logic {
             }
             throw e;
         }
+    }
+
+    /**
+     * Defers commands requiring confirmation; executes and saves all other commands immediately.
+     */
+    private CommandResult executeOrRequestConfirmation(Command command) throws CommandException {
+        String overlapWarning = command instanceof OverlapAwareCommand overlapAware
+                ? overlapAware.getOverlapWarning(model) : "";
+        if (command instanceof DeleteCommand deletion) {
+            return requestDeletion(deletion);
+        }
+        if (!overlapWarning.isEmpty()) {
+            return requestRideChange(command, overlapWarning);
+        }
+        CommandResult result = command.execute(model);
+        saveAddressBook();
+        return result;
+    }
+
+    /**
+     * Captures the cyclist whose details the user must review before deletion.
+     */
+    private CommandResult requestDeletion(DeleteCommand deletion) throws CommandException {
+        Person cyclist = deletion.getPersonToDelete(model);
+        pendingDeletion = deletion;
+        pendingCyclist = cyclist;
+        logger.fine("Deletion confirmation requested.");
+        return new CommandResult(String.format(DeleteCommand.MESSAGE_CONFIRM_DELETE, Messages.format(cyclist)));
+    }
+
+    /**
+     * Captures the data and overlap warning the user must review before applying a ride change.
+     */
+    private CommandResult requestRideChange(Command command, String overlapWarning) {
+        pendingRideChange = command;
+        pendingRideSnapshot = new AddressBook(model.getAddressBook());
+        pendingOverlapPrompt = String.format(MESSAGE_CONFIRM_OVERLAP, overlapWarning);
+        return new CommandResult(pendingOverlapPrompt);
     }
 
     /**

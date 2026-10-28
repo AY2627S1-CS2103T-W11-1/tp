@@ -44,6 +44,18 @@ public class EditCommandParser implements Parser<EditCommand> {
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMERGENCY_PHONE,
                 PREFIX_EMAIL, PREFIX_FTP, PREFIX_EXPERIENCE_LEVEL);
 
+        EditPersonDescriptor editPersonDescriptor = parseEditedFields(argMultimap);
+        if (!editPersonDescriptor.isAnyFieldEdited()) {
+            throw new ParseException(EditCommand.MESSAGE_NOT_EDITED);
+        }
+
+        return new EditCommand(targetPhone, editPersonDescriptor);
+    }
+
+    /**
+     * Parses only supplied fields so omitted fields retain their existing values during execution.
+     */
+    private EditPersonDescriptor parseEditedFields(ArgumentMultimap argMultimap) throws ParseException {
         EditPersonDescriptor editPersonDescriptor = new EditPersonDescriptor();
 
         if (argMultimap.getValue(PREFIX_NAME).isPresent()) {
@@ -70,11 +82,7 @@ public class EditCommandParser implements Parser<EditCommand> {
             editPersonDescriptor.setLocations(ParserUtil.parseLocations(argMultimap.getAllValues(PREFIX_LOCATION)));
         }
 
-        if (!editPersonDescriptor.isAnyFieldEdited()) {
-            throw new ParseException(EditCommand.MESSAGE_NOT_EDITED);
-        }
-
-        return new EditCommand(targetPhone, editPersonDescriptor);
+        return editPersonDescriptor;
     }
 
 }

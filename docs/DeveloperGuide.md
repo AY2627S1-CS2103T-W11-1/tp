@@ -189,10 +189,13 @@ after a recognised `notes/` starts a quoted value; the first subsequent double q
 Prefix positions inside that range are excluded from argument extraction. Prefixes outside it retain their
 normal meaning and ordering, including duplicates for `ArgumentMultimap#verifyNoDuplicatePrefixesFor` to reject.
 During extraction, only quoted notes have their surrounding delimiters removed, before `ParserUtil#parseNotes`
-and `Notes` apply the existing word-count validation and whitespace normalisation.
+and `Notes` apply word-count validation and whitespace normalisation.
 
 Missing closing quotes, blank quoted values and non-whitespace text between the closing quote and the next
 recognised prefix (or command end) throw `ParseException` with `MESSAGE_INVALID_QUOTED_NOTES`.
+Both the quoted content and trailing whitespace use `Notes.isBlank`. Prefix recognition still uses
+`Character.isWhitespace`: NBSP and NARROW NBSP are accepted after the quote but need an ordinary space
+immediately before any following prefix.
 Backslashes are literal; embedded double quotes and escape sequences are unsupported.
 Bare `notes/` still clears notes in Ride Edit, while `notes/""` is rejected rather than treated as clearing.
 The tokenizer owns quote syntax; the parsers and commands retain field, ID, period and roster validation.
@@ -207,6 +210,24 @@ For example, `rideedit 1 notes/"Bring camera with aperture f/2" s/5` supplies li
 group size 5, leaving minimum power, ID and roster unchanged. Use an existing ride ID; normal roster constraints
 still apply. `rideedit 1 notes/"camera f/2` and `rideedit 1 notes/"camera"extra f/2` are rejected without
 changing or saving any ride fields. The manual regression scenario below covers these cases and explicit power edits.
+
+#### Unicode whitespace in ride notes (Issue #169)
+
+`Notes` uses `Character.isWhitespace(cp) || Character.isSpaceChar(cp)` for blank detection and
+normalisation, including NBSP, EM SPACE, NARROW NBSP and IDEOGRAPHIC SPACE. It trims separators, collapses
+runs to ordinary spaces and validates 1–10 words, preserving all other code points. `trim()`, `isBlank()`
+and default regex `\s` alone do not cover this rule. Ride Edit clears unquoted blank values through
+`Notes.isBlank`; quoted blanks remain errors. Prefix recognition and the single-line command interface
+are unchanged. Valid legacy notes normalise on loading; invalid notes are neither discarded nor truncated.
+
+If loading fails, `MainApp.init()` retains the exception without creating model, logic or normal UI.
+`start()` shows UiManager's standalone fatal dialog on the JavaFX Application Thread: a short header and
+wrapped, scrollable content explain the file, safe loading reason and backup/correction steps. JSON excerpts
+stay out of the dialog; full details remain logged. Sizing is deferred with `Platform.runLater` because
+Dialog's shown event precedes native-window creation on GTK. The window stays within the usable screen.
+Dismissal requests `Platform.exit()`; `stop()` skips saving when there is no model. The source file remains
+unchanged until the user repairs it and restarts. Missing files still use sample data; valid empty books load.
+No UML changes are needed: field validation remains internal to the existing command interactions.
 
 ### Model component
 **API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
@@ -426,8 +447,8 @@ cancelled edits are distinguished from successful replacement.
 **Parsing.** `RideEditCommandParser` separates the positive ride ID from the prefixed fields and builds an
 `EditRideDescriptor`. Each supplied value is parsed by the same `ParserUtil` method used by `rideadd`, while
 duplicate prefixes, malformed IDs and a command with no editable field are rejected. Notes have three explicit
-states: an omitted `notes/` preserves the existing value, a non-empty value replaces it and bare `notes/` clears
-it. Tokenisation uses the explicit quoted-notes entry point described in
+states: an omitted `notes/` preserves the existing value, a non-blank value replaces it and empty or
+whitespace-only unquoted `notes/` clears it. Tokenisation uses the explicit quoted-notes entry point described in
 [Optional quoted ride notes](#optional-quoted-ride-notes); quoted empty values are rejected.
 
 **Replacement and validation.** `RideEditCommand` finds the target by its unique ID and combines the descriptor
@@ -1007,7 +1028,7 @@ Use a disposable book with John and Alice from the adding/editing scenario.
    Expected: John is deleted and the list is empty.
 1. Try `delete +65 99999999`, `delete`, `delete 1`, `delete +65 12`, and `delete x`.
    Expected: An error appears and no contact is deleted.
-1. Enter `clear` twice. Expected: The list remains empty and each command succeeds.
+1. Enter `clear` twice. Expected: The list remains empty and each command succeeds. Each result message ends with the ID that the next ride will get (for example `the next ride you add will be ride 3.`), and a ride added afterwards receives exactly that ID.
 1. Add a cyclist, then enter `clear 1` and `clear n/Alex`. Expected: Each is rejected with `Invalid command format.`
    and the `clear` usage, and the cyclist and any rides remain. Then enter `clear`. Expected: Everything is deleted.
 
@@ -1042,6 +1063,30 @@ Use a disposable test book. Check both cyclist names and card indexes after ever
    Enter `delete +65 93333333`, then `yes`. Expected: BERNICE remains at index 1.
    Enter `list`. Expected: Alex Adams, alex Zane, BERNICE and Zara are numbered 1 to 4.
    Enter `delete +65 94444444`, then `yes`. Expected: Zara is deleted; the remaining cyclists are numbered 1 to 3.
+
+### Registered cyclist FTP edit regression
+
+Use a disposable test book. Add Charlotte with
+`add n/Charlotte Ng p/+65 93210283 sos/+65 99999999 e/charlotte@example.com f/280 x/Beginner l/any`.
+Create a ride using
+`rideadd n/Hill Repeats from/29-10-2026 0630 to/29-10-2026 0930 l/Mandai d/40 f/250 s/5`.
+Use its assigned ID wherever `ID` appears below, and register Charlotte with `rideaddcyclist ID +65 93210283`.
+
+1. Enter `ridelist ID`, then `edit +65 93210283 f/200`.
+   Expected: The edit is rejected with
+   `Cannot edit cyclist: FTP 200 W is below the minimum 250 W for ride ID (Hill Repeats).`,
+   with the actual ride ID substituted. Charlotte retains FTP 280 and remains in the filtered roster.
+1. Enter `edit +65 93210283 n/Changed p/+65 91111111 f/249`.
+   Expected: The same conflict is reported for FTP 249. The name, phone, FTP, roster and saved data remain unchanged.
+1. Enter `ridefind n/NoSuchRide`, then `find n/Charlotte`, and repeat `edit +65 93210283 f/200`.
+   Expected: The hidden ride still prevents the edit; both filters and all stored details remain unchanged.
+1. Enter `edit +65 93210283 p/+65 91111111 f/250`.
+   Expected: Equality with the ride minimum is accepted. The phone changes in both the cyclist record and roster,
+   and the cyclist filter remains active. Enter `edit +65 91111111 f/251`. Expected: Success.
+1. Enter `rideedit ID f/250`. Expected: Success, with the roster still eligible.
+1. Remove Charlotte using `ridedeletecyclist ID +65 91111111`, then `edit +65 91111111 f/200`.
+   Expected: The FTP edit succeeds once no registration requires a higher FTP.
+1. Exit and relaunch. Expected: Successful edits and the roster removal persist; rejected field changes are absent.
 
 ### Filtered cyclist edit regression
 
@@ -1218,6 +1263,28 @@ steps use this roster to exercise Ride Edit validation.
 1. Exit and relaunch. Expected: Successful edits remain visible and failed edits have not changed the saved ride.
    Add another ride. Expected: Its ID follows the previous counter rather than being affected by edits.
 
+### Unicode whitespace in ride notes (Issue #169)
+
+Use the disposable ride and registered cyclist from **Literal prefixes in ride notes (Issue #155)** below.
+Record its ID, fields, roster and JSON. Substitute the actual ID for `1` and paste the actual character for
+`<SEP>`, testing ASCII SPACE, U+2003 EM SPACE, U+00A0 NBSP, U+202F NARROW NBSP and U+3000 IDEOGRAPHIC SPACE.
+
+1. Enter `rideedit 1 notes/Bring<SEP><SEP>lights`, also adding separators at both ends; repeat quoted.
+   Expected: `Bring lights` in feedback/card/JSON, with single ordinary spaces; other fields and roster unchanged.
+1. Supply `one two three four five six seven eight nine ten` with every space replaced by `<SEP>`.
+   Expected: accepted, quoted and unquoted. Append `<SEP>eleven` and repeat with Ride Edit and Ride Add.
+   Expected: the notes constraint; unchanged records, filters and JSON; rejected additions consume no ID.
+1. Apply `ridefind notes/lights` and `ridelist 1`, restore `Bring lights`, then enter `rideedit 1 notes/<SEP>`.
+   Expected: absent notes, `Notes: None`, hidden Notes row, ride removed from notes search, roster filter retained.
+   Repeat bare `notes/` and mixed separators. Blank Ride Add and quoted blanks must be rejected without changes.
+1. Repeat Issue #155 below and **Ride overlap confirmation regression** with Unicode-spaced notes.
+   Valid notes and time changes wait for confirmation together; invalid notes create no pending request.
+1. Restart after successful additions, replacement and clearing; verify notes, IDs and rosters persist.
+   In a backed-up disposable JSON file, test blank EM SPACE/NBSP and eleven-word EM SPACE/NBSP notes.
+   Expected: a readable fatal dialog with file, reason and recovery instructions; OK/close stay on-screen.
+   Dismiss and relaunch: no main window or JSON changes. Correct the file explicitly, restart and run `list`;
+   all unrelated records and rosters must survive. Never corrupt a real user book for these checks.
+
 ### Literal prefixes in ride notes (Issue #155)
 
 Use a disposable book. Enter
@@ -1231,6 +1298,9 @@ then `rideaddcyclist 1 +65 91234567`. Record all ride fields and the roster.
    180 W. ID, roster and every other field are unchanged.
 1. Enter `rideedit 1 notes/"Bring camera with aperture f/2" s/5`.
    Expected: only maximum group size additionally changes to 5; minimum power remains 180 W.
+1. Repeat the preceding quoted edit with actual U+00A0 NBSP and U+202F NARROW NBSP after the closing quote,
+   first at command end, then followed by an ordinary space and `s/5`. Expected: both forms succeed;
+   non-whitespace trailing text is rejected. NBSP/NARROW NBSP alone before `s/5` still does not introduce a prefix.
 1. Enter `rideedit 1 f/200 notes/"Bring camera with aperture f/2"`.
    Expected: minimum power becomes 200 W; the complete notes, ID, roster and other fields are preserved.
 1. Enter `rideedit 1 notes/"Bring camera with aperture f/2` (no closing quote),
@@ -1286,8 +1356,9 @@ Use disposable test data and note the number of cyclist records before starting.
 1. With the application closed, back up the disposable `data/addressbook.json`, then remove it.
    Launch again. Expected: Sample contacts are loaded.
 1. Close the application and replace the disposable data file contents with `{invalid json`.
-   Launch again. Expected: An empty book is loaded without crashing; the log records the loading error.
-   A successful add creates valid saved data. Restore the backup after the check if needed.
+   Launch again. Expected: startup stops before the command UI; a fatal dialog reports the file and loading error
+   and asks for backup and correction. Dismiss it to exit. The original data file remains unchanged.
+   Restore the valid backup and relaunch before entering commands.
 1. With the application closed, replace disposable `preferences.json` with `{invalid json`.
    Launch again. Expected: Default window preferences are used without crashing.
 
@@ -1324,15 +1395,15 @@ Use disposable test data and note the number of cyclist records before starting.
 1. Exit and relaunch the application.
 
    **Important:** Perform the following JSON tests using disposable test data only.
-   After an invalid-data startup, close Cyclique without executing any commands,
-   then restore the valid JSON backup before continuing. A successful command may
-   overwrite the invalid data file.
+   Invalid data stops startup before commands are available and leaves the original file unchanged.
+   Restore the valid JSON backup and relaunch before continuing.
    Expected: John at `+65 98765432` and John at `+65 92345678` retain all saved details.
 1. Close the application and back up the disposable `data/addressbook.json`. In the working copy,
    change the second cyclist's phone to `+65 98765432`, then relaunch.
-   Expected: The duplicate JSON is rejected through the invalid-data handling path. Cyclique starts
-   with an empty directory and logs the loading error; neither duplicate record is silently discarded
-   or made available for interactive repair. Close Cyclique and restore the backup.
+   Expected: the duplicate JSON stops startup; a fatal dialog reports the file and loading error; after dismissal
+   the application exits and the original file remains unchanged. Neither duplicate record is made available
+   for interactive repair.
+   Restore the valid backup and relaunch.
 1. In another working copy of the backup, keep the phone numbers unique but change the second cyclist's
    email to `JOHN@EXAMPLE.COM`, then relaunch.
    Expected: The case-insensitive duplicate email causes the JSON to be rejected in the same way.
@@ -1434,6 +1505,9 @@ Use the valid ride and cyclists created in the preceding roster scenario, and no
 
 ### Find and ridefind regression (manual testing)
 
+The ride panel resets its active `ridefind` filter when an added or edited ride would otherwise be hidden, and when the address
+book is cleared.
+
 Use disposable cyclist and ride data. Record the original details before applying filters.
 
 1. Enter `list`. Expected: all cyclists appear in alphabetical order.
@@ -1466,13 +1540,14 @@ Use JDK 25, a disposable folder and a copy of the release JAR. Enable assertions
 `java -ea -jar cyclique.jar`. Close the application before each saved-file edit.
 
 1. Test saved books containing `{}`, `{"persons":null}` and `{"persons":[null]}` separately.
-   Expected: startup handles the loading failure and opens an empty book; the log explains the invalid data.
+   Expected: startup stops before command handling; a fatal dialog explains the loading failure and recovery steps.
+   Dismissal exits without changing the original file. Restore a valid fixture before continuing.
 1. Start with `{"persons":[],"rides":[],"nextRideId":2147483646}` and add a valid ride.
    Expected: the assigned ID is `2147483646`. Try adding another ride.
    Expected: `No more ride IDs are available.` appears, and no second ride is added.
 1. Restart and repeat the add attempt. Expected: the same error and unchanged saved ride.
 1. Change the saved ride ID to `2147483647` and restart.
-   Expected: startup handles the loading failure; the log explains the invalid ride ID.
+   Expected: a fatal dialog reports the loading failure; dismissal exits without changing the file.
 1. Run the **Deletion confirmation regression** with assertions enabled.
    Expected: valid confirmation, cancellation and replacement requests complete without assertion failures.
 
@@ -1481,7 +1556,7 @@ Use JDK 25, a disposable folder and a copy of the release JAR. Enable assertions
 
 Use JDK 25 and a disposable folder with a copy of the release JAR. Launch with
 `java -ea -jar cyclique.jar`. Back up disposable fixtures before corruption checks;
-the existing recovery behaviour starts with an empty book after a loading failure.
+a loading failure stops startup before command handling and leaves the original file unchanged.
 
 1. Create `rideadd n/Boundary from/18-10-2026 0000 to/18-10-2026 2359 l/East Coast d/0.01 f/1 s/1`.
    Expected: a positive ID, the exact period and distance appear on the ride card.
@@ -1490,13 +1565,19 @@ the existing recovery behaviour starts with an empty book after a loading failur
    Expected: the ride is excluded in both cases. `ridefind all` restores it.
 1. Enter `rideedit ID notes/Bring lights<TAB>s/2`, replacing `<TAB>` with a literal tab.
    Expected: notes read `Bring lights`, and maximum group size becomes 2. Restart and check both fields.
+1. Enter `rideedit ID d/20<SEP>f/180` using actual SPACE, TAB, U+2003 EM SPACE and U+3000 IDEOGRAPHIC SPACE
+   in turn. Expected: distance 20 km and minimum power 180 W; other fields and the roster stay unchanged.
+   Repeat Ride Add with these separators between `d/20` and `f/180`; expected: the same numeric values.
+   Repeat with U+00A0 NBSP and U+202F NARROW NBSP; expected: rejection, as neither introduces a parameter.
+   If the command box removes pasted TAB characters, verify TAB through the parser and integration tests.
 1. Try edits with distance 0, power 0 and 601, group size 0, an end one minute before the start,
    and notes containing 11 words. Expected: each reports an error and preserves the previous data.
    Exactly 10 words are accepted; an empty `notes/` edit clears notes.
 1. Run the **Ride roster regression**, **Ride list regression**, and **Find and ridefind regression**
    scenarios for roster changes, live filters, persistence and layout.
 1. Close the application, replace the disposable `data/addressbook.json` contents with `null` and relaunch.
-   Expected: a loading warning is logged and startup reaches the empty-book UI without an uncaught exception.
+   Expected: startup stops before the command UI; a fatal dialog reports the file and recovery instructions.
+   Dismiss it and verify that the application exits and the original file remains unchanged.
 1. Restore a valid fixture with a cyclist on a ride. Close before each edit. Separately duplicate the phone
    in its saved roster, add a valid-format phone with no corresponding cyclist, and set maximum group size
    below the saved roster size. Relaunch each fixture.

@@ -16,7 +16,7 @@ public class StringUtilTest {
     public void isNonZeroUnsignedInteger() {
 
         // EP: empty strings
-        assertFalse(StringUtil.isNonZeroUnsignedInteger("")); // Boundary value
+        assertFalse(StringUtil.isNonZeroUnsignedInteger("")); // Boundary value: 0 input characters.
         assertFalse(StringUtil.isNonZeroUnsignedInteger("  "));
 
         // EP: not a number
@@ -37,11 +37,12 @@ public class StringUtilTest {
         assertFalse(StringUtil.isNonZeroUnsignedInteger(" 10 ")); // Leading/trailing spaces
         assertFalse(StringUtil.isNonZeroUnsignedInteger("1 0")); // Spaces in the middle
 
-        // EP: number larger than Integer.MAX_VALUE
+        // EP: negative text; int arithmetic wraps to Integer.MIN_VALUE before Long.toString is called.
+        // This assertion does not exercise an unsigned number above Integer.MAX_VALUE.
         assertFalse(StringUtil.isNonZeroUnsignedInteger(Long.toString(Integer.MAX_VALUE + 1)));
 
         // EP: valid numbers, should return true
-        assertTrue(StringUtil.isNonZeroUnsignedInteger("1")); // Boundary value
+        assertTrue(StringUtil.isNonZeroUnsignedInteger("1")); // Boundary value: smallest valid integer.
         assertTrue(StringUtil.isNonZeroUnsignedInteger("10"));
     }
 
@@ -105,7 +106,7 @@ public class StringUtilTest {
     public void containsWordIgnoreCase_validInputs_correctResult() {
 
         // Empty sentence
-        assertFalse(StringUtil.containsWordIgnoreCase("", "abc")); // Boundary case
+        assertFalse(StringUtil.containsWordIgnoreCase("", "abc")); // Boundary value: sentence length 0.
         assertFalse(StringUtil.containsWordIgnoreCase("    ", "123"));
 
         // Matches a partial word only
@@ -113,10 +114,13 @@ public class StringUtilTest {
         assertFalse(StringUtil.containsWordIgnoreCase("aaa bbb ccc", "bbbb")); // Query word bigger than sentence word
 
         // Matches word in the sentence, different upper/lower case letters
-        assertTrue(StringUtil.containsWordIgnoreCase("aaa bBb ccc", "Bbb")); // First word (boundary case)
-        assertTrue(StringUtil.containsWordIgnoreCase("aaa bBb ccc@1", "CCc@1")); // Last word (boundary case)
+        // EP: whole-word match in the middle of the sentence.
+        assertTrue(StringUtil.containsWordIgnoreCase("aaa bBb ccc", "Bbb"));
+        // EP: whole-word match at the end of the sentence.
+        assertTrue(StringUtil.containsWordIgnoreCase("aaa bBb ccc@1", "CCc@1"));
         assertTrue(StringUtil.containsWordIgnoreCase("  AAA   bBb   ccc  ", "aaa")); // Sentence has extra spaces
-        assertTrue(StringUtil.containsWordIgnoreCase("Aaa", "aaa")); // Only one word in sentence (boundary case)
+        // Boundary value: sentence contains exactly 1 word.
+        assertTrue(StringUtil.containsWordIgnoreCase("Aaa", "aaa"));
         assertTrue(StringUtil.containsWordIgnoreCase("aaa bbb ccc", "  ccc  ")); // Leading/trailing spaces
 
         // Matches multiple words in sentence

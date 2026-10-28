@@ -87,41 +87,81 @@ class JsonAdaptedPerson {
      * @throws IllegalValueException if there were any data constraints violated in the adapted person.
      */
     public Person toModelType() throws IllegalValueException {
+        Name modelName = toModelName();
+        Phone modelPhone = toModelPhone();
+        Optional<Phone> modelEmergencyPhone = toModelEmergencyPhone();
+        Email modelEmail = toModelEmail();
+        Ftp modelFtp = toModelFtp();
+        ExperienceLevel modelExperienceLevel = toModelExperienceLevel();
+        Set<Location> modelLocations = toModelLocations();
+        return new Person(modelName, modelPhone, modelEmail, modelFtp, modelExperienceLevel,
+                modelLocations, modelEmergencyPhone);
+    }
+
+    /**
+     * Converts and validates the required name.
+     */
+    private Name toModelName() throws IllegalValueException {
         if (name == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Name.class.getSimpleName()));
         }
         if (!Name.isValidName(name)) {
             throw new IllegalValueException(Name.MESSAGE_CONSTRAINTS);
         }
-        final Name modelName = new Name(name);
+        return new Name(name);
+    }
 
+    /**
+     * Converts and validates the required phone number.
+     */
+    private Phone toModelPhone() throws IllegalValueException {
         if (phone == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Phone.class.getSimpleName()));
         }
         if (!Phone.isValidPhone(phone)) {
             throw new IllegalValueException(Phone.MESSAGE_CONSTRAINTS);
         }
-        final Phone modelPhone = new Phone(phone);
+        return new Phone(phone);
+    }
 
+    /**
+     * Converts the optional emergency number, preserving its absence in legacy records.
+     */
+    private Optional<Phone> toModelEmergencyPhone() throws IllegalValueException {
         if (emergencyPhone != null && !Phone.isValidPhone(emergencyPhone)) {
             throw new IllegalValueException(Phone.MESSAGE_CONSTRAINTS);
         }
-        final Optional<Phone> modelEmergencyPhone = Optional.ofNullable(emergencyPhone).map(Phone::new);
+        return Optional.ofNullable(emergencyPhone).map(Phone::new);
+    }
 
+    /**
+     * Converts and validates the required email address.
+     */
+    private Email toModelEmail() throws IllegalValueException {
         if (email == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Email.class.getSimpleName()));
         }
         if (!Email.isValidEmail(email)) {
             throw new IllegalValueException(Email.MESSAGE_CONSTRAINTS);
         }
-        final Email modelEmail = new Email(email);
+        return new Email(email);
+    }
 
+    /**
+     * Converts FTP, defaulting to 1 W for legacy records.
+     */
+    private Ftp toModelFtp() throws IllegalValueException {
         String ftpValue = ftp == null ? "1" : ftp;
         if (!Ftp.isValidFtp(ftpValue)) {
             throw new IllegalValueException(Ftp.MESSAGE_CONSTRAINTS);
         }
-        final Ftp modelFtp = new Ftp(ftpValue);
+        return new Ftp(ftpValue);
+    }
 
+    /**
+     * Converts and validates the required experience level.
+     */
+    private ExperienceLevel toModelExperienceLevel() throws IllegalValueException {
         if (experienceLevel == null) {
             throw new IllegalValueException(
                     String.format(MISSING_FIELD_MESSAGE_FORMAT, ExperienceLevel.class.getSimpleName()));
@@ -129,8 +169,13 @@ class JsonAdaptedPerson {
         if (!ExperienceLevel.isValidExperienceLevel(experienceLevel)) {
             throw new IllegalValueException(ExperienceLevel.MESSAGE_CONSTRAINTS);
         }
-        final ExperienceLevel modelExperienceLevel = new ExperienceLevel(experienceLevel);
+        return new ExperienceLevel(experienceLevel);
+    }
 
+    /**
+     * Converts locations, defaulting to unrestricted locations for legacy records.
+     */
+    private Set<Location> toModelLocations() throws IllegalValueException {
         final Set<Location> modelLocations = new HashSet<>();
         for (String location : locations) {
             if (!Location.isValidLocation(location)) {
@@ -141,9 +186,6 @@ class JsonAdaptedPerson {
         if (modelLocations.isEmpty()) {
             modelLocations.add(new Location("any"));
         }
-
-        return new Person(modelName, modelPhone, modelEmail, modelFtp, modelExperienceLevel,
-                modelLocations, modelEmergencyPhone);
+        return modelLocations;
     }
-
 }

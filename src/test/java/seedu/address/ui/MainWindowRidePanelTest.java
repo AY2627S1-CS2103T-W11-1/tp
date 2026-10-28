@@ -22,6 +22,7 @@ import seedu.address.logic.Logic;
 import seedu.address.logic.LogicManager;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ModelManager;
+import seedu.address.model.ride.Notes;
 import seedu.address.model.ride.Ride;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
@@ -38,6 +39,46 @@ public class MainWindowRidePanelTest {
     @BeforeAll
     public static void startJavaFxToolkit() throws InterruptedException {
         JavaFxToolkit.start();
+    }
+
+    @Test
+    public void commandBox_unicodeNotes_displaysNormalizedNotesAndHidesClearedRow() throws Exception {
+        Path dataFile = testFolder.resolve("unicode-notes.json");
+        ModelManager model = new ModelManager();
+        StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataFile),
+                new JsonUserPrefsStorage(testFolder.resolve("unicode-prefs.json")));
+        Logic logic = new LogicManager(model, storage);
+        JavaFxToolkit.call(() -> {
+            MainWindow window = new MainWindow(new Stage(), logic, dataFile);
+            window.fillInnerParts();
+            TextField input = (TextField) window.getRoot().getScene().lookup("#commandTextField");
+            TextArea feedback = (TextArea) window.getRoot().getScene().lookup("#resultDisplay");
+            enterCommand(input, "rideadd n/Unicode Ride from/29-10-2026 0800 to/29-10-2026 1000 "
+                    + "l/East Coast d/20 f/180 s/2 notes/\"Bring\u2003\u00a0lights\u202f\"");
+            assertEquals("", input.getText());
+            assertTrue(feedback.getText().contains("Notes: Bring lights"));
+            RideCard card = new RideCard(model.getAddressBook().getRideList().getFirst());
+            assertEquals("Bring lights", ((Label) card.getRoot().lookup("#notes")).getText());
+            assertTrue(card.getRoot().lookup("#notesRow").isVisible());
+            String saved = Files.readString(dataFile);
+            enterCommand(input, "rideedit 1 notes/\"\u00a0\u202f\"");
+            assertTrue(input.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+            assertTrue(feedback.getText().startsWith("Invalid quoted ride notes."));
+            assertEquals(saved, Files.readString(dataFile));
+            enterCommand(input, "rideedit 1 notes/" + "one two three four five six seven eight nine ten eleven"
+                    .replace(" ", "\u2003"));
+            assertEquals(Notes.MESSAGE_CONSTRAINTS, feedback.getText());
+            assertEquals(saved, Files.readString(dataFile));
+            enterCommand(input, "rideedit 1 notes/\u2003\u00a0\u202f\u3000");
+            assertEquals("", input.getText());
+            assertFalse(input.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+            assertTrue(feedback.getText().contains("Notes: None"));
+            RideCard cleared = new RideCard(model.getAddressBook().getRideList().getFirst());
+            assertFalse(cleared.getRoot().lookup("#notesRow").isVisible());
+            assertFalse(cleared.getRoot().lookup("#notesRow").isManaged());
+            assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
+            return null;
+        });
     }
 
     @Test
