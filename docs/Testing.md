@@ -75,7 +75,8 @@ JDK+FX on both Intel and ARM Macs.
 
 For `./gradlew run` and `./gradlew test` on macOS, Gradle selects JavaFX libraries matching the
 architecture of its JVM. This development classpath does not change the release JAR's dependencies.
-The build jobs use plain JDK 25 so bundled JavaFX cannot hide incorrect development dependencies.
+The Mac build jobs use plain JDK 25 so bundled JavaFX cannot hide incorrect development dependencies.
+Windows and Linux retain the original JDK+FX setup.
 The `mac-release` CI jobs download the same Linux-built JAR, check its checksum, and verify that its
 main window opens and the `exit` command shuts it down on Intel and ARM Macs with Zulu JDK+FX 25.0.3.
 These smoke checks use a fresh native-library cache and do not rebuild the JAR on either Mac.
