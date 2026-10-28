@@ -9,7 +9,10 @@ title: Developer Guide
 
 ## **Acknowledgements**
 
-* _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
+* Cyclique is adapted from [AddressBook-Level3 (AB3)](https://github.com/se-edu/addressbook-level3), created by the [SE-EDU initiative](https://se-education.org/). Its layered architecture, command/parser structure, JavaFX UI framework, JSON storage infrastructure and test utilities form the base of Cyclique. The [AB3 User Guide](https://se-education.org/addressbook-level3/UserGuide.html) and [Developer Guide](https://se-education.org/addressbook-level3/DeveloperGuide.html) provide the documentation structure, inherited design explanations and diagrams, and the proposed undo/redo design retained below. Cyclique adapts these for cyclist profiles, emergency contacts, group rides and rosters. AB3's [MIT licence](https://github.com/se-edu/addressbook-level3/blob/master/LICENSE) is retained in this repository.
+* Runtime libraries: [JavaFX](https://openjfx.io/) provides the graphical interface; [Jackson](https://github.com/FasterXML/jackson) provides JSON serialisation, including Java date/time support.
+* Development tools: [JUnit 5](https://junit.org/junit5/) supports automated tests; [Gradle](https://gradle.org/) and [Shadow](https://github.com/GradleUp/shadow) build and package the application; [Checkstyle](https://checkstyle.org/) checks Java style; [JaCoCo](https://www.jacoco.org/jacoco/) measures test coverage.
+* Documentation tools: [PlantUML](https://plantuml.com/) produces the UML diagrams; [Jekyll](https://jekyllrb.com/), the [Minima theme](https://github.com/jekyll/minima) and [Jemoji](https://github.com/jekyll/jemoji) support the documentation website. The JavaFX control styling retains adaptations from [JMetro](https://pixelduke.com/2012/10/23/jmetro-windows-8-controls-on-java/), as credited in `DarkTheme.css`.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -659,20 +662,33 @@ Organisers of cycling groups often have rider contact and information scattered 
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
-| Priority | As a/an …                                    | I want to …                                                                                                  | So that I can …                                                                       |
-| -------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
-| `* * *`  | proactive cycling organiser                  | add a new cyclist record with their name, phone number, and email                                            | keep basic contact details in one centralised directory                               |
-| `* * *`  | community-focused cycling organiser          | view a complete list of all registered cyclists                                                              | see an overview of my entire cycling community at a glance                            |
-| `* * *`  | attentive cycling organiser                  | edit an existing cyclist's contact details                                                                   | keep contact information up to date without recreating cyclist records                |
-| `* * *`  | meticulous cycling organiser                 | delete a cyclist's record                                                                                    | keep my directory free of members who have permanently left the group                 |
-| `* * *`  | safety-conscious cycling organiser           | store an emergency contact for each cyclist                                                                  | reach the appropriate person quickly when an emergency occurs                         |
-| `* * *`  | logistics-minded cycling organiser           | record a cyclist's preferred cycling location                                                                | identify cyclists who prefer rides in different parts of Singapore                    |
-| `* * *`  | attentive cycling organiser                  | record a cyclist's experience level                                                                          | identify riding groups that are appropriate for the cyclist                           |
-| `* * *`  | pace-conscious cycling organiser             | record a cyclist's FTP                                                                                       | identify cyclists with a suitable fitness level for a planned ride                    |
-| `* *`    | organised cycling organiser                  | create a record for a planned group ride                                                                     | keep track of the important details of an upcoming ride                               |
-| `* *`    | selective cycling organiser                  | filter cyclists by multiple selected criteria, such as preferred location, experience level, and FTP range   | quickly shortlist suitable participants for a planned ride                            |
-| `*`      | methodical cycling organiser                 | sort cyclist records by name or experience level in ascending or descending order                            | locate cyclists by name or compare their experience levels when forming riding groups |
-| `*`      | busy cycling organiser with existing records | import cyclist records from a structured file                                                                | avoid entering every existing cyclist record manually                                 |
+The status column distinguishes current requirements from future work. Current cyclist search uses a minimum FTP; configurable sorting and structured-file import are future requirements.
+
+| Priority | As a/an …                                    | I want to …                                                                                                  | So that I can …                                                                       | Status |
+| -------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- | ------ |
+| `* * *`  | proactive cycling organiser                  | add a new cyclist record with their name, phone number, and email                                            | keep basic contact details in one centralised directory                               | Implemented |
+| `* * *`  | community-focused cycling organiser          | view a complete list of all registered cyclists                                                              | see an overview of my entire cycling community at a glance                            | Implemented |
+| `* * *`  | attentive cycling organiser                  | edit an existing cyclist's contact details                                                                   | keep contact information up to date without recreating cyclist records                | Implemented |
+| `* * *`  | meticulous cycling organiser                 | delete a cyclist's record                                                                                    | keep my directory free of members who have permanently left the group                 | Implemented |
+| `* * *`  | safety-conscious cycling organiser           | store an emergency contact for each cyclist                                                                  | reach the appropriate person quickly when an emergency occurs                         | Implemented |
+| `* * *`  | logistics-minded cycling organiser           | record a cyclist's preferred cycling location                                                                | identify cyclists who prefer rides in different parts of Singapore                    | Implemented |
+| `* * *`  | attentive cycling organiser                  | record a cyclist's experience level                                                                          | identify riding groups that are appropriate for the cyclist                           | Implemented |
+| `* * *`  | pace-conscious cycling organiser             | record a cyclist's FTP                                                                                       | identify cyclists with a suitable fitness level for a planned ride                    | Implemented |
+| `* *`    | organised cycling organiser                  | create a record for a planned group ride                                                                     | keep track of the important details of an upcoming ride                               | Implemented |
+| `* *`    | selective cycling organiser                  | filter cyclists by multiple selected criteria, such as preferred location, experience level, and minimum FTP   | quickly shortlist suitable participants for a planned ride                            | Implemented |
+| `*`      | methodical cycling organiser                 | sort cyclist records by name or experience level in ascending or descending order                            | locate cyclists by name or compare their experience levels when forming riding groups | Future |
+| `*`      | busy cycling organiser with existing records | import cyclist records from a structured file                                                                | avoid entering every existing cyclist record manually                                 | Future |
+| `* *` | organised cycling organiser | edit a planned ride's details while retaining its registrations | keep plans up to date without rebuilding its roster | Implemented |
+| `* *` | organised cycling organiser | delete a cancelled ride without deleting cyclist records | keep the ride schedule relevant while retaining my contacts | Implemented |
+| `* *` | busy cycling organiser | find rides by their details, dates and notes | locate the plans I need to manage | Implemented |
+| `* *` | responsible cycling organiser | register an eligible cyclist for a ride | plan participation within the ride's capacity and fitness requirements | Implemented |
+| `* *` | organised cycling organiser | remove a cyclist from one ride without deleting their contact record | keep that ride's roster up to date when plans change | Implemented |
+| `* *` | attentive cycling organiser | view a ride's registered cyclists | review the current participants and their contact details | Implemented |
+| `* * *` | safety-conscious cycling organiser | find cyclists by name, own phone or emergency contact number | retrieve the correct contact information quickly | Implemented |
+| `* *` | cycling organiser new to Cyclique | view command formats and examples from within Cyclique | learn how to carry out my tasks | Implemented |
+| `*` | cycling organiser starting a new directory | clear all cyclist and ride records | remove test or obsolete data before starting again | Implemented |
+
+**Conditions of satisfaction for roster review:** After selecting a ride's roster, successfully adding or removing a member of that ride updates the displayed cyclists without another roster-view request.
 
 ### Use cases
 
@@ -824,6 +840,121 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case ends. A new delete request starts this use case again.
 
+**Shared precondition for UC05 – UC07**: Cyclique is running and ready to accept user requests.
+
+**UC05 – Register Cyclist for Ride**
+
+**Guarantees**
+
+* On success, the selected cyclist is registered exactly once for the selected ride and the updated roster is saved.
+* The cyclist record, other rides and their memberships remain unchanged.
+* A request rejected during parsing or validation leaves all records and rosters unchanged.
+
+**MSS**
+
+1. User requests to register a specified cyclist for a specified ride.
+2. Cyclique registers the cyclist and reports success.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. The request contains invalid identifying details.
+    * 1a1. Cyclique explains the required input format.
+
+      Use case ends.
+
+* 2a. The specified ride or cyclist does not exist.
+    * 2a1. Cyclique identifies the missing record.
+
+      Use case ends.
+
+* 2b. The cyclist is already registered, the ride is full or the cyclist's FTP is below the minimum.
+    * 2b1. Cyclique explains why registration is rejected.
+
+      Use case ends.
+
+* 2c. The cyclist is already registered for another ride whose time overlaps this ride.
+    * 2c1. Cyclique identifies the conflicting commitment and requests confirmation.
+    * 2c2. User confirms the overlapping registration.
+
+      Use case resumes at step 2. If the user declines, the request ends without registration. An unrecognised reply repeats the confirmation request; another supported command cancels it and starts that command's interaction.
+
+**Related interaction – Remove Cyclist from Ride**: The user requests to remove a specified cyclist from a ride. Cyclique removes only that membership and reports success, retaining the cyclist record and other memberships. Unlike registration, removal is permitted regardless of capacity or FTP. Invalid identifiers, an unknown ride or an absent membership end the interaction with an error and no changes. The saving-failure behaviour below also applies to removal.
+
+**UC06 – Edit Ride with Existing Registrations**
+
+**Guarantees**
+
+* On success, supplied ride details are updated and saved. The ride's ID, roster and unspecified details are preserved.
+* An edit rejected during parsing or validation applies none of the supplied changes. Cyclique does not remove members to satisfy a new limit.
+
+**MSS**
+
+1. User identifies a ride and supplies revised details.
+2. Cyclique updates the ride and reports success.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. The request has an invalid identifier or field value, repeats a single-valued field, or supplies no changes.
+    * 1a1. Cyclique explains the input error.
+
+      Use case ends.
+
+* 2a. The ride does not exist.
+    * 2a1. Cyclique informs the user that the ride cannot be found.
+
+      Use case ends.
+
+* 2b. The resulting end is earlier than the start.
+    * 2b1. Cyclique explains that the ride period is invalid.
+
+      Use case ends.
+
+* 2c. The revised capacity is below the current membership count, or the revised minimum FTP exceeds a member's FTP.
+    * 2c1. Cyclique explains the conflicting roster constraint.
+
+      Use case ends.
+
+**Related interaction – Confirm an Overlapping Time Edit**: If a revised ride period conflicts with a registered cyclist's other commitments, Cyclique requests confirmation before applying the edit. The confirmation, cancellation and replacement-command interaction follows UC05 extension 2c. Confirmation resumes at step 2; cancellation leaves the ride unchanged.
+
+**UC07 – Review a Ride's Registered Cyclists**
+
+**Guarantees**
+
+* The selected ride's registered cyclists are displayed alphabetically, replacing any previous cyclist search.
+* Selecting a roster changes no saved records. Successful membership changes to that ride refresh the selection automatically.
+
+**MSS**
+
+1. User requests to view the cyclists registered for a specified ride.
+2. Cyclique displays those cyclists and reports the selected ride.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. The ride identifier is invalid.
+    * 1a1. Cyclique explains the required input format and retains the previous selection.
+
+      Use case ends.
+
+* 2a. The ride does not exist or a registered cyclist cannot be resolved.
+    * 2a1. Cyclique reports the missing ride or cyclist and retains the previous selection.
+
+      Use case ends.
+
+* 2b. The roster is empty.
+    * 2b1. Cyclique displays no cyclists and informs the user that the ride has no registered cyclists.
+
+      Use case ends.
+
+**Saving failures for UC05 – UC07**: If saving fails, Cyclique reports a saving error. A registration, removal or edit already applied remains in the running application; it is not rolled back, and persistence of the change is not guaranteed. A roster-review request changes no cyclist or ride records, but its updated display selection can remain active after a saving error. These outcomes are distinct from parsing or validation rejections.
+
+**Subsequent interactions**: Registering or removing a cyclist from the selected ride (UC05 and its related removal interaction) refreshes the displayed members. Deleting that ride leaves the selection empty. A new cyclist search, listing all cyclists, adding or successfully editing a cyclist, clearing the directory, or selecting another roster replaces the selection.
+
 ### Non-Functional Requirements
 
 **Testing conditions**
@@ -893,6 +1024,20 @@ Use JDK 25 and a disposable folder containing the release JAR. Run
 `java -version` to confirm the selected JDK, then `java -jar cyclique.jar`
 from that folder. All commands below operate on test contacts; do not use real contact data.
 Repeat the checks on each operating system supported by the release.
+
+### Preparing an empty test book
+
+When a scenario below asks for an **empty test book**, close Cyclique in the disposable test folder, create its `data` directory if necessary, and save the following as `data/addressbook.json`:
+
+```json
+{
+  "persons": [],
+  "rides": [],
+  "nextRideId": 1
+}
+```
+
+Relaunch from that folder. Expected: no cyclists or rides are loaded, and the first ride added receives ID 1. Do not delete the file to prepare this state: a missing file loads sample data. Do not use `clear` to reset IDs: it preserves the next ride ID. Reset this fixture only while the application is closed and only in the disposable folder.
 
 ### Launch and shutdown
 
@@ -994,6 +1139,13 @@ Use a disposable book with John and Alice from the adding/editing scenario.
    successful confirmation/cancellation; invalid replies retain the usual error styling.
 
 ### Deleting and clearing people
+
+Prepare an [empty test book](#preparing-an-empty-test-book), then enter these commands independently of the preceding deletion-confirmation scenario:
+
+* `add n/John Updated p/+65 96742165 sos/+65 99999999 e/johndoe@example.com f/600 x/Advanced l/Punggol`
+* `add n/Alice Tan p/+65 91234567 sos/+65 99999999 e/alice@example.com f/1 x/Beginner l/East Coast l/Punggol`
+
+Expected: both cyclists are displayed and neither has a pending deletion request.
 
 1. Enter `find n/john`, then `delete +65 91234567`.
    Expected: The command reports that Alice cannot be found in the displayed list;
@@ -1147,7 +1299,7 @@ Each card shows the ride's ID and name in a yellow-tinted heading (for example `
 Notes line only if the ride has notes. The command box, result box and cyclist list stay in the left 70%.
 Check the panel after each step, and check the saved file `data/addressbook.json` where the steps say so.
 
-1. Launch the application with no rides. Expected: The Rides panel shows `No rides yet. Use rideadd to create one.`
+1. Prepare an [empty test book](#preparing-an-empty-test-book). Expected: The Rides panel shows `No rides yet. Use rideadd to create one.` The next ride ID is 1.
 
 1. Enter `rideadd n/Sunday Sunrise Ride from/18-10-2026 0630 to/18-10-2026 0930 l/East Coast d/45 f/180 s/12 notes/Bring lights and a spare tube`.
    Expected: The result box shows `New ride added: Ride 1: Sunday Sunrise Ride; From: 18-10-2026 0630;
@@ -1185,7 +1337,7 @@ Check the panel after each step, and check the saved file `data/addressbook.json
 
 ### Editing a group ride
 
-Start with a fresh address book. Enter the following command to create a ride with known details:
+Prepare an [empty test book](#preparing-an-empty-test-book). Enter the following command to create a ride with known details:
 
 `rideadd n/Morning Ride from/20-10-2026 1400 to/20-10-2026 1600 l/Punggol d/40 f/180 s/10 notes/Bring lights`
 
@@ -1374,9 +1526,9 @@ The Full help window reuses `RideRosterCommand#MESSAGE_USAGE`.
 
 ### Ride roster regression (manual testing)
 
-Use a separate data directory or back up your data first.
+Prepare an [empty test book](#preparing-an-empty-test-book) in a disposable folder.
 
-1. In a disposable folder with no rides, enter
+1. Enter
    `add n/Roster Rider p/+65 91234567 sos/+65 99999999 e/roster@example.com f/180 x/Beginner l/any`.
    Then enter `rideadd n/Roster Check from/18-10-2026 0630 to/18-10-2026 0930 l/East Coast d/45 f/180 s/1`.
    Expected: ride 1 appears and its card says `No cyclists`.
