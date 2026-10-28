@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.ride.Notes;
 
 /**
  * Tokenizes arguments string of the form: {@code preamble <prefix>value <prefix>value ...}<br>
@@ -49,7 +50,7 @@ public class ArgumentTokenizer {
                 continue;
             }
             quotedEnd = argsString.indexOf('"', valueStart + 1);
-            if (quotedEnd == -1 || argsString.substring(valueStart + 1, quotedEnd).isBlank()) {
+            if (quotedEnd == -1 || Notes.isBlank(argsString.substring(valueStart + 1, quotedEnd))) {
                 throw new ParseException(MESSAGE_INVALID_QUOTED_NOTES);
             }
             int nextIndex = i + 1;
@@ -58,7 +59,7 @@ public class ArgumentTokenizer {
             }
             int nextStart = nextIndex < positions.size()
                     ? positions.get(nextIndex).getStartPosition() : argsString.length();
-            if (!argsString.substring(quotedEnd + 1, nextStart).isBlank()) {
+            if (!Notes.isBlank(argsString.substring(quotedEnd + 1, nextStart))) {
                 throw new ParseException(MESSAGE_INVALID_QUOTED_NOTES);
             }
         }
@@ -177,6 +178,7 @@ public class ArgumentTokenizer {
     /**
      * Returns the trimmed value of the argument in the arguments string specified by {@code currentPrefixPosition}.
      * The end position of the value is determined by {@code nextPrefixPosition}.
+     * Trimming uses the same {@link Character#isWhitespace(int)} definition as prefix recognition.
      */
     private static String extractArgumentValue(String argsString,
                                         PrefixPosition currentPrefixPosition,
@@ -186,7 +188,7 @@ public class ArgumentTokenizer {
         int valueStartPos = currentPrefixPosition.getStartPosition() + prefix.getPrefix().length();
         String value = argsString.substring(valueStartPos, nextPrefixPosition.getStartPosition());
 
-        return value.trim();
+        return value.strip();
     }
 
     /**

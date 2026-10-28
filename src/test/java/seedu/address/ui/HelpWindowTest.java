@@ -204,7 +204,10 @@ public class HelpWindowTest {
         assertTrue(HelpWindow.RIDE_EDIT_HELP.contains("The ride ID, cyclist roster and unspecified fields stay "
                 + "unchanged."));
         assertTrue(HelpWindow.RIDE_EDIT_HELP.contains("Omit notes/ to preserve notes"));
-        assertTrue(HelpWindow.RIDE_EDIT_HELP.contains("notes/ without a value to clear them"));
+        assertTrue(HelpWindow.RIDE_EDIT_HELP.contains("empty or whitespace-only unquoted notes/ clears them"));
+        assertTrue(HelpWindow.RIDE_EDIT_HELP.contains("at most 10 words"));
+        assertTrue(HelpWindow.COMMAND_LIST.contains("Unicode spaces separate words and are stored as single spaces"));
+        assertTrue(HelpWindow.COMMAND_LIST.contains("whitespace-only notes are rejected"));
         assertTrue(HelpWindow.RIDE_EDIT_HELP.contains("Invalid edits leave the ride unchanged."));
 
         for (String example : new String[] {

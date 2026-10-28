@@ -36,7 +36,7 @@ public class HelpWindow extends UiPart<Stage> {
     /** Additional Ride Edit guidance and executable examples shown after its command usage. */
     public static final String RIDE_EDIT_HELP = RideEditCommand.MESSAGE_USAGE + "\n"
             + "Supply at least one editable field. The ride ID, cyclist roster and unspecified fields stay "
-            + "unchanged. Omit notes/ to preserve notes, or use notes/ without a value to clear them. "
+            + "unchanged. Omit notes/ to preserve notes; empty or whitespace-only unquoted notes/ clears them. "
             + "The minimum FTP cannot exceed any current roster member's FTP, and the maximum group size cannot "
             + "be smaller than the current roster size. Invalid edits leave the ride unchanged.\n"
             + "More examples:\n"

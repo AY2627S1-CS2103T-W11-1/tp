@@ -36,6 +36,37 @@ public class RideEditCommandParserTest {
     private final RideEditCommandParser parser = new RideEditCommandParser();
 
     @Test
+    public void parse_recognisedParameterSeparators_parsesDistanceAndPower() {
+        EditRideDescriptor descriptor = new EditRideDescriptor();
+        descriptor.setDistance(new Distance("20"));
+        descriptor.setMinimumPower(new MinimumPower("180"));
+        for (String separator : new String[] {" ", "\t", "\u2003", "\u3000"}) {
+            assertParseSuccess(parser, " 1 d/20" + separator + "f/180", new RideEditCommand(1, descriptor));
+        }
+    }
+
+    @Test
+    public void parse_unicodeNotes_enforcesBlankAndWordLimitRules() {
+        for (String separator : new String[] {" ", "\t", "\r\n", "\u2003", "\u00a0", "\u202f", "\u3000"}) {
+            EditRideDescriptor cleared = new EditRideDescriptor();
+            cleared.setNotes(Optional.empty());
+            assertParseSuccess(parser, VALID_ID + " notes/" + separator, new RideEditCommand(101, cleared));
+            assertParseFailure(parser, VALID_ID + " notes/\"" + separator + "\"",
+                    ArgumentTokenizer.MESSAGE_INVALID_QUOTED_NOTES);
+            String ten = "one two three four five six seven eight nine ten";
+            EditRideDescriptor descriptor = new EditRideDescriptor();
+            descriptor.setNotes(Optional.of(new Notes(ten)));
+            RideEditCommand expected = new RideEditCommand(101, descriptor);
+            for (String quote : new String[] {"", "\""}) {
+                assertParseSuccess(parser, VALID_ID + " notes/" + quote + separator
+                        + ten.replace(" ", separator) + separator + quote, expected);
+                assertParseFailure(parser, VALID_ID + " notes/" + quote
+                        + (ten + " eleven").replace(" ", separator) + quote, Notes.MESSAGE_CONSTRAINTS);
+            }
+        }
+    }
+
+    @Test
     public void parse_quotedNotes_onlyExplicitFieldsAreEdited() {
         EditRideDescriptor descriptor = new EditRideDescriptor();
         descriptor.setNotes(Optional.of(new Notes("Bring camera with aperture f/2")));
