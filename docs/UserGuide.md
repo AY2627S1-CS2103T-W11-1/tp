@@ -14,6 +14,8 @@ Cyclique is a **desktop application for organisers of recreational cycling group
 
 1. Ensure that JDK `25` is installed on your computer.<br>
    Run `java -version` in a terminal to check that the active version is `25`.
+   **Mac users:** Install the prescribed Azul Zulu JDK 25 with JavaFX included, following the
+   [SE-EDU Mac Java installation guide](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
 1. Download `cyclique.jar` from the [Cyclique releases page](https://github.com/AY2627S1-CS2103T-W11-1/tp/releases).
 
