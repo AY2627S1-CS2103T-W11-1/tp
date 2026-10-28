@@ -36,6 +36,8 @@ public class DeleteCommandTest {
     public void execute_validPhone_success() {
         Person personToDelete = model.getAddressBook().getPersonList().get(0);
         DeleteCommand deleteCommand = new DeleteCommand(personToDelete.getPhone());
+
+        // EP: an existing phone belongs to a deletable person and removes exactly that person.
         String expectedMessage = String.format(DeleteCommand.MESSAGE_DELETE_PERSON_SUCCESS,
                 Messages.format(personToDelete));
 
@@ -49,6 +51,7 @@ public class DeleteCommandTest {
     public void execute_unknownPhone_throwsCommandException() {
         DeleteCommand deleteCommand = new DeleteCommand(new Phone("+65 99999999"));
 
+        // EP: a phone absent from the address book belongs to the invalid-target partition.
         assertCommandFailure(deleteCommand, model,
                 String.format(DeleteCommand.MESSAGE_PERSON_NOT_FOUND, "+65 99999999"));
     }
@@ -106,6 +109,7 @@ public class DeleteCommandTest {
         DeleteCommand sameCommand = new DeleteCommand(new Phone("+65 111"));
         DeleteCommand differentCommand = new DeleteCommand(new Phone("+65 222"));
 
+        // EP: equality covers the same target, a different target, null, and an unrelated object type.
         assertTrue(firstCommand.equals(firstCommand));
         assertTrue(firstCommand.equals(sameCommand));
         assertFalse(firstCommand.equals(differentCommand));
@@ -118,6 +122,7 @@ public class DeleteCommandTest {
         DeleteCommand deleteCommand = new DeleteCommand(new Phone("+65 111"));
 
         String expected = DeleteCommand.class.getCanonicalName() + "{targetPhone=+65 111}";
+        // EP: the textual representation must expose the command's target for debugging and messages.
         assertEquals(expected, deleteCommand.toString());
     }
 }

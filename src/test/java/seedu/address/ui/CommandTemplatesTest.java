@@ -116,6 +116,7 @@ public class CommandTemplatesTest {
                 .filter(template -> template.insertText().trim().startsWith(FindCommand.COMMAND_WORD))
                 .findFirst().orElseThrow().display();
 
+        // EP: the find template documents every supported person-search field for valid user input.
         assertTrue(display.contains("f/MIN_FTP"));
         assertTrue(display.contains("x/EXPERIENCE"));
         assertTrue(display.contains("l/LOCATION"));
@@ -125,6 +126,7 @@ public class CommandTemplatesTest {
     public void rideFindTemplate_listsAllShortcut() {
         String display = templateFor(RideFindCommand.COMMAND_WORD).display();
 
+        // EP: the ridefind template documents the reserved all-rides form for match-all searches.
         assertTrue(display.contains("ridefind (rf) all"));
     }
 

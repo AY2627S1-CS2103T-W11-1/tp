@@ -26,6 +26,7 @@ public class RideFindCommandTest {
 
         new RideFindCommand(predicate).execute(model);
 
+        // EP: one matching ride is selected from a list containing both matching and non-matching rides.
         assertEquals(1, model.getFilteredRideList().size());
         assertEquals("Evening Loop", model.getFilteredRideList().getFirst().getName().fullName);
     }
@@ -39,6 +40,7 @@ public class RideFindCommandTest {
 
         new RideFindCommand(new RideMatchesFindCriteriaPredicate()).execute(model);
 
+        // EP: the empty predicate represents the match-all partition and returns every saved ride.
         assertEquals(2, model.getFilteredRideList().size());
     }
 
@@ -48,6 +50,7 @@ public class RideFindCommandTest {
 
         new RideFindCommand(new RideMatchesFindCriteriaPredicate()).execute(model);
 
+        // EP: the match-all case still returns an empty result when no rides are saved.
         assertEquals(0, model.getFilteredRideList().size());
     }
 
@@ -56,6 +59,7 @@ public class RideFindCommandTest {
         RideMatchesFindCriteriaPredicate first = new RideMatchesFindCriteriaPredicate();
         RideMatchesFindCriteriaPredicate second = new RideMatchesFindCriteriaPredicate();
 
+        // EP: equality treats commands with equivalent predicates as the same command.
         assertEquals(first, second);
         assertEquals(first.hashCode(), second.hashCode());
         assertTrue(new RideFindCommand(first).equals(new RideFindCommand(second)));
@@ -68,6 +72,7 @@ public class RideFindCommandTest {
                 Optional.of(new Name("Evening Loop")), Optional.empty(), Optional.empty(),
                 Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
 
+        // EP: equality distinguishes commands whose predicates select different rides.
         assertNotEquals(first, second);
     }
 }

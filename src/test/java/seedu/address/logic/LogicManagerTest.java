@@ -124,6 +124,7 @@ public class LogicManagerTest {
 
         logic.execute("ridefind n/Morning Ride");
 
+        // EP: filtering changes only the view; the saved ride list remains complete and one ride matches.
         assertEquals(2, logic.getRideList().size());
         assertEquals(1, logic.getFilteredRideList().size());
     }
@@ -135,12 +136,15 @@ public class LogicManagerTest {
         logic.execute(RideUtil.getRideAddCommand(new RideBuilder().withName("Night Ride").build()));
 
         logic.execute("ridefind n/Morning Ride");
+        // EP: a criterion matching one of several saved rides produces a one-item filtered view.
         assertEquals(1, logic.getFilteredRideList().size());
         logic.execute("ridefind n/Evening Ride");
+        // EP: replacing one valid criterion with another replaces, rather than accumulates, the filter.
         assertEquals(1, logic.getFilteredRideList().size());
 
         logic.execute("ridefind all");
 
+        // EP: the reserved all form is the match-all partition and restores every saved ride.
         assertEquals(3, logic.getFilteredRideList().size());
         assertEquals(3, logic.getRideList().size());
     }
