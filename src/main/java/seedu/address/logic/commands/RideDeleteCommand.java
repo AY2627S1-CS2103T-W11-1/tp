@@ -23,7 +23,7 @@ public class RideDeleteCommand extends Command {
             + "Example: " + COMMAND_WORD + " 101";
 
     public static final String MESSAGE_DELETE_RIDE_SUCCESS = "Deleted ride: %1$s";
-    public static final String MESSAGE_RIDE_NOT_FOUND = "Ride with ID %1$d cannot be found.";
+    public static final String MESSAGE_RIDE_NOT_FOUND = RideLookup.MESSAGE_RIDE_NOT_FOUND;
     public static final String MESSAGE_INVALID_ID = "Ride ID must be a positive integer.";
 
     private final int targetId;
@@ -40,10 +40,7 @@ public class RideDeleteCommand extends Command {
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
 
-        Ride rideToDelete = model.getAddressBook().getRideList().stream()
-                .filter(ride -> ride.getId() == targetId)
-                .findFirst()
-                .orElseThrow(() -> new CommandException(String.format(MESSAGE_RIDE_NOT_FOUND, targetId)));
+        Ride rideToDelete = RideLookup.getRide(model, targetId);
 
         model.deleteRide(rideToDelete);
         return new CommandResult(String.format(MESSAGE_DELETE_RIDE_SUCCESS, Messages.formatRide(rideToDelete)));

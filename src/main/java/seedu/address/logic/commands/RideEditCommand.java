@@ -66,7 +66,7 @@ public class RideEditCommand extends Command implements OverlapAwareCommand {
 
     public static final String MESSAGE_SUCCESS = "Edited ride: %1$s";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
-    public static final String MESSAGE_RIDE_NOT_FOUND = "Ride with ID %1$d cannot be found.";
+    public static final String MESSAGE_RIDE_NOT_FOUND = RideLookup.MESSAGE_RIDE_NOT_FOUND;
     public static final String MESSAGE_INVALID_ID = "Ride ID must be a positive integer.";
     public static final String MESSAGE_GROUP_SIZE_TOO_SMALL =
             "Cannot edit ride: maximum group size cannot be smaller than the current roster size.";
@@ -118,10 +118,7 @@ public class RideEditCommand extends Command implements OverlapAwareCommand {
      */
     private Ride getRide(Model model) throws CommandException {
         requireNonNull(model);
-        return model.getAddressBook().getRideList().stream()
-                .filter(ride -> ride.getId() == targetId)
-                .findFirst()
-                .orElseThrow(() -> new CommandException(String.format(MESSAGE_RIDE_NOT_FOUND, targetId)));
+        return RideLookup.getRide(model, targetId);
     }
 
     /**
