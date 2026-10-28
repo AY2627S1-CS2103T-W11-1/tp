@@ -6,7 +6,7 @@ jobs:
   build:
     strategy:
       matrix:
-        platform: [ubuntu-latest, macos-latest, windows-latest]
+        platform: [ubuntu-latest, macos-15, macos-15-intel, windows-latest]
     runs-on: ${{ matrix.platform }}
 
     steps:
@@ -30,7 +30,7 @@ jobs:
 
       - name: Build and check with Gradle on Linux
         if: runner.os == 'Linux'
-        run: xvfb-run -a ./gradlew check coverage
+        run: xvfb-run -a ./gradlew check coverage shadowJar
 
       - name: Build and check with Gradle
         if: runner.os != 'Linux'
@@ -41,3 +41,55 @@ jobs:
         uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Record release checksum
+        if: runner.os == 'Linux'
+        working-directory: build/libs
+        run: sha256sum cyclique.jar > cyclique.jar.sha256
+
+      - name: Upload the release JAR
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mac-release-test
+          path: |
+            build/libs/cyclique.jar
+            build/libs/cyclique.jar.sha256
+
+  mac-release:
+    needs: build
+    strategy:
+      matrix:
+        platform: [macos-15, macos-15-intel]
+    runs-on: ${{ matrix.platform }}
+    timeout-minutes: 10
+    steps:
+      - name: Set up repository
+        uses: actions/checkout@v7
+
+      - name: Setup prescribed Mac JDK with JavaFX
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: '25.0.3'
+          java-package: jdk+fx
+
+      - name: Download the same release JAR on both Macs
+        uses: actions/download-artifact@v4
+        with:
+          name: mac-release-test
+          path: build/libs
+
+      - name: Verify checksum
+        working-directory: build/libs
+        run: shasum -a 256 -c cyclique.jar.sha256
+
+      - name: Launch and exit the packaged application
+        shell: bash
+        run: |
+          java -version
+          smoke_dir=$(mktemp -d)
+          cd "$smoke_dir"
+          java -Djavafx.verbose=true -Djavafx.cachedir="$smoke_dir/natives" \
+            -cp "$GITHUB_WORKSPACE/build/libs/cyclique.jar" \
+            "$GITHUB_WORKSPACE/src/test/java/seedu/address/testutil/PackagedJarSmokeTest.java"

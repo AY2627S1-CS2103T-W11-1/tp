@@ -68,6 +68,12 @@ to check that the main window opens without native-library errors. The CI matrix
 and Linux builds; verify the same release JAR separately on each required platform, using the prescribed
 JDK+FX on both Intel and ARM Macs.
 
+For `./gradlew run` and `./gradlew test` on macOS, Gradle selects JavaFX libraries matching the
+architecture of its JVM. This development classpath does not change the release JAR's dependencies.
+The `mac-release` CI jobs download the same Linux-built JAR, check its checksum, and verify that its
+main window opens and the `exit` command shuts it down on Intel and ARM Macs with Zulu JDK+FX 25.0.3.
+These smoke checks use a fresh native-library cache and do not rebuild the JAR on either Mac.
+
 `ReleaseCommandIntegrationTest` covers command sequences through parsing, the model, filtering and JSON storage.
 It checks cyclist data without retired fields, repeated locations, edit replacement and preservation of fields,
 find matching rules, filtered edit/delete behaviour, rejected commands without saved-data changes,
