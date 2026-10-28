@@ -1506,7 +1506,7 @@ Use the valid ride and cyclists created in the preceding roster scenario, and no
 ### Find and ridefind regression (manual testing)
 
 The ride panel resets its active `ridefind` filter when an added or edited ride would otherwise be hidden, and when the address
-book is cleared. Edits preserve the active ride filter, so the panel continues to represent the user's search.
+book is cleared.
 
 Use disposable cyclist and ride data. Record the original details before applying filters.
 
