@@ -13,8 +13,8 @@ import java.util.regex.Pattern;
 public class MinimumPower {
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Minimum power should be a whole number from 1 to 600 watts, using at most 3 digits. "
-                    + "Leading zeroes count towards the digit limit.";
+            "Minimum power: whole number, 1–600 W.\n"
+                    + "At most 3 digits; leading zeroes count.";
 
     private static final Pattern VALIDATION_PATTERN = Pattern.compile("\\d{1,3}");
     private static final int MIN_POWER = 1;

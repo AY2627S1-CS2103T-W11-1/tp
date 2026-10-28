@@ -37,9 +37,8 @@ public class RideEditCommandParserTest {
 
     @Test
     public void parse_distanceDigitLimits_reportsCompleteConstraints() {
-        String expectedMessage = "Distance should be a positive number of kilometres from 0.01 to 999999.99, "
-                + "with 1 to 6 digits before the decimal point and, if present, 1 to 2 digits after it. "
-                + "Leading zeroes count towards the digit limits. For example, 45 or 45.5.";
+        String expectedMessage = "Distance: 0.01–999999.99 km. Leading zeroes count.\n"
+                + "Use 1–6 digits, optionally '.' then 1–2 digits.";
         assertParseFailure(parser, " 1 d/1000000", expectedMessage);
         assertParseFailure(parser, " 1 d/0000001", expectedMessage);
     }
@@ -50,8 +49,8 @@ public class RideEditCommandParserTest {
         descriptor.setMinimumPower(new MinimumPower("1"));
         assertParseSuccess(parser, " 1 f/001", new RideEditCommand(1, descriptor));
         assertParseFailure(parser, " 1 f/0001",
-                "Minimum power should be a whole number from 1 to 600 watts, using at most 3 digits. "
-                        + "Leading zeroes count towards the digit limit.");
+                "Minimum power: whole number, 1–600 W.\n"
+                        + "At most 3 digits; leading zeroes count.");
     }
 
     @Test
