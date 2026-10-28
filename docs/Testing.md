@@ -70,9 +70,15 @@ JDK+FX on both Intel and ARM Macs.
 
 For `./gradlew run` and `./gradlew test` on macOS, Gradle selects JavaFX libraries matching the
 architecture of its JVM. This development classpath does not change the release JAR's dependencies.
+The build jobs use plain JDK 25 so bundled JavaFX cannot hide incorrect development dependencies.
 The `mac-release` CI jobs download the same Linux-built JAR, check its checksum, and verify that its
 main window opens and the `exit` command shuts it down on Intel and ARM Macs with Zulu JDK+FX 25.0.3.
 These smoke checks use a fresh native-library cache and do not rebuild the JAR on either Mac.
+The Intel hosted VM uses OpenGL (`-Dprism.order=es2,sw`): default rendering with the prescribed
+JDK+FX 25.0.3 aborts there, whereas OpenGL passes. This is consistent with the
+[JavaFX Metal renderer bug on virtual machines](https://docs.oracle.com/en/java/java-components/javafx/25/release-notes/),
+fixed in JavaFX 25.0.4. The ARM check uses default rendering. Default rendering on a physical Intel Mac
+still requires a manual check; the CI OpenGL setting does not change application defaults.
 
 `ReleaseCommandIntegrationTest` covers command sequences through parsing, the model, filtering and JSON storage.
 It checks cyclist data without retired fields, repeated locations, edit replacement and preservation of fields,

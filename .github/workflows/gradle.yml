@@ -26,7 +26,7 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '25'
-          java-package: jdk+fx
+          java-package: jdk
 
       - name: Build and check with Gradle on Linux
         if: runner.os == 'Linux'
@@ -60,7 +60,15 @@ jobs:
     needs: build
     strategy:
       matrix:
-        platform: [macos-15, macos-15-intel]
+        include:
+          - platform: macos-15
+            renderer: default
+            java-options: ''
+          # Zulu JDK+FX 25.0.3's Metal renderer aborts on the Intel hosted VM.
+          - platform: macos-15-intel
+            renderer: OpenGL
+            java-options: '-Dprism.order=es2,sw'
+    name: Packaged JAR (${{ matrix.platform }}, ${{ matrix.renderer }})
     runs-on: ${{ matrix.platform }}
     timeout-minutes: 10
     steps:
@@ -90,27 +98,6 @@ jobs:
           java -version
           smoke_dir=$(mktemp -d)
           cd "$smoke_dir"
-          java -Djavafx.verbose=true -Djavafx.cachedir="$smoke_dir/natives" \
-            -cp "$GITHUB_WORKSPACE/build/libs/cyclique.jar" \
-            "$GITHUB_WORKSPACE/src/test/java/seedu/address/testutil/PackagedJarSmokeTest.java"
-
-      - name: Collect native crash diagnostics
-        if: failure()
-        shell: bash
-        run: |
-          for report in "$HOME"/Library/Logs/DiagnosticReports/java*.ips \
-            "$HOME"/Library/Logs/DiagnosticReports/java*.crash; do
-            if [ -f "$report" ]; then
-              cat "$report"
-            fi
-          done
-
-      - name: Diagnose OpenGL rendering after a launch failure
-        if: failure()
-        shell: bash
-        run: |
-          smoke_dir=$(mktemp -d)
-          cd "$smoke_dir"
-          java -Dprism.order=es2,sw -Djavafx.cachedir="$smoke_dir/natives" \
+          java ${{ matrix.java-options }} -Djavafx.cachedir="$smoke_dir/natives" \
             -cp "$GITHUB_WORKSPACE/build/libs/cyclique.jar" \
             "$GITHUB_WORKSPACE/src/test/java/seedu/address/testutil/PackagedJarSmokeTest.java"
