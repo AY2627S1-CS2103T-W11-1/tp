@@ -55,7 +55,8 @@ public class CommandTemplatesTest {
                 FindCommand.COMMAND_WORD, RideAddCommand.COMMAND_WORD, RideEditCommand.COMMAND_WORD,
                 RideDeleteCommand.COMMAND_WORD,
                 RideRosterCommand.JOIN_COMMAND_WORD, RideRosterCommand.LEAVE_COMMAND_WORD,
-                RideListCommand.COMMAND_WORD, RideFindCommand.COMMAND_WORD, ListCommand.COMMAND_WORD,
+                RideListCommand.COMMAND_WORD, RideFindCommand.COMMAND_WORD, RideFindCommand.COMMAND_WORD,
+                ListCommand.COMMAND_WORD,
                 ClearCommand.COMMAND_WORD, HelpCommand.COMMAND_WORD, ExitCommand.COMMAND_WORD), commandWords);
     }
 
@@ -116,6 +117,7 @@ public class CommandTemplatesTest {
                 .filter(template -> template.insertText().trim().startsWith(FindCommand.COMMAND_WORD))
                 .findFirst().orElseThrow().display();
 
+        // EP: the find template exposes all supported search fields.
         assertTrue(display.contains("f/MIN_FTP"));
         assertTrue(display.contains("x/EXPERIENCE"));
         assertTrue(display.contains("l/LOCATION"));
@@ -125,7 +127,11 @@ public class CommandTemplatesTest {
     public void rideFindTemplate_listsAllShortcut() {
         String display = templateFor(RideFindCommand.COMMAND_WORD).display();
 
+        // EP: the ridefind template exposes the all-rides shortcut.
         assertTrue(display.contains("ridefind (rf) all"));
+        assertTrue(CommandTemplates.ALL.stream().anyMatch(template ->
+                template.display().contains("ridefind (rf) [n/NAME]")
+                        && template.insertText().equals("ridefind ")));
     }
 
     @Test

@@ -114,7 +114,8 @@ public class RideBoundaryIntegrationTest {
             logic.execute("rideedit 1 notes/" + separator);
             assertEquals(original, currentRide());
             assertEquals(java.util.Optional.empty(), currentRide().getNotes());
-            assertEquals(List.of(), model.getFilteredRideList());
+            // EP: clearing notes makes the edited ride stop matching, so the filter resets.
+            assertEquals(List.of(currentRide()), model.getFilteredRideList());
             assertEquals(visiblePeople, model.getFilteredPersonList());
             assertSavedState();
             model.setAddressBook(storage.readAddressBook().orElseThrow());
@@ -124,7 +125,7 @@ public class RideBoundaryIntegrationTest {
         Ride added = model.getAddressBook().getRideList().get(1);
         assertEquals(2, added.getId());
         assertEquals("Bring CAF\u00c9, \u6c34!", added.getNotes().orElseThrow().value);
-        assertEquals(List.of(added), model.getFilteredRideList());
+        assertEquals(List.of(original, added), model.getFilteredRideList());
         assertSavedState();
     }
 
