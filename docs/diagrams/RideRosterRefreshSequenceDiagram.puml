@@ -1,13 +1,17 @@
 @startuml
 !include style.puml
 skinparam ArrowFontStyle plain
+skinparam defaultFontSize 16
+skinparam ParticipantFontSize 16
+skinparam ArrowFontSize 16
+skinparam NoteFontSize 16
 skinparam maxMessageSize 80
 hide footbox
 participant "m:ModelManager" as Model MODEL_COLOR
 participant "book:AddressBook" as Book MODEL_COLOR
 participant "filteredPersons:FilteredList" as Filtered MODEL_COLOR
 
-note over Model, Book : Precondition: a roster is selected; the ride-list listener already exists.
+note over Model, Book : Precondition: a roster is selected;\nthe ride-list listener already exists.
 [-> Model : setRide(ride, replacement)
 activate Model
 Model -> Book : setRide(ride, replacement)
@@ -18,7 +22,7 @@ Model -> Model : refreshRideListFilter()
 Model -> Book : getRideList()
 Book --> Model : latest rides
 Model -> Filtered : setPredicate(roster phone membership)
-note right of Filtered : Existing SortedList and cyclist panel\nobserve the updated filtered list.
+note over Filtered : Existing sorted view\nupdates the cyclist panel.
 Model --> Book : callback returns
 deactivate Model
 Book --> Model
@@ -26,9 +30,4 @@ deactivate Book
 [<-- Model
 deactivate Model
 
-legend bottom
-  Incoming call: a successful roster command (parsing and saving omitted).
-  Notification abstracts synchronous JavaFX listener dispatch, not a book method call.
-  The selected persistent ID is retained; no new ridelist command or listener is needed.
-endlegend
 @enduml

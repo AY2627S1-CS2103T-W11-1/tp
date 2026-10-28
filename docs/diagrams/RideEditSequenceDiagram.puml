@@ -1,6 +1,10 @@
 @startuml
 !include style.puml
 skinparam ArrowFontStyle plain
+skinparam defaultFontSize 16
+skinparam ParticipantFontSize 16
+skinparam ArrowFontSize 16
+skinparam NoteFontSize 16
 skinparam maxMessageSize 80
 hide footbox
 participant ":LogicManager" as Logic LOGIC_COLOR
@@ -37,8 +41,4 @@ Storage --> Logic
 [<-- Logic : result
 deactivate Logic
 
-legend bottom
-  Successful path; validation details and cancellation are described in prose.
-  A saving error is reported after replacement, without rollback.
-endlegend
 @enduml

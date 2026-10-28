@@ -1,38 +1,31 @@
 @startuml
 !include style.puml
 skinparam ArrowFontStyle plain
-skinparam maxMessageSize 80
+skinparam defaultFontSize 18
+skinparam ParticipantFontSize 18
+skinparam ArrowFontSize 18
+skinparam NoteFontSize 18
+skinparam maxMessageSize 140
 hide footbox
 participant ":LogicManager" as Logic LOGIC_COLOR
 participant "c:RideListCommand" as Command LOGIC_COLOR
 participant "m:ModelManager" as Model MODEL_COLOR
-participant ":Storage" as Storage STORAGE_COLOR
 
-[-> Logic : execute(commandText)
+[-> Logic : execute(input)
 activate Logic
-note over Logic, Command : Parsing succeeds and produces c (calls omitted).
 Logic -> Command : execute(m)
 activate Command
 Command -> Model : getAddressBook()
 Model --> Command : book
-note right of Command : Find ride by ID and resolve all roster phones.\nFailure leaves the previous selection unchanged.
+note over Command : Resolve ride and roster phones.\nValidation calls omitted.
 Command -> Model : updateFilteredPersonListForRide(targetId)
 activate Model
-Model -> Model : refreshRideListFilter()
-note right of Model : Store activeRideListId; filter by roster phones.\nExisting sorted view supplies the cyclist panel.
 Model --> Command
 deactivate Model
 Command --> Logic : result (members or empty roster)
 deactivate Command
-Logic -> Model : getAddressBook()
-Model --> Logic : book
-Logic -> Storage : saveAddressBook(book)
-Storage --> Logic
+note over Logic : Save unchanged data.\nStorage calls omitted.
 [<-- Logic : result
 deactivate Logic
 
-legend bottom
-  Initial roster selection only; cyclist and ride records are unchanged.
-  Later roster changes refresh through the existing listener (next diagram).
-endlegend
 @enduml

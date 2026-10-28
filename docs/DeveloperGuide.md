@@ -524,7 +524,7 @@ Cyclist phone edits use `AddressBook#setPerson(...)` to replace the old phone in
 ### Ride roster display (`ridelist`)
 
 `ridelist ID` displays registered cyclists in the left-hand cyclist panel. The first diagram shows a
-successful initial selection, with parsing omitted.
+successful initial selection, with parsing, local validation and filtering calls, and storage calls omitted.
 
 [![Initial roster selection, filtering and unchanged-data saving](images/RideListSequenceDiagram.png)](images/RideListSequenceDiagram.png)
 
@@ -779,6 +779,11 @@ The status column distinguishes current requirements from future work. Current c
 
       Use case ends.
 
+* 2d. The revised FTP is below the minimum for a ride in which the cyclist is registered.
+    * 2d1. Cyclique identifies the conflicting ride and required FTP. None of the requested field changes are applied.
+
+      Use case ends.
+
 **UC04 – Delete Cyclist**
 
 **Guarantees**
@@ -975,7 +980,7 @@ The status column distinguishes current requirements from future work. Current c
 
 **Environment/Compatibility**
 
-* Compatibility targets are Windows 11 (x86-64), Ubuntu 24.04 LTS (x86-64) and macOS 14 (Intel x86-64), with JDK 25 and the reference hardware above. These targets do not assert support for other Unix variants or ARM processors; verify each target before claiming release compatibility. Only a keyboard and display should be required as input/output peripherals. Record the operating system version used for each compatibility test.
+* The same release JAR must work on Windows (including WSL), Linux and macOS (Intel and ARM), with JDK 25. Representative test configurations are Windows 11, Ubuntu 24.04 LTS and macOS 14 or later, including both Mac architectures. These are compatibility requirements, not a claim that every configuration has passed testing. Record the operating system version, architecture and results for each release compatibility test. Only a keyboard and display should be required as input/output peripherals.
 
 **Security/Privacy**
 
@@ -1607,7 +1612,16 @@ Prepare an [empty test book](#preparing-an-empty-test-book) in a disposable fold
 
 ### Ride list regression (manual testing)
 
-Use the valid ride and cyclists created in the preceding roster scenario, and note their original details.
+Prepare an [empty test book](#preparing-an-empty-test-book). The preceding roster scenario deletes its
+original cyclist and uses a capacity-one ride, so prepare these independent fixtures:
+
+```text
+add n/Alice Rider p/+65 91111111 sos/+65 99999999 e/alice.roster@example.com f/250 x/Beginner l/any
+add n/Bob Rider p/+65 92222222 sos/+65 99999999 e/bob.roster@example.com f/250 x/Beginner l/any
+rideadd n/Roster View from/29-10-2026 0800 to/29-10-2026 1000 l/Punggol d/20 f/180 s/3
+```
+
+Note their original details. The ride receives ID 1.
 
 1. Add at least two eligible cyclists to one ride, then enter `ridelist ID` using that ride's displayed ID.
    Expected: only its roster members appear in the left panel, alphabetically; the Rides panel is unchanged.
@@ -1622,14 +1636,15 @@ Use the valid ride and cyclists created in the preceding roster scenario, and no
    the left panel without another `ridelist`. Remove that cyclist with `ridedeletecyclist`. Expected: the cyclist
    disappears immediately; removing the last member leaves the panel empty.
 1. While a roster is selected, add a new cyclist with a unique phone and email who is not on that roster.
-   Expected: the successful addition ends roster selection and displays all cyclists. Select the original ride
-   again, then edit a displayed member's name. Expected: only that ride's members remain displayed, in the
-   updated alphabetical order; editing does not end roster selection.
+   Expected: the successful addition ends roster selection and displays all cyclists. Select the populated ride
+   from the first step again, then edit a displayed member's name. Expected: only that ride's members remain
+   displayed, in the updated alphabetical order; editing does not end roster selection.
 1. Change another ride's roster. Expected: the selected ride and its displayed members do not change.
 1. Delete the selected ride with `ridedelete`. Expected: the left panel becomes empty and does not switch to another
    ride. Enter `list` or `find`; expected: it replaces the empty Ride List filter normally.
-1. Recheck the cyclist and ride details, roster cards and IDs. Expected: only the requested roster changes occurred.
-   Restart Cyclique; expected: the same stored data returns.
+1. Recheck the cyclist and ride details, roster cards and IDs. Expected: the new cyclist and edited name remain,
+   the selected ride is deleted, and the requested membership changes persist for surviving rides. All other
+   records and surviving ride IDs are unchanged. Restart Cyclique; expected: these same changes remain saved.
 
 ### Find and ridefind regression (manual testing)
 
