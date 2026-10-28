@@ -179,6 +179,7 @@ Format: `edit PHONE [n/NAME] [p/PHONE] [sos/EMERGENCY_PHONE] [e/EMAIL] [f/FTP_LE
 * Supplied fields follow the [Add field rules](#adding-a-cyclist-add). Only `l/` may be repeated. Phone numbers and email addresses must remain unique across all cyclists, including hidden records; email comparisons ignore case. Keeping the cyclist's own current phone or email is allowed.
 * Omitted fields remain unchanged. Supplying one or more `l/` fields replaces the **entire** preferred location set; it does not append locations. Blank `l/` is invalid. Use `l/any` alone for no location preference.
 * Omitting `sos/` preserves the existing emergency contact number. Blank `sos/` is invalid and cannot remove the number.
+* An edited FTP must meet the minimum power of every ride the cyclist is registered for, including rides hidden by a filter. Equality with the minimum is allowed. If it is too low, the entire edit is rejected with the conflicting ride's ID, name and minimum FTP; accompanying field changes are not applied. Remove the cyclist from the affected rides first if they should no longer participate, or edit the ride requirements before lowering their FTP.
 
 On success, the result box shows `Edited person:` followed by the updated details and saves the changes.
 Any active `find` or `ridelist` filter remains applied. A cyclist who no longer matches the search disappears
@@ -322,7 +323,7 @@ Field | Meaning and rules
 `d/DISTANCE` | The distance in kilometres, from `0.01` to `999999.99`. Use 1–6 digits before the decimal point and, optionally, 1–2 digits after it, such as `45` or `45.5`.
 `f/MIN_POWER` | The minimum power a cyclist needs to join, in watts. Use 1–3 digits representing a whole number from 1 to 600, the same range as a cyclist's FTP.
 `s/MAX_GROUP_SIZE` | The most cyclists that can join. Use 1–9 digits representing a whole number from 1 to 999999999.
-`notes/NOTES` | Optional. If supplied, it must contain 1–10 words separated by whitespace. Repeated whitespace is stored as single spaces. Omit the prefix for no notes; empty `notes/` is rejected when adding a ride.
+`notes/NOTES` | Optional. If supplied, it must contain 1–10 words separated by whitespace, including Unicode spaces such as non-breaking, EM, narrow non-breaking and ideographic spaces. Leading and trailing whitespace is removed; repeated whitespace is stored as single ordinary spaces. Omit the prefix for no notes; empty or whitespace-only `notes/` is rejected when adding a ride. These rules also apply inside quoted notes.
 
 Every field except `notes/` is required and must have a value. Each prefix can be used only once, in any order. Put whitespace before each prefix; spaces around values are trimmed. Command words and prefixes are case-sensitive: use `rideadd` and `from/`, for example. Names, locations and notes retain the capitalisation you enter. Enter numeric values without units, signs, commas or scientific notation; zero and negative values are rejected. Leading zeroes count towards the digit limits and are removed from stored numeric values.
 
@@ -332,7 +333,9 @@ Ordinary notes such as `notes/Bring water` do not need quotation marks. To inclu
 (`n/`, `from/`, `to/`, `l/`, `d/`, `f/`, `s/` or `notes/`) literally, put a double quote immediately after
 `notes/` and another at the end of the notes: `notes/"Bring camera with aperture f/2"`.
 The surrounding quotes are not stored, and recognised prefixes inside them do not create or change other fields.
-Other parameters may appear before or after quoted notes; put whitespace between the closing quote and the next prefix.
+Other parameters may appear before or after quoted notes. Unicode whitespace is allowed after the closing quote,
+including at the end of the command. For a following parameter, use an ordinary space immediately before its
+prefix; non-breaking and narrow non-breaking spaces alone do not introduce a parameter.
 The same 1–10-word limit and whitespace rules apply.
 
 The first double quote after the opening quote closes the value. Missing closing quotes, empty or whitespace-only
@@ -347,7 +350,7 @@ Rides may be in the past, cross midnight or span multiple days. The end must be 
 
 Each new ride gets a persistent ID automatically. A new empty book starts at 1; an existing book continues from its saved counter. IDs increase in creation order and are never reused, including after deletion, `clear` or restarting. Check the assigned ID in the result or ride card; it is not the card's list position. A new ride has no cyclists on its roster yet. Even rides with identical details are allowed, because their IDs differ.
 
-On success, the result box shows `New ride added:` followed by the assigned ID and complete ride details, and the change is saved automatically. The right-hand **Rides** panel updates immediately, with the new ride after existing rides. An active `ridefind` filter is retained and may hide the new card; use `ridefind all` to show every ride. Cyclist records and the current cyclist filter are unchanged. Each ride card shows its ID and name, period, location, distance, minimum power, maximum group size and roster, plus a **Notes** line if notes are present.
+On success, the result box shows `New ride added:` followed by the assigned ID and complete ride details, and the change is saved automatically. The right-hand **Rides** panel updates immediately. If an active `ridefind` filter would hide the new ride, the filter resets so the new ride is visible; otherwise, the filter remains active. Cyclist records and the current cyclist filter are unchanged. Each ride card shows its ID and name, period, location, distance, minimum power, maximum group size and roster, plus a **Notes** line if notes are present.
 
 Examples:
 
@@ -373,7 +376,7 @@ The three screenshots in these sections show a separate walkthrough starting wit
 
 * Missing required prefixes or text before the first prefix produces `Invalid command format.` followed by the command usage.
 * Repeating a prefix is rejected. For example, repeating `d/` reports `Multiple values specified for the following single-valued field(s): d/.`
-* Invalid field values report the relevant constraint. For example, `d/0` reports `Distance should be a positive number of kilometres with at most 2 decimal places, for example 45 or 45.5.` Empty `notes/` reports `Notes should not be blank and should contain at most 10 words.`
+* Invalid field values report the relevant constraint. For example, `d/1000000` reports the distance constraint, including the six-digit limit before the decimal point. Empty `notes/` reports `Notes should not be blank and should contain at most 10 words.`
 * An end before the start reports `The end date and time (to/) cannot be earlier than the start date and time (from/).`
 * If the ID counter is exhausted, Cyclique reports `No more ride IDs are available.`
 
@@ -432,7 +435,7 @@ Format: `rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f
 
 `ID` is the persistent number assigned when the ride is created and displayed on its card, not its position in the Rides panel. Enter a whole number from 1 to 2147483647 without a sign or decimal point, before any prefixed fields. It must identify a saved ride; rides hidden by `ridefind` can still be edited. The ID itself cannot be edited.
 
-Supply at least one field after the ID. All eight fields shown in the format are editable. Fields follow the [`rideadd` rules](#adding-a-group-ride-rideadd), including case-sensitive command words and prefixes, digit limits, whitespace handling and duplicate-prefix rejection. Prefixed fields can be in any order after the ID. Only supplied fields are replaced; all unspecified fields are preserved. Supplied values must not be empty, except that `notes/` with no value clears existing notes. Non-empty `notes/NOTES` replaces the notes with 1–10 words; omitting it preserves them.
+Supply at least one field after the ID. All eight fields shown in the format are editable. Fields follow the [`rideadd` rules](#adding-a-group-ride-rideadd), including case-sensitive command words and prefixes, digit limits, whitespace handling and duplicate-prefix rejection. Prefixed fields can be in any order after the ID. Only supplied fields are replaced; all unspecified fields are preserved. Supplied values must not be empty, except that empty or whitespace-only unquoted `notes/` clears existing notes, including Unicode spaces. For example, `rideedit 1 notes/` followed only by an EM SPACE clears the notes and removes the card's Notes line. Non-blank `notes/NOTES` replaces the notes with 1–10 words; omitting it preserves them.
 
 For literal prefixes, use `rideedit 1 notes/"Bring camera with aperture f/2"` (substitute the actual ride ID).
 This stores `Bring camera with aperture f/2` and preserves minimum power, ID, roster and all other fields.
@@ -461,7 +464,7 @@ Quoted notes follow the same confirmation rules. For example,
 preserves literal `f/2`. If the new period creates a roster conflict, both the notes and times remain unchanged
 until `y`/`yes`; `n`/`no` cancels the whole edit. Substitute the actual ride ID.
 
-On success, Cyclique displays `Edited ride:` followed by the complete updated ride and saves the change automatically. The ride ID, roster membership, stored ride order, other rides, cyclist records and next ride ID are unchanged. The Rides panel refreshes immediately using the existing `ridefind` filter: an edited ride may disappear if it no longer matches, or appear if it now matches. Use `ridefind all` to see all rides. If input or ride validation fails, none of the supplied changes is applied.
+On success, Cyclique displays `Edited ride:` followed by the complete updated ride and saves the change automatically. The ride ID, roster membership, stored ride order, other rides, cyclist records and next ride ID are unchanged. The Rides panel refreshes immediately using the existing `ridefind` filter. If the edited ride would be hidden by that filter, the filter resets so the edited ride remains visible. If input or ride validation fails, none of the supplied changes is applied.
 
 Examples:
 
@@ -606,7 +609,8 @@ Format: `clear`
 * Cyclique does **not** ask you to confirm, and there is no undo. The change is saved automatically, so the data file is emptied as well. Keep a copy of your data file first if you might need the data again (see [Saving the data](#saving-the-data)).
 * Ride IDs are never reused. After `clear`, the next ride you add receives the next unused ID instead of starting again from 1.
 * Any cyclist filter, including a [`ridelist`](#listing-cyclists-registered-for-a-ride-ridelist) selection, is reset.
-* On success, the result box shows `Address book has been cleared!`
+* On success, the result box shows `All cyclists and rides have been cleared. Ride IDs are never reused, so the next ride you add will be ride N.`, where `N` is the ID that the next new ride receives. For example, after rides 1 to 3 exist, it shows `ride 4`.
+* If every ride ID has already been used (the counter has reached its limit), the result box instead shows `All cyclists and rides have been cleared. No more ride IDs are available. New rides cannot be added.`, because `rideadd` would be rejected with `No more ride IDs are available.`
 
 ### Exiting the program: `exit`
 
@@ -625,9 +629,10 @@ normal saving behaviour.
 ### Repairing duplicate phone numbers in an existing book
 
 Saved books containing duplicate phone numbers or email addresses (ignoring email case)
-are rejected during loading. Cyclique starts with an empty directory and logs the error.
-Before entering commands that could overwrite the file, close the application and back up
-`data/addressbook.json`. Correct conflicting phone numbers and email addresses in a copy
+are rejected during loading. Cyclique stops startup before accepting commands and leaves the data file
+unchanged. A fatal error dialog identifies the file and explains recovery; dismissing it closes Cyclique.
+Back up `data/addressbook.json`.
+Correct conflicting phone numbers and email addresses in a copy
 of the file, then relaunch. Identical cyclist names are allowed when phone numbers and
 email addresses are unique.
 
@@ -636,7 +641,7 @@ email addresses are unique.
 Cyclique stores data in `data/addressbook.json`, relative to the folder from which you launch the application. Following the Quick start steps places it in your chosen home folder. Older cyclist records without an `emergencyPhone` field load with **SOS: Not provided**; adding an emergency number through `edit` saves it for future sessions. Group rides are saved in the same file under `rides`, together with a `nextRideId` number that stops ride IDs from being reused; data files saved before rides existed still load, with no rides. Advanced users are welcome to update data directly by editing that data file.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-Close Cyclique and back up the file before editing it. If your changes make the file invalid, Cyclique starts with an empty directory at the next launch. A subsequent successful command that saves data can overwrite the invalid file with that empty directory. Restore or repair your backup before entering commands. Direct edits must follow the supported data format and field constraints.
+Close Cyclique and back up the file before editing it. If the file cannot be loaded, Cyclique stops startup before accepting commands and leaves the original data file unchanged. A fatal error dialog identifies the file and asks you to back up and correct it before restarting. Dismiss the dialog to close Cyclique; no command window opens. This includes legacy blank or over-ten-word Unicode-spaced notes; notes are not automatically discarded or truncated. Restore or repair your backup, then relaunch. Direct edits must follow the supported data format and field constraints.
 </div>
 
 ### Archiving data files `[coming in v2.0]`
@@ -675,7 +680,7 @@ Action | Format, Examples
 **List** | `list`
 **Help** | `help`<br> or press `F1`, or choose **Help → Full help...**
 **Rideadd** | `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MIN_POWER s/MAX_GROUP_SIZE [notes/NOTES]`<br> e.g., `rideadd n/Sunday Sunrise Ride from/25-10-2026 0630 to/25-10-2026 0930 l/East Coast Park d/45 f/180 s/3 notes/Bring lights and a spare tube`
-**Ridefind** | `ridefind all` or `ridefind [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`<br> e.g., `ridefind all`, `ridefind from/18-10-2026 to/18-10-2026 f/180`
+**Ridefind** | `ridefind (rf) all`<br>`ridefind (rf) [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`<br> e.g., `ridefind all`, `ridefind from/18-10-2026 to/18-10-2026 f/180`
 **Rideedit** | `rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`<br> e.g., `rideedit 1 l/Marina Bay notes/Meet at the waterfront`, `rideedit 1 notes/` (use the actual ride ID)
 **Ridedelete** | `ridedelete ID`<br> e.g., `ridedelete 1` (use the actual ride ID; no confirmation)
 **Add cyclist to ride** | `rideaddcyclist ID PHONE`<br> e.g., `rideaddcyclist 1 +65 91234567`

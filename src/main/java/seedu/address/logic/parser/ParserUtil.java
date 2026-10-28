@@ -213,7 +213,7 @@ public class ParserUtil {
 
     /**
      * Parses a {@code String notes} into a {@code Notes}.
-     * Leading and trailing whitespaces will be trimmed.
+     * Unicode whitespace is trimmed and collapsed according to {@link Notes}.
      *
      * @throws ParseException if the given {@code notes} is invalid.
      */

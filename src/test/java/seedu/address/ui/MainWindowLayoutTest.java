@@ -1,6 +1,7 @@
 package seedu.address.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.JavaFxTestUtil.runOnJavaFxThread;
 
@@ -10,12 +11,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import javafx.event.ActionEvent;
+import javafx.geometry.Orientation;
+import javafx.scene.control.ScrollBar;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import seedu.address.logic.LogicManager;
 import seedu.address.model.ModelManager;
+import seedu.address.model.ride.Distance;
+import seedu.address.model.ride.MinimumPower;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -30,6 +36,41 @@ public class MainWindowLayoutTest {
 
     @TempDir
     public Path temporaryFolder;
+
+    @Test
+    public void resultPane_numericErrorsAtDefaultWidth_doNotRequireScrolling() throws Exception {
+        ModelManager model = new ModelManager();
+        model.addRide(new RideBuilder().build());
+        StorageManager storage = new StorageManager(
+                new JsonAddressBookStorage(temporaryFolder.resolve("book.json")),
+                new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json")));
+        LogicManager logic = new LogicManager(model, storage);
+
+        runOnJavaFxThread(() -> {
+            Stage stage = new Stage();
+            MainWindow window = new MainWindow(stage, logic, storage.getAddressBookFilePath());
+            window.fillInnerParts();
+            VBox root = (VBox) stage.getScene().getRoot();
+            TextField input = (TextField) root.lookup("#commandTextField");
+            TextArea feedback = (TextArea) root.lookup("#resultDisplay");
+            for (String field : new String[] {"d/1000000", "d/0000001", "f/0001"}) {
+                input.setText("rideedit 1 " + field);
+                input.fireEvent(new ActionEvent());
+                layout(root, 740, 600);
+                String expectedMessage = field.startsWith("d/")
+                        ? Distance.MESSAGE_CONSTRAINTS : MinimumPower.MESSAGE_CONSTRAINTS;
+                assertEquals(expectedMessage, feedback.getText());
+                assertFalse(feedback.isWrapText());
+                for (Orientation orientation : Orientation.values()) {
+                    ScrollBar scrollBar = feedback.lookupAll(".scroll-bar").stream()
+                            .map(ScrollBar.class::cast)
+                            .filter(bar -> bar.getOrientation() == orientation)
+                            .findFirst().orElseThrow();
+                    assertFalse(scrollBar.isVisible(), orientation.toString());
+                }
+            }
+        });
+    }
 
     @Test
     public void resultPane_confirmationAndConstrainedWindow_staysBoundedAndResets() throws Exception {

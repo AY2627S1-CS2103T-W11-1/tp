@@ -22,6 +22,43 @@ public class ArgumentTokenizerTest {
     private final Prefix hatQ = new Prefix("^Q");
 
     @Test
+    public void tokenizeWithQuotedNotes_unicodeTrailingWhitespace_acceptsEndOrRecognisedParameter() throws Exception {
+        for (String separator : List.of(" ", "\u2003", "\u00a0", "\u202f", "\u3000",
+                "\t\u2003\u00a0\u202f\u3000 ")) {
+            String quoted = " 1 notes/\"Bring camera f/2\"" + separator;
+            ArgumentMultimap atEnd = ArgumentTokenizer.tokenizeWithQuotedNotes(quoted, PREFIX_NOTES, PREFIX_FTP);
+            assertArgumentPresent(atEnd, PREFIX_NOTES, "Bring camera f/2");
+            // Keep an ASCII space immediately before the prefix: NBSP does not introduce a prefix.
+            ArgumentMultimap followed = ArgumentTokenizer.tokenizeWithQuotedNotes(quoted + " f/200",
+                    PREFIX_NOTES, PREFIX_FTP);
+            assertArgumentPresent(followed, PREFIX_NOTES, "Bring camera f/2");
+            assertArgumentPresent(followed, PREFIX_FTP, "200");
+            for (String suffix : List.of("extra", "extra f/200", "\u200b")) {
+                ParseException exception = assertThrows(ParseException.class, () ->
+                        ArgumentTokenizer.tokenizeWithQuotedNotes(quoted + suffix, PREFIX_NOTES, PREFIX_FTP));
+                assertEquals(ArgumentTokenizer.MESSAGE_INVALID_QUOTED_NOTES, exception.getMessage());
+            }
+        }
+    }
+
+    @Test
+    public void tokenizeWithQuotedNotes_unicodeBeforePrefix_keepsExistingPrefixRecognition() throws Exception {
+        for (String separator : List.of(" ", "\u2003", "\u3000")) {
+            ArgumentMultimap arguments = ArgumentTokenizer.tokenizeWithQuotedNotes(
+                    " notes/\"camera f/2\"" + separator + "f/200", PREFIX_NOTES, PREFIX_FTP);
+            assertArgumentPresent(arguments, PREFIX_FTP, "200");
+        }
+        for (String separator : List.of("\u00a0", "\u202f")) {
+            String input = " notes/\"camera f/2\"" + separator + "f/200";
+            ParseException exception = assertThrows(ParseException.class, () ->
+                    ArgumentTokenizer.tokenizeWithQuotedNotes(input, PREFIX_NOTES, PREFIX_FTP));
+            assertEquals(ArgumentTokenizer.MESSAGE_INVALID_QUOTED_NOTES, exception.getMessage());
+            assertArgumentAbsent(ArgumentTokenizer.tokenize(" notes/camera" + separator + "f/200",
+                    PREFIX_NOTES, PREFIX_FTP), PREFIX_FTP);
+        }
+    }
+
+    @Test
     public void tokenizeWithQuotedNotes_prefixesInsideQuotes_areLiteral() throws Exception {
         for (String separator : List.of(" ", "\t", "\n", "\u2003")) {
             ArgumentMultimap arguments = ArgumentTokenizer.tokenizeWithQuotedNotes(
@@ -49,7 +86,8 @@ public class ArgumentTokenizerTest {
 
     @Test
     public void tokenizeWithQuotedNotes_malformedQuotes_rejected() {
-        for (String notes : List.of("\"camera f/2", "\"\"", "\"   \"", "\"\u2003\"", "\"camera\"tail",
+        for (String notes : List.of("\"camera f/2", "\"\"", "\"   \"", "\"\u2003\"", "\"\u00a0\"", "\"\u202f\"",
+                "\"\u3000\"", "\"camera\"tail",
                 "\"camera\" tail f/200", "\"camera\"f/200", "\"camera \"lens\"\"",
                 "\"camera\" \"extra\"", "\"camera\" q/test", "\"camera \\\"lens\"")) {
             ParseException exception = assertThrows(ParseException.class, () ->
@@ -75,9 +113,9 @@ public class ArgumentTokenizerTest {
 
     @Test
     public void tokenize_whitespaceSeparators_recognisesPrefixesWithoutSplittingValues() {
-        for (String separator : java.util.List.of(" ", "  ", "\t", "\n", "\r\n")) {
+        for (String separator : List.of(" ", "  ", "\t", "\n", "\r\n", "\u2003", "\u3000")) {
             ArgumentMultimap arguments = ArgumentTokenizer.tokenize(
-                    separator + "p/first" + separator + "-tsecond", pSlash, dashT);
+                    separator + "p/" + separator + "first" + separator + "-tsecond" + separator, pSlash, dashT);
             assertPreambleEmpty(arguments);
             assertArgumentPresent(arguments, pSlash, "first");
             assertArgumentPresent(arguments, dashT, "second");
@@ -86,6 +124,22 @@ public class ArgumentTokenizerTest {
         ArgumentMultimap embedded = ArgumentTokenizer.tokenize(" p/first-tsecond", pSlash, dashT);
         assertArgumentPresent(embedded, pSlash, "first-tsecond");
         assertArgumentAbsent(embedded, dashT);
+    }
+
+    @Test
+    public void tokenize_nonBreakingSpaces_preservesValuesAndDoesNotIntroducePrefixes() throws Exception {
+        for (String separator : List.of("\u00a0", "\u202f")) {
+            String value = separator + "first" + separator + "f/180" + separator;
+            for (ArgumentMultimap arguments : List.of(
+                    ArgumentTokenizer.tokenize(" notes/" + value, PREFIX_NOTES, PREFIX_FTP),
+                    ArgumentTokenizer.tokenizeWithQuotedNotes(" notes/" + value, PREFIX_NOTES, PREFIX_FTP))) {
+                assertArgumentPresent(arguments, PREFIX_NOTES, value);
+                assertArgumentAbsent(arguments, PREFIX_FTP);
+            }
+        }
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" p/first\u2003\u3000second -tlast",
+                pSlash, dashT);
+        assertArgumentPresent(arguments, pSlash, "first\u2003\u3000second");
     }
 
     @Test

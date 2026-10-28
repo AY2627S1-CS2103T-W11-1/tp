@@ -45,6 +45,33 @@ public class RideAddCommandParserTest {
     private RideAddCommandParser parser = new RideAddCommandParser();
 
     @Test
+    public void parse_numericDigitLimits_propagatesConstraintsAndAcceptsThreeDigitPower() {
+        for (String distance : new String[] {"1000000", "0000001"}) {
+            assertParseFailure(parser, ALL_REQUIRED.replace("d/45", "d/" + distance), Distance.MESSAGE_CONSTRAINTS);
+        }
+        assertParseFailure(parser, ALL_REQUIRED.replace("f/180", "f/0001"), MinimumPower.MESSAGE_CONSTRAINTS);
+        assertParseSuccess(parser, ALL_REQUIRED.replace("f/180", "f/001"),
+                new RideAddCommand(new RideBuilder().withMinimumPower("1").build()));
+    }
+
+    @Test
+    public void parse_unicodeNotes_enforcesBlankAndWordLimitRules() {
+        for (String separator : new String[] {" ", "\t", "\r\n", "\u2003", "\u00a0", "\u202f", "\u3000"}) {
+            assertParseFailure(parser, ALL_REQUIRED + " notes/" + separator, Notes.MESSAGE_CONSTRAINTS);
+            assertParseFailure(parser, ALL_REQUIRED + " notes/\"" + separator + "\"",
+                    ArgumentTokenizer.MESSAGE_INVALID_QUOTED_NOTES);
+            String ten = "one two three four five six seven eight nine ten";
+            RideAddCommand expected = new RideAddCommand(new RideBuilder().withNotes(ten).build());
+            for (String quote : new String[] {"", "\""}) {
+                assertParseSuccess(parser, ALL_REQUIRED + " notes/" + quote + separator
+                        + ten.replace(" ", separator) + separator + quote, expected);
+                assertParseFailure(parser, ALL_REQUIRED + " notes/" + quote
+                        + (ten + " eleven").replace(" ", separator) + quote, Notes.MESSAGE_CONSTRAINTS);
+            }
+        }
+    }
+
+    @Test
     public void parse_quotedNotes_allPrefixesAreLiteralAndOrderingIsFlexible() {
         for (String notes : new String[] {"Bring camera with aperture f/2",
             "n/ from/ to/ l/ d/ f/ s/ notes/ q/test", "  Bring   water  ", "Bring \\\\camera",
