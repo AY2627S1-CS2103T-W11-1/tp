@@ -12,7 +12,9 @@ import java.util.regex.Pattern;
  */
 public class MinimumPower {
 
-    public static final String MESSAGE_CONSTRAINTS = "Minimum power should be a whole number between 1 and 600 watts.";
+    public static final String MESSAGE_CONSTRAINTS =
+            "Minimum power: whole number, 1–600 W.\n"
+                    + "At most 3 digits; leading zeroes count.";
 
     private static final Pattern VALIDATION_PATTERN = Pattern.compile("\\d{1,3}");
     private static final int MIN_POWER = 1;

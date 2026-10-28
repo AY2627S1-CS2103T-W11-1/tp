@@ -36,6 +36,24 @@ public class RideEditCommandParserTest {
     private final RideEditCommandParser parser = new RideEditCommandParser();
 
     @Test
+    public void parse_distanceDigitLimits_reportsCompleteConstraints() {
+        String expectedMessage = "Distance: 0.01–999999.99 km. Leading zeroes count.\n"
+                + "Use 1–6 digits, optionally '.' then 1–2 digits.";
+        assertParseFailure(parser, " 1 d/1000000", expectedMessage);
+        assertParseFailure(parser, " 1 d/0000001", expectedMessage);
+    }
+
+    @Test
+    public void parse_powerDigitLimit_reportsCompleteConstraint() {
+        EditRideDescriptor descriptor = new EditRideDescriptor();
+        descriptor.setMinimumPower(new MinimumPower("1"));
+        assertParseSuccess(parser, " 1 f/001", new RideEditCommand(1, descriptor));
+        assertParseFailure(parser, " 1 f/0001",
+                "Minimum power: whole number, 1–600 W.\n"
+                        + "At most 3 digits; leading zeroes count.");
+    }
+
+    @Test
     public void parse_recognisedParameterSeparators_parsesDistanceAndPower() {
         EditRideDescriptor descriptor = new EditRideDescriptor();
         descriptor.setDistance(new Distance("20"));
