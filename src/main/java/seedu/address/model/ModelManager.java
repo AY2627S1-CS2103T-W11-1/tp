@@ -139,8 +139,12 @@ public class ModelManager implements Model {
         Predicate<Ride> currentPredicate = activeRidePredicate;
         addressBook.setRide(target, editedRide);
         if (currentPredicate != null) {
-            filteredRides.setPredicate(null);
-            filteredRides.setPredicate(currentPredicate);
+            if (!currentPredicate.test(editedRide)) {
+                updateFilteredRideList(PREDICATE_SHOW_ALL_RIDES);
+            } else {
+                filteredRides.setPredicate(null);
+                filteredRides.setPredicate(currentPredicate);
+            }
         }
     }
 

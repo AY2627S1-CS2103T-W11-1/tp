@@ -279,15 +279,15 @@ public class ModelManagerTest {
     }
 
     @Test
-    public void setRide_activeRideFilter_preservesFilterAfterEdit() {
+    public void setRide_activeRideFilter_resetsWhenEditedRideIsHidden() {
         Ride original = modelManager.addRide(new RideBuilder().withName("Morning Ride").build());
         modelManager.updateFilteredRideList(ride -> ride.equals(original));
         Ride edited = new RideBuilder(original).withName("Renamed Ride").build();
 
         modelManager.setRide(original, edited);
 
-        // EP: an existing ride is edited while a ride filter is active.
-        assertTrue(modelManager.getFilteredRideList().isEmpty());
+        // EP: an edited ride no longer matches the active ride filter.
+        assertEquals(List.of(edited), modelManager.getFilteredRideList());
     }
 
     @Test
