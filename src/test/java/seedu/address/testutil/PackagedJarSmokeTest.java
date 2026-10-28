@@ -1,15 +1,18 @@
 package seedu.address.testutil;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.scene.control.TextField;
 import javafx.stage.Window;
 import seedu.address.Main;
+import seedu.address.commons.core.GuiSettings;
+import seedu.address.storage.JsonUserPrefsStorage;
 
 /**
  * Checks that the release JAR opens its main window and exits through its command box.
@@ -17,6 +20,7 @@ import seedu.address.Main;
  */
 public final class PackagedJarSmokeTest {
     private static final AtomicBoolean isComplete = new AtomicBoolean();
+    private static GuiSettings expectedGuiSettings;
 
     private PackagedJarSmokeTest() {}
 
@@ -26,6 +30,11 @@ public final class PackagedJarSmokeTest {
     public static void main(String[] args) throws Exception {
         require(Main.class.getProtectionDomain().getCodeSource().getLocation().getPath().endsWith(".jar"),
                 "Application classes must come from the release JAR");
+        try (JarFile jar = new JarFile(Path.of(Main.class.getProtectionDomain()
+                .getCodeSource().getLocation().toURI()).toFile())) {
+            require(jar.getManifest() != null && Main.class.getName().equals(jar.getManifest()
+                    .getMainAttributes().getValue(Attributes.Name.MAIN_CLASS)), "Incorrect JAR entry point");
+        }
         Thread.setDefaultUncaughtExceptionHandler((thread, error) -> fail(error));
         Thread.ofPlatform().daemon(true).name("packaged-jar-watchdog").start(() -> {
             try {
@@ -47,7 +56,9 @@ public final class PackagedJarSmokeTest {
         });
         Main.main(args);
         require(isComplete.get(), "Application exited before the smoke check completed");
-        require(Files.exists(Path.of("preferences.json")), "Preferences were not saved on exit");
+        require(new JsonUserPrefsStorage(Path.of("preferences.json")).readUserPrefs()
+                .map(prefs -> expectedGuiSettings.equals(prefs.getGuiSettings())).orElse(false),
+                "Changed window settings were not saved on exit");
         System.out.println("PACKAGED JAR SMOKE TEST PASSED: " + System.getProperty("os.name")
                 + " / " + System.getProperty("os.arch"));
     }
@@ -66,6 +77,9 @@ public final class PackagedJarSmokeTest {
         if (mainWindow == null) {
             return;
         }
+        mainWindow.setX(mainWindow.getX() + 17);
+        expectedGuiSettings = new GuiSettings(mainWindow.getWidth(), mainWindow.getHeight(),
+                (int) mainWindow.getX(), (int) mainWindow.getY());
         TextField input = (TextField) mainWindow.getScene().lookup("#commandTextField");
         input.setText("exit");
         input.fireEvent(new ActionEvent());
