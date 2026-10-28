@@ -39,9 +39,9 @@ The following provides a quick overview of the main components and their interac
 
 **Main components of the architecture**
 
-**`Main`** (consisting of classes [`Main`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/MainApp.java)) is in charge of the app launch and shut down.
-* At app launch, it initializes the other components in the correct sequence, and connects them up with each other.
-* At shut down, it shuts down the other components and invokes cleanup methods where necessary.
+**`Main`** (consisting of classes [`Main`](https://github.com/AY2627S1-CS2103T-W11-1/tp/blob/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/AY2627S1-CS2103T-W11-1/tp/blob/master/src/main/java/seedu/address/MainApp.java)) is in charge of the app launch and shutdown.
+* At app launch, it initialises the other components in the correct sequence, and connects them up with each other.
+* At shutdown, it shuts down the other components and invokes cleanup methods where necessary.
 
 The bulk of the app's work is done by the following four components:
 
@@ -76,13 +76,13 @@ The sections below give more details of each component.
 
 ### UI component
 
-The **API** of this component is specified in [`Ui.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/Ui.java)
+The **API** of this component is specified in [`Ui.java`](https://github.com/AY2627S1-CS2103T-W11-1/tp/blob/master/src/main/java/seedu/address/ui/Ui.java)
 
 ![Structure of the UI Component](images/UiClassDiagram.png)
 
-The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, `RideListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
+The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, `RideListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behaviour among classes that represent visible GUI parts.
 
-The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java). The exception is `ArtworkScreen`, which is not a `UiPart` and has no `.fxml` file (see [Opening and closing artwork](#opening-and-closing-artwork)).
+The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/AY2627S1-CS2103T-W11-1/tp/blob/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/AY2627S1-CS2103T-W11-1/tp/blob/master/src/main/java/seedu/address/ui/MainWindow.java). The exception is `ArtworkScreen`, which is not a `UiPart` and has no `.fxml` file (see [Opening and closing artwork](#opening-and-closing-artwork)).
 
 The `UI` component,
 
@@ -95,7 +95,7 @@ The `UI` component,
 
 `MainWindow` is split into two columns. The left 70% holds the `CommandBox`, the `ResultDisplay` and the cyclist panel (`PersonListPanel`). The right 30% holds the ride panel (`RideListPanel`).
 
-Each panel is given an `ObservableList` by `MainWindow` and builds one card for every item in it: `PersonListPanel` shows a `PersonCard` for each `Person` from `Logic#getFilteredPersonList()`, and `RideListPanel` shows a `RideCard` (laid out by `RideListCard.fxml`) for each `Ride` from `Logic#getFilteredRideList()`. Because the panels observe these lists, they refresh by themselves when cyclists or rides are added, edited, deleted or filtered. `RideCard` keeps its text formatting in small static methods so that they can be unit tested without the GUI. The cards keep values such as phone numbers, distances, powers and dates on one line by replacing their spaces with no-break spaces (`DisplayText#keepTogether`), so a label can only wrap between whole values. The ride card shows the roster across its full width, because a phone number is too wide for the narrow value column. The main window has a minimum width of 720 so that the Rides panel cannot become too narrow for these values.
+Cyclist cards are numbered from 1 using their displayed positions; ride cards show persistent IDs. Each panel is given an `ObservableList` by `MainWindow` and builds one card for every item in it: `PersonListPanel` shows a `PersonCard` for each `Person` from `Logic#getFilteredPersonList()`, and `RideListPanel` shows a `RideCard` (laid out by `RideListCard.fxml`) for each `Ride` from `Logic#getFilteredRideList()`. Because the panels observe these lists, they refresh by themselves when cyclists or rides are added, edited, deleted or filtered. `RideCard` keeps its text formatting in small static methods so that they can be unit tested without the GUI. The cards keep values such as phone numbers, distances, powers and dates on one line by replacing their spaces with no-break spaces (`DisplayText#keepTogether`), so a label can only wrap between whole values. The ride card shows the roster across its full width, because a phone number is too wide for the narrow value column. The main window has a minimum width of 720 so that the Rides panel cannot become too narrow for these values.
 
 The two panels are filtered independently of each other:
 
@@ -110,17 +110,9 @@ The two panels are filtered independently of each other:
 
 `ArtworkScreen` shows a short, timed splash screen with a caption. It is drawn in code, so it is a plain class rather than a `UiPart`. `UiManager` shows the opening artwork before the main window appears, and `MainWindow` shows the closing artwork when the application exits. For this reason both classes depend on `ArtworkScreen`.
 
-The cyclist panel observes `Logic#getFilteredPersonList()` and numbers cards from 1
-using their current displayed positions. The read-only `RideListPanel` occupies the
-right-hand 30% of the main window and observes `Logic#getFilteredRideList()`, so
-`ridefind` changes which ride cards are displayed. It builds one `RideCard` (laid out
-by `RideListCard.fxml`) for each matching ride. Ride cards show persistent IDs rather
-than displayed positions. `RideCard` keeps its text formatting in small static methods
-so that it can be unit tested without the GUI.
-
 ### Logic component
 
-**API** : [`Logic.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/logic/Logic.java)
+**API** : [`Logic.java`](https://github.com/AY2627S1-CS2103T-W11-1/tp/blob/master/src/main/java/seedu/address/logic/Logic.java)
 
 Here's a (partial) class diagram of the `Logic` component:
 
@@ -212,7 +204,7 @@ still apply. `rideedit 1 notes/"camera f/2` and `rideedit 1 notes/"camera"extra 
 changing or saving any ride fields. The manual regression scenario below covers these cases and explicit power edits.
 
 ### Model component
-**API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
+**API** : [`Model.java`](https://github.com/AY2627S1-CS2103T-W11-1/tp/blob/master/src/main/java/seedu/address/model/Model.java)
 
 <img src="images/ModelClassDiagram.png" width="1000" alt="Model relationships, cyclist value fields and the filtered then sorted display pipeline" />
 
@@ -247,7 +239,7 @@ The `Model` component,
 
 ### Storage component
 
-**API** : [`Storage.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/storage/Storage.java)
+**API** : [`Storage.java`](https://github.com/AY2627S1-CS2103T-W11-1/tp/blob/master/src/main/java/seedu/address/storage/Storage.java)
 
 <img src="images/StorageClassDiagram.png" width="550" />
 
@@ -271,6 +263,14 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 ## **Implementation**
 
 This section describes some noteworthy details on how certain features are implemented.
+
+### Cyclist field validation
+
+`Name` accepts Unicode letters and decimal digits, spaces, and combining marks attached to
+letters or digits; the first character must be a letter or digit. `Location` instead accepts
+only English letters (A–Z, a–z), digits, spaces, hyphens and apostrophes, and must not be blank.
+Cyclist and ride commands reuse these value classes, so their names support Unicode while
+their locations use the narrower rule. See `Name#isValidName` and `Location#isValidLocation`.
 
 ### Cyclist and ride filtering
 
@@ -419,12 +419,12 @@ Quote syntax is checked during tokenisation before the field checks above.
 ### Group ride editing (`rideedit`)
 
 `rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`
-edits an existing ride without changing its identity or roster. The sequence diagram below shows parsing,
-validation, conditional overlap confirmation, replacement and saving. Internal validation and immutable object
-construction are summarised in notes; the parsing-success path is expanded, while validation failures and
-cancelled edits are distinguished from successful replacement.
+edits an existing ride without changing its identity or roster. The diagram focuses on a successful edit,
+including confirmation when times overlap. Parsing, validation failures and cancellation are described below.
 
-<img src="images/RideEditSequenceDiagram.png" width="1000" alt="Ride Edit parsing, validation, conditional overlap confirmation and saving through LogicManager" />
+[![Successful ride edit with optional overlap confirmation, replacement and saving](images/RideEditSequenceDiagram.png)](images/RideEditSequenceDiagram.png)
+
+*Select the diagram to open it at full size.*
 
 **Parsing.** `RideEditCommandParser` separates the positive ride ID from the prefixed fields and builds an
 `EditRideDescriptor`. Each supplied value is parsed by the same `ParserUtil` method used by `rideadd`, while
@@ -486,12 +486,9 @@ replacing it. Addition checks the joining cyclist against all other stored rides
 removal needs no overlap confirmation. A warning uses the same deferred execution and snapshot validation as
 Ride Edit. Execution repeats normal roster validation before replacement.
 
-<div style="overflow-x: auto;">
-  <img src="images/RideRosterSequenceDiagram.png" alt="Adding or removing a cyclist from a ride"
-       style="max-width: none;" />
-</div>
+[![Successful roster change using immutable replacement and JSON saving](images/RideRosterSequenceDiagram.png)](images/RideRosterSequenceDiagram.png)
 
-*Ride roster command sequence. Scroll horizontally on narrow screens, or [open the full-size diagram](images/RideRosterSequenceDiagram.png).*
+*Select the diagram to open it at full size.*
 
 The command searches the complete ride collection by persistent ID, rather than a displayed position, so `ridefind` does not restrict which ride can be changed. A roster stores `Phone` objects, not direct `Person` references. The command first copies the selected ride's roster into a local `ArrayList<Phone>`.
 
@@ -505,12 +502,12 @@ Cyclist phone edits use `AddressBook#setPerson(...)` to replace the old phone in
 
 ### Ride roster display (`ridelist`)
 
-`ridelist ID` displays registered cyclists in the left-hand cyclist panel. The sequence diagram below shows the
-initial selection and a later successful roster change. A labelled `«notification»` arrow and explanatory notes
-distinguish JavaFX observable notifications and display updates from synchronous method calls; the later roster
-command's parsing and saving calls are omitted.
+`ridelist ID` displays registered cyclists in the left-hand cyclist panel. The first diagram shows a
+successful initial selection, with parsing omitted.
 
-<img src="images/RideListSequenceDiagram.png" width="1000" alt="Ride List validation and cyclist filtering, followed by listener-based automatic roster refresh" />
+[![Initial roster selection, filtering and unchanged-data saving](images/RideListSequenceDiagram.png)](images/RideListSequenceDiagram.png)
+
+*Select the diagram to open it at full size.*
 
 `RideListCommandParser` accepts exactly one positive integer ID. `RideListCommand` finds the ride using
 `Ride#getId()`, so the ID is persistent and is not a displayed position. Its roster contains `Phone` objects;
@@ -524,6 +521,13 @@ by full name, ignoring case, with stored position as the tie-breaker. `PersonLis
 through its `ListView` and displays the matching `PersonCard` objects. An empty roster produces an empty cyclist
 view and an empty-roster command result. The right-hand Rides panel has an independent filter and is unchanged.
 
+The separate refresh diagram shows the later model interaction. Its labelled `«notification»` arrow abstracts
+synchronous JavaFX listener dispatch; the roster command's parsing and saving are omitted.
+
+[![Automatic roster refresh after an observable ride replacement](images/RideRosterRefreshSequenceDiagram.png)](images/RideRosterRefreshSequenceDiagram.png)
+
+*Select the diagram to open it at full size.*
+
 `ModelManager` registers one listener on the existing observable ride list in its constructor, before commands
 execute. A successful `RideRosterCommand` calls `Ride#withRoster` to construct an immutable replacement, then calls
 `Model#setRide`. `ModelManager` delegates to `AddressBook#setRide`, whose list replacement notifies the existing
@@ -533,9 +537,9 @@ another `ridelist`, a new listener or a direct call from the roster command to `
 
 The selected ID, rather than a `Ride` object, remains active across immutable ride replacements. If that ride is
 deleted, refreshing with an absent ID produces an empty cyclist list without selecting another ride. A generic
-`Model#updateFilteredPersonList()` call clears the selected ID before applying its predicate, so `find` and `list`
-replace Ride List filtering and later ride events cannot reactivate it. Another successful `ridelist` selects its
-own persistent ID. `ModelManager#setAddressBook()` cancels the active selection before resetting the data, while
+`Model#updateFilteredPersonList()` call clears the selected ID before applying its predicate, so `find`, `list`
+and a successful cyclist addition replace Ride List filtering; later ride events cannot reactivate it.
+Another successful `ridelist` selects its own persistent ID. `ModelManager#setAddressBook()` cancels the active selection before resetting the data, while
 retaining the existing observable lists and listener.
 
 The command does not mutate cyclist or ride data. `LogicManager` still saves the unchanged address book after a
@@ -544,92 +548,52 @@ the previous filter on failure.
 
 ### \[Proposed\] Undo/redo feature
 
-#### Proposed Implementation
+This feature is not implemented. The following adapts AB3's whole-book snapshot design
+for Cyclique's confirmed deletion, rides and persistent ride IDs.
 
-The proposed undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `AddressBook` with an undo/redo history, stored internally as an `addressBookStateList` and `currentStatePointer`. Additionally, it implements the following operations:
+#### State and history
 
-* `VersionedAddressBook#commit()` — Saves the current address book state in its history.
-* `VersionedAddressBook#undo()` — Restores the previous address book state from its history.
-* `VersionedAddressBook#redo()` — Restores a previously undone address book state from its history.
+A proposed `VersionedAddressBook` would retain complete, immutable snapshots of cyclists,
+rides and roster phone references, with a pointer to the active snapshot. Startup would
+record the loaded book as the initial snapshot. Restoring a
+snapshot would restore those records together, so undoing a cyclist deletion also restores
+their memberships; undoing a phone edit restores the matching roster references.
+It would reset display filters and discard pending confirmation requests.
 
-These operations are exposed in the `Model` interface as `Model#commitAddressBook()`, `Model#undoAddressBook()` and `Model#redoAddressBook()` respectively.
+The ride-ID counter needs a separate high-water mark, initialised from persisted data and
+advanced whenever an ID is allocated. On undo or redo, the next ID would
+be the maximum of the current high-water mark and the restored snapshot's `nextRideId`.
+Restoring an older snapshot must never make an allocated ID available again. The next
+successful save would persist this counter alongside the restored records, including
+when a ride creation or `clear` is undone. Already exhausted IDs remain exhausted.
 
-Given below is an example usage scenario and how the undo/redo mechanism behaves at each step.
+#### Example interaction
 
-Step 1. The user launches the application for the first time. The `VersionedAddressBook` will be initialized with the initial address book state, and the `currentStatePointer` pointing to that single address book state.
+1. Start with a displayed cyclist at `+65 91234567` who belongs to ride 1.
+2. Request `delete +65 91234567`. Reviewing or cancelling the request creates no history entry.
+3. Confirm deletion. Only after revalidation and actual removal would the mechanism append
+   one snapshot containing both the cyclist removal and the updated ride roster.
+4. Add a cyclist using a complete valid `add` command. This would append another snapshot.
+5. Undo once to remove that addition; undo again to restore the deleted cyclist and membership.
+   Redo would reapply each recorded state, without requesting deletion confirmation again.
+6. After an undo, a new state-changing command such as `clear` would discard the redo branch.
+   Clearing would retain the ride-ID high-water mark.
 
-![UndoRedoState0](images/UndoRedoState0.png)
+Rejected commands, cancelled requests and read-only commands such as `list` would not add
+history entries. A command that changes in-memory records but then fails to save would
+still need a history entry: the current application retains those changes. Undo and redo
+would use the existing saving path and report saving errors without promising persistence
+or rollback. History and its pointer would be held only for the running session.
 
-Step 2. The user executes `delete 5` command to delete the 5th person in the address book. The `delete` command calls `Model#commitAddressBook()`, causing the modified state of the address book after the `delete 5` command executes to be saved in the `addressBookStateList`, and the `currentStatePointer` is shifted to the newly inserted address book state.
+#### Design considerations
 
-![UndoRedoState1](images/UndoRedoState1.png)
-
-Step 3. The user executes `add n/David …​` to add a new person. The `add` command also calls `Model#commitAddressBook()`, causing another modified address book state to be saved into the `addressBookStateList`.
-
-![UndoRedoState2](images/UndoRedoState2.png)
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If a command fails its execution, it will not call `Model#commitAddressBook()`, so the address book state will not be saved into the `addressBookStateList`.
-
-</div>
-
-Step 4. The user now decides that adding the person was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoAddressBook()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous address book state, and restores the address book to that state.
-
-![UndoRedoState3](images/UndoRedoState3.png)
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index 0, pointing to the initial AddressBook state, then there are no previous AddressBook states to restore. The `undo` command uses `Model#canUndoAddressBook()` to check if this is the case. If so, it will return an error to the user rather
-than attempting to perform the undo.
-
-</div>
-
-The following sequence diagram shows how an undo operation goes through the `Logic` component:
-
-![UndoSequenceDiagram](images/UndoSequenceDiagram-Logic.png)
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** The lifeline for `UndoCommand` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
-
-</div>
-
-Similarly, how an undo operation goes through the `Model` component is shown below:
-
-![UndoSequenceDiagram](images/UndoSequenceDiagram-Model.png)
-
-The `redo` command does the opposite — it calls `Model#redoAddressBook()`, which shifts the `currentStatePointer` once to the right, pointing to the previously undone state, and restores the address book to that state.
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index `addressBookStateList.size() - 1`, pointing to the latest address book state, then there are no undone AddressBook states to restore. The `redo` command uses `Model#canRedoAddressBook()` to check if this is the case. If so, it will return an error to the user rather than attempting to perform the redo.
-
-</div>
-
-Step 5. The user then decides to execute the command `list`. Commands that do not modify the address book, such as `list`, will usually not call `Model#commitAddressBook()`, `Model#undoAddressBook()` or `Model#redoAddressBook()`. Thus, the `addressBookStateList` remains unchanged.
-
-![UndoRedoState4](images/UndoRedoState4.png)
-
-Step 6. The user executes `clear`, which calls `Model#commitAddressBook()`. Since the `currentStatePointer` is not pointing at the end of the `addressBookStateList`, all address book states after the `currentStatePointer` will be purged. Reason: It no longer makes sense to redo the `add n/David …​` command. This is the behavior that most modern desktop applications follow.
-
-![UndoRedoState5](images/UndoRedoState5.png)
-
-The following activity diagram summarizes what happens when a user executes a new command:
-
-<img src="images/CommitActivityDiagram.png" width="250" />
-
-#### Design considerations:
-
-**Aspect: How undo & redo execute:**
-
-* **Alternative 1 (current choice):** Saves the entire address book.
-  * Pros: Easy to implement.
-  * Cons: May have performance issues in terms of memory usage.
-
-* **Alternative 2:** Individual command knows how to undo/redo by
-  itself.
-  * Pros: Will use less memory (e.g. for `delete`, just save the person being deleted).
-  * Cons: We must ensure that the implementation of each individual command is correct.
-
-_{more aspects and alternatives to be added}_
-
-### \[Proposed\] Data archiving
-
-_{Explain here how the data archiving feature will be implemented}_
-
+* **Whole-book snapshots (proposed choice):** Restore cyclists and ride memberships together
+  without implementing a separate inverse for every command. The cost is memory proportional
+  to the dataset and number of retained states; a history limit would need to be specified
+  and tested before implementation.
+* **Per-command inverse operations:** Use less memory, but must correctly restore phone
+  references, memberships and deleted rides across every command. This adds more cases to
+  maintain and test. The non-reused ride-ID policy applies to either design.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -725,7 +689,7 @@ The status column distinguishes current requirements from future work. Current c
       Use case resumes from step 2.
 
 * 1b. Cyclique detects that the provided phone number matches an existing cyclist's record, or that the email address matches one ignoring letter case.
-    * 1b1. Cyclique displays `Another cyclist already has this phone number or email.` and leaves the directory unchanged.
+    * 1b1. Cyclique explains the duplicate phone number or email and leaves the directory unchanged.
 
       Use case ends.
 
@@ -734,7 +698,7 @@ The status column distinguishes current requirements from future work. Current c
 **Guarantees**
 
 * All cyclist records in the directory are displayed with their details.
-* If the directory is empty, the user is informed that there are no cyclists.
+* If the directory is empty, no cyclist records are displayed; there is no dedicated empty-directory notification.
 * No cyclist records are changed.
 
 **MSS**
@@ -747,7 +711,7 @@ The status column distinguishes current requirements from future work. Current c
 **Extensions**
 
 * 2a. The cyclist directory is empty.
-    * 2a1. Cyclique informs the user that there are no cyclists in the directory.
+    * 2a1. Cyclique displays an empty cyclist list.
 
       Use case ends.
 
@@ -770,7 +734,7 @@ The status column distinguishes current requirements from future work. Current c
 
 **Extensions**
 
-* 1a. UC02 reports that the cyclist directory is empty.
+* 1a. UC02 displays an empty cyclist list.
 
     Use case ends.
 
@@ -790,7 +754,7 @@ The status column distinguishes current requirements from future work. Current c
       Use case resumes from step 3.
 
 * 2c. Cyclique detects that the revised phone number matches another cyclist's record, or that the revised email address matches one ignoring letter case.
-    * 2c1. Cyclique displays `Another cyclist already has this phone number or email.` and leaves the directory unchanged.
+    * 2c1. Cyclique explains the duplicate phone number or email and leaves the directory unchanged.
 
       Use case ends.
 
@@ -799,15 +763,15 @@ The status column distinguishes current requirements from future work. Current c
 **Guarantees**
 
 * A cyclist record is permanently removed only after the user confirms its deletion.
-* On successful completion, only the specified cyclist record is removed, and the updated cyclist directory is displayed.
+* On successful completion, the specified cyclist and their ride memberships are removed. Other cyclists and ride details remain unchanged, and the updated directory is displayed.
 * If the specified cyclist does not exist or the user declines confirmation, the directory remains unchanged.
 
 **MSS**
 
 1.  User <u>views the cyclist list (UC02).</u>
-2.  User enters `delete PHONE` for a cyclist in the displayed list.
-3.  Cyclique shows the target cyclist’s details and requests confirmation in the result panel.
-4.  User enters `y` or `yes` in the command box, ignoring letter case.
+2.  User requests deletion of a specified cyclist from the displayed list.
+3.  Cyclique identifies the target cyclist, explains the effect on ride memberships and requests confirmation.
+4.  User reviews the target and confirms deletion.
 5.  Cyclique permanently removes the cyclist from the directory.
 6.  Cyclique displays the updated cyclist directory.
 
@@ -815,7 +779,7 @@ The status column distinguishes current requirements from future work. Current c
 
 **Extensions**
 
-* 1a. UC02 reports that the cyclist directory is empty.
+* 1a. UC02 displays an empty cyclist list.
 
     Use case ends.
 
@@ -824,19 +788,19 @@ The status column distinguishes current requirements from future work. Current c
 
       Use case ends.
 
-* 4a. User enters `n` or `no`, ignoring letter case.
-    * 4a1. Cyclique displays `Deletion cancelled.` and leaves records, the filter and saved data unchanged.
+* 4a. User declines confirmation.
+    * 4a1. Cyclique cancels deletion and leaves records, the current selection and saved data unchanged.
 
       Use case ends.
 
-* 4b. User enters an unrecognised reply.
+* 4b. User gives an unrecognised response.
     * 4b1. Cyclique displays an error and keeps waiting for confirmation or cancellation.
 
       Use case resumes at step 4.
 
 * 4c. User enters another supported command.
     * 4c1. Cyclique cancels the pending deletion and executes the new command.
-    * 4c2. Cyclique shows `Deletion cancelled.` followed by the command’s normal output or error.
+    * 4c2. Cyclique reports the cancellation and the outcome of the new request.
 
       Use case ends. A new delete request starts this use case again.
 
@@ -953,20 +917,20 @@ The status column distinguishes current requirements from future work. Current c
 
 **Saving failures for UC05 – UC07**: If saving fails, Cyclique reports a saving error. A registration, removal or edit already applied remains in the running application; it is not rolled back, and persistence of the change is not guaranteed. A roster-review request changes no cyclist or ride records, but its updated display selection can remain active after a saving error. These outcomes are distinct from parsing or validation rejections.
 
-**Subsequent interactions**: Registering or removing a cyclist from the selected ride (UC05 and its related removal interaction) refreshes the displayed members. Deleting that ride leaves the selection empty. A new cyclist search, listing all cyclists, adding or successfully editing a cyclist, clearing the directory, or selecting another roster replaces the selection.
+**Subsequent interactions**: Registering or removing a cyclist from the selected ride (UC05 and its related removal interaction) refreshes the displayed members. Deleting that ride leaves the selection empty. A new cyclist search, listing all cyclists, successfully adding a cyclist, clearing the directory, or selecting another roster replaces the selection. Successful cyclist edits preserve the active selection, including when roster phone references change.
 
 ### Non-Functional Requirements
 
 **Testing conditions**
 
 * Response-time requirements apply on a reference computer with a processor with at least two physical cores, 8 GB of RAM, SSD storage, and Java 25, with no other resource-intensive applications running. Record the processor model, operating system and version, and Java version with the test results.
-* Test with Cyclique already running, its main screen ready for input, and up to 500 valid cyclist records loaded. Include a dataset of 500 records when checking the upper capacity limit.
+* These are acceptance targets, not measured performance results. Test with Cyclique already running and its main screen ready for input. Use up to 500 valid cyclists, 100 rides and 50 registered cyclists per ride (up to 5,000 roster memberships), with capacities and minimum FTP values that admit those rosters. Include the maximum-size dataset, empty and full rosters, repeated memberships across rides, and rides hidden by a filter. Record the actual volumes and timings with the results.
 * Measure response time from submission of a command or activation of a control until the requested information is visible and the application is ready for the next input. Exclude application startup and time spent entering input.
 
 **Performance**
 
-* Cyclique should display search or shortlist results within 2 seconds when storing up to 500 cyclists.
-* Cyclique should display the cyclist list within 2 seconds when storing up to 500 cyclists.
+* Under the testing conditions above, cyclist search/list and ride search/roster selection should each display results within 2 seconds.
+* Roster addition/removal and ride edits should update the selected roster and ride cards, complete JSON saving and accept the next input within 2 seconds. Measure confirmed changes from submission of confirmation; exclude time spent awaiting the user.
 
 **Usability**
 
@@ -978,11 +942,19 @@ The status column distinguishes current requirements from future work. Current c
 
 * Cyclist contact and emergency information must persist reliably across sessions (no data loss on app close/reopen).
 * Cyclique should support storing records for at least 500 cyclists while meeting the stated performance requirements.
-* Starting from the main screen with no cyclist selected or filter applied, a user who knows the target cyclist's name should be able to display that cyclist's emergency contact information within 2 user actions. Submitting one complete command (including typing it) or activating one GUI control counts as one action; each scrolling gesture also counts as one action. If names are shared, the user may use the cyclist's known phone number or email address to distinguish the target. The information should be displayed within 2 seconds of the final action under the testing conditions above.
+* Starting from the main screen with no filter applied, a user who knows a unique name or the
+  target cyclist's unique phone number should be able to display their emergency contact within
+  2 user actions and within 2 seconds of the final action under the testing conditions above.
+  Submitting one complete command (including typing it) or activating one GUI control counts as
+  one action; each scrolling gesture also counts as one action.
+* Test a unique name with a name search. For duplicate names, use a dataset containing 50 cyclists
+  with the same name and distinct phone numbers, and search using the target's known unique phone.
+  Verify that only the intended cyclist and their emergency number appear without scrolling.
+  Email search is not supported and is not part of this acceptance test.
 
 **Environment/Compatibility**
 
-* Cyclique should run on Windows, Linux, Unix, and macOS with Java 25 installed on computers meeting the reference hardware specification above. Only a keyboard and display should be required as input/output peripherals. Record the operating system version used for each compatibility test.
+* Compatibility targets are Windows 11 (x86-64), Ubuntu 24.04 LTS (x86-64) and macOS 14 (Intel x86-64), with JDK 25 and the reference hardware above. These targets do not assert support for other Unix variants or ARM processors; verify each target before claiming release compatibility. Only a keyboard and display should be required as input/output peripherals. Record the operating system version used for each compatibility test.
 
 **Security/Privacy**
 
@@ -1008,7 +980,7 @@ The status column distinguishes current requirements from future work. Current c
 * **JAR file**: A Java Archive file used to package and distribute the Cyclique application.
 * **Java 25**: The minimum Java platform version required to run Cyclique, based on the project constraints.
 * **Local storage**: Data stored on the user's own computer rather than on a remote server.
-* **Mainstream OS**: Windows, Linux, Unix, or macOS
+* **Compatibility target**: An operating system version and processor architecture explicitly listed in the environment requirements above.
 * **Parameter prefix**: A command prefix that identifies the type of value being supplied, such as `n/` for name, `p/` for phone number, `sos/` for emergency contact number, or `f/` for FTP.
 * **Persistent data**: Data that remains available after Cyclique is closed and reopened.
 * **Preferred cycling location**: A location where a cyclist prefers to ride or participate in group rides. A cyclist may have more than one preferred cycling location. The special value `any`, supplied as `l/any`, indicates that the cyclist has no location restriction and is considered to match every ride location.
@@ -1063,7 +1035,7 @@ Relaunch from that folder. Expected: no cyclists or rides are loaded, and the fi
 1. Enter `help`, press F1 and inspect the Help dropdown. Expected: Add, edit and find formats include `sos/`; the add starter inserts it.
 1. Resize the main window. Expected: SOS values wrap and remain readable without overlapping other fields.
 
-### Adding and editing people
+### Adding and editing cyclists
 
 1. Enter `clear`, then
    `add n/John Doe p/+65 98765432 sos/+65 99999999 e/johnd@example.com f/300 x/Beginner l/any`.
@@ -1086,7 +1058,7 @@ Relaunch from that folder. Expected: no cyclists or rides are loaded, and the fi
    with hyphens, with parentheses, or with fewer than three digits after the country code.
    Expected: Each command shows an error and adds no contact. FTP values 1 and 600 are accepted.
 
-### Finding and listing people
+### Finding and listing cyclists
 
 Use John and Alice from the previous section.
 
@@ -1138,7 +1110,7 @@ Use a disposable book with John and Alice from the adding/editing scenario.
    instructions remain readable. The command box accepts replies and clears after
    successful confirmation/cancellation; invalid replies retain the usual error styling.
 
-### Deleting and clearing people
+### Deleting and clearing cyclists
 
 Prepare an [empty test book](#preparing-an-empty-test-book), then enter these commands independently of the preceding deletion-confirmation scenario:
 
@@ -1578,6 +1550,10 @@ Use the valid ride and cyclists created in the preceding roster scenario, and no
 1. Add an eligible cyclist to the selected ride with `rideaddcyclist`. Expected: the cyclist appears immediately in
    the left panel without another `ridelist`. Remove that cyclist with `ridedeletecyclist`. Expected: the cyclist
    disappears immediately; removing the last member leaves the panel empty.
+1. While a roster is selected, add a new cyclist with a unique phone and email who is not on that roster.
+   Expected: the successful addition ends roster selection and displays all cyclists. Select the original ride
+   again, then edit a displayed member's name. Expected: only that ride's members remain displayed, in the
+   updated alphabetical order; editing does not end roster selection.
 1. Change another ride's roster. Expected: the selected ride and its displayed members do not change.
 1. Delete the selected ride with `ridedelete`. Expected: the left panel becomes empty and does not switch to another
    ride. Enter `list` or `find`; expected: it replaces the empty Ride List filter normally.

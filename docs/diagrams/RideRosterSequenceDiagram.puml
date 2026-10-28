@@ -1,115 +1,37 @@
 @startuml
 !include style.puml
 skinparam ArrowFontStyle plain
-skinparam maxMessageSize 160
-!pragma sequenceMessageSpan true
-
-box Logic LOGIC_COLOR_T1
+skinparam maxMessageSize 80
+hide footbox
 participant ":LogicManager" as Logic LOGIC_COLOR
-participant ":AddressBookParser" as Parser LOGIC_COLOR
-participant ":RideRosterCommandParser" as RosterParser LOGIC_COLOR
 participant "c:RideRosterCommand" as Command LOGIC_COLOR
-end box
 participant "m:Model" as Model MODEL_COLOR
-participant "ride:Ride" as Ride MODEL_COLOR
-participant "roster:ArrayList<Phone>" as Roster MODEL_COLOR
 participant ":Storage" as Storage STORAGE_COLOR
 
 [-> Logic : execute(commandText)
 activate Logic
-Logic -> Parser : parseCommand(commandText)
-activate Parser
-create RosterParser
-Parser -> RosterParser : new(isJoining)
-note right of RosterParser
-  rideaddcyclist: isJoining = true
-  ridedeletecyclist: isJoining = false
-end note
-Parser -> RosterParser : parse(arguments)
-activate RosterParser
-note right of RosterParser : Parse positive ride ID\nand complete phone number.
-create Command
-RosterParser -> Command : new(rideId, phone, isJoining)
-RosterParser --> Parser : c
-deactivate RosterParser
-Parser --> Logic : c
-deactivate Parser
-
+note over Logic, Command : Parsing succeeds and produces c (calls omitted).
+Logic -> Command : getOverlapWarning(m)
+Command --> Logic : empty string
+note over Logic, Command : No overlapping commitment in this example.
 Logic -> Command : execute(m)
 activate Command
-Command -> Model : getAddressBook()
-Model --> Command : addressBook
 note right of Command
-  Search addressBook.getRideList() for
-  candidate.getId() == rideId (persistent ID).
+  Resolve ride and validate addition/removal.
+  Copy roster and build immutable replacement.
 end note
-Command -> Ride : getRoster()
-Ride --> Command : currentRoster
-create Roster
-Command -> Roster : new(currentRoster)
-
-alt isJoining == true (addition)
-    Command -> Model : getAddressBook()
-    Model --> Command : addressBook
-    note right of Command
-      Resolve cyclist in addressBook.getPersonList()
-      by phone, including filtered-out cyclists.
-      Then check, in order:
-      1. roster does not already contain phone
-      2. roster size < ride.getMaxGroupSize()
-      3. cyclist.getFtp() >= ride.getMinimumPower()
-    end note
-    Command -> Roster : add(phone)
-    Roster --> Command : true
-else isJoining == false (removal)
-    Command -> Roster : remove(phone)
-    Roster --> Command : true
-    note right of Command
-      remove(phone) checks membership
-      and changes only the copy.
-      A false return causes CommandException
-      (MESSAGE_NOT_JOINED);
-      the cyclist record is retained.
-    end note
-end
-
-note right of Command
-  Parsing or validation failures throw before setRide;
-  no stored roster change or save occurs.
-  The successful continuation is shown below.
-end note
-Command -> Ride : withRoster(roster)
-activate Ride
-note right of Ride : Construct a replacement Ride;\npreserve ID and other details.
-Ride --> Command : replacement
-deactivate Ride
 Command -> Model : setRide(ride, replacement)
-activate Model
-note right of Model
-  Delegate to AddressBook.setRide(...).
-  Replace the observable entry at the same
-  position; preserve ID and next-ID counter.
-end note
-Model --> Command
-deactivate Model
 Command --> Logic : result
 deactivate Command
-Logic -> Logic : saveAddressBook()
-activate Logic
 Logic -> Model : getAddressBook()
-Model --> Logic : addressBook
-Logic -> Storage : saveAddressBook(addressBook)
-activate Storage
-note right of Storage : Save cyclists and rides\nto the existing JSON file.
+Model --> Logic : book
+Logic -> Storage : saveAddressBook(book)
 Storage --> Logic
-deactivate Storage
-deactivate Logic
 [<-- Logic : result
 deactivate Logic
 
 legend bottom
-  One successful roster command is shown, with no pending cyclist deletion.
-  result is a CommandResult. Getter calls and local validation are summarised in notes.
-  Saving follows the in-memory replacement; a save failure reports an error without rolling it back.
+  Successful addition or removal; getters and validation are described in prose.
+  Observable refresh is shown separately. Saving errors do not roll back changes.
 endlegend
 @enduml

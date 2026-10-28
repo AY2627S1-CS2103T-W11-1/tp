@@ -1,220 +1,44 @@
 @startuml
 !include style.puml
 skinparam ArrowFontStyle plain
-skinparam ParticipantPadding 0
-skinparam NoteFontSize 16
-skinparam ArrowFontSize 16
-skinparam SequenceGroupFontSize 16
-skinparam SequenceGroupHeaderFontSize 16
-skinparam maxMessageSize 140
-!pragma sequenceMessageSpan true
-
-box Logic LOGIC_COLOR_T1
+skinparam maxMessageSize 80
+hide footbox
 participant ":LogicManager" as Logic LOGIC_COLOR
-participant ":AddressBookParser" as Parser LOGIC_COLOR
-participant ":RideEditCommandParser" as EditParser LOGIC_COLOR
 participant "c:RideEditCommand" as Command LOGIC_COLOR
-end box
-participant "m:ModelManager" as Model MODEL_COLOR
-participant ":StorageManager" as Storage STORAGE_COLOR
+participant "m:Model" as Model MODEL_COLOR
+participant ":Storage" as Storage STORAGE_COLOR
 
-' Trace: LogicManager#execute calls AddressBookParser#parseCommand, which creates and calls RideEditCommandParser.
-note over Logic, Parser : input = "rideedit ID ..."
-[-> Logic : execute(input)
+[-> Logic : execute(commandText)
 activate Logic
-Logic -> Parser : parseCommand(input)
-activate Parser
-create EditParser
-Parser -> EditParser : new()
-Parser -> EditParser : parse(arguments)
-activate EditParser
-' RideEditCommandParser#parse, #parseRideId and #parseEditedFields: internal calls/construction abstracted in a note.
-note right of EditParser
-  Validate positive ID;
-  reject duplicate prefixes.
-  Construct EditRideDescriptor; parse fields.
-  Require at least one edited field.
-  ParseException prevents
-  execution and saving.
-end note
-create Command
-EditParser -> Command : new(targetId, descriptor)
-' RideEditCommand constructor: defensive copy, not the parser's descriptor object.
-note over Command : Copy EditRideDescriptor defensively.
-EditParser --> Parser : c
-deactivate EditParser
-Parser --> Logic : c
-deactivate Parser
-
-' LogicManager#execute calls RideEditCommand#getOverlapWarning before storing or executing the command.
-group Check overlap before execution (no mutation or save)
-    Logic -> Command : getOverlapWarning(m)
-    activate Command
-    Command -> Model : getAddressBook()
-    activate Model
-    Model --> Command : book
-    deactivate Model
-    note right of Storage
-      Resolve target; combine fields;
-      validate period and roster eligibility.
-      If either endpoint changes, check
-      every roster member against all
-      other stored rides, including hidden rides.
-      Unchanged times, adjacent periods
-      and zero-duration rides do not warn.
-    end note
-    alt valid proposal
-        Command --> Logic : warning text or empty string
-    else invalid proposal
-        Command --> Logic : throws CommandException
-    end
-    deactivate Command
-end
-
-break invalid proposal
-    [<-- Logic : throws CommandException (no mutation or save)
-end
-
-opt non-empty warning
-    Logic -> Model : getAddressBook()
-    activate Model
-    Model --> Logic : book
-    deactivate Model
-    note left of Logic
-      Keep command, address-book copy and prompt in memory.
-      Do not execute or save any part of the edit.
-    end note
-    [<-- Logic : warning CommandResult
+note over Logic, Command : Parsing succeeds and produces c (calls omitted).
+Logic -> Command : getOverlapWarning(m)
+activate Command
+note right of Command : Validate proposal; check roster conflicts.\nNo mutation or save.
+Command --> Logic : warning or empty string
+deactivate Command
+opt overlapping time change
+    [<-- Logic : warning
     deactivate Logic
-
-    ... Await another command-box input ...
-    [-> Logic : execute(reply)
+    ... User reviews and confirms ...
+    [-> Logic : execute(confirmation)
     activate Logic
-    note left of Logic
-      Invalid replies repeat the warning and retain the request.
-      Reply matching ignores letter case.
-      Restart discards the pending request.
-    end note
-    break n/no or another recognised command
-        note left of Logic
-          Clear the pending edit without saving.
-          Process another recognised command normally.
-        end note
-        [<-- Logic : cancellation (plus new command result or error)
-    end
-    note left of Logic : y/yes: consume pending request before execution.
-    Logic -> Model : getAddressBook()
-    activate Model
-    Model --> Logic : current book
-    deactivate Model
-    break current book differs from saved copy
-        [<-- Logic : throws CommandException (no mutation or save)
-    end
+    note over Logic : Consume pending request; reject stale book.
 end
-
-' LogicManager#execute or #confirmRideChange calls RideEditCommand#execute after overlap checks/confirmation.
 Logic -> Command : execute(m)
 activate Command
-Command -> Model : getAddressBook()
-activate Model
-Model --> Command : book
-deactivate Model
-note left of Command
-  Read book.getRideList() (all stored rides).
-  Find target by persistent ID.
-  If found, createEditedRide combines fields
-  and calls Ride.isValidPeriod: end >= start.
-end note
-
-' RideEditCommand#execute calls #createEditedRide: static helpers are notes, not instance self-calls.
-alt valid
-    note left of Command
-      Construct proposed immutable Ride
-      with the same ID and roster.
-      Omitted fields and notes are preserved.
-      Supplied notes replace; notes/ clears.
-    end note
-    ' RideEditCommand#validateRosterEligibility: capacity first; phone resolution only for an FTP edit.
-    note left of Command
-      Next, validateRosterEligibility:
-      if size supplied: size >= roster count;
-      then, only if minimum FTP supplied,
-      resolve roster phones against all cyclists;
-      require FTP >= edited minimum.
-    end note
-    alt pass
-        ' RideEditCommand#execute calls ModelManager#setRide, which delegates to AddressBook#setRide.
-        Command -> Model : setRide(target, proposed)
-        activate Model
-        note right of Model
-          book.setRide(target, proposed)
-          calls rides.set(index, proposed).
-          Preserve position, ID and roster,
-          nextRideId and all other records.
-          Notify observable views.
-        end note
-        Model --> Command
-        deactivate Model
-        note right of Command : Create success CommandResult.
-    else fail
-        note left of Command
-          Capacity / FTP / roster reference invalid.
-          Throw CommandException; no setRide.
-        end note
-    end
-else invalid
-    note right of Command : Throw CommandException.\nNo proposed Ride is constructed.
-end
-
-' Mutually exclusive replies to execute(m); exception messages are not returned values.
-alt result
-    Command --> Logic : result
-else exception
-    note left of Logic : On command failure:\nno save.
-    Command --> Logic : throws CommandException
-end
+note right of Command : Revalidate and build replacement.\nPreserve ID, roster and omitted fields.
+Command -> Model : setRide(target, replacement)
+Command --> Logic : result
 deactivate Command
-
-opt result
-    ' LogicManager#execute and #confirmRideChange call #saveAddressBook only after successful execution.
-    note left of Logic : saveAddressBook():\nexisting storage path.
-    Logic -> Model : getAddressBook()
-    activate Model
-    Model --> Logic : book
-    deactivate Model
-    Logic -> Storage : saveAddressBook(book)
-    activate Storage
-    note left of Storage : Delegate to JsonAddressBookStorage.
-    alt written
-        Storage --> Logic : saved
-    else I/O error
-        note left of Logic
-          StorageManager throws IOException;
-          LogicManager's saveAddressBook()
-          converts it to CommandException.
-        end note
-        Storage --> Logic : throws IOException
-    end
-    deactivate Storage
-end
-
-alt saved
-    [<-- Logic : result
-else error
-    [<-- Logic : throws CommandException
-end
+Logic -> Model : getAddressBook()
+Model --> Logic : book
+Logic -> Storage : saveAddressBook(book)
+Storage --> Logic
+[<-- Logic : result
 deactivate Logic
 
 legend bottom
-  Entry is from the command-box UI; its internal calls are omitted.
-  Parsing success is expanded. Notes abstract internal validation and construction.
-  Solid arrows are calls/creation; dashed arrows are returns or labelled exception propagation.
-  AddressBook internals and observable effects are notes, not direct UI calls.
-  Guards: valid = target found and complete period valid; pass/fail = roster eligibility checks.
-  result = command returned CommandResult; saved = command and saving both succeeded.
-  Messages labelled "throws" propagate exceptions; they do not return values.
-  Only time changes with roster conflicts require confirmation.
-  Warning/cancellation paths never execute or save the pending edit.
-  Execution repeats validation before replacing the stored ride.
+  Successful path; validation details and cancellation are described in prose.
+  A saving error is reported after replacement, without rollback.
 endlegend
 @enduml
