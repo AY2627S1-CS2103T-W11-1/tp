@@ -3,6 +3,7 @@ package seedu.address.model.person;
 import static java.util.Objects.requireNonNull;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -34,7 +35,10 @@ public class PersonMatchesFindCriteriaPredicate implements Predicate<Person> {
         this(nameKeywords, phones, emergencyPhones, List.of(), Set.of(), null);
     }
 
-    /** Creates a predicate requiring every supplied field to match at least one value. */
+    /**
+     * Creates a predicate requiring a match in every supplied field and FTP at least {@code minimumFtp}.
+     * Empty collections and a null minimum FTP impose no restriction on their respective fields.
+     */
     public PersonMatchesFindCriteriaPredicate(List<String> nameKeywords, List<Phone> phones,
             List<Phone> emergencyPhones, List<ExperienceLevel> experienceLevels, Set<Location> locations,
             Ftp minimumFtp) {
@@ -50,63 +54,66 @@ public class PersonMatchesFindCriteriaPredicate implements Predicate<Person> {
     public boolean test(Person person) {
         requireNonNull(person);
         assert person.getName() != null : "Person name must be present when matching criteria.";
-        boolean matchesName = nameKeywords.isEmpty() || nameKeywords.stream()
-                .anyMatch(keyword -> matchesName(person, keyword));
         boolean matchesPhone = phones.isEmpty() || phones.contains(person.getPhone());
         boolean matchesEmergencyPhone = emergencyPhones.isEmpty()
                 || person.getEmergencyPhone().filter(emergencyPhones::contains).isPresent();
         boolean matchesExperience = experienceLevels.isEmpty()
                 || experienceLevels.contains(person.getExperienceLevel());
-        boolean matchesLocation = locations.isEmpty()
-                || person.getLocations().stream().anyMatch(personLocation -> locations.stream()
-                        .anyMatch(searchLocation -> matchesLocation(personLocation, searchLocation)));
-        boolean matchesFtp = minimumFtp == null
-                || Integer.parseInt(person.getFtp().value) >= Integer.parseInt(minimumFtp.value);
-        return matchesName && matchesPhone && matchesEmergencyPhone && matchesExperience
-                && matchesLocation && matchesFtp;
+        return matchesName(person) && matchesPhone && matchesEmergencyPhone && matchesExperience
+                && matchesLocations(person) && matchesMinimumFtp(person);
     }
 
-    /** Returns whether a stored location matches a requested location criterion. */
+    /**
+     * Returns whether the name contains any requested sequence of whole words, ignoring case.
+     */
+    private boolean matchesName(Person person) {
+        return nameKeywords.isEmpty() || nameKeywords.stream()
+                .anyMatch(keyword -> containsWordsInOrder(person.getName().fullName, keyword));
+    }
+
+    /**
+     * Returns whether any preferred location matches any requested location.
+     */
+    private boolean matchesLocations(Person person) {
+        return locations.isEmpty() || person.getLocations().stream()
+                .anyMatch(personLocation -> locations.stream()
+                        .anyMatch(searchLocation -> matchesLocation(personLocation, searchLocation)));
+    }
+
+    /**
+     * Returns whether the cyclist meets the optional minimum FTP.
+     */
+    private boolean matchesMinimumFtp(Person person) {
+        return minimumFtp == null
+                || Integer.parseInt(person.getFtp().value) >= Integer.parseInt(minimumFtp.value);
+    }
+
+    /**
+     * Returns whether a stored location matches a requested location criterion.
+     */
     private boolean matchesLocation(Location personLocation, Location searchLocation) {
         if (searchLocation.value.equalsIgnoreCase("any")) {
             return personLocation.value.equalsIgnoreCase("any");
         }
         return personLocation.value.equalsIgnoreCase("any")
-                || containsLocationWords(personLocation.value, searchLocation.value);
+                || containsWordsInOrder(personLocation.value, searchLocation.value);
     }
 
-    /** Returns whether the location contains the search words in order. */
-    private boolean containsLocationWords(String location, String searchLocation) {
-        String[] locationWords = location.split("\\s+");
-        String[] searchWords = searchLocation.trim().split("\\s+");
-        int locationIndex = 0;
+    /**
+     * Returns whether all search words occur in order, ignoring case and allowing intervening words.
+     */
+    private boolean containsWordsInOrder(String text, String searchText) {
+        String[] textWords = text.split("\\s+");
+        String[] searchWords = searchText.trim().split("\\s+");
+        int textIndex = 0;
         for (String searchWord : searchWords) {
-            while (locationIndex < locationWords.length
-                    && !locationWords[locationIndex].equalsIgnoreCase(searchWord)) {
-                locationIndex++;
+            while (textIndex < textWords.length && !textWords[textIndex].equalsIgnoreCase(searchWord)) {
+                textIndex++;
             }
-            if (locationIndex == locationWords.length) {
+            if (textIndex == textWords.length) {
                 return false;
             }
-            locationIndex++;
-        }
-        return true;
-    }
-
-    private boolean matchesName(Person person, String keyword) {
-        String trimmedKeyword = keyword.trim();
-        String[] nameWords = person.getName().fullName.split("\\s+");
-        String[] searchWords = trimmedKeyword.split("\\s+");
-        int nameIndex = 0;
-        for (String searchWord : searchWords) {
-            while (nameIndex < nameWords.length
-                    && !nameWords[nameIndex].equalsIgnoreCase(searchWord)) {
-                nameIndex++;
-            }
-            if (nameIndex == nameWords.length) {
-                return false;
-            }
-            nameIndex++;
+            textIndex++;
         }
         return true;
     }
@@ -123,13 +130,18 @@ public class PersonMatchesFindCriteriaPredicate implements Predicate<Person> {
                 && emergencyPhones.equals(otherPredicate.emergencyPhones)
                 && experienceLevels.equals(otherPredicate.experienceLevels)
                 && locations.equals(otherPredicate.locations)
-                && java.util.Objects.equals(minimumFtp, otherPredicate.minimumFtp);
+                && Objects.equals(minimumFtp, otherPredicate.minimumFtp);
     }
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this).add("nameKeywords", nameKeywords).add("phones", phones)
-                .add("emergencyPhones", emergencyPhones).add("experienceLevels", experienceLevels)
-                .add("locations", locations).add("minimumFtp", minimumFtp).toString();
+        return new ToStringBuilder(this)
+                .add("nameKeywords", nameKeywords)
+                .add("phones", phones)
+                .add("emergencyPhones", emergencyPhones)
+                .add("experienceLevels", experienceLevels)
+                .add("locations", locations)
+                .add("minimumFtp", minimumFtp)
+                .toString();
     }
 }

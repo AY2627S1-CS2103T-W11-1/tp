@@ -7,6 +7,9 @@ package seedu.address.logic.parser;
 public class Prefix {
     private final String prefix;
 
+    /**
+     * Creates a prefix with the given text, using an empty string for a preamble marker.
+     */
     public Prefix(String prefix) {
         this.prefix = prefix;
     }

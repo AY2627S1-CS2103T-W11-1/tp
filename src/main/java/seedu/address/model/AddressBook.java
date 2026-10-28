@@ -13,6 +13,7 @@ import javafx.collections.ObservableList;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.Phone;
 import seedu.address.model.person.UniquePersonList;
 import seedu.address.model.ride.Ride;
 
@@ -34,10 +35,13 @@ public class AddressBook implements ReadOnlyAddressBook {
     private final ObservableList<Ride> unmodifiableRides = FXCollections.unmodifiableObservableList(rides);
     private int nextRideId = 1;
 
+    /**
+     * Creates an empty address book whose first ride will receive ID 1.
+     */
     public AddressBook() {}
 
     /**
-     * Creates an AddressBook using the Persons in the {@code toBeCopied}
+     * Creates an address book with the cyclists, rides, and next ride ID in {@code toBeCopied}.
      */
     public AddressBook(ReadOnlyAddressBook toBeCopied) {
         this();
@@ -100,8 +104,8 @@ public class AddressBook implements ReadOnlyAddressBook {
      * Adds a person to the address book.
      * The person must not already exist in the address book.
      */
-    public void addPerson(Person p) {
-        persons.add(p);
+    public void addPerson(Person person) {
+        persons.add(person);
     }
 
     /**
@@ -114,14 +118,21 @@ public class AddressBook implements ReadOnlyAddressBook {
 
         persons.setPerson(target, editedPerson);
         if (!target.getPhone().equals(editedPerson.getPhone())) {
-            long affectedRosterCount = rides.stream()
-                    .filter(ride -> ride.getRoster().contains(target.getPhone())).count();
-            rides.replaceAll(ride -> ride.withRoster(ride.getRoster().stream()
-                    .map(phone -> phone.equals(target.getPhone()) ? editedPerson.getPhone() : phone).toList()));
-            assert rides.stream().noneMatch(ride -> ride.getRoster().contains(target.getPhone()))
-                    : "No roster should retain the replaced phone number.";
-            logger.fine(() -> "Updated phone references in " + affectedRosterCount + " ride roster(s).");
+            replaceRosterPhone(target.getPhone(), editedPerson.getPhone());
         }
+    }
+
+    /**
+     * Replaces a cyclist's phone in all rosters after their record has been successfully edited.
+     */
+    private void replaceRosterPhone(Phone originalPhone, Phone updatedPhone) {
+        long affectedRosterCount = rides.stream()
+                .filter(ride -> ride.getRoster().contains(originalPhone)).count();
+        rides.replaceAll(ride -> ride.withRoster(ride.getRoster().stream()
+                .map(phone -> phone.equals(originalPhone) ? updatedPhone : phone).toList()));
+        assert rides.stream().noneMatch(ride -> ride.getRoster().contains(originalPhone))
+                : "No roster should retain the replaced phone number.";
+        logger.fine(() -> "Updated phone references in " + affectedRosterCount + " ride roster(s).");
     }
 
     /**

@@ -24,10 +24,10 @@ public class GroupSizeTest {
         // null group size
         assertThrows(NullPointerException.class, () -> GroupSize.isValidGroupSize(null));
 
-        // invalid group sizes
+        // EP: blank/nonpositive sizes, nonintegers, nonnumeric text, excess digits, and internal spaces.
         assertFalse(GroupSize.isValidGroupSize("")); // empty string
         assertFalse(GroupSize.isValidGroupSize(" ")); // spaces only
-        assertFalse(GroupSize.isValidGroupSize("0")); // zero
+        assertFalse(GroupSize.isValidGroupSize("0")); // Boundary value: 0 members, just below the minimum 1.
         assertFalse(GroupSize.isValidGroupSize("00")); // zero with padding
         assertFalse(GroupSize.isValidGroupSize("-3")); // negative
         assertFalse(GroupSize.isValidGroupSize("2.5")); // decimal
@@ -35,10 +35,10 @@ public class GroupSizeTest {
         assertFalse(GroupSize.isValidGroupSize("1234567890")); // more than 9 digits
         assertFalse(GroupSize.isValidGroupSize("1 2")); // inner space
 
-        // valid group sizes
-        assertTrue(GroupSize.isValidGroupSize("1")); // smallest allowed
+        // EP: positive whole-number sizes with at most 9 digits, including leading-zero representations.
+        assertTrue(GroupSize.isValidGroupSize("1")); // Boundary value: minimum group size, 1.
         assertTrue(GroupSize.isValidGroupSize("12"));
-        assertTrue(GroupSize.isValidGroupSize("999999999")); // largest allowed
+        assertTrue(GroupSize.isValidGroupSize("999999999")); // Boundary value: maximum group size, 999999999.
         assertTrue(GroupSize.isValidGroupSize("012")); // leading zero
     }
 

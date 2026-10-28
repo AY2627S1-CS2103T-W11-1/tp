@@ -46,6 +46,8 @@ public class RideAddCommandParserTest {
 
     @Test
     public void parse_numericDigitLimits_propagatesConstraintsAndAcceptsThreeDigitPower() {
+        // Boundary values: 7 integer distance digits exceed maximum 6, and 4 power digits exceed maximum 3.
+        // Leading zeros still count toward those digit limits.
         for (String distance : new String[] {"1000000", "0000001"}) {
             assertParseFailure(parser, ALL_REQUIRED.replace("d/45", "d/" + distance), Distance.MESSAGE_CONSTRAINTS);
         }
@@ -56,6 +58,8 @@ public class RideAddCommandParserTest {
 
     @Test
     public void parse_unicodeNotes_enforcesBlankAndWordLimitRules() {
+        // EP: ASCII/Unicode whitespace and quoted/unquoted notes.
+        // Boundary values: blank notes, valid 10-word notes, and invalid 11-word notes.
         for (String separator : new String[] {" ", "\t", "\r\n", "\u2003", "\u00a0", "\u202f", "\u3000"}) {
             assertParseFailure(parser, ALL_REQUIRED + " notes/" + separator, Notes.MESSAGE_CONSTRAINTS);
             assertParseFailure(parser, ALL_REQUIRED + " notes/\"" + separator + "\"",
@@ -86,6 +90,8 @@ public class RideAddCommandParserTest {
 
     @Test
     public void parse_invalidQuotedNotes_failure() {
+        // EP: unclosed/blank quoted notes, extra trailing text, and embedded quotes.
+        // Boundary value: the final quoted input has 11 words, one above the maximum 10.
         for (String notes : new String[] {"\"Bring camera f/2", "\"\"", "\"  \"", "\"Bring\"extra",
             "\"Bring \"camera\"\""}) {
             assertParseFailure(parser, ALL_REQUIRED + " notes/" + notes,
@@ -106,6 +112,7 @@ public class RideAddCommandParserTest {
 
     @Test
     public void parse_notesMissing_success() {
+        // EP: the optional notes field is absent rather than supplied with an empty value.
         assertParseSuccess(parser, ALL_REQUIRED, new RideAddCommand(new RideBuilder().build()));
     }
 
@@ -139,6 +146,7 @@ public class RideAddCommandParserTest {
 
     @Test
     public void parse_endSameAsStart_success() {
+        // Boundary value: zero-duration period; the end equals the start.
         Ride expectedRide = new RideBuilder().withTo("18-10-2026 0630").build();
 
         assertParseSuccess(parser, NAME_DESC + FROM_DESC + " to/18-10-2026 0630" + LOCATION_DESC + DISTANCE_DESC
@@ -317,6 +325,7 @@ public class RideAddCommandParserTest {
 
     @Test
     public void parse_endBeforeStart_failure() {
+        // EP: end precedes start within a day, across dates, or across years.
         assertParseFailure(parser, NAME_DESC + " from/18-10-2026 0930 to/18-10-2026 0929" + LOCATION_DESC
                 + DISTANCE_DESC + POWER_DESC + SIZE_DESC, Ride.MESSAGE_INVALID_PERIOD);
 

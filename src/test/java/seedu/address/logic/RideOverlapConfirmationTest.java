@@ -120,6 +120,7 @@ public class RideOverlapConfirmationTest {
 
     @Test
     public void execute_yesVariants_joinAndPersistExactlyOnce() throws Exception {
+        // EP: affirmative short/full replies with different letter case.
         for (String reply : List.of("y", "Y", "yes", "YES", "yEs")) {
             setUp();
             logic.execute(JOIN);
@@ -133,6 +134,7 @@ public class RideOverlapConfirmationTest {
 
     @Test
     public void execute_noVariants_cancelWithoutMutationOrSave() throws Exception {
+        // EP: negative short/full replies with different letter case.
         for (String reply : List.of("n", "N", "no", "NO", "nO")) {
             setUp();
             logic.execute(JOIN);
@@ -145,6 +147,7 @@ public class RideOverlapConfirmationTest {
 
     @Test
     public void execute_invalidReply_preservesPendingWarning() throws Exception {
+        // EP: empty reply, unknown word, multiword reply, and wrong-case command.
         String prompt = logic.execute(JOIN).getFeedbackToUser();
         for (String reply : List.of("", "maybe", "yes please", "LIST")) {
             assertEquals(String.format(LogicManager.MESSAGE_INVALID_OVERLAP_REPLY, prompt),
@@ -171,6 +174,7 @@ public class RideOverlapConfirmationTest {
 
     @Test
     public void execute_invalidNewCommand_reportsCancellationAndOriginalError() throws Exception {
+        // EP: a recognized command with missing syntax versus one rejected during execution.
         for (String command : List.of("rideedit", "rideaddcyclist 999 " + PHONE)) {
             setUp();
             logic.execute(JOIN);
@@ -278,6 +282,7 @@ public class RideOverlapConfirmationTest {
 
     @Test
     public void execute_nonTimeEditAndUnchangedTimes_doNotWarnAboutExistingOverlap() throws Exception {
+        // EP: unrelated edits and explicitly unchanged times do not create a new overlap-warning request.
         model.setRide(ride(2), ride(2).withRoster(List.of(new Phone(PHONE))));
         assertFalse(logic.execute("rideedit 2 notes/Bring lights").getFeedbackToUser().contains("Warning"));
         assertFalse(logic.execute(EDIT).getFeedbackToUser().contains("Warning"));

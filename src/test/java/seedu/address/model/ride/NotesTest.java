@@ -16,6 +16,8 @@ public class NotesTest {
     @Test
     public void isBlank_usesTheSameWhitespaceDefinitionAsValidation() {
         assertThrows(NullPointerException.class, () -> Notes.isBlank(null));
+        // EP: empty and whitespace-only text are blank; content and zero-width space are not.
+        // Boundary value: zero characters in the empty-string case.
         assertTrue(Notes.isBlank(""));
         assertTrue(Notes.isBlank(" \t\r\n\u00a0\u2003\u202f\u3000"));
         assertFalse(Notes.isBlank("\u00a0Bring\u2003"));
@@ -24,6 +26,8 @@ public class NotesTest {
 
     @Test
     public void constructor_unicodeSeparators_normalizesAndEnforcesWordLimit() {
+        // EP: ASCII and supported Unicode whitespace separators share normalization and word-count rules.
+        // Boundary values: 0 words (invalid), 1 and 10 (valid endpoints), and 11 (invalid).
         for (String separator : new String[] {" ", "\t", "\r\n", "\u00a0", "\u2003", "\u202f", "\u3000"}) {
             assertFalse(Notes.isValidNotes(separator));
             assertThrows(IllegalArgumentException.class, () -> new Notes(separator));
@@ -62,16 +66,16 @@ public class NotesTest {
         // null notes
         assertThrows(NullPointerException.class, () -> Notes.isValidNotes(null));
 
-        // invalid notes
+        // EP: blank notes and notes exceeding the 10-word limit.
         assertFalse(Notes.isValidNotes("")); // empty string
         assertFalse(Notes.isValidNotes("   ")); // spaces only
-        assertFalse(Notes.isValidNotes(TEN_WORDS + " eleven")); // 11 words
+        assertFalse(Notes.isValidNotes(TEN_WORDS + " eleven")); // Boundary value: 11 words, one above the maximum.
         assertFalse(Notes.isValidNotes(TEN_WORDS + "   eleven twelve")); // more than 10 words with extra spaces
 
-        // valid notes
+        // EP: 1–10 words, with punctuation, surrounding whitespace, or repeated separators.
         assertTrue(Notes.isValidNotes("Bring lights")); // two words
-        assertTrue(Notes.isValidNotes("Bring")); // one word
-        assertTrue(Notes.isValidNotes(TEN_WORDS)); // exactly 10 words
+        assertTrue(Notes.isValidNotes("Bring")); // Boundary value: minimum of 1 word.
+        assertTrue(Notes.isValidNotes(TEN_WORDS)); // Boundary value: maximum of 10 words.
         assertTrue(Notes.isValidNotes("  " + TEN_WORDS + "  ")); // surrounding spaces do not count
         assertTrue(Notes.isValidNotes("Bring lights, a spare tube & snacks!")); // punctuation is allowed
         assertTrue(Notes.isValidNotes("one  two   three")); // repeated spaces are one separator

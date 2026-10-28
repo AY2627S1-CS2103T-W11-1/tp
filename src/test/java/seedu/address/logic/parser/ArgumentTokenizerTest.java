@@ -43,6 +43,7 @@ public class ArgumentTokenizerTest {
 
     @Test
     public void tokenizeWithQuotedNotes_unicodeBeforePrefix_keepsExistingPrefixRecognition() throws Exception {
+        // EP: whitespace recognized by Character.isWhitespace versus NBSP/NARROW NBSP, which do not introduce prefixes.
         for (String separator : List.of(" ", "\u2003", "\u3000")) {
             ArgumentMultimap arguments = ArgumentTokenizer.tokenizeWithQuotedNotes(
                     " notes/\"camera f/2\"" + separator + "f/200", PREFIX_NOTES, PREFIX_FTP);
@@ -60,6 +61,7 @@ public class ArgumentTokenizerTest {
 
     @Test
     public void tokenizeWithQuotedNotes_prefixesInsideQuotes_areLiteral() throws Exception {
+        // EP: recognized prefixes inside quotes belong to notes; the same prefixes outside quotes delimit fields.
         for (String separator : List.of(" ", "\t", "\n", "\u2003")) {
             ArgumentMultimap arguments = ArgumentTokenizer.tokenizeWithQuotedNotes(
                     " 1 notes/\"Bring camera f/2 notes/test q/test\"" + separator + "f/200",
@@ -76,6 +78,7 @@ public class ArgumentTokenizerTest {
 
     @Test
     public void tokenizeWithQuotedNotes_duplicatesOutsideQuotes_remainDuplicates() throws Exception {
+        // EP: repeated notes prefixes outside the quoted region remain separate arguments.
         ArgumentMultimap arguments = ArgumentTokenizer.tokenizeWithQuotedNotes(
                 " f/180 notes/\"f/2 notes/literal\" f/200 notes/second", PREFIX_NOTES, PREFIX_FTP);
         assertArgumentPresent(arguments, PREFIX_FTP, "180", "200");
@@ -86,6 +89,7 @@ public class ArgumentTokenizerTest {
 
     @Test
     public void tokenizeWithQuotedNotes_malformedQuotes_rejected() {
+        // EP: missing closing quote, blank content, embedded quotes, and non-whitespace trailing text.
         for (String notes : List.of("\"camera f/2", "\"\"", "\"   \"", "\"\u2003\"", "\"\u00a0\"", "\"\u202f\"",
                 "\"\u3000\"", "\"camera\"tail",
                 "\"camera\" tail f/200", "\"camera\"f/200", "\"camera \"lens\"\"",
@@ -113,6 +117,7 @@ public class ArgumentTokenizerTest {
 
     @Test
     public void tokenize_whitespaceSeparators_recognisesPrefixesWithoutSplittingValues() {
+        // EP: supported ASCII/control/Unicode whitespace before prefixes; embedded prefix-like text lacks a delimiter.
         for (String separator : List.of(" ", "  ", "\t", "\n", "\r\n", "\u2003", "\u3000")) {
             ArgumentMultimap arguments = ArgumentTokenizer.tokenize(
                     separator + "p/" + separator + "first" + separator + "-tsecond" + separator, pSlash, dashT);
@@ -128,6 +133,7 @@ public class ArgumentTokenizerTest {
 
     @Test
     public void tokenize_nonBreakingSpaces_preservesValuesAndDoesNotIntroducePrefixes() throws Exception {
+        // EP: NBSP and NARROW NBSP are value characters rather than parameter delimiters.
         for (String separator : List.of("\u00a0", "\u202f")) {
             String value = separator + "first" + separator + "f/180" + separator;
             for (ArgumentMultimap arguments : List.of(
@@ -144,6 +150,8 @@ public class ArgumentTokenizerTest {
 
     @Test
     public void tokenize_emptyArgsString_noValues() {
+        // EP: empty argument text contains no preamble or field values.
+        // Boundary value: input length 0.
         String argsString = "  ";
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(argsString, pSlash);
 

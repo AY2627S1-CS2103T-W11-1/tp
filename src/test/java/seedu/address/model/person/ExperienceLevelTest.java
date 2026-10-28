@@ -32,13 +32,13 @@ public class ExperienceLevelTest {
         // null experience level
         assertThrows(NullPointerException.class, () -> ExperienceLevel.isValidExperienceLevel(null));
 
-        // invalid experience levels
+        // EP: blank values, unsupported level names, and otherwise valid names with untrimmed whitespace.
         assertFalse(ExperienceLevel.isValidExperienceLevel("")); // empty string
         assertFalse(ExperienceLevel.isValidExperienceLevel(" ")); // spaces only
         assertFalse(ExperienceLevel.isValidExperienceLevel("Expert")); // not one of the three valid levels
         assertFalse(ExperienceLevel.isValidExperienceLevel("Beginner ")); // trailing whitespace not trimmed here
 
-        // valid experience levels
+        // EP: the three supported level names, matched without regard to case.
         assertTrue(ExperienceLevel.isValidExperienceLevel("Beginner"));
         assertTrue(ExperienceLevel.isValidExperienceLevel("Intermediate"));
         assertTrue(ExperienceLevel.isValidExperienceLevel("Advanced"));
