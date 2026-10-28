@@ -150,11 +150,15 @@ public class HelpWindowTest {
         assertTrue(RideAddCommand.MESSAGE_USAGE.contains("MIN_POWER is in watts"));
         assertTrue(RideEditCommand.MESSAGE_USAGE.contains("[f/MIN_POWER] [s/MAX_GROUP_SIZE]"));
         assertTrue(RideFindCommand.MESSAGE_USAGE.contains("[f/MIN_POWER] [s/MAX_GROUP_SIZE]"));
+        assertTrue(RideFindCommand.MESSAGE_USAGE.contains("ridefind (rf) all\n  ridefind (rf) [n/NAME]"));
+        assertTrue(RideFindCommand.MESSAGE_USAGE.contains("[to/DATE [TIME]]\n    [l/LOCATION]"));
         // Help menu
         for (String commandWord : new String[] {RideAddCommand.COMMAND_WORD, RideEditCommand.COMMAND_WORD,
             RideFindCommand.COMMAND_WORD}) {
             String menuEntry = CommandTemplates.ALL.stream()
                     .filter(template -> template.insertText().trim().split(" ")[0].equals(commandWord))
+                    .filter(template -> !commandWord.equals(RideFindCommand.COMMAND_WORD)
+                            || template.display().contains("f/MIN_POWER"))
                     .findFirst().orElseThrow().display();
             assertTrue(menuEntry.contains("f/MIN_POWER"), menuEntry);
         }
@@ -200,7 +204,10 @@ public class HelpWindowTest {
         assertTrue(HelpWindow.RIDE_EDIT_HELP.contains("The ride ID, cyclist roster and unspecified fields stay "
                 + "unchanged."));
         assertTrue(HelpWindow.RIDE_EDIT_HELP.contains("Omit notes/ to preserve notes"));
-        assertTrue(HelpWindow.RIDE_EDIT_HELP.contains("notes/ without a value to clear them"));
+        assertTrue(HelpWindow.RIDE_EDIT_HELP.contains("empty or whitespace-only unquoted notes/ clears them"));
+        assertTrue(HelpWindow.RIDE_EDIT_HELP.contains("at most 10 words"));
+        assertTrue(HelpWindow.COMMAND_LIST.contains("Unicode spaces separate words and are stored as single spaces"));
+        assertTrue(HelpWindow.COMMAND_LIST.contains("whitespace-only notes are rejected"));
         assertTrue(HelpWindow.RIDE_EDIT_HELP.contains("Invalid edits leave the ride unchanged."));
 
         for (String example : new String[] {

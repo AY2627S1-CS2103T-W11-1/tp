@@ -13,8 +13,8 @@ import java.util.regex.Pattern;
 public class Distance {
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Distance should be a positive number of kilometres with at most 2 decimal places, "
-                    + "for example 45 or 45.5.";
+            "Distance: 0.01–999999.99 km. Leading zeroes count.\n"
+                    + "Use 1–6 digits, optionally '.' then 1–2 digits.";
 
     private static final Pattern VALIDATION_PATTERN = Pattern.compile("\\d{1,6}(\\.\\d{1,2})?");
 

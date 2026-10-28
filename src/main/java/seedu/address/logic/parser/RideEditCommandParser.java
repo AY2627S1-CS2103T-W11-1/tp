@@ -17,6 +17,7 @@ import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.commands.RideEditCommand;
 import seedu.address.logic.commands.RideEditCommand.EditRideDescriptor;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.ride.Notes;
 
 /**
  * Parses input arguments and creates a new {@code RideEditCommand}.
@@ -80,7 +81,7 @@ public class RideEditCommandParser implements Parser<RideEditCommand> {
         }
         if (argMultimap.getValue(PREFIX_NOTES).isPresent()) {
             String notes = argMultimap.getValue(PREFIX_NOTES).get();
-            editRideDescriptor.setNotes(notes.isEmpty()
+            editRideDescriptor.setNotes(Notes.isBlank(notes)
                     ? Optional.empty() : Optional.of(ParserUtil.parseNotes(notes)));
         }
 

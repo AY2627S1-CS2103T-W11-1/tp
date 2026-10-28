@@ -20,7 +20,8 @@ public class FindCommand extends Command {
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Finds cyclists matching the supplied criteria.\n"
             + "Parameters: [n/NAME]... [p/PHONE]... [sos/EMERGENCY_PHONE]... [f/MIN_FTP] "
             + "[x/EXPERIENCE]... [l/LOCATION]...\n"
-            + "At least one search criterion is required. Names and text criteria match full words case-insensitively. "
+            + "At least one search criterion is required. Names and text criteria match complete words "
+            + "case-insensitively. Multi-word values match when all words are present in order. "
             + "Use multiple values within a field for OR matching; different fields use AND matching. "
             + "f/MIN_FTP matches cyclists with FTP at least the specified value in watts.\n"
             + "Example: " + COMMAND_WORD + " l/Punggol x/Intermediate f/250";

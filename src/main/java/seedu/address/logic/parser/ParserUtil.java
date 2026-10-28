@@ -132,6 +132,7 @@ public class ParserUtil {
         if (parsedLocations.isEmpty()) {
             parsedLocations.add(new Location("any"));
         }
+        assert !parsedLocations.isEmpty() : "Parsed locations must contain at least one location.";
         return parsedLocations;
     }
 
@@ -212,7 +213,7 @@ public class ParserUtil {
 
     /**
      * Parses a {@code String notes} into a {@code Notes}.
-     * Leading and trailing whitespaces will be trimmed.
+     * Unicode whitespace is trimmed and collapsed according to {@link Notes}.
      *
      * @throws ParseException if the given {@code notes} is invalid.
      */
