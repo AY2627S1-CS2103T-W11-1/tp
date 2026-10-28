@@ -29,6 +29,8 @@ public class AddressBookTest {
 
     @Test
     public void setRides_invalidIds_leavesRidesAndCounterUnchanged() {
+        // EP: unassigned ID, ID leaving no room for a counter, and duplicate stored IDs.
+        // Boundary values: 0 is below the minimum ID; Integer.MAX_VALUE is one above the last assignable ID.
         Ride original = addressBook.addRide(new RideBuilder().build());
         List<List<Ride>> invalidLists = List.of(
                 List.of(new RideBuilder().withId(0).build()),
@@ -47,6 +49,7 @@ public class AddressBookTest {
 
     @Test
     public void addRide_lastAvailableId_thenRejectsWithoutMutation() {
+        // Boundary values: last assignable ID Integer.MAX_VALUE - 1, then exhausted counter Integer.MAX_VALUE.
         addressBook.setRides(List.of(), Integer.MAX_VALUE - 1);
         Ride last = addressBook.addRide(new RideBuilder().build());
         assertEquals(Integer.MAX_VALUE - 1, last.getId());

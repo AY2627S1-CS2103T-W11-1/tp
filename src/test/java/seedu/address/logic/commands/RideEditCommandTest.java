@@ -96,6 +96,8 @@ public class RideEditCommandTest {
 
     @Test
     public void execute_minimumPowerAtLowestFtpThenLowered_updatesRide() throws Exception {
+        // EP: ride minimum equals or is below the weakest registered cyclist FTP.
+        // Boundary value: equality at 200 W is accepted.
         for (String minimumPower : List.of("200", "150")) {
             EditRideDescriptor descriptor = new EditRideDescriptor();
             descriptor.setMinimumPower(new MinimumPower(minimumPower));
@@ -106,6 +108,8 @@ public class RideEditCommandTest {
 
     @Test
     public void execute_groupSizeAtRosterCountThenIncreased_updatesRide() throws Exception {
+        // EP: capacity equals or exceeds the current roster count.
+        // Boundary value: capacity 2 equals the two-member roster.
         for (String groupSize : List.of("2", "20")) {
             EditRideDescriptor descriptor = new EditRideDescriptor();
             descriptor.setMaxGroupSize(new GroupSize(groupSize));
@@ -116,6 +120,7 @@ public class RideEditCommandTest {
 
     @Test
     public void execute_rosterConstraintsWithEmptyRoster_updatesRide() throws Exception {
+        // EP: an empty roster imposes no existing-member capacity or FTP restrictions.
         EditRideDescriptor descriptor = new EditRideDescriptor();
         descriptor.setMinimumPower(new MinimumPower("600"));
         descriptor.setMaxGroupSize(new GroupSize("1"));
@@ -208,6 +213,7 @@ public class RideEditCommandTest {
 
     @Test
     public void execute_editToEqualFrom_acceptsEqualPeriod() throws Exception {
+        // Boundary value: the edited end equals the preserved start (duration 0).
         EditRideDescriptor descriptor = new EditRideDescriptor();
         descriptor.setTo(rideToEdit.getFrom());
         Ride expectedRide = new RideBuilder(rideToEdit).withTo(rideToEdit.getFrom().toString()).build();

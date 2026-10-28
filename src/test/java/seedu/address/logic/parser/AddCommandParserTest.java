@@ -211,7 +211,8 @@ public class AddCommandParserTest {
                 + LOCATION_DESC_BOB + SOS_DESC;
         String ftpConstraints = "FTP should be a whole number between 1 and 600 watts.";
 
-        // EP: FTP accepts its minimum and maximum values, and rejects invalid or missing values.
+        // EP: valid FTP integers, out-of-range values, nonnumeric input, and a missing FTP field.
+        // Boundary values: 1/600 are valid endpoints; 0/601 are immediately outside the range.
         assertDoesNotThrow(() -> parser.parse(requiredFields + " f/1"));
         assertDoesNotThrow(() -> parser.parse(requiredFields + " f/600"));
         assertParseFailure(parser, requiredFields + " f/0", ftpConstraints);

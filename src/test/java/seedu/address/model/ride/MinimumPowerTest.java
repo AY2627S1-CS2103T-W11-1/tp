@@ -24,21 +24,21 @@ public class MinimumPowerTest {
         // null minimum power
         assertThrows(NullPointerException.class, () -> MinimumPower.isValidMinimumPower(null));
 
-        // invalid minimum powers
+        // EP: blank values, out-of-range integers, excess digits, and noninteger/nonnumeric text.
         assertFalse(MinimumPower.isValidMinimumPower("")); // empty string
         assertFalse(MinimumPower.isValidMinimumPower(" ")); // spaces only
-        assertFalse(MinimumPower.isValidMinimumPower("0")); // below the range
-        assertFalse(MinimumPower.isValidMinimumPower("601")); // above the range
+        assertFalse(MinimumPower.isValidMinimumPower("0")); // Boundary value: 0 W, just below the minimum 1 W.
+        assertFalse(MinimumPower.isValidMinimumPower("601")); // Boundary value: 601 W, just above the maximum 600 W.
         assertFalse(MinimumPower.isValidMinimumPower("1000")); // four digits
         assertFalse(MinimumPower.isValidMinimumPower("-5")); // negative
         assertFalse(MinimumPower.isValidMinimumPower("180.5")); // decimal
         assertFalse(MinimumPower.isValidMinimumPower("180W")); // unit included
         assertFalse(MinimumPower.isValidMinimumPower("abc")); // letters
 
-        // valid minimum powers
-        assertTrue(MinimumPower.isValidMinimumPower("1")); // lowest allowed
+        // EP: whole-number powers in 1–600 W, including valid leading-zero representations.
+        assertTrue(MinimumPower.isValidMinimumPower("1")); // Boundary value: minimum power, 1 W.
         assertTrue(MinimumPower.isValidMinimumPower("180"));
-        assertTrue(MinimumPower.isValidMinimumPower("600")); // highest allowed
+        assertTrue(MinimumPower.isValidMinimumPower("600")); // Boundary value: maximum power, 600 W.
         assertTrue(MinimumPower.isValidMinimumPower("050")); // leading zero
     }
 

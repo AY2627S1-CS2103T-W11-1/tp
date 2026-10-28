@@ -11,11 +11,16 @@ public class RideDateTimeTest {
 
     @Test
     public void isValidRideDateTime_calendarAndClockBoundaryNeighbours() {
+        // EP: valid month ends, leap days, and century leap-year exceptions (1900 versus 2000).
+        // Boundary values: the last/first day around month changes, and clock endpoints 0000/2359.
+        // Years 0001 and 9999 are tested examples, not an asserted minimum/maximum year rule.
         for (String value : java.util.List.of("28-02-1900 2359", "01-03-1900 0000", "29-02-2000 0000",
                 "28-02-2027 2359", "01-03-2027 0000", "29-02-2028 2359", "30-04-2026 2359",
                 "01-05-2026 0000", "31-12-9999 2359", "01-01-0001 0000")) {
             assertTrue(RideDateTime.isValidRideDateTime(value), value);
         }
+        // EP: nonexistent leap/month days and malformed digit counts.
+        // Boundary values: months 0/13, day 32, minute 60, hour 24, and a 5-digit year.
         for (String value : java.util.List.of("29-02-1900 0000", "29-02-2100 0000", "31-04-2026 0000",
                 "01-00-2026 0000", "01-13-2026 0000", "32-12-2026 0000", "18-10-2026 23560",
                 "18-10-2026 2360", "18-10-2026 2400", "01-01-10000 0000")) {
@@ -38,7 +43,7 @@ public class RideDateTimeTest {
         // null date and time
         assertThrows(NullPointerException.class, () -> RideDateTime.isValidRideDateTime(null));
 
-        // invalid shape
+        // EP: missing components, incorrect separators, digit counts, or whitespace.
         assertFalse(RideDateTime.isValidRideDateTime("")); // empty string
         assertFalse(RideDateTime.isValidRideDateTime(" ")); // spaces only
         assertFalse(RideDateTime.isValidRideDateTime("18-10-2026")); // missing time
@@ -52,7 +57,7 @@ public class RideDateTimeTest {
         assertFalse(RideDateTime.isValidRideDateTime("18-10-2026 630")); // three-digit time
         assertFalse(RideDateTime.isValidRideDateTime(" 18-10-2026 0630")); // leading space
 
-        // well-shaped but not real
+        // EP: correctly shaped input with an impossible calendar date or clock time.
         assertFalse(RideDateTime.isValidRideDateTime("31-02-2026 0630")); // 31 February
         assertFalse(RideDateTime.isValidRideDateTime("29-02-2027 0630")); // not a leap year
         assertFalse(RideDateTime.isValidRideDateTime("18-13-2026 0630")); // month 13
@@ -62,8 +67,8 @@ public class RideDateTimeTest {
 
         // valid date and time
         assertTrue(RideDateTime.isValidRideDateTime("18-10-2026 0630"));
-        assertTrue(RideDateTime.isValidRideDateTime("01-01-2027 0000")); // earliest time of a day
-        assertTrue(RideDateTime.isValidRideDateTime("31-12-2026 2359")); // latest time of a day
+        assertTrue(RideDateTime.isValidRideDateTime("01-01-2027 0000")); // Boundary value: first minute of the day.
+        assertTrue(RideDateTime.isValidRideDateTime("31-12-2026 2359")); // Boundary value: last minute of the day.
         assertTrue(RideDateTime.isValidRideDateTime("29-02-2028 1200")); // leap day
     }
 

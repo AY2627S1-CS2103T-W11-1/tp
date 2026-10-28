@@ -24,6 +24,7 @@ public class LocationTest {
     @Test
     public void isValidLocation_invalidValues_returnsFalse() {
         // EP: locations are invalid when blank or containing unsupported characters.
+        // Boundary value: zero characters after trimming is invalid.
         assertFalse(Location.isValidLocation(""));
         assertFalse(Location.isValidLocation("   "));
         assertFalse(Location.isValidLocation("East@Park"));
@@ -62,6 +63,7 @@ public class LocationTest {
 
     @Test
     public void toDisplayText_anyInAnyCase_isShownAsAny() {
+        // EP: exact reserved word any, ignoring case, versus an ordinary location beginning with the same letters.
         assertEquals("Any", new Location("any").toDisplayText());
         assertEquals("Any", new Location("ANY").toDisplayText());
         assertEquals("Anyang Road", new Location("anyang road").toDisplayText());

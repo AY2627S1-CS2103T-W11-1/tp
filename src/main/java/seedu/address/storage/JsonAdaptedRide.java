@@ -89,27 +89,59 @@ class JsonAdaptedRide {
      * @throws IllegalValueException if there were any data constraints violated in the adapted ride.
      */
     public Ride toModelType() throws IllegalValueException {
+        validateId();
+        Name modelName = toModelName();
+        RideDateTime modelFrom = toRideDateTime(from, "from");
+        RideDateTime modelTo = toRideDateTime(to, "to");
+        validatePeriod(modelFrom, modelTo);
+        Location modelLocation = toModelLocation();
+        Distance modelDistance = toModelDistance();
+        MinimumPower modelMinimumPower = toModelMinimumPower();
+        GroupSize modelGroupSize = toModelGroupSize();
+        Optional<Notes> modelNotes = toModelNotes();
+        List<Phone> modelRoster = toModelRoster(modelGroupSize);
+        return new Ride(id, modelName, modelFrom, modelTo, modelLocation, modelDistance, modelMinimumPower,
+                modelGroupSize, modelNotes, modelRoster);
+    }
+
+    /**
+     * Checks that the stored ride has a positive ID before converting its fields.
+     */
+    private void validateId() throws IllegalValueException {
         if (id == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, "id"));
         }
         if (id < 1) {
             throw new IllegalValueException(MESSAGE_INVALID_ID);
         }
+    }
 
+    /**
+     * Checks that the end is not earlier than the start.
+     */
+    private static void validatePeriod(RideDateTime from, RideDateTime to) throws IllegalValueException {
+        if (!Ride.isValidPeriod(from, to)) {
+            throw new IllegalValueException(Ride.MESSAGE_INVALID_PERIOD);
+        }
+    }
+
+    /**
+     * Converts and validates the required ride name.
+     */
+    private Name toModelName() throws IllegalValueException {
         if (name == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Name.class.getSimpleName()));
         }
         if (!Name.isValidName(name)) {
             throw new IllegalValueException(Name.MESSAGE_CONSTRAINTS);
         }
-        final Name modelName = new Name(name);
+        return new Name(name);
+    }
 
-        final RideDateTime modelFrom = toRideDateTime(from, "from");
-        final RideDateTime modelTo = toRideDateTime(to, "to");
-        if (!Ride.isValidPeriod(modelFrom, modelTo)) {
-            throw new IllegalValueException(Ride.MESSAGE_INVALID_PERIOD);
-        }
-
+    /**
+     * Converts and validates the required location.
+     */
+    private Location toModelLocation() throws IllegalValueException {
         if (location == null) {
             throw new IllegalValueException(
                     String.format(MISSING_FIELD_MESSAGE_FORMAT, Location.class.getSimpleName()));
@@ -117,8 +149,13 @@ class JsonAdaptedRide {
         if (!Location.isValidLocation(location)) {
             throw new IllegalValueException(Location.MESSAGE_CONSTRAINTS);
         }
-        final Location modelLocation = new Location(location);
+        return new Location(location);
+    }
 
+    /**
+     * Converts and validates the required distance.
+     */
+    private Distance toModelDistance() throws IllegalValueException {
         if (distance == null) {
             throw new IllegalValueException(
                     String.format(MISSING_FIELD_MESSAGE_FORMAT, Distance.class.getSimpleName()));
@@ -126,8 +163,13 @@ class JsonAdaptedRide {
         if (!Distance.isValidDistance(distance)) {
             throw new IllegalValueException(Distance.MESSAGE_CONSTRAINTS);
         }
-        final Distance modelDistance = new Distance(distance);
+        return new Distance(distance);
+    }
 
+    /**
+     * Converts and validates the minimum power.
+     */
+    private MinimumPower toModelMinimumPower() throws IllegalValueException {
         if (minimumPower == null) {
             throw new IllegalValueException(
                     String.format(MISSING_FIELD_MESSAGE_FORMAT, MinimumPower.class.getSimpleName()));
@@ -135,8 +177,13 @@ class JsonAdaptedRide {
         if (!MinimumPower.isValidMinimumPower(minimumPower)) {
             throw new IllegalValueException(MinimumPower.MESSAGE_CONSTRAINTS);
         }
-        final MinimumPower modelMinimumPower = new MinimumPower(minimumPower);
+        return new MinimumPower(minimumPower);
+    }
 
+    /**
+     * Converts and validates the maximum group size.
+     */
+    private GroupSize toModelGroupSize() throws IllegalValueException {
         if (maxGroupSize == null) {
             throw new IllegalValueException(
                     String.format(MISSING_FIELD_MESSAGE_FORMAT, GroupSize.class.getSimpleName()));
@@ -144,16 +191,26 @@ class JsonAdaptedRide {
         if (!GroupSize.isValidGroupSize(maxGroupSize)) {
             throw new IllegalValueException(GroupSize.MESSAGE_CONSTRAINTS);
         }
-        final GroupSize modelGroupSize = new GroupSize(maxGroupSize);
+        return new GroupSize(maxGroupSize);
+    }
 
-        Optional<Notes> modelNotes = Optional.empty();
-        if (notes != null) {
-            if (!Notes.isValidNotes(notes)) {
-                throw new IllegalValueException(Notes.MESSAGE_CONSTRAINTS);
-            }
-            modelNotes = Optional.of(new Notes(notes));
+    /**
+     * Converts optional notes without inventing a value when absent.
+     */
+    private Optional<Notes> toModelNotes() throws IllegalValueException {
+        if (notes == null) {
+            return Optional.empty();
         }
+        if (!Notes.isValidNotes(notes)) {
+            throw new IllegalValueException(Notes.MESSAGE_CONSTRAINTS);
+        }
+        return Optional.of(new Notes(notes));
+    }
 
+    /**
+     * Converts roster phones, checking capacity and duplicates.
+     */
+    private List<Phone> toModelRoster(GroupSize modelGroupSize) throws IllegalValueException {
         if (roster.size() > Integer.parseInt(modelGroupSize.value)) {
             throw new IllegalValueException(MESSAGE_ROSTER_TOO_LARGE);
         }
@@ -169,11 +226,12 @@ class JsonAdaptedRide {
             }
             modelRoster.add(modelPhone);
         }
-
-        return new Ride(id, modelName, modelFrom, modelTo, modelLocation, modelDistance, modelMinimumPower,
-                modelGroupSize, modelNotes, modelRoster);
+        return modelRoster;
     }
 
+    /**
+     * Converts a required date-time, identifying missing values by their stored field name.
+     */
     private static RideDateTime toRideDateTime(String dateTime, String fieldName) throws IllegalValueException {
         if (dateTime == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, fieldName));

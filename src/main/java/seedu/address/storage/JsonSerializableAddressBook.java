@@ -76,10 +76,21 @@ class JsonSerializableAddressBook {
      * @throws IllegalValueException if there were any data constraints violated.
      */
     public AddressBook toModelType() throws IllegalValueException {
+        AddressBook addressBook = new AddressBook();
+        addModelPersons(addressBook);
+        List<Ride> modelRides = toModelRides(addressBook);
+        // Without a saved counter, carry on numbering after the highest saved ID.
+        addressBook.setRides(modelRides, nextRideId == null ? 1 : nextRideId);
+        return addressBook;
+    }
+
+    /**
+     * Validates and adds cyclists before ride rosters are checked against them.
+     */
+    private void addModelPersons(AddressBook addressBook) throws IllegalValueException {
         if (isPersonsMissing) {
             throw new IllegalValueException(MESSAGE_MISSING_PERSONS);
         }
-        AddressBook addressBook = new AddressBook();
         for (JsonAdaptedPerson jsonAdaptedPerson : persons) {
             if (jsonAdaptedPerson == null) {
                 throw new IllegalValueException(MESSAGE_NULL_PERSON);
@@ -90,7 +101,12 @@ class JsonSerializableAddressBook {
             }
             addressBook.addPerson(person);
         }
+    }
 
+    /**
+     * Converts rides, checking ID uniqueness and references to the converted cyclists.
+     */
+    private List<Ride> toModelRides(AddressBook addressBook) throws IllegalValueException {
         if (nextRideId != null && nextRideId < 1) {
             throw new IllegalValueException(MESSAGE_INVALID_NEXT_RIDE_ID);
         }
@@ -114,9 +130,6 @@ class JsonSerializableAddressBook {
             }
             modelRides.add(ride);
         }
-        // Without a saved counter, carry on numbering after the highest saved ID.
-        addressBook.setRides(modelRides, nextRideId == null ? 1 : nextRideId);
-        return addressBook;
+        return modelRides;
     }
-
 }

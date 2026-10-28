@@ -114,7 +114,7 @@ public class PersonMatchesFindCriteriaPredicateTest {
 
     @Test
     public void test_minimumFtp_matchesExactBoundary() {
-        // EP: the minimum FTP boundary is accepted.
+        // Boundary value: cyclist FTP 300 W equals the requested minimum of 300 W.
         Person cyclist = new PersonBuilder(alice).withFtp("300").build();
 
         assertTrue(predicateWithFtp("300").test(cyclist));

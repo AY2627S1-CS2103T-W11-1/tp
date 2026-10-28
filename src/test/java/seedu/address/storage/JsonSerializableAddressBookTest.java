@@ -30,6 +30,7 @@ public class JsonSerializableAddressBookTest {
 
     @Test
     public void toModelType_missingOrNullCyclistData_throwsIllegalValueException() throws Exception {
+        // EP: missing/null cyclist list versus a null entry inside a present list.
         for (String json : List.of("{}", "{\"persons\":null}")) {
             JsonSerializableAddressBook data = JsonUtil.fromJsonString(json, JsonSerializableAddressBook.class);
             assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_MISSING_PERSONS,
@@ -43,6 +44,7 @@ public class JsonSerializableAddressBookTest {
 
     @Test
     public void toModelType_maximumRideId_throwsIllegalValueException() {
+        // Boundary value: Integer.MAX_VALUE cannot be a stored ride ID because its successor would overflow.
         JsonSerializableAddressBook data = createSerializableAddressBook(
                 List.of(new RideBuilder().withId(Integer.MAX_VALUE).build()), null);
         assertThrows(IllegalValueException.class, AddressBook.MESSAGE_INVALID_RIDE_IDS, data::toModelType);
@@ -50,6 +52,7 @@ public class JsonSerializableAddressBookTest {
 
     @Test
     public void toModelType_exhaustedCounter_roundTripPreservesCounter() throws Exception {
+        // Boundary value: nextRideId at Integer.MAX_VALUE represents an exhausted counter.
         AddressBook original = new AddressBook();
         original.setRides(List.of(new RideBuilder().withId(Integer.MAX_VALUE - 1).build()), Integer.MAX_VALUE);
         String json = JsonUtil.toJsonString(new JsonSerializableAddressBook(original));

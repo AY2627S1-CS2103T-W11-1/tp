@@ -4,6 +4,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTES;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,7 +37,7 @@ public class ArgumentTokenizer {
     public static ArgumentMultimap tokenizeWithQuotedNotes(String argsString, Prefix... prefixes)
             throws ParseException {
         List<PrefixPosition> positions = findAllPrefixPositions(argsString, prefixes);
-        positions.sort((first, second) -> Integer.compare(first.getStartPosition(), second.getStartPosition()));
+        positions.sort(Comparator.comparingInt(PrefixPosition::getStartPosition));
         List<PrefixPosition> outsidePositions = new ArrayList<>();
         int quotedEnd = -1;
         for (int i = 0; i < positions.size(); i++) {
@@ -45,25 +46,43 @@ public class ArgumentTokenizer {
                 continue;
             }
             outsidePositions.add(position);
-            int valueStart = position.getStartPosition() + position.getPrefix().getPrefix().length();
-            if (!position.getPrefix().equals(PREFIX_NOTES) || !argsString.startsWith("\"", valueStart)) {
-                continue;
-            }
-            quotedEnd = argsString.indexOf('"', valueStart + 1);
-            if (quotedEnd == -1 || Notes.isBlank(argsString.substring(valueStart + 1, quotedEnd))) {
-                throw new ParseException(MESSAGE_INVALID_QUOTED_NOTES);
-            }
-            int nextIndex = i + 1;
-            while (nextIndex < positions.size() && positions.get(nextIndex).getStartPosition() < quotedEnd) {
-                nextIndex++;
-            }
-            int nextStart = nextIndex < positions.size()
-                    ? positions.get(nextIndex).getStartPosition() : argsString.length();
-            if (!Notes.isBlank(argsString.substring(quotedEnd + 1, nextStart))) {
-                throw new ParseException(MESSAGE_INVALID_QUOTED_NOTES);
+            if (hasOpeningNotesQuote(argsString, position)) {
+                quotedEnd = findValidatedClosingQuote(argsString, positions, i);
             }
         }
         return extractArguments(argsString, outsidePositions, true);
+    }
+
+    /**
+     * Returns whether a notes prefix is immediately followed by an opening quote.
+     */
+    private static boolean hasOpeningNotesQuote(String argsString, PrefixPosition position) {
+        int valueStart = position.getStartPosition() + position.getPrefix().getPrefix().length();
+        return position.getPrefix().equals(PREFIX_NOTES) && argsString.startsWith("\"", valueStart);
+    }
+
+    /**
+     * Finds the closing quote, rejecting blank notes and trailing text before the next prefix.
+     * Prefix-like text inside the quotes is part of the notes.
+     */
+    private static int findValidatedClosingQuote(String argsString, List<PrefixPosition> positions, int notesIndex)
+            throws ParseException {
+        PrefixPosition position = positions.get(notesIndex);
+        int valueStart = position.getStartPosition() + position.getPrefix().getPrefix().length();
+        int quotedEnd = argsString.indexOf('"', valueStart + 1);
+        if (quotedEnd == -1 || Notes.isBlank(argsString.substring(valueStart + 1, quotedEnd))) {
+            throw new ParseException(MESSAGE_INVALID_QUOTED_NOTES);
+        }
+        int nextIndex = notesIndex + 1;
+        while (nextIndex < positions.size() && positions.get(nextIndex).getStartPosition() < quotedEnd) {
+            nextIndex++;
+        }
+        int nextStart = nextIndex < positions.size()
+                ? positions.get(nextIndex).getStartPosition() : argsString.length();
+        if (!Notes.isBlank(argsString.substring(quotedEnd + 1, nextStart))) {
+            throw new ParseException(MESSAGE_INVALID_QUOTED_NOTES);
+        }
+        return quotedEnd;
     }
 
     /**
@@ -148,7 +167,7 @@ public class ArgumentTokenizer {
             boolean hasQuotedNotes) {
 
         // Sort by start position
-        prefixPositions.sort((prefix1, prefix2) -> prefix1.getStartPosition() - prefix2.getStartPosition());
+        prefixPositions.sort(Comparator.comparingInt(PrefixPosition::getStartPosition));
 
         // Insert a PrefixPosition to represent the preamble
         PrefixPosition preambleMarker = new PrefixPosition(new Prefix(""), 0);
@@ -163,12 +182,8 @@ public class ArgumentTokenizer {
         for (int i = 0; i < prefixPositions.size() - 1; i++) {
             // Extract and store prefixes and their arguments
             Prefix argPrefix = prefixPositions.get(i).getPrefix();
-            String argValue = extractArgumentValue(argsString, prefixPositions.get(i), prefixPositions.get(i + 1));
-            int valueStart = prefixPositions.get(i).getStartPosition() + argPrefix.getPrefix().length();
-            if (hasQuotedNotes && argPrefix.equals(PREFIX_NOTES) && argsString.startsWith("\"", valueStart)) {
-                int closingQuote = argsString.indexOf('"', valueStart + 1);
-                argValue = argsString.substring(valueStart + 1, closingQuote);
-            }
+            String argValue = extractArgumentValue(argsString, prefixPositions.get(i),
+                    prefixPositions.get(i + 1), hasQuotedNotes);
             argMultimap.put(argPrefix, argValue);
         }
 
@@ -179,13 +194,17 @@ public class ArgumentTokenizer {
      * Returns the trimmed value of the argument in the arguments string specified by {@code currentPrefixPosition}.
      * The end position of the value is determined by {@code nextPrefixPosition}.
      * Trimming uses the same {@link Character#isWhitespace(int)} definition as prefix recognition.
+     * Validated quoted notes have their delimiters removed and retain their inner whitespace.
      */
     private static String extractArgumentValue(String argsString,
-                                        PrefixPosition currentPrefixPosition,
-                                        PrefixPosition nextPrefixPosition) {
+            PrefixPosition currentPrefixPosition, PrefixPosition nextPrefixPosition, boolean hasQuotedNotes) {
         Prefix prefix = currentPrefixPosition.getPrefix();
 
         int valueStartPos = currentPrefixPosition.getStartPosition() + prefix.getPrefix().length();
+        if (hasQuotedNotes && hasOpeningNotesQuote(argsString, currentPrefixPosition)) {
+            int closingQuote = argsString.indexOf('"', valueStartPos + 1);
+            return argsString.substring(valueStartPos + 1, closingQuote);
+        }
         String value = argsString.substring(valueStartPos, nextPrefixPosition.getStartPosition());
 
         return value.strip();
@@ -195,7 +214,7 @@ public class ArgumentTokenizer {
      * Represents a prefix's position in an arguments string.
      */
     private static class PrefixPosition {
-        private int startPosition;
+        private final int startPosition;
         private final Prefix prefix;
 
         PrefixPosition(Prefix prefix, int startPosition) {
