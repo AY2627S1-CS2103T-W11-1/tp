@@ -22,6 +22,10 @@ public class ClearCommand extends Command {
     public static final String MESSAGE_SUCCESS = "All cyclists and rides have been cleared. "
             + "Ride IDs are never reused, so the next ride you add will be ride %1$d.";
 
+    /** Used instead of {@link #MESSAGE_SUCCESS} when there is no next ride ID to promise. */
+    public static final String MESSAGE_SUCCESS_RIDE_IDS_EXHAUSTED = "All cyclists and rides have been cleared. "
+            + AddressBook.MESSAGE_RIDE_IDS_EXHAUSTED + " New rides cannot be added.";
+
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
@@ -29,6 +33,10 @@ public class ClearCommand extends Command {
         AddressBook clearedAddressBook = new AddressBook();
         clearedAddressBook.setRides(List.of(), nextRideId);
         model.setAddressBook(clearedAddressBook);
+        if (nextRideId == Integer.MAX_VALUE) {
+            // the same condition under which rideadd rejects every new ride
+            return new CommandResult(MESSAGE_SUCCESS_RIDE_IDS_EXHAUSTED);
+        }
         return new CommandResult(String.format(MESSAGE_SUCCESS, nextRideId));
     }
 }

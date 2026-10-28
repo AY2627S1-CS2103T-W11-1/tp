@@ -559,6 +559,7 @@ Format: `clear`
 * Ride IDs are never reused. After `clear`, the next ride you add receives the next unused ID instead of starting again from 1.
 * Any cyclist filter, including a [`ridelist`](#listing-cyclists-registered-for-a-ride-ridelist) selection, is reset.
 * On success, the result box shows `All cyclists and rides have been cleared. Ride IDs are never reused, so the next ride you add will be ride N.`, where `N` is the ID that the next new ride receives. For example, after rides 1 to 3 exist, it shows `ride 4`.
+* If every ride ID has already been used (the counter has reached its limit), the result box instead shows `All cyclists and rides have been cleared. No more ride IDs are available. New rides cannot be added.`, because `rideadd` would be rejected with `No more ride IDs are available.`
 
 ### Exiting the program: `exit`
 
