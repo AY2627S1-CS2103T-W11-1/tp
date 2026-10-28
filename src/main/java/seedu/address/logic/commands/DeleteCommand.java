@@ -39,6 +39,9 @@ public class DeleteCommand extends Command {
 
     private final Phone targetPhone;
 
+    /**
+     * Creates a command targeting the displayed cyclist with the given phone number.
+     */
     public DeleteCommand(Phone targetPhone) {
         this.targetPhone = targetPhone;
     }

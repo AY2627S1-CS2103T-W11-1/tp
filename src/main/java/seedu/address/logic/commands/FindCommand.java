@@ -29,6 +29,9 @@ public class FindCommand extends Command {
     private static final Logger logger = LogsCenter.getLogger(FindCommand.class);
     private final PersonMatchesFindCriteriaPredicate predicate;
 
+    /**
+     * Creates a command that displays cyclists matching the supplied criteria.
+     */
     public FindCommand(PersonMatchesFindCriteriaPredicate predicate) {
         this.predicate = requireNonNull(predicate);
     }

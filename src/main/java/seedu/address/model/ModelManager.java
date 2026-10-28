@@ -53,6 +53,9 @@ public class ModelManager implements Model {
                 (ListChangeListener<Ride>) change -> refreshRideListFilter());
     }
 
+    /**
+     * Initializes an empty model with default user preferences.
+     */
     public ModelManager() {
         this(new AddressBook(), new UserPrefs());
     }
@@ -138,13 +141,14 @@ public class ModelManager implements Model {
         requireAllNonNull(target, editedRide);
         Predicate<Ride> currentPredicate = activeRidePredicate;
         addressBook.setRide(target, editedRide);
-        if (currentPredicate != null) {
-            if (!currentPredicate.test(editedRide)) {
-                updateFilteredRideList(PREDICATE_SHOW_ALL_RIDES);
-            } else {
-                filteredRides.setPredicate(null);
-                filteredRides.setPredicate(currentPredicate);
-            }
+        if (currentPredicate == null) {
+            return;
+        }
+        if (!currentPredicate.test(editedRide)) {
+            updateFilteredRideList(PREDICATE_SHOW_ALL_RIDES);
+        } else {
+            filteredRides.setPredicate(null);
+            filteredRides.setPredicate(currentPredicate);
         }
     }
 

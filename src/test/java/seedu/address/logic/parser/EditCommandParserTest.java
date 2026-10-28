@@ -51,6 +51,8 @@ public class EditCommandParserTest {
 
     @Test
     public void parse_emergencyPhoneCountryCodeBoundaries_success() {
+        // EP: valid country codes and subscriber lengths.
+        // Boundary values: country codes of 1 and 3 digits, and subscriber lengths 3/4; code length 2 is interior.
         for (String phone : java.util.List.of("+1 123", "+12 123", "+123 123", "+123 1234")) {
             EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withEmergencyPhone(phone).build();
             assertParseSuccess(parser, TARGET_PHONE + " sos/" + phone, new EditCommand(TARGET_PHONE, descriptor));
@@ -59,6 +61,7 @@ public class EditCommandParserTest {
 
     @Test
     public void parse_emergencyPhoneOutsideLengthBoundaries_failure() {
+        // Boundary values: country-code lengths 0/4 outside the valid 1–3 range; subscriber length 2 below minimum 3.
         for (String phone : java.util.List.of("+ 123", "+1234 123", "+1 12", "+12 12", "+123 12")) {
             assertParseFailure(parser, TARGET_PHONE + " sos/" + phone, Phone.MESSAGE_CONSTRAINTS);
         }
@@ -66,6 +69,7 @@ public class EditCommandParserTest {
 
     @Test
     public void parse_emergencyPhoneOnly_successAndRejectsDuplicates() {
+        // EP: one emergency-phone value versus repeated values for a single-valued field.
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()
                 .withEmergencyPhone("+65 99999999").build();
         assertParseSuccess(parser, TARGET_PHONE + " sos/+65 99999999", new EditCommand(TARGET_PHONE, descriptor));
@@ -101,6 +105,7 @@ public class EditCommandParserTest {
 
     @Test
     public void parse_missingParts_failure() {
+        // EP: missing target phone, missing edited fields, and missing both required parts.
         // name supplied instead of a target phone
         assertParseFailure(parser, VALID_NAME_AMY, Phone.MESSAGE_MISSING_COUNTRY_CODE);
 
@@ -138,6 +143,7 @@ public class EditCommandParserTest {
 
     @Test
     public void parse_malformedPhoneSeparators_failure() {
+        // EP: missing versus repeated country-code/subscriber separators.
         assertParseFailure(parser, "+6591234567" + NAME_DESC_AMY, Phone.MESSAGE_MISSING_SEPARATOR);
         assertParseFailure(parser, "+65  91234567" + NAME_DESC_AMY, Phone.MESSAGE_MULTIPLE_SEPARATORS);
         assertParseFailure(parser, "+65 12" + NAME_DESC_AMY, Phone.MESSAGE_CONSTRAINTS);
@@ -230,7 +236,7 @@ public class EditCommandParserTest {
         expectedCommand = new EditCommand(TARGET_PHONE, descriptor);
         assertParseSuccess(parser, userInput, expectedCommand);
 
-        // FTP boundaries
+        // Boundary values: minimum FTP 1 W and maximum FTP 600 W.
         userInput = TARGET_PHONE + " f/1";
         descriptor = new EditPersonDescriptorBuilder().withFtp("1").build();
         expectedCommand = new EditCommand(TARGET_PHONE, descriptor);

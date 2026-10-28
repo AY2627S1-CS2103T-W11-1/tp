@@ -21,7 +21,8 @@ public class RideMatchesFindCriteriaPredicateTest {
 
     @Test
     public void test_fromAndTo_areInclusiveAtRideBoundaries() {
-        // EP: boundary values are included, while values just outside either boundary are rejected.
+        // Boundary values: exact ride start 0630/end 0930 are included;
+        // moving the start to 0631 or the end to 0929 excludes the ride.
         Ride ride = new RideBuilder().withFrom("18-10-2026 0630").withTo("18-10-2026 0930").build();
         RideMatchesFindCriteriaPredicate predicate = new RideMatchesFindCriteriaPredicate(Optional.empty(),
                 Optional.of(new RideDateTime("18-10-2026 0630")), Optional.of(new RideDateTime("18-10-2026 0930")),
@@ -85,9 +86,11 @@ public class RideMatchesFindCriteriaPredicateTest {
         // EP: minimum power is inclusive, while maximum group size requires an exact value.
         Ride ride = new RideBuilder().withMinimumPower("600").withMaxGroupSize("1").build();
 
+        // Boundary value: stored minimum power equals the requested threshold at 600 W.
         assertTrue(predicateWithMinimumPower("600").test(ride));
         assertTrue(predicateWithMinimumPower("599").test(ride));
         Ride lowerPowerRide = new RideBuilder().withMinimumPower("599").build();
+        // Boundary value: stored power 599 W is one below the requested 600 W minimum.
         assertFalse(predicateWithMinimumPower("600").test(lowerPowerRide));
         assertFalse(predicateWithGroupSize("2").test(ride));
     }

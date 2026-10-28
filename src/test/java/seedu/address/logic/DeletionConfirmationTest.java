@@ -85,6 +85,7 @@ public class DeletionConfirmationTest {
 
     @Test
     public void execute_yesVariants_deleteOnlyTargetAndPersist() throws Exception {
+        // EP: affirmative replies (short/full words, any letter case, and surrounding spaces).
         for (String reply : List.of("y", "Y", "yes", "Yes", "YES", "yEs", "YeS", "yeS", "YEs", "yES")) {
             setUp();
             logic.execute(DELETE_JOHN);
@@ -100,6 +101,7 @@ public class DeletionConfirmationTest {
 
     @Test
     public void execute_noVariants_preserveRecordsFilterAndSavedFile() throws Exception {
+        // EP: negative replies (short/full words, any letter case, and surrounding spaces).
         for (String reply : List.of("n", "N", "no", "No", "NO", "nO")) {
             setUp();
             model.updateFilteredPersonList(person -> person.equals(JOHN));
@@ -113,6 +115,7 @@ public class DeletionConfirmationTest {
 
     @Test
     public void execute_invalidReplies_keepPendingDeletionWithoutSave() throws Exception {
+        // EP: blank replies, unknown words, multiword replies, internally split replies, and wrong-case commands.
         logic.execute(DELETE_JOHN);
         for (String reply : List.of("maybe", "", "  ", "yes please", "y es", "no thanks", "Y eS", "LIST")) {
             assertThrows(CommandException.class,
@@ -266,6 +269,7 @@ public class DeletionConfirmationTest {
 
     @Test
     public void execute_ambiguousTarget_preservesExistingErrorAndDoesNotSave() {
+        // EP: more than one displayed cyclist matches the target, unlike zero matches or a unique match.
         Person otherJohn = new PersonBuilder(JOHN).withEmail("other@example.com").build();
         Model ambiguousModel = new ModelManager() {
             @Override

@@ -37,6 +37,7 @@ public class RideEditCommandParserTest {
 
     @Test
     public void parse_distanceDigitLimits_reportsCompleteConstraints() {
+        // Boundary value: distance exceeds the maximum 6 integer digits, including leading zeros.
         String expectedMessage = "Distance: 0.01–999999.99 km. Leading zeroes count.\n"
                 + "Use 1–6 digits, optionally '.' then 1–2 digits.";
         assertParseFailure(parser, " 1 d/1000000", expectedMessage);
@@ -45,6 +46,7 @@ public class RideEditCommandParserTest {
 
     @Test
     public void parse_powerDigitLimit_reportsCompleteConstraint() {
+        // Boundary value: a 4-digit power exceeds the maximum 3 digits, even if its numeric value is valid.
         EditRideDescriptor descriptor = new EditRideDescriptor();
         descriptor.setMinimumPower(new MinimumPower("1"));
         assertParseSuccess(parser, " 1 f/001", new RideEditCommand(1, descriptor));
@@ -65,6 +67,8 @@ public class RideEditCommandParserTest {
 
     @Test
     public void parse_unicodeNotes_enforcesBlankAndWordLimitRules() {
+        // EP: ASCII/Unicode whitespace in quoted and unquoted notes.
+        // Boundary values: 0 words clears unquoted notes; 10 words is valid and 11 words is invalid.
         for (String separator : new String[] {" ", "\t", "\r\n", "\u2003", "\u00a0", "\u202f", "\u3000"}) {
             EditRideDescriptor cleared = new EditRideDescriptor();
             cleared.setNotes(Optional.empty());
@@ -171,6 +175,7 @@ public class RideEditCommandParserTest {
 
     @Test
     public void parse_positiveIdBoundaries_success() {
+        // Boundary values: minimum ID 1 and maximum parseable ID Integer.MAX_VALUE.
         EditRideDescriptor descriptor = new EditRideDescriptor();
         descriptor.setName(new Name("NightRide"));
 
@@ -187,6 +192,8 @@ public class RideEditCommandParserTest {
 
     @Test
     public void parse_invalidId_failure() {
+        // EP: missing, zero, signed, noninteger, nonnumeric, overflowing, or additional ID text.
+        // Boundary values: 0 and 2147483648 lie just outside the valid integer ID range.
         for (String invalidId : new String[] {"", "0", "-1", "abc", "1.0", "+1", "2147483648",
             "999999999999999999999999"}) {
             assertParseFailure(parser, " " + invalidId + " n/NightRide", INVALID_FORMAT_MESSAGE);
@@ -196,6 +203,7 @@ public class RideEditCommandParserTest {
 
     @Test
     public void parse_duplicatePrefix_failure() {
+        // EP: repeated values for a field that permits at most one prefix.
         assertDuplicateFailure(" n/First n/Second", PREFIX_NAME);
         assertDuplicateFailure(" from/20-10-2026 1400 from/20-10-2026 1500", PREFIX_FROM);
         assertDuplicateFailure(" to/20-10-2026 1600 to/20-10-2026 1700", PREFIX_TO);
@@ -208,6 +216,7 @@ public class RideEditCommandParserTest {
 
     @Test
     public void parse_emptyRequiredField_failure() {
+        // EP: a supplied non-notes field has an empty value rather than being omitted.
         assertParseFailure(parser, VALID_ID + " n/", Name.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, VALID_ID + " from/", RideDateTime.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, VALID_ID + " to/", RideDateTime.MESSAGE_CONSTRAINTS);
@@ -237,6 +246,7 @@ public class RideEditCommandParserTest {
 
     @Test
     public void parse_notesStates_success() {
+        // EP: omitted notes preserve, nonblank notes replace, and unquoted empty notes clear.
         EditRideDescriptor clearDescriptor = new EditRideDescriptor();
         clearDescriptor.setNotes(Optional.empty());
         assertParseSuccess(parser, VALID_ID + " notes/", new RideEditCommand(101, clearDescriptor));
@@ -251,6 +261,7 @@ public class RideEditCommandParserTest {
 
     @Test
     public void parse_notesWordLimit_enforced() {
+        // Boundary values: valid 10-word notes and invalid 11-word notes.
         EditRideDescriptor descriptor = new EditRideDescriptor();
         descriptor.setNotes(Optional.of(new Notes("one two three four five six seven eight nine ten")));
         assertParseSuccess(parser, VALID_ID + " notes/one two three four five six seven eight nine ten",

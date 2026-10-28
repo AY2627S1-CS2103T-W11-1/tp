@@ -22,6 +22,7 @@ public class DeleteCommandParserTest {
 
     @Test
     public void parse_invalidPhone_throwsParseException() {
+        // EP: nonnumeric/malformed targets, missing country code, and missing or repeated separators.
         String[] values = {"12", "87438807", "+6587438807", "+65  87438807", "+65 12", "+65 abc"};
         String[] messages = {Phone.MESSAGE_MISSING_COUNTRY_CODE, Phone.MESSAGE_MISSING_COUNTRY_CODE,
             Phone.MESSAGE_MISSING_SEPARATOR, Phone.MESSAGE_MULTIPLE_SEPARATORS,
@@ -33,6 +34,8 @@ public class DeleteCommandParserTest {
 
     @Test
     public void parse_missingPhone_throwsUsageException() {
+        // EP: absent target supplied as empty text or whitespace only.
+        // Boundary value: zero characters in the empty-input case.
         for (String args : new String[] {"", " ", "\t\n"}) {
             assertParseFailure(parser, args,
                     String.format(Messages.MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE));

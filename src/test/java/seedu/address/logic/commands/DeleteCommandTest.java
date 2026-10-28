@@ -122,7 +122,7 @@ public class DeleteCommandTest {
         DeleteCommand deleteCommand = new DeleteCommand(new Phone("+65 111"));
 
         String expected = DeleteCommand.class.getCanonicalName() + "{targetPhone=+65 111}";
-        // EP: toString includes the command's target phone.
+        // The diagnostic representation includes the target phone.
         assertEquals(expected, deleteCommand.toString());
     }
 }

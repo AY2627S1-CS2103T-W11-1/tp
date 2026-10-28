@@ -50,9 +50,10 @@ task coverage(type: JacocoReport) {
     }
 }
 
+String javaFxVersion = '17.0.7'
+
 dependencies {
     String jUnitVersion = '5.14.4'
-    String javaFxVersion = '17.0.7'
 
     implementation "org.openjfx:javafx-base:${javaFxVersion}:win"
     implementation "org.openjfx:javafx-base:${javaFxVersion}:mac"
@@ -74,6 +75,27 @@ dependencies {
 
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${jUnitVersion}"
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.14.4'
+}
+
+// Development uses the host Mac architecture; release dependencies retain the original tP setup.
+if (System.getProperty('os.name').startsWith('Mac')) {
+    String macPlatform = System.getProperty('os.arch') in ['aarch64', 'arm64'] ? 'mac-aarch64' : 'mac'
+    def macJavaFx = configurations.create('macJavaFx') {
+        canBeConsumed = false
+        transitive = false
+    }
+    ['base', 'controls', 'fxml', 'graphics'].each { module ->
+        dependencies.add(macJavaFx.name, "org.openjfx:javafx-${module}:${javaFxVersion}:${macPlatform}")
+    }
+    def withoutIntelMac = { File archive ->
+        !archive.name.matches('javafx-(base|controls|fxml|graphics)-.*-mac\\.jar')
+    }
+    tasks.named('run') {
+        classpath = sourceSets.main.runtimeClasspath.filter(withoutIntelMac) + macJavaFx
+    }
+    tasks.named('test') {
+        classpath = sourceSets.test.runtimeClasspath.filter(withoutIntelMac) + macJavaFx
+    }
 }
 
 shadowJar {

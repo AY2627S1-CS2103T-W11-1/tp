@@ -83,20 +83,9 @@ public class RideRosterCommand extends Command implements OverlapAwareCommand {
      * Checks eligibility and builds the proposed roster without changing stored data.
      */
     private Ride createUpdatedRide(Model model, Ride ride) throws CommandException {
-        ArrayList<Phone> roster = new ArrayList<>(ride.getRoster());
+        List<Phone> roster = new ArrayList<>(ride.getRoster());
         if (isJoining) {
-            Person cyclist = model.getAddressBook().getPersonList().stream()
-                    .filter(person -> person.getPhone().equals(phone)).findFirst()
-                    .orElseThrow(() -> new CommandException(MESSAGE_PERSON_NOT_FOUND));
-            if (roster.contains(phone)) {
-                throw new CommandException(MESSAGE_ALREADY_JOINED);
-            }
-            if (roster.size() >= Integer.parseInt(ride.getMaxGroupSize().value)) {
-                throw new CommandException(MESSAGE_FULL);
-            }
-            if (Integer.parseInt(cyclist.getFtp().value) < Integer.parseInt(ride.getMinimumPower().value)) {
-                throw new CommandException(MESSAGE_LOW_POWER);
-            }
+            validateJoiningCyclist(model, ride);
             roster.add(phone);
         } else if (!roster.remove(phone)) {
             throw new CommandException(MESSAGE_NOT_JOINED);
@@ -105,5 +94,23 @@ public class RideRosterCommand extends Command implements OverlapAwareCommand {
         assert roster.size() == ride.getRoster().size() + (isJoining ? 1 : -1)
                 : "A roster operation must add or remove exactly one cyclist.";
         return ride.withRoster(roster);
+    }
+
+    /**
+     * Checks the cyclist exists and may join before any roster change is proposed.
+     */
+    private void validateJoiningCyclist(Model model, Ride ride) throws CommandException {
+        Person cyclist = model.getAddressBook().getPersonList().stream()
+                .filter(person -> person.getPhone().equals(phone)).findFirst()
+                .orElseThrow(() -> new CommandException(MESSAGE_PERSON_NOT_FOUND));
+        if (ride.getRoster().contains(phone)) {
+            throw new CommandException(MESSAGE_ALREADY_JOINED);
+        }
+        if (ride.getRoster().size() >= Integer.parseInt(ride.getMaxGroupSize().value)) {
+            throw new CommandException(MESSAGE_FULL);
+        }
+        if (Integer.parseInt(cyclist.getFtp().value) < Integer.parseInt(ride.getMinimumPower().value)) {
+            throw new CommandException(MESSAGE_LOW_POWER);
+        }
     }
 }

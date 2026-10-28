@@ -50,6 +50,7 @@ public class RideBoundaryIntegrationTest {
 
     @Test
     public void execute_recognisedParameterSeparators_addsAndEditsWithoutChangingOtherFields() throws Exception {
+        // EP: ASCII space, tab, EM SPACE, and IDEOGRAPHIC SPACE introduce separate parameters.
         logic.execute("rideaddcyclist 1 " + PHONE);
         Ride original = currentRide();
         for (String separator : List.of(" ", "\t", "\u2003", "\u3000")) {
@@ -66,6 +67,7 @@ public class RideBoundaryIntegrationTest {
 
     @Test
     public void execute_malformedParameterBoundaries_preservesStateIdsAndConfirmation() throws Exception {
+        // EP: unrecognized separators, invalid field values, duplicate prefixes, and unclosed quotes.
         logic.execute("rideadd " + DETAILS.replace("0630", "1030").replace("0930", "1130"));
         logic.execute("rideaddcyclist 1 " + PHONE);
         logic.execute("rideaddcyclist 2 " + PHONE);
@@ -84,6 +86,7 @@ public class RideBoundaryIntegrationTest {
 
     @Test
     public void execute_unicodeWhitespaceAfterQuotes_preservesNotesParametersAndJson() throws Exception {
+        // EP: supported Unicode whitespace after a closing quote, at command end or before an ASCII-delimited prefix.
         logic.execute("rideaddcyclist 1 " + PHONE);
         Ride original = currentRide();
         String notes = "Bring camera with aperture f/2";
@@ -131,6 +134,8 @@ public class RideBoundaryIntegrationTest {
 
     @Test
     public void execute_invalidUnicodeNotes_preservesBookFiltersJsonAndNextId() throws Exception {
+        // EP: blank notes and over-limit notes, with ASCII/Unicode separators and quoted/unquoted forms.
+        // Boundary values: 0 words is invalid for Add/quoted Edit; 11 is invalid; the final 10-word Add is valid.
         logic.execute("rideaddcyclist 1 " + PHONE);
         logic.execute("rideedit 1 notes/Bring lights");
         logic.execute("ridelist 1");
@@ -153,6 +158,7 @@ public class RideBoundaryIntegrationTest {
 
     @Test
     public void execute_quotedNotes_preservesOtherFieldsRosterAndPersistence() throws Exception {
+        // EP: recognized prefixes inside quoted notes are literal; prefixes outside quotes remain parameters.
         logic.execute("rideaddcyclist 1 " + PHONE);
         Ride original = currentRide();
         String notes = "Bring camera with aperture f/2";
@@ -177,6 +183,7 @@ public class RideBoundaryIntegrationTest {
 
     @Test
     public void execute_invalidQuotedCommands_preservesBookFiltersFileAndNextId() throws Exception {
+        // EP: unclosed/blank quotes, trailing text, embedded quotes, duplicate notes, and invalid external fields.
         logic.execute("rideaddcyclist 1 " + PHONE);
         model.updateFilteredPersonList(person -> false);
         model.updateFilteredRideList(ride -> false);
@@ -206,6 +213,7 @@ public class RideBoundaryIntegrationTest {
 
     @Test
     public void execute_unquotedNotes_preservesAmbiguityAndExistingOrdering() throws Exception {
+        // EP: unquoted prefix-looking text is tokenized as a field; parameter order does not protect it.
         logic.execute("rideedit 1 notes/Bring camera with aperture f/2");
         assertEquals("Bring camera with aperture", currentRide().getNotes().orElseThrow().value);
         assertEquals("2", currentRide().getMinimumPower().toString());
@@ -220,6 +228,8 @@ public class RideBoundaryIntegrationTest {
 
     @Test
     public void execute_invalidFieldPartitions_rejectAddEditAndFindWithoutMutation() throws Exception {
+        // EP: empty fields, unsupported characters, impossible dates/times, and invalid numeric syntax.
+        // Boundary values: distance 0/0.001/1000000, power 0/601, group size 0/1000000000, and 11-word notes.
         List<String> invalidFields = List.of("n/", "n/Bad&Name", "from/29-02-2027 0630",
                 "to/18-10-2026 2400", "to/18-10-2026 2360", "l/", "l/Coast!",
                 "d/0", "d/-0.01", "d/0.001", "d/1000000", "d/NaN", "d/1e2",
@@ -242,6 +252,8 @@ public class RideBoundaryIntegrationTest {
 
     @Test
     public void execute_validNumericBoundaryNeighbours_roundTrip() throws Exception {
+        // Boundary values: distance 0.01/0.02 and 999999.98/999999.99 km; power 1/2 and 599/600 W;
+        // group size 1/2 and 999999998/999999999, covering each valid endpoint and its interior neighbor.
         for (String field : List.of("d/0.01", "d/0.02", "d/999999.98", "d/999999.99",
                 "f/1", "f/2", "f/599", "f/600", "s/1", "s/2", "s/999999998", "s/999999999")) {
             logic.execute("rideedit 1 " + field);
@@ -251,6 +263,8 @@ public class RideBoundaryIntegrationTest {
 
     @Test
     public void execute_notesZeroOneNineTenElevenWords_obeysOptionalAndMaximumRules() throws Exception {
+        // Boundary values: 1 word is the minimum; 9/10/11 straddle the maximum.
+        // EP: 0 words clears notes in Edit but is invalid in Add.
         logic.execute("rideedit 1 notes/one");
         assertEquals("one", currentRide().getNotes().orElseThrow().value);
         logic.execute("rideedit 1 notes/one two three four five six seven eight nine");
@@ -265,6 +279,7 @@ public class RideBoundaryIntegrationTest {
 
     @Test
     public void execute_ridePeriodBeforeEqualAfterBoundary_validatesPreservedEndpoint() throws Exception {
+        // Boundary values: end 0629/0630/0631 around start 0630, and start 0631 just after preserved end 0630.
         assertRejected("rideedit 1 to/18-10-2026 0629", CommandException.class);
         logic.execute("rideedit 1 to/18-10-2026 0630");
         assertSavedState();
@@ -278,6 +293,8 @@ public class RideBoundaryIntegrationTest {
 
     @Test
     public void execute_findMinuteBoundariesAndDateOnlyDefaults_matchInclusiveEndpoints() throws Exception {
+        // Boundary values: search starts 0629/0630/0631 around ride start 0630;
+        // search ends 0929/0930/0931 around ride end 0930. Equality is included.
         for (String from : List.of("0629", "0630", "0631")) {
             logic.execute("ridefind from/18-10-2026 " + from);
             assertEquals(from.equals("0631") ? 0 : 1, model.getFilteredRideList().size());
@@ -299,6 +316,7 @@ public class RideBoundaryIntegrationTest {
 
     @Test
     public void execute_findMidnightAndLastMinute_includesDateOnlyBoundaries() throws Exception {
+        // Boundary values: 0000/0001 and 2358/2359 test inclusion at both edges of a date-only search.
         logic.execute("rideadd " + DETAILS.replace("0630", "0000").replace("0930", "0000"));
         logic.execute("rideadd " + DETAILS.replace("0630", "2359").replace("0930", "2359"));
         logic.execute("ridefind from/18-10-2026 to/18-10-2026");
@@ -309,6 +327,8 @@ public class RideBoundaryIntegrationTest {
 
     @Test
     public void execute_emptyDuplicateAndOverflowPartitions_preserveState() throws Exception {
+        // EP: missing arguments, repeated prefixes, incompatible all/criteria, and invalid or unknown ride IDs.
+        // Boundary values: 0, Integer.MAX_VALUE, and Integer.MAX_VALUE + 1 distinguish invalid/parseable IDs.
         for (String command : List.of("rideedit 1", "ridefind", "rideadd", "ridedelete", "ridelist",
                 "rideedit 1 n/One n/Two", "ridefind f/1 f/600", "ridefind all n/One",
                 "rideedit 2147483648 n/One", "ridedelete 2147483648", "ridelist 2147483648",
@@ -323,6 +343,8 @@ public class RideBoundaryIntegrationTest {
 
     @Test
     public void execute_rosterCapacityAndPowerNeighbours_preserveRejectedChanges() throws Exception {
+        // EP: unknown cyclist, insufficient FTP, eligible cyclist, duplicate membership, and absent membership.
+        // Boundary values: FTP 179/180/181 around minimum 180 W; roster sizes 0/1 at capacity 1.
         logic.execute("rideedit 1 s/1");
         assertRejected("rideaddcyclist 1 +65 99999999", CommandException.class);
         logic.execute("edit " + PHONE + " f/179");
@@ -341,6 +363,8 @@ public class RideBoundaryIntegrationTest {
 
     @Test
     public void execute_deletedIdsAndActiveRosterFilter_doNotRetargetLaterRide() throws Exception {
+        // EP: selected ride exists, is deleted, or is replaced by a different persistent ID.
+        // Boundary values: adding/removing the first/last roster member changes the visible count between 0 and 1.
         logic.execute("rideaddcyclist 1 " + PHONE);
         logic.execute("ridelist 1");
         assertEquals(1, model.getFilteredPersonList().size());

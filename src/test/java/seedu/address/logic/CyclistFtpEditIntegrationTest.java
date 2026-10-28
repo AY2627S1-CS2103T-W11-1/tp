@@ -64,6 +64,8 @@ public class CyclistFtpEditIntegrationTest {
 
     @Test
     public void execute_belowRegisteredMinimum_rejectsWithoutChanges() throws Exception {
+        // EP: FTP below at least one registered minimum.
+        // Boundary value: 249 W is one below the stricter registered minimum of 250 W.
         // The first registration allows 200 W; the second must still prevent this edit.
         assertRejectedWithoutChanges("edit " + PHONE + " f/200", 200);
         assertRejectedWithoutChanges("edit " + PHONE + " f/249", 249);
@@ -71,12 +73,14 @@ public class CyclistFtpEditIntegrationTest {
 
     @Test
     public void execute_combinedPhoneAndFtpEdit_rejectsEverySuppliedField() throws Exception {
+        // EP: an ineligible FTP edit combined with otherwise valid changes must reject the entire edit.
         assertRejectedWithoutChanges("edit " + PHONE
                 + " n/Changed p/+65 91111111 e/changed@example.com f/249 x/Advanced l/Mandai", 249);
     }
 
     @Test
     public void execute_hiddenConflictingRide_preservesFindAndRideListFilters() throws Exception {
+        // EP: registered rides hidden by a ride filter still constrain FTP under find and roster cyclist filters.
         logic.execute("ridefind n/NoSuchRide");
         for (String filter : List.of("find n/Charlotte", "ridelist 1")) {
             logic.execute(filter);
@@ -86,6 +90,8 @@ public class CyclistFtpEditIntegrationTest {
 
     @Test
     public void execute_eligibleFtpBoundaries_succeedsAndPersists() throws Exception {
+        // EP: FTP satisfies every registered ride.
+        // Boundary values: 250 W equals the strictest minimum; 251 W is just above; 600 W is the global maximum.
         logic.execute("ridelist 2");
         for (String ftp : List.of("250", "251", "600")) {
             logic.execute("edit " + PHONE + " f/" + ftp);
@@ -112,6 +118,8 @@ public class CyclistFtpEditIntegrationTest {
 
     @Test
     public void execute_afterRemovingRegistrations_allowsLowerFtp() throws Exception {
+        // EP: no remaining registrations impose a ride minimum.
+        // Boundary value: the edited FTP is the global minimum of 1 W.
         logic.execute("ridedeletecyclist 1 " + PHONE);
         logic.execute("ridedeletecyclist 2 " + PHONE);
         logic.execute("edit " + PHONE + " f/1");
@@ -124,6 +132,7 @@ public class CyclistFtpEditIntegrationTest {
 
     @Test
     public void execute_withoutFtp_preservesFtpAndRegistrations() throws Exception {
+        // EP: an edit omitting FTP does not change or revalidate that field.
         List<Ride> originalRides = List.copyOf(model.getAddressBook().getRideList());
         logic.execute("edit " + PHONE + " n/Charlotte Tan");
 
