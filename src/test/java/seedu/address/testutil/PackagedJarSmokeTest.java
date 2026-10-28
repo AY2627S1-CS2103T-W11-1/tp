@@ -86,14 +86,18 @@ public final class PackagedJarSmokeTest {
         isComplete.set(true);
     }
 
-    /** Throws if the packaged application does not meet a smoke-test expectation. */
+    /**
+     * Throws if the packaged application does not meet a smoke-test expectation.
+     */
     private static void require(boolean condition, String message) {
         if (!condition) {
             throw new AssertionError(message);
         }
     }
 
-    /** Reports asynchronous startup errors and exits with a failing status. */
+    /**
+     * Reports asynchronous startup errors and exits with a failing status.
+     */
     private static void fail(Throwable error) {
         error.printStackTrace();
         System.exit(1);
