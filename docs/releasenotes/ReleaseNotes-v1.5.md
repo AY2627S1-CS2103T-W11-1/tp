@@ -31,10 +31,11 @@ v1.4.
   and `ridefind` (`rf`). The aliases are shown beside the full command names in
   Help.
   ([#193](https://github.com/AY2627S1-CS2103T-W11-1/tp/pull/193))
-* **Ride-overlap warnings:** `rideadd` and `rideedit` detect when a ride
-  overlaps another ride and display a warning before saving. Organisers can
-  confirm the change when the overlap is intentional; cancelling leaves the
-  original ride data unchanged. ([#190](https://github.com/AY2627S1-CS2103T-W11-1/tp/pull/190))
+* **Ride-overlap warnings:** `rideaddcyclist` warns when a new cyclist would
+  join a ride that overlaps their existing ride, while `rideedit` warns when a
+  time change creates overlaps for registered cyclists. Organisers can confirm
+  intentional overlaps; cancelling leaves the original data unchanged.
+  ([#190](https://github.com/AY2627S1-CS2103T-W11-1/tp/pull/190))
 * **Safer ride editing:** Ride edits preserve the existing ride and roster when
   confirmation is cancelled or validation fails. The command also keeps the
   ride ID and other unspecified fields unchanged.
@@ -55,8 +56,9 @@ v1.4.
   ([#203](https://github.com/AY2627S1-CS2103T-W11-1/tp/pull/203))
 * **Improved ride-note matching:** Ride notes support partial whole-word
   matching without depending on the computer's locale. Literal note text is
-  preserved when it resembles a command prefix, so notes are not accidentally
-  split or altered during ride commands. ([#179](https://github.com/AY2627S1-CS2103T-W11-1/tp/pull/179),
+  preserved when it resembles a command prefix when double-quoted. For example,
+  `rideedit 1 notes/"Bring camera with aperture f/2"` preserves `f/2` as note
+  text instead of treating it as a power parameter. ([#179](https://github.com/AY2627S1-CS2103T-W11-1/tp/pull/179),
   [#201](https://github.com/AY2627S1-CS2103T-W11-1/tp/pull/201))
 * **Ride-filter behaviour after changes:** When a ride is added or edited while
   a `ridefind` filter is active, Cyclique checks whether the changed ride would
@@ -81,7 +83,7 @@ v1.4.
   ([#160](https://github.com/AY2627S1-CS2103T-W11-1/tp/pull/160),
   [#166](https://github.com/AY2627S1-CS2103T-W11-1/tp/pull/166))
 * **Application identity:** The main window title now identifies the app as
-  Cyclique. ([#168](https://github.com/AY2627S1-CS2103T-W11-1/tp/pull/202))
+  Cyclique. ([#202](https://github.com/AY2627S1-CS2103T-W11-1/tp/pull/202))
 * **Cross-platform packaging:** The release build restores the JavaFX setup
   needed for the application to run across supported platforms.
   ([#198](https://github.com/AY2627S1-CS2103T-W11-1/tp/pull/198))
@@ -100,7 +102,7 @@ command box can be populated directly from the selected Help entry.
 
 ### Searching across multiple fields
 
-Organisers can combine name, location and ride-note criteria while retaining the
-normal AND/OR matching rules. A changed ride remains visible if an active filter
+Organisers can combine ride name, location and note criteria; a ride must satisfy
+every supplied criterion. A changed ride remains visible if an active filter
 would otherwise hide it.
 
