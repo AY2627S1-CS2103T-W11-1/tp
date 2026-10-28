@@ -10,6 +10,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_LOCATION;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTES;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TO;
+import static seedu.address.model.Model.PREDICATE_SHOW_ALL_RIDES;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -98,6 +99,9 @@ public class RideEditCommand extends Command implements OverlapAwareCommand {
         validateRosterEligibility(model, editedRide, editRideDescriptor);
 
         model.setRide(rideToEdit, editedRide);
+        if (!model.getFilteredRideList().contains(editedRide)) {
+            model.updateFilteredRideList(PREDICATE_SHOW_ALL_RIDES);
+        }
         logger.fine("Successfully edited ride ID: " + targetId);
         return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.formatRide(editedRide)));
     }

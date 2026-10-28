@@ -72,6 +72,58 @@ public class RideOverlapConfirmationTest {
     }
 
     @Test
+    public void execute_hiddenRosterChanges_preserveBothFiltersAndPersist() throws Exception {
+        for (String join : List.of("rideaddcyclist", "rac")) {
+            setUp();
+            logic.execute("ridefind n/Ride A");
+            model.updateFilteredPersonList(person -> person.getPhone().equals(new Phone(OTHER_PHONE)));
+            var visibleCyclists = List.copyOf(model.getFilteredPersonList());
+            logic.execute(join + " 2 " + OTHER_PHONE);
+            assertEquals(List.of(ride(1)), model.getFilteredRideList());
+            assertEquals(visibleCyclists, model.getFilteredPersonList());
+            assertEquals(List.of(new Phone(OTHER_PHONE)), ride(2).getRoster());
+            assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
+            String leave = join.equals("rac") ? "rdc" : "ridedeletecyclist";
+            logic.execute(leave + " 2 " + OTHER_PHONE);
+            assertEquals(List.of(ride(1)), model.getFilteredRideList());
+            assertEquals(visibleCyclists, model.getFilteredPersonList());
+            assertTrue(ride(2).getRoster().isEmpty());
+            assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
+        }
+    }
+
+    @Test
+    public void execute_hiddenOverlappingJoin_preservesFiltersThroughConfirmation() throws Exception {
+        for (String join : List.of("rideaddcyclist", "rac")) {
+            setUp();
+            logic.execute("ridefind n/Ride A");
+            model.updateFilteredPersonList(person -> false);
+            String saved = Files.readString(storage.getAddressBookFilePath());
+            assertTrue(logic.execute(join + " 2 " + PHONE).getFeedbackToUser().contains("Warning"));
+            assertEquals(saved, Files.readString(storage.getAddressBookFilePath()));
+            assertTrue(ride(2).getRoster().isEmpty());
+            assertEquals(List.of(ride(1)), model.getFilteredRideList());
+            logic.execute("yes");
+            assertEquals(List.of(ride(1)), model.getFilteredRideList());
+            assertTrue(model.getFilteredPersonList().isEmpty());
+            assertEquals(List.of(new Phone(PHONE)), ride(2).getRoster());
+            assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
+        }
+    }
+
+    @Test
+    public void execute_detailEdit_revealsHiddenOrNewlyExcludedRide() throws Exception {
+        for (int id : List.of(1, 2)) {
+            setUp();
+            logic.execute("ridefind n/Ride A");
+            logic.execute("rideedit " + id + " n/Renamed Ride");
+            assertEquals(List.of(ride(1), ride(2)), model.getFilteredRideList());
+            assertEquals("Renamed Ride", ride(id).getName().fullName);
+            assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
+        }
+    }
+
+    @Test
     public void execute_unicodeNotes_validEditIsDeferredAndInvalidNotesCreateNoPendingRequest() throws Exception {
         prepareQuotedEdit();
         String unicodeEdit = QUOTED_EDIT.replace("Bring camera", "Bring\u00a0\u2003camera");

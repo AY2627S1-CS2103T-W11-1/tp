@@ -1445,6 +1445,12 @@ The Full help window reuses `RideRosterCommand#MESSAGE_USAGE`.
 
 ### Ride roster regression (manual testing)
 
+Also check hidden ride updates: with two rides and an eligible cyclist, use `ridefind` to show
+only the other ride. Add and remove the cyclist from the hidden ride by persistent ID, repeating
+with `rac` and `rdc`. The Rides panel must retain the search, the cyclist filter must remain active,
+and membership changes must persist after restart. For an overlapping addition, check the same
+filters before and after `yes`. A `rideedit` that leaves its target hidden must still reveal it.
+
 Use a separate data directory or back up your data first.
 
 1. In a disposable folder with no rides, enter

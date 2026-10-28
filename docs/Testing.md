@@ -224,3 +224,8 @@ feedback and Notes-row removal. `MainAppNotesLoadingTest` covers legacy data, ex
 fatal dialogs and shutdown (including separate JVMs), original-file preservation and normal startup.
 These automated checks complement the manual visual scenarios; they do not establish native focus or layout
 on untested operating systems.
+
+`RideOverlapConfirmationTest` checks hidden-target roster additions/removals (including aliases),
+both display filters, confirmed overlaps and JSON readback. It also verifies that detail edits
+still reveal a ride hidden by the current search. Run the hidden-ride steps in **Ride roster
+regression (manual testing)** after changing shared ride replacement or edit filtering.
