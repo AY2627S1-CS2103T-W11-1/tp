@@ -1,78 +1,161 @@
 ---
 layout: page
 title: User Guide
+page_class: user-guide
 ---
 
-Cyclique is a **desktop application for organisers of recreational cycling groups in Singapore**, optimised for use through a Command Line Interface (CLI) while retaining the benefits of a Graphical User Interface (GUI). Manage cyclists, their emergency contact details and cycling profiles, and group rides by typing commands.
+Cyclique helps **organisers of recreational cycling groups in Singapore** keep track of cyclists,
+emergency contacts and group rides. You type commands to update your records and see the results in the main window.
+
+This guide takes you from opening Cyclique to planning a ride and managing its participants.
+You do not need programming experience. Start with [Quick start](#quick-start), or use the
+[command summary](#command-summary) if you already know your way around.
+
+**Contents**
+
+{::options toc_levels="2..3" /}
 
 * Table of Contents
 {:toc}
 
---------------------------------------------------------------------------------------------------------------------
-
 ## Quick start
 
-1. Ensure that JDK `25` is installed on your computer.<br>
-   Run `java -version` in a terminal to check that the active version is `25`.
-   **Mac users:** Install the prescribed Azul Zulu JDK 25 with JavaFX included, following the
+### Install and open Cyclique
+
+1. Install **JDK 25** (Java Development Kit), which Cyclique needs to run.
+   Open a terminal and enter `java -version` to check that the active version is `25`.
+   On macOS, use Azul Zulu JDK 25 with JavaFX included, following the
    [SE-EDU Mac Java installation guide](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
 1. Download `cyclique.jar` from the [Cyclique releases page](https://github.com/AY2627S1-CS2103T-W11-1/tp/releases).
 
-1. Copy the file to the folder you want to use as the _home folder_ for Cyclique.
+1. Place the file in a folder you want to keep using for Cyclique. This guide calls it your **home folder**.
 
-1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar cyclique.jar`.<br>
-   The main window should appear after the opening artwork. When no saved data file exists, Cyclique starts with Alex Tan, Bernice Lee and Chloe Lim, and two example group rides with empty rosters, as shown below. If you already have saved data, Cyclique loads it instead.<br>
+1. In a terminal, enter `cd` followed by that folder's path. For a path containing spaces, use double quotes,
+   for example `cd "C:/Users/YourName/My Cyclique"` on Windows or `cd "/Users/YourName/My Cyclique"` on macOS.
+   Then enter:
+
+   ```text
+   java -jar cyclique.jar
+   ```
+
+   The main window opens after the opening artwork. On your first launch, you see three sample cyclists
+   (Alex Tan, Bernice Lee and Chloe Lim) and two sample rides with empty rosters.
+   If you already have saved data, Cyclique loads that instead.
+
    ![Cyclique main window showing three cyclists with SOS numbers and two group rides](images/ug-main-window.png)
 
-1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
-   Some example commands you can try:
+   *Cyclists appear on the left and group rides on the right. Enter commands in the command box;
+   the result box reports what happened or explains what to correct.*
 
-   * `list` : Shows all cyclists.
+### Try your first commands
 
-   * `find n/John` : Shows cyclists whose name contains the complete word `John`.
+Type each command in the command box and press **Enter**.
 
-   * `add n/John Doe p/+65 98765432 sos/+65 99999999 e/johnd@example.com f/300 x/Beginner l/any` : Adds a cyclist named `John Doe`, including an emergency contact number supplied using `sos/`.
+1. Enter `list`. All saved cyclists appear in alphabetical order.
+1. Enter `find n/Alex`. With the sample data, only Alex Tan appears. This hides other cyclists; it does not delete them.
+1. Enter `list` again to bring everyone back.
+1. Enter `help` to open the Full help window. Close that window to return to the main window.
 
-   * `delete +65 98765432` : Requests deletion of the cyclist with this phone number. Enter `yes` to confirm or `no` to cancel.
+Your changes are saved automatically. Enter `exit` when you want to close Cyclique.
+For your first ride, follow [Plan a ride and register a cyclist](#plan-a-ride-and-register-a-cyclist).
 
-   * `clear` : Deletes all cyclists and all rides.
+## Before you enter commands
 
-   * `exit` : Exits the app.
+### Read the command format
 
-1. Refer to the [Features](#features) section below for details of each command.
+The guide shows a **format** with placeholders, then examples with values you can type.
 
---------------------------------------------------------------------------------------------------------------------
+| Notation | What you type |
+| --- | --- |
+| `UPPER_CASE` | Replace the placeholder with your own value. For `n/NAME`, type something like `n/John Doe`. |
+| `[field]` | The field is optional. Do not type the square brackets. |
+| `…` | Repeat the preceding field if needed. `[l/LOCATION]…` allows `l/Punggol l/Seletar`. Do not type the ellipsis. |
+| A prefix such as `n/` | Keep the prefix and put its value immediately after it. Put a space before the next prefix. |
+| An unprefixed value such as `ID` or `PHONE` | Put it in the position shown, before any prefixed fields. |
+
+Command names and prefixes are **case-sensitive**: use `list`, not `LIST`.
+You can put prefixed fields in any order. For example, `n/John Doe p/+65 98765432` and
+`p/+65 98765432 n/John Doe` supply the same details.
+
+In `rideadd` and `rideedit`, you can quote notes containing text such as `f/2` so that it is stored as
+notes rather than read as another field. See [Writing ride notes](#writing-ride-notes).
+
+Commands with no parameters, such as `help`, `list` and `exit`, ignore extra text.
+**`clear` is the exception:** it rejects extra text because it deletes all your data.
+If you copy a command from a PDF, check that spaces have not been lost at line breaks.
+
+Examples in different sections are separate tasks unless stated otherwise. The screenshots show the
+state described in their captions; running extra examples may give you a different list. Use your own saved
+phone numbers and assigned ride IDs where needed. You can use the fixed example dates even after
+they have passed; Cyclique allows past rides.
+
+### Understand the two lists
+
+| To work with… | Use… | To show everything again… |
+| --- | --- | --- |
+| Cyclists in the left panel | `find` to search, or `ridelist ID` to view a ride's participants | `list` |
+| Rides in the right panel | `ridefind` to search | `ridefind all` |
+
+A **filter** hides records that do not match your search. It does not remove them from Cyclique.
+The two panels have separate filters: `list` does not reset a ride search.
+
+Cyclists are sorted alphabetically by full name, ignoring case. Names that are identical ignoring case
+keep their stored order. Card indexes change with the displayed list; use the cyclist's **own phone number**
+for `edit` and `delete`. These two commands can target only a cyclist currently displayed.
+
+A **ride ID** is the number shown on a ride card. It stays with that ride even when the display changes.
+Use it for ride commands, including commands for rides hidden by a search. IDs are never reused,
+even after deleting rides, clearing data or restarting Cyclique.
+
+A **roster** is a ride's list of registered cyclists. It shows their own phone numbers.
+**SOS** on a cyclist card means their emergency contact number. **FTP** (Functional Threshold Power)
+is the cyclist's power level in watts; Cyclique compares it with a ride's minimum power before registration.
+
+## Plan a ride and register a cyclist
+
+This short walkthrough uses the sample cyclist Alex Tan, whose phone number is `+65 91234561`
+and FTP is 280 W. If you are using your own data, choose a saved cyclist with FTP of at least 180 W
+and use their phone number instead. These steps add a ride and a membership to your saved data.
+
+If Alex is missing and you want to follow this example exactly, add him first (his phone number and
+email must not already belong to another cyclist):
+
+```text
+add n/Alex Tan p/+65 91234561 sos/+65 90000001 e/alex@example.com f/280 x/Advanced l/East Coast Park l/Marina Bay
+```
+
+1. Create a ride:
+
+   ```text
+   rideadd n/Saturday Coastal Ride from/31-10-2026 0700 to/31-10-2026 1000 l/East Coast Park d/40 f/180 s/5 notes/Bring water and friends!
+   ```
+
+   The Rides panel shows the new ride with an empty roster. Check its assigned ID in the result box
+   or ride card. It is **3** in a fresh sample book; it may differ in your data.
+
+1. Register Alex using `rideaddcyclist 3 +65 91234561`. Replace `3` with the assigned ride ID if different.
+   Alex's number appears on the ride roster. If Cyclique warns about another ride at the same time,
+   check the conflict before entering `yes` to continue or `no` to cancel.
+
+1. Enter `ridelist 3`, using the same ride ID. Alex's card appears in the left panel, so you can check
+   his contact details alongside the ride. If you cancelled registration, the roster remains empty.
+
+   <a href="images/ug-first-ride-roster.png"><img src="images/ug-first-ride-roster.png" alt="Alex Tan displayed on the left after ridelist 3, with his phone number on Saturday Coastal Ride 3 and the two original rides visible on the right" /></a>
+
+   *After `ridelist 3`, Alex's details appear on the left and his phone number appears on Ride 3's roster.
+   The two sample rides remain visible with empty rosters.*
+
+1. Enter `list` to show all cyclists again. The ride and its roster stay saved.
+
+To change the plan later, use [`rideedit`](#editing-a-group-ride-rideedit).
+To remove a participant while keeping their cyclist record, use
+[`ridedeletecyclist`](#removing-a-cyclist-from-a-ride-ridedeletecyclist).
 
 ## Features
 
-Cyclists are displayed alphabetically by their full name, ignoring letter case, on startup and after `list`, `find` or `ridelist`. Adding a cyclist places them in the correct alphabetical position; editing their name updates their position. Names that are identical ignoring case retain their relative stored order. The visible indexes run consecutively from 1 within the current display, including filtered results. Use phone numbers to target `edit` and `delete` as usual.
-
-<div markdown="block" class="alert alert-info">
-
-**:information_source: Notes about the command format:**<br>
-
-* Words in `UPPER_CASE` are the parameters to be supplied by the user.<br>
-  For example, in `add n/NAME`, replace `NAME` with a value such as `John Doe`.
-
-* Items in square brackets are optional.<br>
-  For example, `edit PHONE [n/NAME] [f/FTP_LEVEL]` can be used as `edit +65 91234567 n/John Doe` or `edit +65 91234567 f/300`.
-
-* Items followed by `…`​ can appear zero or more times.<br>
-  For example, `[l/LOCATION]…` in `edit` may be omitted, or written as `l/Punggol` or `l/Punggol l/Marina Bay`.
-
-* Parameters with prefixes can be in any order. Positional arguments must follow the order shown in the command format.<br>
-  For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
-
-* In `rideadd` and `rideedit` only, use `notes/"NOTES"` to keep prefix-looking text inside notes literal.
-  Ordinary notes need no quotes. See [Ride Add](#adding-a-group-ride-rideadd) for the quoting rules;
-  this syntax does not apply to other fields or to `ridefind`.
-
-* Extraneous parameters for commands that take no parameters, such as `help`, `list` and `exit`, are ignored.<br>
-  For example, `help 123` is interpreted as `help`. The exception is [`clear`](#clearing-all-entries-clear), which rejects any extra text because it deletes all your data.
-
-* If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
-</div>
+Use this reference when you need a command's fields, examples or error messages.
+The [command summary](#command-summary) gives you the formats at a glance.
 
 ### Short forms for ride commands
 
@@ -91,39 +174,37 @@ Use these aliases with exactly the same arguments as the full command names. Com
 For example, `re 1 notes/Bring lights` edits ride 1 and `rf all` shows all rides.
 The Help menu and Full help window show each alias in parentheses beside its full command name,
 for example `rideadd (ra)`. Selecting a Help menu entry inserts the full command name; do not type the parentheses.
-Entering an alias while a cyclist deletion confirmation is pending cancels that request,
-then processes the alias normally, even if its arguments are invalid.
 
 ### Viewing help: `help`
 
-Cyclique gives you help in two places: the **Help** menu in the menu bar, and the **Full help** window.
+Open the command reference without leaving Cyclique.
 
-**The Help menu**
+**Format:** `help`
 
-Click **Help** in the menu bar to see every command with its format, followed by **Full help...** at the bottom. The commands are listed in this order: `add`, `edit`, `delete`, `find`, `rideadd`, `rideedit`, `ridedelete`, `rideaddcyclist`, `ridedeletecyclist`, `ridelist`, `ridefind`, `list`, `clear`, `help` and `exit`.
+Enter `help`, press **F1**, or choose **Help → Full help...**. The Full help window lists each
+command's format, fields and an example. The result box shows `Opened help window.`
+If the window is already open, Cyclique brings it into focus.
 
-![Help menu](images/helpDropdown.png)
+<a href="images/helpMessage.png"><img src="images/helpMessage.png" alt="Full help window showing command formats, ride command aliases and the Cyclique guide URL with a Copy URL button" /></a>
 
-Choosing a command from the menu does **not** run it. It places the start of that command in the command box for you to complete, and then you press Enter as usual:
+*Use **Copy URL** at the bottom of the window to copy the link to this guide.
+Select the screenshot to view it at full resolution.*
 
-* For most commands, the command word followed by a space is inserted, for example `rideedit `.
-* For `add` and `rideadd`, the command word is followed by every required prefix, for example `rideadd n/ from/ to/ l/ d/ f/ s/`. Type a value straight after each prefix. Optional parameters such as `notes/` are not inserted, so type them yourself if you need them.
-* `ID` and `PHONE` in `rideaddcyclist ID PHONE` and `ridedeletecyclist ID PHONE` are typed after the command name without a prefix, so no `p/` is inserted.
+You can also choose a command from the **Help** menu to start filling it in.
 
-**The Full help window**
+![Help menu showing command formats, ride command aliases and Full help](images/helpDropdown.png)
 
-Choose **Help → Full help...**, press `F1`, or enter `help` to open the Full help window. It lists the usage, parameters and an example for every command. At the bottom it shows a link to the user guide and a **Copy URL** button that copies the link to your clipboard. After you enter `help`, the result box shows `Opened help window.` If the window is already open, Cyclique focuses it instead of opening a second one.
+*Selecting a menu entry puts the command in the command box; it does not run it.*
 
-![Full help window](images/helpMessage.png)
-
-Format: `help`
-
+For `add` and `rideadd`, the required prefixes are filled in too. Type your values after them,
+add any optional fields you need, then press **Enter**. For roster commands, type the ride ID
+and phone number directly after the command name, without `p/`.
 
 ### Adding a cyclist: `add`
 
 Adds a cyclist to Cyclique.
 
-Format: `add n/NAME p/PHONE sos/EMERGENCY_PHONE e/EMAIL f/FTP_LEVEL x/EXPERIENCE_LEVEL l/LOCATION [l/LOCATION]…`
+**Format:** `add n/NAME p/PHONE sos/EMERGENCY_PHONE e/EMAIL f/FTP_LEVEL x/EXPERIENCE_LEVEL l/LOCATION [l/LOCATION]…`
 
 Field | Meaning and rules
 ------|------------------
@@ -133,17 +214,17 @@ Field | Meaning and rules
 `e/EMAIL` | A valid email address, such as `johnd@example.com`. It must be unique across all cyclists, including those hidden by a filter; comparisons ignore letter case.
 `f/FTP_LEVEL` | Functional Threshold Power (FTP): a whole number from 1 to 600, in watts.
 `x/EXPERIENCE_LEVEL` | `Beginner`, `Intermediate` or `Advanced`, ignoring case.
-`l/LOCATION` | A non-blank preferred cycling location containing only letters, numbers, spaces, hyphens or apostrophes. At least one is required. Repeat `l/` for multiple locations, or use `l/any` alone to indicate no location preference. `any` ignores case and cannot be combined with another location.
+`l/LOCATION` | A non-blank preferred cycling location containing only English letters (`A–Z`, `a–z`), digits, spaces, hyphens or apostrophes. At least one is required. Repeat `l/` for multiple locations, or use `l/any` alone to indicate no location preference. `any` ignores case and cannot be combined with another location.
 
 All fields are required. Only `l/` may be repeated; repeating any other prefix is rejected.
 Prefixes can be entered in any order. Cyclists may share a name or emergency contact number,
 but their own phone numbers and email addresses must be unique.
 
-On success, the result box shows `New person added:` followed by the cyclist's details, including
+**Result:** The result box shows `New person added:` followed by the cyclist's details, including
 `Emergency phone:`. The new card shows the number as **SOS**. Cyclique restores the full cyclist
 list, places the new card in alphabetical order and saves the data automatically.
 
-Examples (use phone numbers and email addresses that are not already stored):
+**Examples** (use phone numbers and email addresses that are not already stored)
 
 * `add n/John Doe p/+65 98765432 sos/+65 99999999 e/johnd@example.com f/300 x/Beginner l/any` adds John with an FTP of 300 W, Beginner experience and no location preference.
 * `add n/Betsy Crowe sos/+65 99999999 e/betsycrowe@example.com p/+65 91234567 f/250 x/Advanced l/Punggol l/Seletar` adds Betsy with two preferred locations. Sharing John's emergency contact number is allowed.
@@ -156,11 +237,11 @@ Missing required fields, blank values, invalid values and repeated single-valued
 A phone or email conflict reports `Another cyclist already has this phone number or email.`
 These rejected commands leave existing records unchanged and do not add a cyclist.
 
-### Listing all persons: `list`
+### Listing all cyclists: `list`
 
-Shows every cyclist currently stored in the address book.
+Shows every saved cyclist.
 
-Format: `list`
+**Format:** `list`
 
 * Removes any active `find` or [`ridelist`](#listing-cyclists-registered-for-a-ride-ridelist) filter and restores all cyclists. The result box shows `Listed all persons.`
 * Affects only the cyclist panel. It does not change the Rides panel; use `ridefind all` to show every ride again.
@@ -172,25 +253,37 @@ Format: `list`
 
 Updates an existing cyclist's contact details or cycling profile.
 
-Format: `edit PHONE [n/NAME] [p/PHONE] [sos/EMERGENCY_PHONE] [e/EMAIL] [f/FTP_LEVEL] [x/EXPERIENCE_LEVEL] [l/LOCATION]…`
+**Format:** `edit PHONE [n/NAME] [p/PHONE] [sos/EMERGENCY_PHONE] [e/EMAIL] [f/FTP_LEVEL] [x/EXPERIENCE_LEVEL] [l/LOCATION]…`
 
-* The unprefixed `PHONE` identifies the cyclist to edit. It must match exactly one cyclist in the **displayed list**. Use `list` first if a filter hides the cyclist. Card indexes cannot be used as the target.
-* Include `+`, the country code and one space in the target phone number, for example `+65 91234567`. A malformed target reports the specific phone-validation error; omitting the target reports the command usage.
-* `p/PHONE`, if supplied, is the cyclist's **replacement** phone number. For example, `edit +65 98765432 p/+65 91111111` targets the old number and replaces it with the new number.
-* Supply at least one optional field. Otherwise, Cyclique reports `At least one field to edit must be provided.`
-* Supplied fields follow the [Add field rules](#adding-a-cyclist-add). Only `l/` may be repeated. Phone numbers and email addresses must remain unique across all cyclists, including hidden records; email comparisons ignore case. Keeping the cyclist's own current phone or email is allowed.
-* Omitted fields remain unchanged. Supplying one or more `l/` fields replaces the **entire** preferred location set; it does not append locations. Blank `l/` is invalid. Use `l/any` alone for no location preference.
-* Omitting `sos/` preserves the existing emergency contact number. Blank `sos/` is invalid and cannot remove the number.
-* An edited FTP must meet the minimum power of every ride the cyclist is registered for, including rides hidden by a filter. Equality with the minimum is allowed. If it is too low, the entire edit is rejected with the conflicting ride's ID, name and minimum FTP; accompanying field changes are not applied. Remove the cyclist from the affected rides first if they should no longer participate, or edit the ride requirements before lowering their FTP.
+**Before you start:** Enter `list` if the cyclist is hidden by a search.
 
-On success, the result box shows `Edited person:` followed by the updated details and saves the changes.
+1. Type `edit` followed by the cyclist's current **own phone number**, including the country code
+   and one space, for example `edit +65 98765432`. Do not use the card index.
+1. Add at least one field to change. For example, append `sos/+65 98888888` to change the emergency number.
+1. Press **Enter**. Cyclique applies the whole edit only if all supplied values are valid.
+
+Fields follow the [`add` rules](#adding-a-cyclist-add). Omitted fields stay unchanged.
+Phone numbers and email addresses must remain unique across all saved cyclists;
+keeping the cyclist's own current phone or email is allowed.
+
+* **Changing their phone:** Use `p/` for the replacement number. For example,
+  `edit +65 98765432 p/+65 91111111` targets the old number and replaces it with the new one.
+* **Changing locations:** Supplying `l/` replaces the entire preferred location set.
+  Use `l/Punggol l/Seletar` for two locations, or `l/any` alone for no preference.
+  Only this prefix may be repeated; blank `l/` is invalid.
+* **Changing SOS:** Omit `sos/` to keep the current number. Blank `sos/` cannot remove it.
+* **Lowering FTP:** The new value must still meet the minimum power of every ride the cyclist has joined,
+  including hidden rides. If it is too low, Cyclique rejects the entire edit and identifies the conflicting ride.
+  Remove the cyclist from that ride first if they should no longer participate, or adjust the ride requirements.
+
+**Result:** The result box shows `Edited person:` followed by the updated details and saves the changes.
 Any active `find` or `ridelist` filter remains applied. A cyclist who no longer matches the search disappears
 from the displayed results; use `list` to show all cyclists again. Matching cyclists remain in alphabetical
 order, so a name edit may move a card to a different position. Changing the cyclist's own phone number also
 updates that number in every ride roster they belong to, preserving their memberships and visibility in
 the active `ridelist` view.
 
-Examples, starting with John from the Add example:
+**Examples** (starting with John from the Add example)
 
 * `edit +65 98765432 sos/+65 98888888 f/350 x/Intermediate l/East Coast Park l/Punggol` updates John's emergency number, FTP and experience, and replaces `any` with two preferred locations. His name, own phone number and email remain unchanged.
 * `edit +65 98765432 sos/+65 98888888` updates only the emergency number; all other fields remain unchanged. This can also be used independently of the previous example.
@@ -208,11 +301,11 @@ Invalid edits, duplicate phone numbers or emails, and targets hidden by a filter
 changing cyclist records, ride rosters or the current filter. Phone or email conflicts report
 `Another cyclist already has this phone number or email.`
 
-### Locating persons by name, phone or emergency number: `find`
+### Finding cyclists: `find`
 
-Finds persons by name keywords, phone numbers, emergency contact numbers, FTP, experience level and preferred location.
+Find cyclists by name, phone number, emergency contact number or cycling profile.
 
-Format: `find [n/NAME_KEYWORD]… [p/PHONE]… [sos/EMERGENCY_PHONE]… [f/MIN_FTP] [x/EXPERIENCE]… [l/LOCATION]…`
+**Format:** `find [n/NAME_KEYWORD]… [p/PHONE]… [sos/EMERGENCY_PHONE]… [f/MIN_FTP] [x/EXPERIENCE]… [l/LOCATION]…`
 (at least one field is required)
 
 Field | Meaning and rules
@@ -237,20 +330,20 @@ Invalid phone numbers, FTP values, experience levels, preferred locations, name 
 are rejected without changing the current displayed list. A name or phone criterion searches only the corresponding
 field; emergency contact numbers are not treated as the cyclist's own phone number.
 
-Examples:
-* `find n/John` returns `john` and `John Doe`
-* `find n/John Doe` returns cyclists whose names contain `John` followed by `Doe`, ignoring case,
-  even if there are other words in between.
-* `find n/alex n/david` returns `Alex Yeoh`, `David Li`<br>
-  ![result for 'find n/alex n/david'](images/findAlexDavidResult.png)
-* `find n/alex p/+65 96320842` returns only people whose name contains `alex` and whose phone number is `+65 96320842`.
-* `find l/Punggol x/Intermediate f/250` returns cyclists whose preferred location is Punggol, experience level is Intermediate,
-  and FTP is at least 250 W.
-* `find l/East Coast` returns cyclists whose preferred location contains `East Coast`, such as `East Coast Park`.
-* `find sos/+65 99999999` returns cyclists with that emergency contact number.
-* `find x/Beginner x/Intermediate` returns cyclists with either experience level.
+**Examples**
 
-Common failures include:
+| Your goal | Command and result |
+| --- | --- |
+| Find a cyclist by name | `find n/Alex` shows cyclists with the complete name word `Alex`, including the sample Alex Tan. `find n/Al` does not match him. |
+| Find either of two names | `find n/Alex n/Bernice` shows Alex Tan and Bernice Lee in the sample data. |
+| Combine a name and phone number | `find n/Alex p/+65 91234561` shows only cyclists matching both fields. |
+| Find suitable cyclists for a Punggol ride | `find l/Punggol x/Intermediate f/200` shows the sample Bernice Lee. Cyclists with no location preference also match the location criterion. |
+| Look up an emergency contact | `find sos/+65 90000001` shows Alex Tan in the sample data. |
+| Include two experience levels | `find x/Beginner x/Intermediate` shows cyclists at either level. |
+
+Enter `list` to show all cyclists again.
+
+**If something goes wrong**
 
 * `find` with no criteria is rejected with the command usage instructions.
 * `find f/0` is rejected because FTP must be a whole number from 1 to 600.
@@ -261,12 +354,12 @@ Common failures include:
 
 Deletes a cyclist only after you check their details and confirm in the command box.
 
-Format: `delete PHONE`, then enter a separate confirmation or cancellation reply.
+**Format:** `delete PHONE`, then enter a separate confirmation or cancellation reply.
 
 * Use the cyclist's own complete phone number, including country code and exactly one space, for example `+65 98765432`. The country code contains 1–3 digits; the number after the space contains at least 3 digits. Do not use a card index or the `p/` prefix.
 * A malformed target reports the specific phone-validation error; omitting the target reports the command usage.
 * The number must identify exactly one cyclist in the **displayed list**. A cyclist hidden by a filter cannot be deleted; use `list` to show all cyclists first. Multiple displayed matches are rejected.
-* The result panel shows `Delete this cyclist?` followed by the target's details, including their emergency number, and warns `This also removes them from all ride rosters.` No cyclist, roster or saved data changes at this stage.
+* The result box shows `Delete this cyclist?` followed by the target's details, including their emergency number, and warns `This also removes them from all ride rosters.` No cyclist, roster or saved data changes at this stage.
 * Enter `y` or `yes` to confirm, or `n` or `no` to cancel. Replies ignore letter case and surrounding spaces, so `YeS` and ` NO ` are accepted.
 * Cancellation shows `Deletion cancelled.` and preserves cyclist records, ride rosters, the current filter and saved data.
 * An invalid reply, such as `maybe`, `yes please` or an unknown command, reports `Invalid confirmation.` and keeps waiting for a valid reply. It does not cancel the request or change data.
@@ -284,7 +377,7 @@ Intermediate experience and two preferred locations. Before the deletion request
 have been registered for Sunday Sunrise Ride using `rideaddcyclist 1 +65 91234561` and
 `rideaddcyclist 1 +65 98765432` (where `1` is that ride's ID).
 
-1. Enter `delete +65 98765432`. Check that the result panel identifies John. His card and both roster numbers remain visible while confirmation is pending.
+1. Enter `delete +65 98765432`. Check that the result box identifies John. His card and both roster numbers remain visible while confirmation is pending.
 
    ![Pending deletion identifying John Doe with confirmation instructions while John and Alex remain on the ride roster](images/ug-delete-confirmation.png)
 
@@ -314,7 +407,7 @@ command usage without changing records.
 
 Adds a group ride that an organiser plans to lead.
 
-Format: `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MIN_POWER s/MAX_GROUP_SIZE [notes/NOTES]`
+**Format:** `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MIN_POWER s/MAX_GROUP_SIZE [notes/NOTES]`
 
 Field | Meaning and rules
 ------|------------------
@@ -325,36 +418,25 @@ Field | Meaning and rules
 `d/DISTANCE` | The distance in kilometres, from `0.01` to `999999.99`. Use 1–6 digits before the decimal point and, optionally, 1–2 digits after it, such as `45` or `45.5`.
 `f/MIN_POWER` | The minimum power a cyclist needs to join, in watts. Use 1–3 digits representing a whole number from 1 to 600, the same range as a cyclist's FTP.
 `s/MAX_GROUP_SIZE` | The most cyclists that can join. Use 1–9 digits representing a whole number from 1 to 999999999.
-`notes/NOTES` | Optional. If supplied, it must contain 1–10 words separated by whitespace, including Unicode spaces such as non-breaking, EM, narrow non-breaking and ideographic spaces. Leading and trailing whitespace is removed; repeated whitespace is stored as single ordinary spaces. Omit the prefix for no notes; empty or whitespace-only `notes/` is rejected when adding a ride. These rules also apply inside quoted notes.
+`notes/NOTES` | Optional notes of 1–10 words. Omit this field for no notes; a blank value is rejected when adding a ride. Extra spaces are trimmed or reduced to single spaces. See [Writing ride notes](#writing-ride-notes) for notes containing prefixes such as `f/2`.
 
-Every field except `notes/` is required and must have a value. Each prefix can be used only once, in any order. Put whitespace before each prefix; spaces around values are trimmed. Command words and prefixes are case-sensitive: use `rideadd` and `from/`, for example. Names, locations and notes retain the capitalisation you enter. Enter numeric values without units, signs, commas or scientific notation; zero and negative values are rejected. Leading zeroes count towards the digit limits and are removed from stored numeric values.
+**Before you start**
 
-**Optional quoted notes**
+* Supply every field except `notes/`. Use each prefix only once, with a space before it.
+* Enter numeric values without units, signs, commas or scientific notation.
+  Leading zeroes count towards the digit limits; they are removed from stored numbers.
+* For an overnight ride, enter the later date in `to/` as well as the time.
+  Past rides, multi-day rides and equal start and end times are allowed.
 
-Ordinary notes such as `notes/Bring water` do not need quotation marks. To include recognised ride prefixes
-(`n/`, `from/`, `to/`, `l/`, `d/`, `f/`, `s/` or `notes/`) literally, put a double quote immediately after
-`notes/` and another at the end of the notes: `notes/"Bring camera with aperture f/2"`.
-The surrounding quotes are not stored, and recognised prefixes inside them do not create or change other fields.
-Other parameters may appear before or after quoted notes. Unicode whitespace is allowed after the closing quote,
-including at the end of the command. For a following parameter, use an ordinary space immediately before its
-prefix; non-breaking and narrow non-breaking spaces alone do not introduce a parameter.
-The same 1–10-word limit and whitespace rules apply.
+**Result:** The result box shows `New ride added:` with the assigned ID and ride details.
+The new ride has an empty roster and is saved automatically. Check its ID on the card;
+this stays with the ride and is never reused. Identical ride details are allowed because each ride has its own ID.
 
-The first double quote after the opening quote closes the value. Missing closing quotes, empty or whitespace-only
-quoted notes, and extra text after the closing quote before the next recognised parameter are rejected.
-For example, `notes/"Bring water"extra` and `notes/"Bring water" q/test` are invalid.
-In unquoted notes, double quotes away from the beginning are literal, as in `notes/Bring a "camera"`.
-A double quote immediately after `notes/` always starts quoted-notes syntax; it is not stored as a literal quote.
-Quoted notes cannot contain literal double quotes, and escaping is unsupported: backslashes are literal and do
-not escape quotes. These quoting rules apply only to `rideadd` and `rideedit`, including their aliases.
+The Rides panel updates immediately. If your current `ridefind` filter would hide the new ride,
+Cyclique resets that filter so you can see it. Otherwise, the filter stays active.
+Your cyclist list is unchanged.
 
-Rides may be in the past, cross midnight or span multiple days. The end must be on or after the start: for an overnight ride, enter the later date in `to/` as well as the time. Equal start and end date/times are allowed.
-
-Each new ride gets a persistent ID automatically. A new empty book starts at 1; an existing book continues from its saved counter. IDs increase in creation order and are never reused, including after deletion, `clear` or restarting. Check the assigned ID in the result or ride card; it is not the card's list position. A new ride has no cyclists on its roster yet. Even rides with identical details are allowed, because their IDs differ.
-
-On success, the result box shows `New ride added:` followed by the assigned ID and complete ride details, and the change is saved automatically. The right-hand **Rides** panel updates immediately. If an active `ridefind` filter would hide the new ride, the filter resets so the new ride is visible; otherwise, the filter remains active. Cyclist records and the current cyclist filter are unchanged. Each ride card shows its ID and name, period, location, distance, minimum power, maximum group size and roster, plus a **Notes** line if notes are present.
-
-Examples:
+**Examples**
 
 * `rideadd n/Sunday Sunrise Ride from/25-10-2026 0630 to/25-10-2026 0930 l/East Coast Park d/45 f/180 s/3 notes/Bring lights and a spare tube`
 * `rideadd n/Evening Spin from/27-10-2026 1800 to/27-10-2026 1930 l/Punggol d/30.5 f/150 s/8`
@@ -364,15 +446,44 @@ The first example adds a 45 km ride with minimum power 180 W and room for three 
 The Camera Ride example stores `Bring camera with aperture f/2` as its notes, without the quotes,
 and has minimum power 180 W.
 
-**Screenshot walkthrough: add, edit and delete Ride 3**
+**Example walkthrough: add, edit and delete Ride 3**
 
-The three screenshots in these sections show a separate walkthrough starting with a new data file's sample rides, before running the examples above. Sunday Sunrise Ride is ID 1 and Evening Spin is ID 2; the next command adds Saturday Coastal Ride as ID 3. In an existing file, substitute the actual assigned ID in the later edit and delete commands. Select any walkthrough screenshot to open it at full resolution and read the smaller card text.
+The ride screenshots use a **separate fresh sample book**, with Sunday Sunrise Ride as ID 1 and
+Evening Spin as ID 2. The command below adds Saturday Coastal Ride as ID 3. In your own book,
+use the ID Cyclique assigns for the later edit and delete steps.
+Select a ride screenshot to view it at full resolution.
 
 `rideadd n/Saturday Coastal Ride from/31-10-2026 0700 to/31-10-2026 1000 l/East Coast Park d/40 f/180 s/5 notes/Bring water and friends!`
 
-<a href="images/ug-rideadd-success.png"><img src="images/ug-rideadd-success.png" width="900" alt="Ride Add success showing Saturday Coastal Ride as ID 3 at East Coast Park with an empty roster" /></a>
+<a href="images/ug-rideadd-success.png"><img src="images/ug-rideadd-success.png" width="900" alt="Ride add success showing Saturday Coastal Ride as ID 3 at East Coast Park with an empty roster" /></a>
 
 *Saturday Coastal Ride is added as Ride 3, with notes `Bring water and friends!`; sample Rides 1 and 2 remain.*
+
+#### Writing ride notes
+
+Use plain text for ordinary notes: `notes/Bring water`. Notes can contain **1–10 words**.
+Whitespace between words is stored as single spaces, including when pasted text contains Unicode spaces.
+When adding a ride, omit `notes/` if you have no notes; an empty value is rejected.
+
+If your notes contain a recognised prefix (`n/`, `from/`, `to/`, `l/`, `d/`, `f/`, `s/` or `notes/`),
+put double quotes immediately around the whole value:
+
+```text
+notes/"Bring camera with aperture f/2"
+```
+
+Cyclique stores `Bring camera with aperture f/2` without the outer quotes. Without those quotes,
+it reads `f/2` as a minimum power of 2 W and stores only `Bring camera with aperture` as the notes.
+You can put other fields before or after quoted notes; use an ordinary space before each prefix.
+
+Close the quote before the next field or the end of the command. Empty quoted notes, a missing closing
+quote or extra text after the closing quote are rejected. For example, `notes/"Bring water"extra` is invalid.
+The first closing quote ends the value; there is no way to escape a quote inside quoted notes.
+Quotes elsewhere in unquoted notes, as in `notes/Bring a "camera"`, are stored literally.
+
+These quoting rules apply only to **`rideadd` and `rideedit`**, including their aliases.
+For `ridefind`, search with an unquoted word such as `notes/camera`.
+To clear existing notes, use `rideedit ID notes/` without quotes.
 
 **If something goes wrong**
 
@@ -388,7 +499,7 @@ These rejected commands add no ride and consume no ID. In unquoted values, unsup
 
 Finds rides matching one or more supplied criteria and displays the matching rides in the Rides panel.
 
-Format: `ridefind [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`
+**Format:** `ridefind [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`
 
 To list every ride, use `ridefind all`.
 
@@ -414,18 +525,19 @@ Both bounds are inclusive. Each prefix can be used only once. Distances are posi
 
 The command updates only the displayed ride list; it does not change or delete saved rides. If no ride matches, the Rides panel is empty and the result message reports `0 ride(s) listed!`. Invalid criteria are rejected without changing the current ride filter.
 
-Examples:
-* `ridefind n/Sunday Sunrise Ride`
-* `ridefind notes/lights` finds rides whose notes contain the complete word `lights`, such as `Bring lights and a spare tube`.
-* `ridefind from/18-10-2026 to/18-10-2026`
-* `ridefind l/Tampines f/200`
-* `ridefind from/18-10-2026 0630 to/18-10-2026 2000 l/East Coast d/45 f/180 s/12`
-* `ridefind all` displays all rides, including rides hidden by an earlier search.
+**Examples** (using the sample rides)
 
-Common failures include:
+| Your goal | Command and result |
+| --- | --- |
+| Find a ride by its full name | `ridefind n/Sunday Sunrise Ride` shows Sunday Sunrise Ride. |
+| Look for a reminder | `ridefind notes/lights` shows rides whose notes contain the complete word `lights`, including Sunday Sunrise Ride. |
+| Find rides within one day | `ridefind from/25-10-2026 to/25-10-2026` shows rides starting and ending on 25 October, including Sunday Sunrise Ride. |
+| Combine location and minimum power | `ridefind l/Punggol f/150` shows the sample Evening Spin. A ride must meet both criteria. |
+| Show all rides again | `ridefind all` removes the ride filter. |
+
+**If something goes wrong**
 
 * `ridefind` with no criteria is rejected with the command usage instructions; use `ridefind all` to show all rides.
-* Date-only values are valid: `from/18-10-2026` means `18-10-2026 0000`, while `to/18-10-2026` means `18-10-2026 2359`.
 * A `to/` value earlier than `from/`, an invalid date or time, or a value outside the numeric constraints is rejected without changing the displayed rides.
 * Each `ridefind` prefix may be used only once. For example, `ridefind f/200 f/300` is rejected because `f/` is repeated; use one `f/` value only.
 
@@ -433,42 +545,38 @@ Common failures include:
 
 Edits an existing group ride identified by its ride ID.
 
-Format: `rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`
+**Format:** `rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`
 
-`ID` is the persistent number assigned when the ride is created and displayed on its card, not its position in the Rides panel. Enter a whole number from 1 to 2147483647 without a sign or decimal point, before any prefixed fields. It must identify a saved ride; rides hidden by `ridefind` can still be edited. The ID itself cannot be edited.
+**Before you start:** Find the ride's ID on its card. You can edit rides hidden by a `ridefind` filter.
 
-Supply at least one field after the ID. All eight fields shown in the format are editable. Fields follow the [`rideadd` rules](#adding-a-group-ride-rideadd), including case-sensitive command words and prefixes, digit limits, whitespace handling and duplicate-prefix rejection. Prefixed fields can be in any order after the ID. Only supplied fields are replaced; all unspecified fields are preserved. Supplied values must not be empty, except that empty or whitespace-only unquoted `notes/` clears existing notes, including Unicode spaces. For example, `rideedit 1 notes/` followed only by an EM SPACE clears the notes and removes the card's Notes line. Non-blank `notes/NOTES` replaces the notes with 1–10 words; omitting it preserves them.
+1. Type `rideedit` followed by the ID, for example `rideedit 1`.
+1. Add at least one field to change, following the [`rideadd` field rules](#adding-a-group-ride-rideadd).
+   For example, append `l/Marina Bay` to change the location.
+1. Press **Enter**. If an overlap warning appears, check it before confirming the edit.
 
-For literal prefixes, use `rideedit 1 notes/"Bring camera with aperture f/2"` (substitute the actual ride ID).
-This stores `Bring camera with aperture f/2` and preserves minimum power, ID, roster and all other fields.
-The [optional quoting rules](#adding-a-group-ride-rideadd), including malformed-input rejection, also apply here;
-use bare `notes/` to clear notes.
+Omitted fields stay unchanged. The ID and roster membership cannot be changed through `rideedit`.
+To replace notes, use `notes/` followed by 1–10 words. To clear them, use bare `notes/` without quotes
+(a whitespace-only value also clears them). Other supplied fields must not be blank.
 
-Parameters remain valid on either side: `rideedit 1 notes/"Bring camera with aperture f/2" s/5` also sets
-the maximum group size to 5, subject to roster capacity. `rideedit 1 f/200 notes/"Bring camera with aperture f/2"`
-intentionally sets minimum power to 200 W, subject to roster eligibility.
-Without quotes, `rideedit 1 notes/Bring camera with aperture f/2` still sets minimum power to 2 W and stores
-only `Bring camera with aperture` as notes. Cyclique cannot infer whether an unquoted prefix was intended literally.
+To keep a prefix such as `f/2` inside the notes, use `rideedit 1 notes/"Bring camera with aperture f/2"`.
+See [Writing ride notes](#writing-ride-notes) for the full quoting rules.
 
 **Dates and roster constraints**
 
 * `from/START` and `to/END` require `DD-MM-YYYY TTTT`, just as for `rideadd`. Cyclique checks the complete resulting period, including any preserved endpoint. The end cannot be earlier than the start; equal date/times are allowed.
 * When `s/` is supplied, the proposed maximum group size must be at least the current roster count. Equality is allowed.
 * When `f/` is supplied, the proposed minimum power must be no greater than every registered cyclist's FTP. Equality is allowed. Cyclique looks up registered cyclists among all saved cyclists, including those hidden from the left panel. If a registered phone number cannot be matched to a saved cyclist, that minimum-power edit is rejected with `Cyclist with this phone number cannot be found.`
-* The roster count check runs only when `s/` is supplied. Cyclist lookup and FTP checks run only when `f/` is supplied, even if the value is unchanged. Unrelated edits do not revalidate roster phones or FTP. After the fields are parsed and the ride is found, checks run in this order: resulting period, supplied maximum group size, then supplied minimum power. Only the first failure is reported.
+* Cyclique checks the resulting dates first, then a supplied group size, then a supplied minimum power. If several values are invalid, correct the first reported error and try again.
 
 If the resulting start or end changes and a registered cyclist has another ride with overlapping times, Cyclique warns before applying any part of the edit. The warning lists every affected cyclist's phone number and conflicting ride IDs, names and times. Enter `y`/`yes` to apply the whole edit anyway or `n`/`no` to cancel it, ignoring letter case. Adjacent periods and zero-duration rides do not overlap; travel time is not checked. Rides hidden by filters are included. Edits that preserve both endpoints do not warn about existing overlaps.
 
 While an overlap warning is pending, an invalid reply repeats the warning. Entering another recognised command cancels the pending change and processes the new command, including reporting errors in its arguments. Restarting discards pending confirmation. No data is changed or saved until confirmation; if cyclist or ride data changes before confirmation, enter the original command again to review it. These confirmation rules also apply to `rideaddcyclist` overlap warnings.
 
-Quoted notes follow the same confirmation rules. For example,
-`rideedit 3 notes/"Bring camera with aperture f/2" from/29-10-2026 1700 to/29-10-2026 1900`
-preserves literal `f/2`. If the new period creates a roster conflict, both the notes and times remain unchanged
-until `y`/`yes`; `n`/`no` cancels the whole edit. Substitute the actual ride ID.
+**Result:** Cyclique displays `Edited ride:` with the updated details and saves the whole change.
+The Rides panel refreshes. If its current search would hide the edited ride, Cyclique resets the ride filter
+so you can see it. The ID, roster and other records stay unchanged. A rejected edit applies none of your changes.
 
-On success, Cyclique displays `Edited ride:` followed by the complete updated ride and saves the change automatically. The ride ID, roster membership, stored ride order, other rides, cyclist records and next ride ID are unchanged. The Rides panel refreshes immediately using the existing `ridefind` filter. If the edited ride would be hidden by that filter, the filter resets so the edited ride remains visible. If input or ride validation fails, none of the supplied changes is applied.
-
-Examples:
+**Examples**
 
 These examples use the existing sample Sunday Sunrise Ride, which has ID `1` in a new data file and initially runs from `25-10-2026 0630` to `25-10-2026 0930`. Substitute the actual ride ID if different.
 
@@ -477,13 +585,13 @@ These examples use the existing sample Sunday Sunrise Ride, which has ID `1` in 
 * `rideedit 1 from/25-10-2026 1000` is rejected because the preserved end is `0930`. Similarly, `rideedit 1 to/25-10-2026 0600` is rejected because the preserved start is `0630`. To move both endpoints, supply both, for example `rideedit 1 from/25-10-2026 1000 to/25-10-2026 1200`.
 * Register the sample cyclists Alex Tan (280 W) and Bernice Lee (220 W) for this ride using `rideaddcyclist 1 +65 91234561` and `rideaddcyclist 1 +65 91234562`, respectively, only if they are not already registered for it. With these two cyclists on the roster, `rideedit 1 s/1` is rejected because there are two members, and `rideedit 1 f/221` is rejected because one member's FTP is 220 W. `rideedit 1 f/220 s/2` succeeds with that roster. No member is removed to make an edit succeed.
 
-Continuing the separate Ride 3 screenshot walkthrough from [Ride Add](#adding-a-group-ride-rideadd), enter `rideedit 3 l/Marina Bay notes/Meet at the waterfront`.
+Continuing the separate Ride 3 screenshot walkthrough from [`rideadd`](#adding-a-group-ride-rideadd), enter `rideedit 3 l/Marina Bay notes/Meet at the waterfront`.
 
 <a href="images/ug-rideedit-success.png"><img src="images/ug-rideedit-success.png" width="900" alt="Ride Edit success for Saturday Coastal Ride, ID 3, showing Marina Bay and notes Meet at the waterfront" /></a>
 
 *Ride 3 retains its persistent ID while its location changes to Marina Bay and its notes to `Meet at the waterfront`. Its other details and empty roster are unchanged.*
 
-Common failures include:
+**If something goes wrong**
 
 * A missing, zero, negative, malformed, overflowing or extra ID argument: `Invalid command format.` followed by the command usage.
 * An unknown ID, for example `rideedit 999999 n/Morning Ride` when that ID is absent: `Ride with ID 999999 cannot be found.`
@@ -497,13 +605,22 @@ Common failures include:
 
 Deletes one group ride using the persistent ID shown on its ride card.
 
-Format: `ridedelete ID`
+<div markdown="block" class="alert alert-warning">
+
+**Check the ride ID first.** Ride deletion is immediate, with no confirmation or undo.
+It removes the ride and its roster, but keeps the cyclist records.
+
+</div>
+
+**Format:** `ridedelete ID`
 
 Example: `ridedelete 1` (replace `1` with the actual ID of the ride you want to delete).
 
-Supply exactly one whole number from 1 to 2147483647 without a sign or decimal point, and no prefixes or extra arguments. It identifies the saved ride rather than its position in the Rides panel. A ride hidden by `ridefind` can still be deleted. Command words are case-sensitive: use `ridedelete`.
+Use the ride's ID, rather than its position in the list. Enter a whole number from 1 to 2147483647
+with no prefixes or extra arguments. A ride hidden by `ridefind` can still be deleted.
 
-Deletion is immediate and does not require confirmation. On success, Cyclique displays `Deleted ride:` followed by the deleted ride's complete details, removes its card from the Rides panel if visible and saves the change automatically. For Sunday Sunrise Ride with ID 1, the feedback starts with `Deleted ride: Ride 1: Sunday Sunrise Ride`.
+**Result:** The result box shows `Deleted ride:` with its details. Its card disappears and the deletion
+is saved automatically. Other rides and all cyclist records remain.
 
 To finish the separate Ride 3 screenshot walkthrough, enter `ridedelete 3` after the edit shown above.
 
@@ -522,19 +639,20 @@ A missing, malformed, non-positive, overflowing or additional argument produces 
 
 Adds one saved cyclist to an existing ride's roster.
 
-Format: `rideaddcyclist ID PHONE`
+**Format:** `rideaddcyclist ID PHONE`
 
-Example: `rideaddcyclist 1 +65 91234567`
+Example: `rideaddcyclist 1 +65 91234561` registers the sample Alex Tan for Sunday Sunrise Ride
+(use the actual ride ID in your data).
 
 * `ID` is the persistent ride ID shown on its card, not its position in the Rides panel. Enter a positive whole number from 1 to 2147483647. Leading zeroes are accepted: `01` and `1` identify the same ride, consistently with `ridelist`, `rideedit` and `ridedelete`. It must identify an existing ride; filtering rides with `ridefind` does not prevent you from targeting a hidden ride.
-* `PHONE` is the cyclist's own saved phone number, not their SOS number. Enter `+`, a 1–3 digit country code, exactly one space and at least three digits, for example `+65 91234567`. Do not add `p/`, brackets or hyphens. Put the ride ID before the phone number.
+* `PHONE` is the cyclist's own saved phone number, not their SOS number. Enter `+`, a 1–3 digit country code, exactly one space and at least three digits, for example `+65 91234561`. Do not add `p/`, brackets or hyphens. Put the ride ID before the phone number.
 * The cyclist must already exist in Cyclique, but can be hidden by `find` or a `ridelist` selection.
 * The cyclist must not already be on that ride's roster, the ride must have a free place, and the cyclist's FTP must be at least the ride's minimum power. FTP equal to the minimum is accepted.
 * One cyclist may join several rides. If the cyclist is already registered for another ride with overlapping times, Cyclique shows a warning before changing the roster, with yellow confirmation instructions above the white conflict details. Enter `y`/`yes` to proceed anyway or `n`/`no` to cancel, ignoring letter case. The warning lists the proposed ride and the conflicting ride IDs, names and times.
 * Rides ending exactly when another starts do not overlap. Zero-duration rides do not overlap other rides. All saved rides are checked, including rides hidden by a filter; travel time between rides is not included.
 * This command changes only the selected ride's roster; it does not create or edit a cyclist record.
 
-For the example above, successful addition reports `Cyclist +65 91234567 added to ride 1.` The ride card's roster includes the phone number and the change is saved automatically. If `ridelist 1` is active, the cyclist also appears in the left panel in alphabetical order. Otherwise, the current cyclist filter is retained.
+For the example above, successful addition reports `Cyclist +65 91234561 added to ride 1.` The ride card's roster includes the phone number and the change is saved automatically. If `ridelist 1` is active, the cyclist also appears in the left panel in alphabetical order. Otherwise, the current cyclist filter is retained.
 
 **If something goes wrong**
 
@@ -552,45 +670,47 @@ Checks run in the order shown; only the first failure is reported. These errors 
 
 Removes one cyclist from one ride's roster. The cyclist's contact record and memberships of other rides are retained.
 
-Format: `ridedeletecyclist ID PHONE`
+**Format:** `ridedeletecyclist ID PHONE`
 
-Example: `ridedeletecyclist 1 +65 91234567`
+Example: `ridedeletecyclist 1 +65 91234561`
 
 Use the same ID and phone format as [`rideaddcyclist`](#adding-a-cyclist-to-a-ride-rideaddcyclist), with the ID first and no `p/` prefix. The phone must be registered for that ride. Removal is immediate and does not ask for confirmation.
 
-For the example above, successful removal reports `Cyclist +65 91234567 removed from ride 1.` The phone disappears from that ride card's roster; an empty roster shows `No cyclists`. The change is saved automatically. If `ridelist 1` is active, the cyclist disappears from the left panel too. Removing the last member leaves that panel empty. Other cyclist filters and the current `ridefind` filter are retained.
+For the example above, successful removal reports `Cyclist +65 91234561 removed from ride 1.` The phone disappears from that ride card's roster; an empty roster shows `No cyclists`. The change is saved automatically. If `ridelist 1` is active, the cyclist disappears from the left panel too. Removing the last member leaves that panel empty. Other cyclist filters and the current `ridefind` filter are retained.
 
 An unknown ride reports `Ride ID cannot be found.` A phone that is not on the selected ride's roster reports `Cyclist is not on this ride's roster.` These errors leave all cyclist records and ride rosters unchanged. Removal does not require a free place or check the cyclist's FTP.
 
 #### Shared roster command input and behaviour
 
-* Both commands require an ID followed by a complete phone number. Missing arguments report `Invalid command format.` followed by the entered command's syntax and example. For example, `ridedeletecyclist 1` shows `Example: ridedeletecyclist 1 +65 91234567`; `rideaddcyclist 1` shows `Example: rideaddcyclist 1 +65 91234567`. The **Full help** window includes both commands and their examples.
-* An invalid ID, such as `0`, `00`, `-1`, `+1`, `abc` or `2147483648`, reports `Ride ID should be a positive whole number no larger than 2147483647.` when a phone argument is supplied.
-* An invalid phone, including a `p/` prefix or extra text after the phone, reports a phone-format error. Enter the complete phone number exactly as saved. Invalid inputs do not change rosters.
-* Command names are case-sensitive. Both commands appear in the **Help** menu; choosing one inserts the command word and a space for you to complete, without running it.
-* Entering either supported command while cyclist deletion is awaiting confirmation cancels that pending deletion, then processes the roster command. Cancellation is reported even if its input is invalid.
-* Editing a cyclist's phone updates their memberships in every ride. Use the new phone for later roster commands. Confirming deletion of their cyclist record removes them from every roster; requesting or cancelling deletion preserves those memberships.
+* Put the ride ID first, followed by the cyclist's complete own phone number, without `p/`.
+  Missing arguments show `Invalid command format.` and the command usage.
+* Use a ride ID from 1 to 2147483647. Invalid IDs show
+  `Ride ID should be a positive whole number no larger than 2147483647.` when a phone is supplied.
+* Invalid phone numbers or extra text produce a phone-format error. Correct the input and try again;
+  the roster stays unchanged.
+* Changing a cyclist's phone with `edit` updates it in every roster. Use the new number afterwards.
+  Confirming `delete` removes the cyclist from all rosters; cancelling preserves their memberships.
 
-To try both commands, first save a cyclist with phone `+65 91234567` and FTP of at least 180, then create a ride with minimum power 180 and a free place. Use that ride's assigned ID in `rideaddcyclist ID +65 91234567`, followed by `ridelist ID` to see its cyclists. Enter `ridedeletecyclist ID +65 91234567` to remove the membership, and `list` to see that the cyclist record is still saved. Replace each `ID` with the actual number; do not type the placeholder.
+To try registration step by step, follow [Plan a ride and register a cyclist](#plan-a-ride-and-register-a-cyclist).
 
 ### Listing cyclists registered for a ride: `ridelist`
 
 Shows the cyclists registered for one ride in the left-hand cyclist panel, so that you can see who is on that ride. No ride or cyclist records are changed.
 
-Format: `ridelist ID`
+**Format:** `ridelist ID`
 
-Example: `ridelist 101`
+Example: `ridelist 1` (use your ride's actual ID)
 
 * `ID` is the persistent ride ID shown on the ride card, not the ride's position in the Rides panel. Use a whole number from 1 to 2147483647.
 * The cyclists appear on the usual cyclist cards, sorted alphabetically. The Rides panel on the right does not change.
-* On success, Cyclique reports `Showing registered cyclists for ride 101 in the left panel.`
-* If nobody is registered for the ride, Cyclique reports `Ride 101 has no registered cyclists.` and the cyclist panel is empty.
+* **Result:** Cyclique reports `Showing registered cyclists for ride 1 in the left panel.`
+* If nobody is registered for the ride, Cyclique reports `Ride 1 has no registered cyclists.` and the cyclist panel is empty.
 
 **How the selection behaves**
 
 * `ridelist` replaces the current cyclist filter instead of combining with it. For example, if `find` was hiding some cyclists, `ridelist` still shows everyone registered for the ride.
 * The panel refreshes by itself when `rideaddcyclist` or `ridedeletecyclist` changes the selected ride. Changes to other rides do not affect it.
-* The selection ends when you run `list`, `find`, `clear`, another `ridelist`, or a successful `edit`, because each of these replaces the cyclist filter. Later roster changes do not bring the old selection back.
+* `list`, `find`, `clear` or a successful `add` ends the selection; another `ridelist` replaces it. A successful `edit` keeps the selection, including when you change a participant's phone number. Later roster changes do not restore a selection you have ended.
 * If you delete the selected ride with `ridedelete`, the cyclist panel becomes empty and does not switch to another ride. Use `list`, `find` or another `ridelist` to show cyclists again.
 
 **If something goes wrong**
@@ -605,86 +725,134 @@ After any of these errors, the previous filter and all ride and cyclist data sta
 
 Deletes **every cyclist and every ride** from Cyclique.
 
-Format: `clear`
+<div markdown="block" class="alert alert-warning">
 
-* `clear` takes no parameters. If you type anything after it, for example `clear 3`, Cyclique rejects the command with `Invalid command format.` and the command usage, and nothing is deleted. To remove a single cyclist, use [`delete`](#deleting-a-person-delete) instead.
-* Cyclique does **not** ask you to confirm, and there is no undo. The change is saved automatically, so the data file is emptied as well. Keep a copy of your data file first if you might need the data again (see [Saving the data](#saving-the-data)).
+**Before you clear:** There is no confirmation and no undo. The deletion is saved automatically.
+[Back up your data](#backing-up-and-transferring-data) first if you might need it again.
+
+</div>
+
+**Format:** `clear`
+
+* `clear` takes no parameters. If you type anything after it, for example `clear 3`, Cyclique rejects the command with `Invalid command format.` and the command usage, and nothing is deleted. To remove a single cyclist, use [`delete`](#deleting-a-cyclist-delete) instead.
 * Ride IDs are never reused. After `clear`, the next ride you add receives the next unused ID instead of starting again from 1.
 * Any cyclist filter, including a [`ridelist`](#listing-cyclists-registered-for-a-ride-ridelist) selection, is reset.
-* On success, the result box shows `All cyclists and rides have been cleared. Ride IDs are never reused, so the next ride you add will be ride N.`, where `N` is the ID that the next new ride receives. For example, after rides 1 to 3 exist, it shows `ride 4`.
+* **Result:** The result box shows `All cyclists and rides have been cleared. Ride IDs are never reused, so the next ride you add will be ride N.`, where `N` is the ID that the next new ride receives. For example, after rides 1 to 3 exist, it shows `ride 4`.
 * If every ride ID has already been used (the counter has reached its limit), the result box instead shows `All cyclists and rides have been cleared. No more ride IDs are available. New rides cannot be added.`, because `rideadd` would be rejected with `No more ride IDs are available.`
 
 ### Exiting the program: `exit`
 
 Exits the program.
 
-Format: `exit`
+**Format:** `exit`
+
+## Keeping your data
 
 ### Saving the data
 
-Cyclique saves successful additions, edits and confirmed deletions automatically; you do not need to save manually. It also saves after other successfully executed commands, including commands that only change the display. A deletion request, an explicit cancellation reply (`n`/`no`) or an invalid confirmation reply does not write the data file. When another recognised command cancels a pending deletion, that command follows its normal saving behaviour. Rejected commands do not save changes.
+Cyclique saves data in **`data/addressbook.json`**, relative to the folder you launch it from.
+If you follow Quick start, this is inside your chosen home folder. Keep launching Cyclique from that
+folder to use the same records.
 
-An overlap warning likewise leaves the pending ride change unsaved. Confirmation applies and saves the whole
-change; cancellation preserves the saved data. A new recognised command cancels the request and follows its own
-normal saving behaviour.
+Successful changes are saved automatically. You do not need to run a save command.
+Searches change only what you see; your cyclists and rides remain stored.
+Rejected commands do not save changes. While a deletion request or overlap warning is waiting for
+confirmation, the proposed change is not applied or saved. Confirm it to apply it, or cancel to keep
+things as they were. Closing Cyclique discards a pending confirmation.
 
-### Repairing duplicate phone numbers in an existing book
+### Backing up and transferring data
 
-Saved books containing duplicate phone numbers or email addresses (ignoring email case)
-are rejected during loading. Cyclique stops startup before accepting commands and leaves the data file
-unchanged. A fatal error dialog identifies the file and explains recovery; dismissing it closes Cyclique.
-Back up `data/addressbook.json`.
-Correct conflicting phone numbers and email addresses in a copy
-of the file, then relaunch. Identical cyclist names are allowed when phone numbers and
-email addresses are unique.
+**Make a backup**
+
+1. Close Cyclique.
+1. Copy `data/addressbook.json` from your home folder to a safe location.
+1. Give the copy a date or another recognisable name so you can identify it later.
+
+**Restore a backup**
+
+1. Close Cyclique and keep a copy of the current data file.
+1. Replace `data/addressbook.json` with your backup.
+1. Launch Cyclique from the same home folder. The backed-up cyclists and rides appear.
+
+To move to another computer, install JDK 25 and copy `cyclique.jar` there first. Close Cyclique on
+both computers, then copy your data file into the new home folder's `data` directory, creating that
+directory if needed. Back up any existing file before replacing it. Launch Cyclique from the new
+home folder; your cyclists, rides and rosters load together.
+
+### Using older data files
+
+Older cyclist records without an emergency number load with **SOS: Not provided**.
+Use `edit PHONE sos/EMERGENCY_PHONE` to add one. Editing another field keeps the number absent.
+Data files from before rides were supported load with no rides.
 
 ### Editing the data file
 
-Cyclique stores data in `data/addressbook.json`, relative to the folder from which you launch the application. Following the Quick start steps places it in your chosen home folder. Older cyclist records without an `emergencyPhone` field load with **SOS: Not provided**; adding an emergency number through `edit` saves it for future sessions. Group rides are saved in the same file under `rides`, together with a `nextRideId` number that stops ride IDs from being reused; data files saved before rides existed still load, with no rides. Advanced users are welcome to update data directly by editing that data file.
+Use Cyclique's commands for everyday changes. If you need to edit the file directly, close Cyclique
+and back it up first. The file stores cyclist records, `rides` and a `nextRideId` counter that prevents
+ride IDs being reused. Direct edits must follow the supported format and field constraints.
 
-<div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-Close Cyclique and back up the file before editing it. If the file cannot be loaded, Cyclique stops startup before accepting commands and leaves the original data file unchanged. A fatal error dialog identifies the file and asks you to back up and correct it before restarting. Dismiss the dialog to close Cyclique; no command window opens. This includes legacy blank or over-ten-word Unicode-spaced notes; notes are not automatically discarded or truncated. Restore or repair your backup, then relaunch. Direct edits must follow the supported data format and field constraints.
-</div>
+If the file cannot be loaded, Cyclique shows a fatal error dialog identifying it, then closes when you
+dismiss the dialog. It does not open the command window or overwrite the original file.
 
-### Archiving data files `[coming in v2.0]`
+To recover:
 
-_Details coming soon ..._
+1. Back up the file named in the dialog, even if it appears damaged.
+1. Restore a known working backup, or correct the reported problem in a copy before replacing the file.
+1. Relaunch Cyclique from the same home folder.
 
---------------------------------------------------------------------------------------------------------------------
+For duplicate-record errors, check that each cyclist's own phone number is unique and that no two
+email addresses match when ignoring case. Identical names and shared SOS numbers are allowed.
+Blank notes or notes exceeding ten words also prevent loading, including notes with Unicode spaces;
+Cyclique does not discard or shorten them for you.
 
-## FAQ
+## Troubleshooting and FAQ
 
-**Q**: How do I transfer my data to another computer?<br>
-**A**: Install JDK 25 and Cyclique on the other computer. Close Cyclique on both computers, then copy `data/addressbook.json` from the original home folder into the new home folder's `data` directory, backing up any existing file first. Launch Cyclique from the new home folder to load the cyclists and rides.
+| Problem | What to do |
+| --- | --- |
+| `edit` or `delete` cannot find a cyclist | Enter `list`, then use the cyclist's complete **own phone number**, including `+`, country code and one space. Do not use the card index or SOS number. |
+| A search leaves a panel empty | Enter `list` for cyclists or `ridefind all` for rides. An empty result does not mean your records were deleted. |
+| A roster command cannot find a ride | Check the ID on the ride card. IDs are permanent and may have gaps; they are not list positions. |
+| A cyclist cannot join a ride | Check that they are saved, are not already registered, meet the minimum power and that the ride has a free place. See [roster errors](#adding-a-cyclist-to-a-ride-rideaddcyclist). |
+| An overlap warning is waiting for a reply | Check the listed rides and times. Enter `yes` to proceed or `no` to cancel. Travel time between rides is not checked. |
+| `yes` or `no` reports `Unknown command.` | There is no pending confirmation. Enter the original command again if you still want to make the change. |
+| A fatal error dialog appears at startup | Follow [Editing the data file](#editing-the-data-file) to back up and repair or restore the file identified in the dialog. |
+| The app opens with sample data instead of your records | Check that you launched it from the home folder containing your `data/addressbook.json`. See [Saving the data](#saving-the-data). |
+| The main window opens off-screen after disconnecting a monitor | Close Cyclique, then delete `preferences.json` from the folder you launch it from. Reopen Cyclique to reset the window position. |
+| The Help window stays minimised after `help` or **F1** | Restore the existing Help window manually. Cyclique does not open a second copy. |
 
---------------------------------------------------------------------------------------------------------------------
+**Can I undo a deletion?** There is no undo command. Cyclist deletion asks for confirmation;
+ride deletion, roster removal and `clear` take effect immediately. To recover deleted data,
+restore a backup made before the deletion.
 
-## Known issues
+**Can I transfer my data to another computer?** Yes. Follow
+[Backing up and transferring data](#backing-up-and-transferring-data).
 
-1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
-2. **If you minimise the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimised, and no new Help Window will appear. The remedy is to manually restore the minimised Help Window.
-
---------------------------------------------------------------------------------------------------------------------
+**Where can I report a problem or suggest an improvement?** Check the
+[Cyclique issue tracker](https://github.com/AY2627S1-CS2103T-W11-1/tp/issues).
+Include the command you entered, what you expected and what happened. Use fictional contact details
+and remove personal information from screenshots or data files before sharing them.
 
 ## Command summary
 
-For **Rideadd** and **Rideedit**, notes may optionally be quoted to preserve prefixes literally:
+Use a full command name **or** its alias, for example `ridefind all` or `rf all`.
+Do not type aliases in parentheses. For `rideadd` and `rideedit`, quote notes to preserve prefixes literally:
 `rideedit 1 notes/"Bring camera with aperture f/2"` (use the actual ride ID). Quotes are removed;
-this quoting syntax does not apply to **Ridefind**. See the [Ride Add rules](#adding-a-group-ride-rideadd).
+this quoting syntax does not apply to `ridefind`. See [Writing ride notes](#writing-ride-notes).
 
-Action | Format, Examples
+Task | Format and example
 --------|------------------
-**Add** | `add n/NAME p/PHONE sos/EMERGENCY_PHONE e/EMAIL f/FTP_LEVEL x/EXPERIENCE_LEVEL l/LOCATION [l/LOCATION]…` <br> e.g., `add n/John Doe p/+65 98765432 sos/+65 99999999 e/johnd@example.com f/300 x/Beginner l/any`
-**Clear** | `clear`
-**Delete** | `delete PHONE`, then `y`/`yes` to confirm or `n`/`no` to cancel (case-insensitive)<br> e.g., `delete +65 98765432`, then `yes`
-**Edit** | `edit PHONE [n/NAME] [p/PHONE] [sos/EMERGENCY_PHONE] [e/EMAIL] [f/FTP_LEVEL] [x/EXPERIENCE_LEVEL] [l/LOCATION]…`<br> e.g., `edit +65 98765432 sos/+65 98888888 f/350 x/Intermediate l/East Coast Park l/Punggol`
-**Find** | `find [n/NAME_KEYWORD]… [p/PHONE]… [sos/EMERGENCY_PHONE]… [f/MIN_FTP] [x/EXPERIENCE]… [l/LOCATION]…`<br> e.g., `find n/James n/Jake`, `find n/James p/+65 96320842`
-**List** | `list`
-**Help** | `help`<br> or press `F1`, or choose **Help → Full help...**
-**Rideadd** | `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MIN_POWER s/MAX_GROUP_SIZE [notes/NOTES]`<br> e.g., `rideadd n/Sunday Sunrise Ride from/25-10-2026 0630 to/25-10-2026 0930 l/East Coast Park d/45 f/180 s/3 notes/Bring lights and a spare tube`
-**Ridefind** | `ridefind (rf) all`<br>`ridefind (rf) [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`<br> e.g., `ridefind all`, `ridefind from/18-10-2026 to/18-10-2026 f/180`
-**Rideedit** | `rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`<br> e.g., `rideedit 1 l/Marina Bay notes/Meet at the waterfront`, `rideedit 1 notes/` (use the actual ride ID)
-**Ridedelete** | `ridedelete ID`<br> e.g., `ridedelete 1` (use the actual ride ID; no confirmation)
-**Add cyclist to ride** | `rideaddcyclist ID PHONE`<br> e.g., `rideaddcyclist 1 +65 91234567`
-**Remove cyclist from ride** | `ridedeletecyclist ID PHONE`<br> e.g., `ridedeletecyclist 1 +65 91234567`
-**List cyclists in ride** | `ridelist ID`<br> e.g., `ridelist 101`
+[Add cyclist](#adding-a-cyclist-add) | `add n/NAME p/PHONE sos/EMERGENCY_PHONE e/EMAIL f/FTP_LEVEL x/EXPERIENCE_LEVEL l/LOCATION [l/LOCATION]…` <br> e.g., `add n/John Doe p/+65 98765432 sos/+65 99999999 e/johnd@example.com f/300 x/Beginner l/any`
+[Clear all data](#clearing-all-entries-clear) | `clear`
+[Delete cyclist](#deleting-a-cyclist-delete) | `delete PHONE`, then `y`/`yes` to confirm or `n`/`no` to cancel (case-insensitive)<br> e.g., `delete +65 98765432`, then `yes`
+[Edit cyclist](#editing-a-cyclist-edit) | `edit PHONE [n/NAME] [p/PHONE] [sos/EMERGENCY_PHONE] [e/EMAIL] [f/FTP_LEVEL] [x/EXPERIENCE_LEVEL] [l/LOCATION]…`<br> e.g., `edit +65 98765432 sos/+65 98888888 f/350 x/Intermediate l/East Coast Park l/Punggol`
+[Find cyclists](#finding-cyclists-find) | `find [n/NAME_KEYWORD]… [p/PHONE]… [sos/EMERGENCY_PHONE]… [f/MIN_FTP] [x/EXPERIENCE]… [l/LOCATION]…`<br> e.g., `find n/Alex n/Bernice`, `find n/Alex p/+65 91234561`
+[List cyclists](#listing-all-cyclists-list) | `list`
+[Help](#viewing-help-help) | `help`<br> or press `F1`, or choose **Help → Full help...**
+[Exit](#exiting-the-program-exit) | `exit`
+[Add ride](#adding-a-group-ride-rideadd) | `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MIN_POWER s/MAX_GROUP_SIZE [notes/NOTES]`<br> e.g., `rideadd n/Sunday Sunrise Ride from/25-10-2026 0630 to/25-10-2026 0930 l/East Coast Park d/45 f/180 s/3 notes/Bring lights and a spare tube`
+[Find rides](#finding-group-rides-ridefind) | `ridefind all`<br>`ridefind [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`<br> e.g., `ridefind all`, `ridefind from/25-10-2026 to/25-10-2026 f/180`
+[Edit ride](#editing-a-group-ride-rideedit) | `rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`<br> e.g., `rideedit 1 l/Marina Bay notes/Meet at the waterfront`, `rideedit 1 notes/` (use the actual ride ID)
+[Delete ride](#deleting-a-group-ride-ridedelete) | `ridedelete ID`<br> e.g., `ridedelete 1` (use the actual ride ID; no confirmation)
+[Register cyclist](#adding-a-cyclist-to-a-ride-rideaddcyclist) | `rideaddcyclist ID PHONE`<br> e.g., `rideaddcyclist 1 +65 91234561`
+[Remove registration](#removing-a-cyclist-from-a-ride-ridedeletecyclist) | `ridedeletecyclist ID PHONE`<br> e.g., `ridedeletecyclist 1 +65 91234561`
+[View roster](#listing-cyclists-registered-for-a-ride-ridelist) | `ridelist ID`<br> e.g., `ridelist 1` (use the actual ride ID)

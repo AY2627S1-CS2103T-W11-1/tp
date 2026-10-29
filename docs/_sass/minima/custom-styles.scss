@@ -32,3 +32,95 @@ h2, h3, h4, h5, h6 {
   }
 }
 
+// Keep the guide readable without changing the other project pages.
+.user-guide {
+  h2 {
+    margin-top: 2.5rem;
+    padding-bottom: 0.35rem;
+    border-bottom: 1px solid #e8d8ca;
+  }
+
+  h3 {
+    margin-top: 2rem;
+  }
+
+  h2, h3, h4 {
+    scroll-margin-top: 1rem;
+  }
+
+  #markdown-toc {
+    margin: 0 0 2rem;
+    padding: 1rem 1rem 1rem 2.25rem;
+    border-left: 3px solid #e46c0a;
+    background: #faf7f3;
+
+    li {
+      margin-bottom: 0.3rem;
+    }
+
+    ul {
+      margin-top: 0.3rem;
+    }
+  }
+
+  table {
+    width: 100%;
+    table-layout: fixed;
+
+    th, td {
+      vertical-align: top;
+      overflow-wrap: anywhere;
+    }
+
+    th:first-child {
+      width: 27%;
+    }
+  }
+
+  code {
+    overflow-wrap: anywhere;
+  }
+
+  pre {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+
+    code {
+      white-space: inherit;
+    }
+  }
+
+  img {
+    box-sizing: border-box;
+    border: 1px solid #dedede;
+    border-radius: 3px;
+  }
+
+  p:has(> img) + p > em:only-child,
+  p:has(> a > img) + p > em:only-child {
+    display: block;
+    color: #595959;
+    font-size: 0.95em;
+  }
+
+  .alert {
+    margin-top: 1rem;
+
+    > :last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+@media print {
+  .user-guide {
+    h2, h3, h4 {
+      break-after: avoid;
+    }
+
+    img, tr, .alert {
+      break-inside: avoid;
+    }
+  }
+}
+
