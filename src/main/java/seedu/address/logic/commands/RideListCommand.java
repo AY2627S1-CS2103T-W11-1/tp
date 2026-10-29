@@ -25,7 +25,7 @@ public class RideListCommand extends Command {
     public static final String MESSAGE_SUCCESS =
             "Showing registered cyclists for ride %1$d in the left panel.";
     public static final String MESSAGE_EMPTY_ROSTER = "Ride %1$d has no registered cyclists.";
-    public static final String MESSAGE_RIDE_NOT_FOUND = "Ride with ID %1$d cannot be found.";
+    public static final String MESSAGE_RIDE_NOT_FOUND = RideLookup.MESSAGE_RIDE_NOT_FOUND;
     public static final String MESSAGE_ROSTER_MEMBER_NOT_FOUND =
             "Cannot list ride: a registered cyclist cannot be found.";
     public static final String MESSAGE_INVALID_ID = "Ride ID must be a positive integer.";
@@ -44,10 +44,7 @@ public class RideListCommand extends Command {
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
 
-        Ride ride = model.getAddressBook().getRideList().stream()
-                .filter(candidate -> candidate.getId() == targetId)
-                .findFirst()
-                .orElseThrow(() -> new CommandException(String.format(MESSAGE_RIDE_NOT_FOUND, targetId)));
+        Ride ride = RideLookup.getRide(model, targetId);
         for (Phone phone : ride.getRoster()) {
             boolean hasCyclist = model.getAddressBook().getPersonList().stream()
                     .anyMatch(person -> person.getPhone().equals(phone));
