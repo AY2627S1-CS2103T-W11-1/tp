@@ -144,12 +144,8 @@ public class ModelManager implements Model {
         if (currentPredicate == null) {
             return;
         }
-        if (!currentPredicate.test(editedRide)) {
-            updateFilteredRideList(PREDICATE_SHOW_ALL_RIDES);
-        } else {
-            filteredRides.setPredicate(null);
-            filteredRides.setPredicate(currentPredicate);
-        }
+        filteredRides.setPredicate(null);
+        filteredRides.setPredicate(currentPredicate);
     }
 
     //=========== Filtered Person List Accessors =============================================================

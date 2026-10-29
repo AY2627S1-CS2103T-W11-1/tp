@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.collections.ListChangeListener;
 import javafx.geometry.Bounds;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.control.Button;
@@ -435,16 +436,22 @@ public class MainAppNotesLoadingTest {
                     }
                     return null;
                 });
-                // Wait behind queued sizing, then inspect after GTK has applied native geometry in a frame.
-                Platform.runLater(() -> Platform.runLater(() -> new AnimationTimer() {
-                    @Override
-                    public void handle(long now) {
-                        stop();
-                        dismissDialog.run();
+                // Observe an actual shown window, then wait behind the dialog's queued native sizing.
+                ListChangeListener<Window> shownListener = change -> {
+                    while (change.next()) {
+                        if (change.wasAdded()) {
+                            Platform.runLater(() -> Platform.runLater(dismissDialog));
+                        }
                     }
-                }.start()));
-                app.start(primaryStage);
-                dismissDialog.get(1, TimeUnit.SECONDS);
+                };
+                Window.getWindows().addListener(shownListener);
+                try {
+                    app.start(primaryStage);
+                    assertTrue(dismissDialog.isDone(), "The fatal dialog must be inspected before startup returns.");
+                    dismissDialog.get();
+                } finally {
+                    Window.getWindows().removeListener(shownListener);
+                }
                 assertTrue(app.exitRequested);
                 assertFalse(primaryStage.isShowing());
                 assertNull(primaryStage.getScene());

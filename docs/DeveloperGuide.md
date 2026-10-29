@@ -1576,6 +1576,12 @@ The Full help window reuses `RideRosterCommand#MESSAGE_USAGE`.
 
 Prepare an [empty test book](#preparing-an-empty-test-book) in a disposable folder.
 
+Also check hidden ride updates: with two rides and an eligible cyclist, use `ridefind` to show
+only the other ride. Add and remove the cyclist from the hidden ride by persistent ID, repeating
+with `rac` and `rdc`. The Rides panel must retain the search, the cyclist filter must remain active,
+and membership changes must persist after restart. For an overlapping addition, check the same
+filters before and after `yes`. A `rideedit` that leaves its target hidden must still reveal it.
+
 1. Enter
    `add n/Roster Rider p/+65 91234567 sos/+65 99999999 e/roster@example.com f/180 x/Beginner l/any`.
    Then enter `rideadd n/Roster Check from/18-10-2026 0630 to/18-10-2026 0930 l/East Coast d/45 f/180 s/1`.
