@@ -278,6 +278,13 @@ table {
   body {
     display: block;
   }
+  table {
+    display: table;
+    overflow: visible;
+  }
+  tr {
+    break-inside: avoid;
+  }
   /**
   * Replaces the top navigation menu with the project name when printing
   */
