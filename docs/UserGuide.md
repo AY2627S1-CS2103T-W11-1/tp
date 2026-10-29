@@ -141,10 +141,16 @@ add n/Alex Tan p/+65 91234561 sos/+65 90000001 e/alex@example.com f/280 x/Advanc
 1. Enter `ridelist 3`, using the same ride ID. Alex's card appears in the left panel, so you can check
    his contact details alongside the ride. If you cancelled registration, the roster remains empty.
 
-   <a href="images/ug-first-ride-roster.png"><img src="images/ug-first-ride-roster.png" alt="Alex Tan displayed on the left after ridelist 3, with his phone number on Saturday Coastal Ride 3 and the two original rides visible on the right" /></a>
+   **Cyclist details in the left panel**
 
-   *After `ridelist 3`, Alex's details appear on the left and his phone number appears on Ride 3's roster.
-   The two sample rides remain visible with empty rosters.*
+   <a class="roster-detail roster-detail-contact" href="images/ug-first-ride-roster.png"><img src="images/ug-first-ride-roster.png" alt="Alex Tan's contact details, including his own phone number +65 91234561" /></a>
+
+   **The same phone number on Ride 3's roster**
+
+   <a class="roster-detail roster-detail-ride" href="images/ug-first-ride-roster.png"><img src="images/ug-first-ride-roster.png" alt="Saturday Coastal Ride 3 with Alex's phone number +65 91234561 on its roster" /></a>
+
+   *These close-ups show two parts of the same screen after `ridelist 3`.
+   [View the full window](images/ug-first-ride-roster.png) to see both panels and the two original sample rides.*
 
 1. Enter `list` to show all cyclists again. The ride and its roster stay saved.
 
@@ -400,8 +406,9 @@ Alternatively, enter `delete +65 98765432`, then `list` before confirming. The r
 
 Both `edit` and `delete` report the same error when the target is absent from the displayed list:
 `Cyclist with phone number PHONE cannot be found in the displayed list. Use list to show all cyclists.`
-Here, `PHONE` is replaced with the number entered. Invalid or missing phone arguments show the
-command usage without changing records.
+Here, `PHONE` is the number you entered. If you leave out the phone number, Cyclique shows you
+how to write the command. If the number is in the wrong format, Cyclique explains what to correct.
+For example, use `delete +65 98765432`, rather than `delete 1`. Neither mistake changes your records.
 
 ### Adding a group ride: `rideadd`
 

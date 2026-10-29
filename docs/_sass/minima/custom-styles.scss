@@ -96,6 +96,47 @@ h2, h3, h4, h5, h6 {
     border-radius: 3px;
   }
 
+  // Show readable details from the unchanged 3456 x 2234 roster screenshot.
+  // Each crop remains a link to the complete window for context.
+  .roster-detail {
+    display: block;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 1rem;
+    border: 1px solid #dedede;
+    border-radius: 3px;
+
+    img {
+      position: absolute;
+      max-width: none;
+      height: auto;
+      border: 0;
+      border-radius: 0;
+    }
+  }
+
+  // Source rectangle: x=20, y=480, width=1100, height=320.
+  .roster-detail-contact {
+    aspect-ratio: 1100 / 320;
+
+    img {
+      width: 314.1818%;
+      left: -1.8182%;
+      top: -150%;
+    }
+  }
+
+  // Source rectangle: x=2420, y=985, width=1010, height=410.
+  .roster-detail-ride {
+    aspect-ratio: 1010 / 410;
+
+    img {
+      width: 342.1782%;
+      left: -239.604%;
+      top: -240.2439%;
+    }
+  }
+
   p:has(> img) + p > em:only-child,
   p:has(> a > img) + p > em:only-child {
     display: block;
@@ -118,7 +159,7 @@ h2, h3, h4, h5, h6 {
       break-after: avoid;
     }
 
-    img, tr, .alert {
+    img, tr, .alert, .roster-detail {
       break-inside: avoid;
     }
   }
