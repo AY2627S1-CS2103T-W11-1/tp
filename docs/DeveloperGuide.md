@@ -740,7 +740,8 @@ The status column distinguishes current requirements from future work. Current c
 
 **Guarantees**
 
-* On successful completion, only the specified fields of the selected cyclist are updated, and the updated record is displayed.
+* On successful completion, only the specified fields of the selected cyclist are updated.
+* The current cyclist filter remains active and is re-evaluated. The updated record is displayed only if it still matches that filter.
 * Unspecified fields and other cyclist records remain unchanged.
 * Requests referring to a nonexistent cyclist, containing invalid details, or creating a phone match or case-insensitive email match with another cyclist do not change the directory. An identical name alone is allowed.
 
@@ -749,7 +750,7 @@ The status column distinguishes current requirements from future work. Current c
 1.  User <u>views the cyclist list (UC02).</u>
 2.  User requests to edit a specified cyclist and provides the revised details.
 3.  Cyclique updates the specified details of the cyclist.
-4.  Cyclique displays the updated cyclist information.
+4.  Cyclique reports success and refreshes the displayed cyclist list while retaining the current filter.
 
     Use case ends.
 
@@ -1102,7 +1103,8 @@ Use John and Alice from the previous section.
    displayed list.
 1. Enter `find n/john`, then `edit +65 91234567 n/Alice Updated`.
    Expected: The edit is rejected because Alice is outside the displayed list.
-1. Enter `edit +65 96742165 n/John Updated`. Expected: John's name changes and both contacts appear.
+1. Enter `edit +65 96742165 n/John Updated`. Expected: John's name changes and only John remains displayed;
+   the `john` name filter stays active and Alice remains hidden.
 1. Enter `list`. Expected: All stored contacts appear.
 
 ### Deletion confirmation regression
@@ -1182,8 +1184,9 @@ Use a disposable test book. Check both cyclist names and card indexes after ever
    Expected: All contacts appear. Bernice is followed by BERNICE, in their stored order.
 1. Enter `find n/bernice`. Expected: `1. Bernice` (`+65 93333333`),
    `2. BERNICE` (`+65 95555555`). Enter `edit +65 93333333 n/bernice`.
-   Expected: All contacts appear, with bernice still before BERNICE. Enter `list`;
-   the relative order is retained. Identical names are allowed with unique phone numbers and emails.
+   Expected: Only bernice and BERNICE remain displayed, in that order; the `bernice` name filter stays active.
+   Enter `list`. Expected: All five contacts appear, with bernice still before BERNICE.
+   Identical names are allowed with unique phone numbers and emails.
 1. Enter `exit`, then relaunch. Expected: The initial display is alphabetical and
    the two case-equivalent names retain their relative order; indexes run from 1 to 5.
 1. Enter `find n/bernice`, then `delete +65 94444444`.
