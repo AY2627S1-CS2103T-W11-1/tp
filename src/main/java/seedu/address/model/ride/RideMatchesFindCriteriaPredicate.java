@@ -32,32 +32,57 @@ public class RideMatchesFindCriteriaPredicate implements Predicate<Ride> {
     public RideMatchesFindCriteriaPredicate(Optional<Name> name, Optional<RideDateTime> from,
             Optional<RideDateTime> to, Optional<Location> location, Optional<Distance> distance,
             Optional<MinimumPower> minimumPower, Optional<GroupSize> maxGroupSize, Optional<Notes> notes) {
-        this.name = name;
-        this.from = from;
-        this.to = to;
-        this.location = location;
-        this.distance = distance;
-        this.minimumPower = minimumPower;
-        this.maxGroupSize = maxGroupSize;
-        this.notes = notes;
+        this.name = requireNonNull(name);
+        this.from = requireNonNull(from);
+        this.to = requireNonNull(to);
+        this.location = requireNonNull(location);
+        this.distance = requireNonNull(distance);
+        this.minimumPower = requireNonNull(minimumPower);
+        this.maxGroupSize = requireNonNull(maxGroupSize);
+        this.notes = requireNonNull(notes);
     }
 
     @Override
     public boolean test(Ride ride) {
         requireNonNull(ride);
         assert ride.getName() != null : "Ride name must be present when matching criteria.";
-        boolean matchesFrom = from.isEmpty() || !ride.getFrom().isBefore(from.get());
-        boolean matchesTo = to.isEmpty() || !to.get().isBefore(ride.getTo());
-        return matchesFrom && matchesTo
-                && name.map(value -> ride.getName().fullName.equalsIgnoreCase(value.fullName)).orElse(true)
-                && location.map(value -> ride.getLocation().equals(value)).orElse(true)
-                && distance.map(value -> ride.getDistance().equals(value)).orElse(true)
-                && minimumPower.map(value -> Integer.parseInt(ride.getMinimumPower().value)
-                        >= Integer.parseInt(value.value)).orElse(true)
-                && maxGroupSize.map(value -> ride.getMaxGroupSize().equals(value)).orElse(true)
-                && notes.map(value -> ride.getNotes().map(rideNotes ->
-                        containsWholeWordsIgnoreCase(rideNotes.value, value.value)).orElse(false))
-                        .orElse(true);
+        return matchesFrom(ride) && matchesTo(ride) && matchesName(ride) && matchesLocation(ride)
+                && matchesDistance(ride) && matchesMinimumPower(ride) && matchesGroupSize(ride)
+                && matchesNotes(ride);
+    }
+
+    private boolean matchesFrom(Ride ride) {
+        return from.isEmpty() || !ride.getFrom().isBefore(from.get());
+    }
+
+    private boolean matchesTo(Ride ride) {
+        return to.isEmpty() || !to.get().isBefore(ride.getTo());
+    }
+
+    private boolean matchesName(Ride ride) {
+        return name.map(value -> ride.getName().fullName.equalsIgnoreCase(value.fullName)).orElse(true);
+    }
+
+    private boolean matchesLocation(Ride ride) {
+        return location.map(value -> ride.getLocation().equals(value)).orElse(true);
+    }
+
+    private boolean matchesDistance(Ride ride) {
+        return distance.map(value -> ride.getDistance().equals(value)).orElse(true);
+    }
+
+    private boolean matchesMinimumPower(Ride ride) {
+        return minimumPower.map(value -> Integer.parseInt(ride.getMinimumPower().value)
+                >= Integer.parseInt(value.value)).orElse(true);
+    }
+
+    private boolean matchesGroupSize(Ride ride) {
+        return maxGroupSize.map(value -> ride.getMaxGroupSize().equals(value)).orElse(true);
+    }
+
+    private boolean matchesNotes(Ride ride) {
+        return notes.map(value -> ride.getNotes().map(rideNotes ->
+                containsWholeWordsIgnoreCase(rideNotes.value, value.value)).orElse(false)).orElse(true);
     }
 
     /** Returns whether the text contains the supplied value as a complete word or phrase. */
