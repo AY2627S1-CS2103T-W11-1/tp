@@ -1,6 +1,7 @@
 package seedu.address.model.ride;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Optional;
@@ -12,6 +13,13 @@ import seedu.address.model.person.Name;
 import seedu.address.testutil.RideBuilder;
 
 public class RideMatchesFindCriteriaPredicateTest {
+
+    @Test
+    public void constructor_nullCriterion_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new RideMatchesFindCriteriaPredicate(
+                null, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.empty(), Optional.empty()));
+    }
 
     @Test
     public void test_noCriteria_matchesRide() {
