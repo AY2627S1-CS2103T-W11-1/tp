@@ -78,7 +78,8 @@ public class RideFindCommandParserTest {
 
     @Test
     public void parse_numericBoundaryValues_success() {
-        // Boundary values: distance 0.01 km, power 1/600 W, and group size 1.
+        // Valid boundaries: distance is at its minimum (0.01 km), power is at its minimum and maximum
+        // (1 W and 600 W), and group size is at its minimum (1).
         assertDoesNotThrow(() -> parser.parse("d/0.01"));
         assertDoesNotThrow(() -> parser.parse("f/1"));
         assertDoesNotThrow(() -> parser.parse("f/600"));
@@ -87,7 +88,8 @@ public class RideFindCommandParserTest {
 
     @Test
     public void parse_numericValuesOutsideConstraints_failure() {
-        // Boundary values: distance 0, power 0/601 W, and group size 0 fall just outside their valid ranges.
+        // Invalid values just outside the boundaries: distance 0, power below 1 W or above 600 W,
+        // and group size below 1.
         assertThrows(ParseException.class, () -> parser.parse("d/0"));
         assertThrows(ParseException.class, () -> parser.parse("f/0"));
         assertThrows(ParseException.class, () -> parser.parse("f/601"));

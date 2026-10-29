@@ -24,17 +24,11 @@ public class RideMatchesFindCriteriaPredicateTest {
         // Boundary values: exact ride start 0630/end 0930 are included;
         // moving the start to 0631 or the end to 0929 excludes the ride.
         Ride ride = new RideBuilder().withFrom("18-10-2026 0630").withTo("18-10-2026 0930").build();
-        RideMatchesFindCriteriaPredicate predicate = new RideMatchesFindCriteriaPredicate(Optional.empty(),
-                Optional.of(new RideDateTime("18-10-2026 0630")), Optional.of(new RideDateTime("18-10-2026 0930")),
-                Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+        RideMatchesFindCriteriaPredicate predicate = predicateWithBounds("0630", "0930");
 
         assertTrue(predicate.test(ride));
-        assertFalse(new RideMatchesFindCriteriaPredicate(Optional.empty(),
-                Optional.of(new RideDateTime("18-10-2026 0631")), Optional.empty(), Optional.empty(), Optional.empty(),
-                Optional.empty(), Optional.empty(), Optional.empty()).test(ride));
-        assertFalse(new RideMatchesFindCriteriaPredicate(Optional.empty(), Optional.empty(),
-                Optional.of(new RideDateTime("18-10-2026 0929")), Optional.empty(), Optional.empty(), Optional.empty(),
-                Optional.empty(), Optional.empty()).test(ride));
+        assertFalse(predicateWithBounds("0631", null).test(ride));
+        assertFalse(predicateWithBounds(null, "0929").test(ride));
     }
 
     @Test
@@ -83,7 +77,8 @@ public class RideMatchesFindCriteriaPredicateTest {
 
     @Test
     public void test_minimumPower_isAtLeastTheSpecifiedValueAndGroupSizeIsExact() {
-        // EP: minimum power is inclusive, while maximum group size requires an exact value.
+        // EP: minimum power accepts values at or below the requested threshold;
+        // a different maximum group size is rejected.
         Ride ride = new RideBuilder().withMinimumPower("600").withMaxGroupSize("1").build();
 
         // Boundary value: stored minimum power equals the requested threshold at 600 W.
@@ -123,18 +118,17 @@ public class RideMatchesFindCriteriaPredicateTest {
         // EP: each optional time boundary works independently of the other boundary.
         Ride ride = new RideBuilder().withFrom("18-10-2026 0630").withTo("18-10-2026 0930").build();
 
-        assertTrue(new RideMatchesFindCriteriaPredicate(Optional.empty(),
-                Optional.of(new RideDateTime("18-10-2026 0630")), Optional.empty(), Optional.empty(), Optional.empty(),
-                Optional.empty(), Optional.empty(), Optional.empty()).test(ride));
-        assertTrue(new RideMatchesFindCriteriaPredicate(Optional.empty(), Optional.empty(),
-                Optional.of(new RideDateTime("18-10-2026 0930")), Optional.empty(), Optional.empty(), Optional.empty(),
-                Optional.empty(), Optional.empty()).test(ride));
-        assertFalse(new RideMatchesFindCriteriaPredicate(Optional.empty(),
-                Optional.of(new RideDateTime("18-10-2026 0631")), Optional.empty(), Optional.empty(), Optional.empty(),
-                Optional.empty(), Optional.empty(), Optional.empty()).test(ride));
-        assertFalse(new RideMatchesFindCriteriaPredicate(Optional.empty(), Optional.empty(),
-                Optional.of(new RideDateTime("18-10-2026 0929")), Optional.empty(), Optional.empty(), Optional.empty(),
-                Optional.empty(), Optional.empty()).test(ride));
+        assertTrue(predicateWithBounds("0630", null).test(ride));
+        assertTrue(predicateWithBounds(null, "0930").test(ride));
+        assertFalse(predicateWithBounds("0631", null).test(ride));
+        assertFalse(predicateWithBounds(null, "0929").test(ride));
+    }
+
+    private RideMatchesFindCriteriaPredicate predicateWithBounds(String from, String to) {
+        return new RideMatchesFindCriteriaPredicate(Optional.empty(),
+                Optional.ofNullable(from).map(value -> new RideDateTime("18-10-2026 " + value)),
+                Optional.ofNullable(to).map(value -> new RideDateTime("18-10-2026 " + value)), Optional.empty(),
+                Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
     }
 
     private RideMatchesFindCriteriaPredicate predicate() {

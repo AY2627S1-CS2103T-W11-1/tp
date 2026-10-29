@@ -24,7 +24,6 @@ public class LocationTest {
     @Test
     public void isValidLocation_invalidValues_returnsFalse() {
         // EP: locations are invalid when blank or containing unsupported characters.
-        // Boundary value: zero characters after trimming is invalid.
         assertFalse(Location.isValidLocation(""));
         assertFalse(Location.isValidLocation("   "));
         assertFalse(Location.isValidLocation("East@Park"));
