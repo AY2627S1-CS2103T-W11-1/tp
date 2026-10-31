@@ -57,7 +57,7 @@ Unicode digits, cyclist/ride add and edit commands, JSON readback and invalid-na
 They also cover internal hyphens/apostrophes and reject misplaced punctuation.
 `StringUtilTest`, `PersonMatchesFindCriteriaPredicateTest`, `RideMatchesFindCriteriaPredicateTest` and
 `UnicodeNameIntegrationTest` check that `find` and `ridefind` treat hyphens and apostrophes as word separators in
-names and locations, and that a criterion containing no word matches nothing.
+names and locations, and that a criterion containing no word never matches a stored value.
 Run **Unicode name regression** and **Hyphenated and apostrophised name regression** in the
 Developer Guide after changing name validation or name and location matching.
 

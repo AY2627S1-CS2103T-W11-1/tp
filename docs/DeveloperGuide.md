@@ -312,7 +312,9 @@ when other words appear between them. A multi-word location criterion follows th
 `StringUtil#containsWordsInOrderIgnoreCase` treats whitespace, hyphens and apostrophes as word separators in
 both the stored value and the criterion, so `find n/Ling` and `find n/Wei-Ling` match `Tan Wei-Ling`, and
 `find n/Connor` matches `John O'Connor`, while the fragment `Lin` does not. A criterion containing no word
-(for example `-`) matches nothing. For example,
+(for example `-`) never matches a stored value. The commands report this differently: `find n/-` and
+`ridefind n/-` fail `Name` validation, `ridefind l/-` lists no rides, and `find l/-` lists only the cyclists whose
+preferred location is `any`, because `any` matches every location criterion except the literal `any`. For example,
 `find l/Punggol x/Intermediate f/250` finds intermediate cyclists who prefer Punggol and have
 an FTP of at least 250 watts. Preferred locations match case-insensitively against any
 supplied `l/` value. A cyclist whose stored preferred location is `any` matches every
@@ -1316,6 +1318,7 @@ Use an empty disposable test book and unique phone numbers and emails.
 1. Enter `rideadd n/John's Coast-to-Coast from/29-10-2026 0630 to/29-10-2026 0930 l/Mandai d/40 f/150 s/5`.
    Expected: The ride name is displayed exactly. Edit it with `rideedit ID n/Wei-Ling's Ride`.
    Expected: The name changes successfully. `rideedit ID n/Ride--Name` is rejected without changes.
+1. Enter `find n/-` and `ridefind n/-`. Expected: Each reports name constraints, because `-` is not a valid name.
 1. Enter `ridefind n/Wei-Ling's Ride`. Expected: Only the edited ride is listed.
    Enter `ridefind n/Wei-Ling`, then `ridefind n/Wei`. Expected: Each lists only the edited ride.
    Enter `ridefind n/WeiLing`. Expected: No ride is listed, because the separator is part of the spelling.
@@ -1325,6 +1328,18 @@ Use an empty disposable test book and unique phone numbers and emails.
    * `rideadd n/-Night Ride from/29-10-2026 0630 to/29-10-2026 0930 l/Mandai d/40 f/150 s/5`
    * `rideadd n/Ride.2 from/29-10-2026 0630 to/29-10-2026 0930 l/Mandai d/40 f/150 s/5`
    * `rideadd n/Ride/2 from/29-10-2026 0630 to/29-10-2026 0930 l/Mandai d/40 f/150 s/5`
+1. Enter `add n/Pasir Rider p/+65 93333333 sos/+65 77777777 e/pasir@example.com f/250 x/Beginner l/Pasir-Ris Park`
+   and `rideadd n/Park Ride from/29-10-2026 0630 to/29-10-2026 0930 l/Pasir-Ris Park d/40 f/150 s/5`.
+   Expected: The cyclist and ride are added with the location `Pasir-Ris Park`. Cyclists with the location `any` match
+   every location search, so the next checks also list Tan Wei-Ling and John O'Connor; look for Pasir Rider.
+1. Enter `find l/Ris`, then `find l/Pasir-Ris`, then `find l/Ris Park`.
+   Expected: Each lists Pasir Rider, because hyphens separate the words of the location. Enter `find l/Ri`.
+   Expected: Pasir Rider is not listed, because `Ri` is only part of a word. Enter `list`.
+1. Enter `ridefind l/Ris`, then `ridefind l/Pasir-Ris`, then `ridefind l/Pasir Park`.
+   Expected: Each lists only Park Ride. Enter `ridefind l/Ri`. Expected: No ride is listed. Enter `ridefind all`.
+1. Enter `find l/-`. Expected: Only Tan Wei-Ling and John O'Connor are listed, because `-` contains no word and only
+   cyclists with the location `any` match it. Enter `ridefind l/-`. Expected: No ride is listed. Enter `list`
+   and `ridefind all`.
 1. Exit and relaunch. Expected: Both cyclist names and `Wei-Ling's Ride` retain their spelling.
 
 ### Email local-part regression
@@ -1725,7 +1740,7 @@ Use disposable cyclist and ride data. Record the original details before applyin
 1. Enter `ridefind l/East Park`. Expected: `East Coast Park` appears because intervening complete words are allowed.
 1. Enter `ridefind n/Ride Sunday`. Expected: no ride appears because the requested words are in the wrong order.
 1. Run the **Hyphenated and apostrophised name regression** to check that `find` and `ridefind` match the parts of
-   hyphenated and apostrophised names and locations.
+   hyphenated and apostrophised names and locations (including the `Pasir-Ris Park` location searches).
 1. Enter `ridefind notes/lights`. Expected: rides whose notes contain `lights` appear, including notes with additional words and regardless of case.
 1. Enter `ridefind from/18-10-2026 to/18-10-2026`. Expected: rides starting and ending within the inclusive date
    bounds appear. Date-only `from/` and `to/` use `0000` and `2359` respectively.

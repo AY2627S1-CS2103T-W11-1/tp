@@ -5,8 +5,9 @@
 Treat hyphens and apostrophes as word separators when `find` and `ridefind` match names and locations, so
 `find n/Ling` matches `Tan Wei-Ling` and `ridefind n/Wei-Ling` matches `Wei-Ling's Ride`. Matching remains
 case-insensitive, whole-word and in order, so `Lin` and `WeiLing` still do not match. A criterion with no
-word, such as `-`, matches nothing. The change adds **21 lines** in `src/main` (all in `StringUtil`),
-including comments; deletions are not counted. This is the contribution of this fix, not a measurement of
+word, such as `-`, never matches a stored value: `find n/-` and `ridefind n/-` fail name validation, `ridefind l/-`
+lists no rides, and `find l/-` lists only cyclists whose preferred location is `any`. The change adds
+**21 lines** in `src/main` (all in `StringUtil`), including comments; deletions are not counted. This is the contribution of this fix, not a measurement of
 cumulative dashboard attribution.
 
 Gradle could not start in the sandbox used for this fix (`Unable to establish loopback connection`), so
