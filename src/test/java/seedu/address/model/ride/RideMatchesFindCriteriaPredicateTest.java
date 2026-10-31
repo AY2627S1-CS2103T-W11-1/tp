@@ -141,6 +141,33 @@ public class RideMatchesFindCriteriaPredicateTest {
     }
 
     @Test
+    public void test_name_matchesPartsOfHyphenatedAndApostrophisedNames() {
+        // EP: a name without punctuation, a full punctuated word and any part of it all match.
+        Ride ride = new RideBuilder().withName("Wei-Ling's Ride").build();
+
+        for (String name : new String[] {"Wei-Ling", "Wei", "ling", "Wei-Ling's Ride", "Ling Ride"}) {
+            assertTrue(predicateWithName(name).test(ride), name);
+        }
+        // EP: reversed order, partial words and words without their separator do not match.
+        for (String name : new String[] {"Ride Wei", "Lin", "WeiLing", "Wei-Lings"}) {
+            assertFalse(predicateWithName(name).test(ride), name);
+        }
+    }
+
+    @Test
+    public void test_location_matchesPartsOfHyphenatedAndApostrophisedLocations() {
+        // EP: locations follow the same separator rule as names.
+        Ride ride = new RideBuilder().withLocation("Pasir-Ris Park").build();
+
+        for (String location : new String[] {"Pasir-Ris", "Pasir", "Ris Park", "pasir-ris park"}) {
+            assertTrue(predicateWithLocation(location).test(ride), location);
+        }
+        for (String location : new String[] {"Park Ris", "Pasi", "PasirRis"}) {
+            assertFalse(predicateWithLocation(location).test(ride), location);
+        }
+    }
+
+    @Test
     public void test_fromOnlyAndToOnly_applyOneSidedBounds() {
         // EP: each optional time boundary works independently of the other boundary.
         Ride ride = new RideBuilder().withFrom("18-10-2026 0630").withTo("18-10-2026 0930").build();
