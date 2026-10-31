@@ -19,7 +19,9 @@ import javafx.application.Platform;
  */
 public class JavaFxToolkit {
 
-    private static final int TIMEOUT_SECONDS = 5;
+    // Generous, because a hosted CI runner (notably the Intel macOS VM) can take well over 5 seconds
+    // to start the toolkit or to run its first JavaFX task.
+    private static final int TIMEOUT_SECONDS = 30;
 
     private static boolean started;
 
