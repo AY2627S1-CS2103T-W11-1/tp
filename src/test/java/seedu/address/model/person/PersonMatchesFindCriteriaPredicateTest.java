@@ -56,7 +56,7 @@ public class PersonMatchesFindCriteriaPredicateTest {
 
     @Test
     public void test_nameKeywords_preserveUnicodeCaseInsensitiveMatching() {
-        // Regression: equalsIgnoreCase matches Turkish capital I with dot as the old find behavior did.
+        // Regression: find should match "ismail" with the name "İsmail Yilmaz".
         Person person = new PersonBuilder().withName("İsmail Yilmaz").build();
         assertTrue(new PersonMatchesFindCriteriaPredicate(List.of("ismail"), List.of()).test(person));
     }
