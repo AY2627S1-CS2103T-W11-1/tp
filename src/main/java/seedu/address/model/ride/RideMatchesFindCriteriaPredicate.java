@@ -61,7 +61,8 @@ public class RideMatchesFindCriteriaPredicate implements Predicate<Ride> {
     }
 
     private boolean matchesName(Ride ride) {
-        return name.map(value -> ride.getName().fullName.equalsIgnoreCase(value.fullName)).orElse(true);
+        return name.map(value -> StringUtil.containsWordsInOrderIgnoreCase(ride.getName().fullName,
+                value.fullName)).orElse(true);
     }
 
     private boolean matchesLocation(Ride ride) {

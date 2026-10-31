@@ -116,12 +116,15 @@ public class RideMatchesFindCriteriaPredicateTest {
     }
 
     @Test
-    public void test_name_isCaseInsensitive() {
-        // EP: name matching ignores case but rejects a different name.
+    public void test_name_isCaseInsensitiveAndSupportsOrderedWholeWordSearches() {
+        // EP: name matching is case-insensitive and supports ordered whole-word searches.
         Ride ride = new RideBuilder().withName("Sunday Sunrise Ride").build();
 
-        assertTrue(predicateWithName("sunday sunrise ride").test(ride));
-        assertFalse(predicateWithName("Sunday Sunset Ride").test(ride));
+        assertTrue(predicateWithName("sunday").test(ride));
+        assertTrue(predicateWithName("Sunrise Ride").test(ride));
+        assertTrue(predicateWithName("sunday sunrise").test(ride));
+        assertFalse(predicateWithName("ride sunday").test(ride));
+        assertFalse(predicateWithName("Sunday Sunset").test(ride));
     }
 
     @Test

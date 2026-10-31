@@ -513,10 +513,11 @@ To list every ride, use `ridefind all`.
 At least one criterion is required unless the special `all` argument is used. Different fields use AND matching, so a ride must satisfy every field supplied. `ridefind all` clears the current ride filter and displays every saved ride in the Rides panel.
 The fields are matched as follows:
 
-* `n/NAME` matches the complete ride name, ignoring case.
+* `n/NAME` matches complete words in the ride name in the supplied order, ignoring case. For example,
+  `ridefind n/Sunday` matches `Sunday Sunrise Ride`, but `ridefind n/Ride Sunday` does not.
 * `from/` matches rides starting at or after the supplied date and time.
 * `to/` matches rides ending at or before the supplied date and time.
-* `l/LOCATION` matches the ride location, ignoring case.
+* `l/LOCATION` matches complete words in the ride location in the supplied order, ignoring case.
 * `d/DISTANCE` and `s/MAX_GROUP_SIZE` use exact numeric matching.
 * `f/MIN_POWER` matches rides whose minimum power is greater than or equal to the supplied value.
 * `notes/NOTES` matches complete words or phrases in the ride's notes, ignoring case. For example,
