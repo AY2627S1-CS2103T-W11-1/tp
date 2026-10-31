@@ -1,5 +1,6 @@
 package seedu.address.model.person;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -20,6 +21,50 @@ public class PhoneTest {
         }
         assertFalse(Phone.isValidPhone("+ 123"));
         assertFalse(Phone.isValidPhone("+1234 123"));
+    }
+
+    @Test
+    public void isValidPhone_leadingZeros_requireNonZeroDigitsInCountryCodeAndNumber() {
+        // EP: leading zeros in the country code, the number or both are accepted when a non-zero digit follows.
+        assertTrue(Phone.isValidPhone("+065 91234561"));
+        assertTrue(Phone.isValidPhone("+65 091234561"));
+        assertTrue(Phone.isValidPhone("+065 0091234561"));
+        // Boundary values: the number needs 3 digits after its leading zeros (2 is invalid, 3 is valid).
+        assertFalse(Phone.isValidPhone("+65 0012"));
+        assertTrue(Phone.isValidPhone("+65 0123"));
+        // EP: an all-zero country code or number is invalid, as in the reported "+0 000".
+        assertFalse(Phone.isValidPhone("+0 000"));
+        assertFalse(Phone.isValidPhone("+00 91234561"));
+        assertFalse(Phone.isValidPhone("+65 000"));
+        assertFalse(Phone.isValidPhone("+65 0000000"));
+        // Boundary value: leading zeros still count towards the 3-digit country code limit.
+        assertFalse(Phone.isValidPhone("+0065 91234561"));
+    }
+
+    @Test
+    public void constructor_leadingZeros_removedFromStoredValue() {
+        // EP: zeros before the first non-zero digit of the country code and of the number are removed.
+        assertEquals("+65 91234561", new Phone("+065 91234561").value);
+        assertEquals("+65 91234561", new Phone("+65 091234561").value);
+        assertEquals("+65 91234561", new Phone("+065 0091234561").value);
+        assertEquals("+65 123", new Phone("+65 0123").value);
+        // EP: zeros after the first non-zero digit are part of the number and are kept.
+        assertEquals("+105 900100", new Phone("+105 0900100").value);
+        assertEquals("+65 91234561", new Phone("+65 91234561").value);
+    }
+
+    @Test
+    public void equals_differOnlyByLeadingZeros_returnsTrue() {
+        Phone phone = new Phone("+65 91234561");
+
+        // Regression for #239: the same number written with leading zeros is the same phone number.
+        assertEquals(phone, new Phone("+065 91234561"));
+        assertEquals(phone, new Phone("+65 091234561"));
+        assertEquals(phone.hashCode(), new Phone("+065 091234561").hashCode());
+
+        // EP: a trailing zero changes the number, so it is a different phone number.
+        assertFalse(phone.equals(new Phone("+65 912345610")));
+        assertFalse(phone.equals(new Phone("+650 91234561")));
     }
 
     @Test

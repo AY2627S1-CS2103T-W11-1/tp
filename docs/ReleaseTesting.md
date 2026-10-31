@@ -1,5 +1,22 @@
 # Release testing results
 
+## Phone numbers with leading zeros (31 October 2026)
+
+Treat phone numbers that differ only by leading zeros as the same number (issue #239). `Phone` now accepts
+leading zeros in the country code and the number, stores the number without them, and requires a non-zero digit
+in each part and at least 3 digits in the number after its leading zeros. `+065 91234561` and `+65 091234561`
+are therefore rejected as duplicates of `+65 91234561`, and `+0 000` is rejected as an invalid phone number.
+The change adds **20 lines** in `src/main` (all in `Phone`), including comments; deletions are not counted.
+This is the contribution of this fix, not a measurement of cumulative dashboard attribution.
+
+Gradle could not start in the sandbox used for this fix (`Unable to establish loopback connection`), so
+`./gradlew check coverage` was **not** run. The full test suite was instead compiled with `javac` and run with the
+JUnit Platform launcher on Eclipse Temurin JDK 25.0.4.1 on Windows: **918 tests**, no failures or skips. Seven new
+tests fail against the previous `Phone` and pass with the fix. Checkstyle 14.1.0 was run directly with
+`config/checkstyle/checkstyle.xml` on the changed Java files. The JaCoCo coverage report still needs a normal
+`./gradlew check coverage` run, and the manual **Phone leading zero regression** and **Phone target error
+regression** scenarios have not been run.
+
 ## Hyphenated and apostrophised cyclist names (31 October 2026)
 
 Accept internal hyphens (`-`) and straight apostrophes (`'`) in the shared `Name` validator,

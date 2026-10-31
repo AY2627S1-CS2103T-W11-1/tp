@@ -52,6 +52,11 @@ phone errors for malformed edit/delete targets, usage for missing targets, and c
 Integration checks preserve cyclist records, ride rosters, the active filter and saved JSON on rejection.
 Run **Phone target error regression** in the Developer Guide after changing target-phone parsing.
 
+`PhoneTest`, `ParserUtilTest` and `PhoneValidationIntegrationTest` also cover leading zeros: numbers that differ
+only by leading zeros are equal and are rejected as duplicates (including hidden cyclists), all-zero country
+codes or numbers are invalid, and stored numbers have their leading zeros removed.
+Run **Phone leading zero regression** in the Developer Guide after changing phone validation or equality.
+
 `NameTest` and `UnicodeNameIntegrationTest` cover accented and non-Latin names, combining marks,
 Unicode digits, cyclist/ride add and edit commands, JSON readback and invalid-name rejection without changes.
 They also cover internal hyphens/apostrophes and reject misplaced punctuation.

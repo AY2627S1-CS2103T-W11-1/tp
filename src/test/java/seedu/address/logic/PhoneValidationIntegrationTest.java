@@ -11,8 +11,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.DeleteCommand;
 import seedu.address.logic.commands.EditCommand;
+import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ModelManager;
@@ -73,6 +75,50 @@ public class PhoneValidationIntegrationTest {
         }
         assertThrows(ParseException.class, Messages.MESSAGE_UNKNOWN_COMMAND, () -> logic.execute("yes"));
         assertUnchanged();
+    }
+
+    @Test
+    public void execute_phoneDifferingOnlyByLeadingZeros_rejectedAsDuplicateWithoutChanges() throws Exception {
+        // Regression for #239: a number written with leading zeros is the same number, so it duplicates a
+        // displayed cyclist (Alpha) or one hidden by the filter (Beta).
+        for (String phone : new String[] {"+065 87438807", "+65 087438807", "+065 087438808"}) {
+            String addCommand = "add n/Phone Test p/" + phone
+                    + " sos/+65 89999999 e/phone.test@example.com f/200 x/Beginner l/any";
+            assertThrows(CommandException.class, AddCommand.MESSAGE_DUPLICATE_PERSON, ()
+                    -> logic.execute(addCommand));
+            assertUnchanged();
+        }
+        // EP: an edit may target a cyclist with leading zeros, but cannot change to another cyclist's number.
+        assertThrows(CommandException.class, EditCommand.MESSAGE_DUPLICATE_PERSON, ()
+                -> logic.execute("edit +065 087438807 p/+65 0087438808"));
+        assertUnchanged();
+    }
+
+    @Test
+    public void execute_allZeroCountryCodeOrNumber_rejectedWithoutChanges() throws Exception {
+        for (String phone : new String[] {"+0 000", "+00 87438807", "+65 000", "+0065 87438807"}) {
+            String[] commands = {"add n/Phone Test p/" + phone
+                    + " sos/+65 89999999 e/phone.test@example.com f/200 x/Beginner l/any",
+                "edit +65 87438807 p/" + phone, "edit " + phone + " f/130", "find p/" + phone};
+            for (String command : commands) {
+                assertThrows(ParseException.class, Phone.MESSAGE_CONSTRAINTS, () -> logic.execute(command));
+                assertUnchanged();
+            }
+        }
+    }
+
+    @Test
+    public void execute_phoneWithLeadingZeros_storedWithoutThemAndFoundEitherWay() throws Exception {
+        logic.execute("add n/Zero Rider p/+065 0123456 sos/+65 89999999"
+                + " e/zero@example.com f/200 x/Beginner l/any");
+        assertEquals(1, model.getAddressBook().getPersonList().stream()
+                .filter(person -> person.getPhone().value.equals("+65 123456")).count());
+
+        for (String phone : new String[] {"+65 123456", "+065 123456", "+65 0123456"}) {
+            logic.execute("find p/" + phone);
+            assertEquals(1, model.getFilteredPersonList().size(), phone);
+            assertEquals("Zero Rider", model.getFilteredPersonList().get(0).getName().fullName, phone);
+        }
     }
 
     @Test
