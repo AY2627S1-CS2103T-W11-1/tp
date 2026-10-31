@@ -6,7 +6,6 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Arrays;
-import java.util.Locale;
 
 /**
  * Helper functions for handling strings.
@@ -24,11 +23,11 @@ public class StringUtil {
         requireNonNull(text);
         requireNonNull(searchText);
 
-        String[] textWords = text.toLowerCase(Locale.ROOT).split("\\s+");
-        String[] searchWords = searchText.trim().toLowerCase(Locale.ROOT).split("\\s+");
+        String[] textWords = text.split("\\s+");
+        String[] searchWords = searchText.trim().split("\\s+");
         int textIndex = 0;
         for (String searchWord : searchWords) {
-            while (textIndex < textWords.length && !textWords[textIndex].equals(searchWord)) {
+            while (textIndex < textWords.length && !textWords[textIndex].equalsIgnoreCase(searchWord)) {
                 textIndex++;
             }
             if (textIndex == textWords.length) {

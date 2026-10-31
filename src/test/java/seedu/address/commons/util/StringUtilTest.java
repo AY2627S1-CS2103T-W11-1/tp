@@ -142,6 +142,8 @@ public class StringUtilTest {
     public void containsWordsInOrderIgnoreCase_validInputs_correctResult() {
         // EP: one complete word matches regardless of case.
         assertTrue(StringUtil.containsWordsInOrderIgnoreCase("Sunday Sunrise Ride", "sunday"));
+        // EP: Unicode case-insensitive matching preserves existing find behaviour.
+        assertTrue(StringUtil.containsWordsInOrderIgnoreCase("İsmail Yilmaz", "ismail"));
         // EP: complete words may be separated by intervening words.
         assertTrue(StringUtil.containsWordsInOrderIgnoreCase("Sunday Sunrise Ride", "Sunday Ride"));
         // EP: location-style matching also preserves word order.
