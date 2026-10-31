@@ -92,6 +92,16 @@ public class ParserUtilTest {
     }
 
     @Test
+    public void parsePhone_leadingZeros_removedFromCountryCodeOnly() throws Exception {
+        // EP: leading zeros in the country code are accepted and removed; those of the number are kept.
+        assertEquals("+65 0123456", ParserUtil.parsePhone("+065 0123456").value);
+        // EP: an all-zero country code is rejected with the phone constraints.
+        for (String phone : new String[] {"+0 000", "+00 123456"}) {
+            assertThrows(ParseException.class, Phone.MESSAGE_CONSTRAINTS, () -> ParserUtil.parsePhone(phone));
+        }
+    }
+
+    @Test
     public void parsePhone_validValueWithWhitespace_returnsTrimmedPhone() throws Exception {
         String phoneWithWhitespace = WHITESPACE + VALID_PHONE + WHITESPACE;
         Phone expectedPhone = new Phone(VALID_PHONE);

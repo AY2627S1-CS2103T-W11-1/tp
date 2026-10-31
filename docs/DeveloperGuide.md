@@ -299,6 +299,18 @@ only English letters (A–Z, a–z), digits, spaces, hyphens and apostrophes, an
 Cyclist and ride commands reuse these value classes, so their names support Unicode while
 their locations use the narrower rule. See `Name#isValidName` and `Location#isValidLocation`.
 
+`Phone` accepts a `+`, a country code of 1–3 digits as typed, one space and a number. Leading zeros are
+accepted in the country code, which must contain a non-zero digit. The constructor stores the country code
+without them, so `+065 91234561` is saved as `+65 91234561`. The number is stored exactly as typed, because its
+leading zeros can be significant (for example `+39 0612345678`). Because `Phone#equals` compares the stored value,
+`Person#isSamePerson`, `edit` and `delete` targets, `find p/` and ride rosters all treat numbers that differ only
+by zeros at the start of the country code as the same number. Emergency phone numbers use the same class and rule.
+
+Some data files written before this rule no longer load: a phone or SOS number with an all-zero country code
+(e.g. `+0 123`) fails `Phone#isValidPhone`, and two cyclists whose numbers differ only by country-code zeros
+(e.g. `+65 91234561` and `+065 91234561`) fail the duplicate check in `AddressBook`. Both raise a fatal startup
+error, and the User Guide's "Using older data files" section explains how to correct the file.
+
 ### Cyclist and ride filtering
 
 The `find` command accepts `n/` for name, `p/` for the cyclist's own phone, `sos/` for an
@@ -1281,6 +1293,30 @@ Use a disposable test book with a cyclist visible in the left panel.
    Expected: Each reports `Invalid command format.` followed by the relevant command usage.
 1. Expected throughout: The cyclist records, ride rosters, active filter and saved data remain unchanged.
    No deletion confirmation is requested for any malformed target.
+
+### Phone leading zero regression
+
+Launch Cyclique in a disposable test folder with an empty cyclist list.
+
+1. Enter `add n/P Zero p/+65 91234561 sos/+65 99999999 e/p0@example.com f/300 x/Beginner l/any`.
+   Expected: The cyclist is added with phone `+65 91234561`.
+1. Enter `add n/P One p/+065 91234561 sos/+65 99999999 e/p1@example.com f/300 x/Beginner l/any`.
+   Expected: The command reports `Another cyclist already has this phone number or email.` and no cyclist is added.
+1. Enter `add n/P Two p/+65 091234561 sos/+65 99999999 e/p2@example.com f/300 x/Beginner l/any`.
+   Expected: The cyclist is added with phone `+65 091234561`, because the zero in the number is significant.
+1. Enter `add n/P Three p/+0 000 sos/+65 99999999 e/p3@example.com f/300 x/Beginner l/any`.
+   Expected: The command reports the invalid-phone constraint, which explains the non-zero country code rule,
+   and no cyclist is added. Repeat with `p/+00 91234561` and `p/+0065 91234561` for the same result.
+1. Enter `add n/P Four p/+039 0612345 sos/+65 99999999 e/p4@example.com f/300 x/Beginner l/any`.
+   Expected: The cyclist is added with phone `+39 0612345`, with the zero of the number kept.
+1. Enter `find p/+065 91234561`. Expected: Only P Zero is listed. Enter `find p/+39 612345`.
+   Expected: No cyclist is listed. Enter `list`.
+1. Enter `edit +065 91234561 f/310`. Expected: P Zero's FTP changes to 310; the leading zero in the target's
+   country code is ignored.
+1. Enter `edit +65 91234561 p/+039 0612345`.
+   Expected: The edit is rejected as a duplicate of P Four's number and P Zero is unchanged.
+1. Exit and relaunch. Expected: The cyclists keep the phone numbers `+65 91234561`, `+65 091234561` and
+   `+39 0612345`.
 
 ### Unicode name regression
 
