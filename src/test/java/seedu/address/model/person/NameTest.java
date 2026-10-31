@@ -52,6 +52,8 @@ public class NameTest {
 
     @Test
     public void isValidName_internalHyphensAndApostrophes_preservesSpelling() {
+        // EP: single and mixed separators, accents, non-Latin letters, Unicode digits, and supplementary letters.
+        // Multiple separators are valid when each joins letter/digit sequences; preserve the exact spelling.
         for (String name : new String[] {"Tan Wei-Ling", "John O'Connor", "Anne-Marie O'Neill", "D'Arcy-Smith",
             "Jose\u0301-Tan", "O'Jose\u0301", "李-明", "Rider٢-3", "𐐀-Rider", "A-B-C", "A'B'C"}) {
             assertTrue(Name.isValidName(name), name);
@@ -61,6 +63,8 @@ public class NameTest {
 
     @Test
     public void isValidName_misplacedHyphensAndApostrophes_returnsFalse() {
+        // EP: punctuation-only names, leading/trailing separators, consecutive separators, and adjacent spaces.
+        // A combining mark after a separator is detached because it has no preceding letter or digit.
         for (String name : new String[] {"-", "'", "-Tan", "'Tan", "Tan-", "Tan'", "Tan--Wei", "O''Connor",
             "Tan-'Wei", "Tan'-Wei", "Tan -Wei", "Tan- Wei", "John 'Connor", "John' Connor",
             "Jose-\u0301Tan", "Jose'\u0301Tan"}) {
