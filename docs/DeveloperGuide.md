@@ -320,7 +320,13 @@ Each prefix may appear only once, and all supplied ride criteria must match. The
 input `ridefind all` clears the ride criteria. Date-only boundaries expand to
 0000 for `from/` and 2359 for `to/`; when both are supplied, the end must not be earlier than
 the start. A ride matches only if it starts at or after `from/` and ends at or before `to/`.
-The `n/` value matches the complete ride name case-insensitively. The `d/` and `s/` values
+The `n/` value matches complete words in the ride name in the supplied order, ignoring case;
+other complete words may appear between the requested words. For example, both
+`ridefind n/Sunday` and `ridefind n/Sunday Ride` match `Sunday Sunrise Ride`, while
+`ridefind n/Ride Sunday` does not. Partial word fragments are not accepted, so `ridefind n/Rise`
+does not match `Sunrise`. The `l/` value follows the same rule for ride locations: for example,
+`ridefind l/East Park` matches `East Coast Park`.
+The `d/` and `s/` values
 compare their respective numeric fields for equality, while `notes/` performs a
 case-insensitive whole-word or phrase match against the ride's notes. For example,
 `ridefind l/Tampines f/200` lists rides at Tampines whose minimum
@@ -1671,7 +1677,11 @@ Use disposable cyclist and ride data. Record the original details before applyin
    Expected: each invalid command shows an error without changing the previous valid cyclist filter.
 1. Enter `list`. Expected: the full cyclist list is restored.
 1. Add at least three rides with different names, dates, locations, distances and minimum powers.
-1. Enter `ridefind n/Sunday Sunrise Ride`. Expected: only the ride with that complete name appears, ignoring case.
+1. Enter `ridefind n/Sunday`. Expected: rides whose names contain `Sunday` as a complete word appear, ignoring case.
+1. Enter `ridefind n/Sunday Ride`. Expected: `Sunday Sunrise Ride` appears because intervening complete words are allowed.
+1. Enter `ridefind n/Sunrise Ride`. Expected: `Sunday Sunrise Ride` appears because the complete words occur in order.
+1. Enter `ridefind l/East Park`. Expected: `East Coast Park` appears because intervening complete words are allowed.
+1. Enter `ridefind n/Ride Sunday`. Expected: no ride appears because the requested words are in the wrong order.
 1. Enter `ridefind notes/lights`. Expected: rides whose notes contain `lights` appear, including notes with additional words and regardless of case.
 1. Enter `ridefind from/18-10-2026 to/18-10-2026`. Expected: rides starting and ending within the inclusive date
    bounds appear. Date-only `from/` and `to/` use `0000` and `2359` respectively.
