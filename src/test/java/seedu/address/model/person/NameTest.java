@@ -51,10 +51,29 @@ public class NameTest {
     }
 
     @Test
+    public void isValidName_internalHyphensAndApostrophes_preservesSpelling() {
+        for (String name : new String[] {"Tan Wei-Ling", "John O'Connor", "Anne-Marie O'Neill", "D'Arcy-Smith",
+            "Jose\u0301-Tan", "O'Jose\u0301", "李-明", "Rider٢-3", "𐐀-Rider", "A-B-C", "A'B'C"}) {
+            assertTrue(Name.isValidName(name), name);
+            assertEquals(name, new Name(name).fullName);
+        }
+    }
+
+    @Test
+    public void isValidName_misplacedHyphensAndApostrophes_returnsFalse() {
+        for (String name : new String[] {"-", "'", "-Tan", "'Tan", "Tan-", "Tan'", "Tan--Wei", "O''Connor",
+            "Tan-'Wei", "Tan'-Wei", "Tan -Wei", "Tan- Wei", "John 'Connor", "John' Connor",
+            "Jose-\u0301Tan", "Jose'\u0301Tan"}) {
+            assertFalse(Name.isValidName(name), name);
+            assertThrows(IllegalArgumentException.class, () -> new Name(name));
+        }
+    }
+
+    @Test
     public void isValidName_invalidCharactersOrDetachedMarks_returnsFalse() {
         // EP: leading spaces, detached combining marks, punctuation, control whitespace, and emoji.
-        for (String name : new String[] {" José", "\u0301Jose", "\u0301", "Jose \u0301Tan", "José-Tan",
-            "O'Connor", "José_Tan", "José\tTan", "José\nTan", "Rider 🚲"}) {
+        for (String name : new String[] {" José", "\u0301Jose", "\u0301", "Jose \u0301Tan",
+            "José_Tan", "José\tTan", "José\nTan", "Rider 🚲"}) {
             assertFalse(Name.isValidName(name), name);
             assertThrows(IllegalArgumentException.class, () -> new Name(name));
         }

@@ -47,7 +47,8 @@ public class UnicodeNameIntegrationTest {
 
     @Test
     public void execute_addAndEditUnicodeCyclistName_preservesSpellingAfterReload() throws Exception {
-        for (String name : new String[] {"José Tan", "Jose\u0301 Tan", "李明", "அருண்", "Rider ٢", "Jose Tan"}) {
+        for (String name : new String[] {"José Tan", "Jose\u0301 Tan", "李明", "அருண்", "Rider ٢", "Jose Tan",
+            "Tan Wei-Ling", "John O'Connor", "Jose\u0301-Tan"}) {
             logic.execute("add n/" + name + CYCLIST_FIELDS);
             assertEquals(name, model.getAddressBook().getPersonList().get(0).getName().fullName);
             assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
@@ -60,12 +61,27 @@ public class UnicodeNameIntegrationTest {
     }
 
     @Test
+    public void execute_addReportedCyclistNames_findAndReloadPreserveSpelling() throws Exception {
+        logic.execute("add n/Tan Wei-Ling p/+65 91111111 sos/+65 99999999"
+                + " e/weiling@example.com f/250 x/Beginner l/any");
+        logic.execute("add n/John O'Connor p/+65 92222222 sos/+65 88888888"
+                + " e/johnoconnor@example.com f/250 x/Beginner l/any");
+        assertEquals(2, model.getAddressBook().getPersonList().size());
+        for (String[] search : new String[][] {{"Wei-Ling", "Tan Wei-Ling"}, {"O'Connor", "John O'Connor"}}) {
+            logic.execute("find n/" + search[0]);
+            assertEquals(1, model.getFilteredPersonList().size());
+            assertEquals(search[1], model.getFilteredPersonList().get(0).getName().fullName);
+        }
+        assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
+    }
+
+    @Test
     public void execute_addAndEditUnicodeRideName_preservesSpellingAfterReload() throws Exception {
         logic.execute("rideadd n/Élan Ride" + RIDE_FIELDS);
         assertEquals("Élan Ride", model.getAddressBook().getRideList().get(0).getName().fullName);
         assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
 
-        for (String name : new String[] {"E\u0301lan Ride", "晨骑", "Ride ٢"}) {
+        for (String name : new String[] {"E\u0301lan Ride", "晨骑", "Ride ٢", "Coast-to-Coast", "John's Ride"}) {
             logic.execute("rideedit 1 n/" + name);
             assertEquals(name, model.getAddressBook().getRideList().get(0).getName().fullName);
             assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
@@ -79,7 +95,8 @@ public class UnicodeNameIntegrationTest {
         AddressBook originalBook = new AddressBook(model.getAddressBook());
         String originalJson = Files.readString(bookPath);
 
-        for (String name : new String[] {"", "José-Tan", "\u0301Jose", "Jose \u0301Tan", "Rider 🚲"}) {
+        for (String name : new String[] {"", "José--Tan", "O''Connor", "-Tan", "Tan'", "Jose-\u0301Tan",
+            "\u0301Jose", "Jose \u0301Tan", "Rider 🚲"}) {
             String[] commands = {"add n/" + name + CYCLIST_FIELDS, "edit +65 91234567 n/" + name,
                 "rideadd n/" + name + RIDE_FIELDS, "rideedit 1 n/" + name};
             for (String command : commands) {

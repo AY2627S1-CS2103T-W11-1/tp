@@ -1,5 +1,26 @@
 # Release testing results
 
+## Hyphenated and apostrophised cyclist names (31 October 2026)
+
+Accept internal hyphens (`-`) and straight apostrophes (`'`) in the shared `Name` validator,
+preserving Unicode letters, digits and attached combining marks. Reject leading, trailing,
+consecutive and space-adjacent punctuation. This also applies to cyclist edits and ride names.
+The change adds or edits **7 lines** in `src/main`, including the message and comments,
+relative to the clean working tree at the start of this fix; deletions are not counted.
+This is the contribution of this fix, not a measurement of cumulative dashboard attribution.
+
+Using Eclipse Temurin JDK 25.0.4.1 on macOS ARM64, `./gradlew check coverage shadowJar` passes
+**904 tests**, with no failures, errors or skips; both Checkstyle checks pass.
+Line coverage is **92.40%** (2,504 of 2,710 lines), above the 50% target.
+Regression tests cover both reported add commands, exact spelling, find, edit, JSON readback,
+Unicode punctuation boundaries and invalid-name rejection without changes to records or saved data.
+
+The JAR launched in a disposable folder with the existing ARM64 JavaFX libraries on its classpath.
+The desktop-control tool could not access the JavaFX window (`Invalid app: java` and
+`Invalid app: Cyclique`), so the **Unicode name regression** and **Hyphenated and apostrophised
+name regression** manual visual/restart checks remain outstanding. The temporary application
+was stopped. Other operating systems were not tested locally.
+
 ## Registered cyclist FTP edit eligibility (27 October 2026)
 
 Reject supplied FTP edits below any registered ride's minimum power before replacing the cyclist.
