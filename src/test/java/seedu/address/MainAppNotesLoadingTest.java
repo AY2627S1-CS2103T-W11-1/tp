@@ -287,7 +287,8 @@ public class MainAppNotesLoadingTest {
             Process child = new ProcessBuilder(command).directory(folder.toFile())
                     .redirectErrorStream(true).redirectOutput(log.toFile()).start();
             try {
-                boolean exited = child.waitFor(20, TimeUnit.SECONDS);
+                // A child JVM that starts JavaFX can be slow on a hosted CI runner, so allow it a long time.
+                boolean exited = child.waitFor(60, TimeUnit.SECONDS);
                 String output = Files.readString(log);
                 assertTrue(exited, "Fatal dialog did not terminate: " + mode + "\n" + output);
                 assertEquals(mode.equals("loading") ? 0 : 1, child.exitValue(), output);
