@@ -2,11 +2,13 @@
 
 ## Phone numbers with leading zeros (31 October 2026)
 
-Treat phone numbers that differ only by leading zeros as the same number (issue #239). `Phone` now accepts
-leading zeros in the country code and the number, stores the number without them, and requires a non-zero digit
-in each part and at least 3 digits in the number after its leading zeros. `+065 91234561` and `+65 091234561`
-are therefore rejected as duplicates of `+65 91234561`, and `+0 000` is rejected as an invalid phone number.
-The change adds **20 lines** in `src/main` (all in `Phone`), including comments; deletions are not counted.
+Treat phone numbers that differ only by leading zeros in the country code as the same number (issue #239).
+`Phone` now accepts leading zeros in the country code, stores the country code without them, and requires it to
+contain a non-zero digit. The number is stored as typed, because its leading zeros can be significant (for example
+`+39 0612345678`). `+065 91234561` is therefore rejected as a duplicate of `+65 91234561`, and `+0 000` is rejected
+as an invalid phone number. This follows the review of #247, which narrowed the first version of this fix that also
+removed zeros from the number. The change adds **19 lines** in `src/main` (all in `Phone`), including
+comments; deletions are not counted.
 This is the contribution of this fix, not a measurement of cumulative dashboard attribution.
 
 Gradle could not start in the sandbox used for this fix (`Unable to establish loopback connection`), so

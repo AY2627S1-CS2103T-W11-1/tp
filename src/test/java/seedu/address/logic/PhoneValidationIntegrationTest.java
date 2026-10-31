@@ -78,25 +78,26 @@ public class PhoneValidationIntegrationTest {
     }
 
     @Test
-    public void execute_phoneDifferingOnlyByLeadingZeros_rejectedAsDuplicateWithoutChanges() throws Exception {
-        // Regression for #239: a number written with leading zeros is the same number, so it duplicates a
-        // displayed cyclist (Alpha) or one hidden by the filter (Beta).
-        for (String phone : new String[] {"+065 87438807", "+65 087438807", "+065 087438808"}) {
+    public void execute_phoneDifferingOnlyByCountryCodeZeros_rejectedAsDuplicateWithoutChanges() throws Exception {
+        // Regression for #239: a country code written with leading zeros is the same country code, so the
+        // number duplicates a displayed cyclist (Alpha) or one hidden by the filter (Beta).
+        for (String phone : new String[] {"+065 87438807", "+065 87438808"}) {
             String addCommand = "add n/Phone Test p/" + phone
                     + " sos/+65 89999999 e/phone.test@example.com f/200 x/Beginner l/any";
             assertThrows(CommandException.class, AddCommand.MESSAGE_DUPLICATE_PERSON, ()
                     -> logic.execute(addCommand));
             assertUnchanged();
         }
-        // EP: an edit may target a cyclist with leading zeros, but cannot change to another cyclist's number.
+        // EP: an edit may target a cyclist with a zero-padded country code, but cannot change to another
+        // cyclist's number.
         assertThrows(CommandException.class, EditCommand.MESSAGE_DUPLICATE_PERSON, ()
-                -> logic.execute("edit +065 087438807 p/+65 0087438808"));
+                -> logic.execute("edit +065 87438807 p/+065 87438808"));
         assertUnchanged();
     }
 
     @Test
-    public void execute_allZeroCountryCodeOrNumber_rejectedWithoutChanges() throws Exception {
-        for (String phone : new String[] {"+0 000", "+00 87438807", "+65 000", "+0065 87438807"}) {
+    public void execute_allZeroCountryCode_rejectedWithoutChanges() throws Exception {
+        for (String phone : new String[] {"+0 000", "+00 87438807", "+0065 87438807"}) {
             String[] commands = {"add n/Phone Test p/" + phone
                     + " sos/+65 89999999 e/phone.test@example.com f/200 x/Beginner l/any",
                 "edit +65 87438807 p/" + phone, "edit " + phone + " f/130", "find p/" + phone};
@@ -108,17 +109,21 @@ public class PhoneValidationIntegrationTest {
     }
 
     @Test
-    public void execute_phoneWithLeadingZeros_storedWithoutThemAndFoundEitherWay() throws Exception {
-        logic.execute("add n/Zero Rider p/+065 0123456 sos/+65 89999999"
+    public void execute_phoneWithLeadingZeros_countryCodeZerosRemovedAndNumberKept() throws Exception {
+        logic.execute("add n/Zero Rider p/+039 0612345 sos/+65 89999999"
                 + " e/zero@example.com f/200 x/Beginner l/any");
         assertEquals(1, model.getAddressBook().getPersonList().stream()
-                .filter(person -> person.getPhone().value.equals("+65 123456")).count());
+                .filter(person -> person.getPhone().value.equals("+39 0612345")).count());
 
-        for (String phone : new String[] {"+65 123456", "+065 123456", "+65 0123456"}) {
+        // EP: the country code is matched ignoring its leading zeros.
+        for (String phone : new String[] {"+39 0612345", "+039 0612345"}) {
             logic.execute("find p/" + phone);
             assertEquals(1, model.getFilteredPersonList().size(), phone);
             assertEquals("Zero Rider", model.getFilteredPersonList().get(0).getName().fullName, phone);
         }
+        // EP: the leading zero of the number is significant, so dropping it is a different number.
+        logic.execute("find p/+39 612345");
+        assertEquals(0, model.getFilteredPersonList().size());
     }
 
     @Test

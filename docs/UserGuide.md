@@ -215,7 +215,7 @@ Adds a cyclist to Cyclique.
 Field | Meaning and rules
 ------|------------------
 `n/NAME` | The cyclist's name. It may contain Unicode letters (including accented letters), digits and spaces, with combining marks attached to letters or digits. It must start with a letter or digit; blank names and punctuation are rejected. For example, `José Tan` is accepted.
-`p/PHONE` | A unique phone number using a `+`, a 1–3 digit country code, one space and at least 3 digits, such as `+65 98765432`. Parentheses, hyphens and blank values are rejected. Leading zeros are ignored and removed when the number is saved, so `+65 098765432` and `+065 98765432` are the same number as `+65 98765432`. The country code and the number must each contain a non-zero digit, and the number needs at least 3 digits after any leading zeros, so `+0 000` is rejected. The number must not belong to another cyclist, including cyclists hidden by a filter.
+`p/PHONE` | A unique phone number using a `+`, a 1–3 digit country code, one space and at least 3 digits, such as `+65 98765432`. Parentheses, hyphens and blank values are rejected. Leading zeros in the country code are ignored and removed when the number is saved, so `+065 98765432` is the same number as `+65 98765432`. The country code must contain a non-zero digit, so `+0 000` and `+00 98765432` are rejected. Leading zeros in the number are kept, because they can be significant: `+39 0612345678` is saved as typed and is a different number from `+39 612345678`. The number must not belong to another cyclist, including cyclists hidden by a filter.
 `sos/EMERGENCY_PHONE` | The cyclist's emergency contact phone number, displayed as **SOS** on their card. Required for new cyclists. It follows the same format as `p/` but may be shared by multiple cyclists and does not determine duplicate cyclists.
 `e/EMAIL` | A valid email address, such as `johnd@example.com`. It must be unique across all cyclists, including those hidden by a filter; comparisons ignore letter case.
 `f/FTP_LEVEL` | Functional Threshold Power (FTP): a whole number from 1 to 600, in watts.
@@ -317,7 +317,7 @@ Find cyclists by name, phone number, emergency contact number or cycling profile
 Field | Meaning and rules
 ------|------------------
 `n/NAME_KEYWORD` | A single name word or multiple complete name words. Matching is case-insensitive and each supplied word must appear as a complete word in the same order; `n/hans` matches `Hans` but `n/Han` does not. A multi-word value such as `n/John Doe` matches names containing `John` followed by `Doe`, even when other words appear between them.
-`p/PHONE` | A complete phone number using a `+`, a 1–3 digit country code, one space and at least 3 digits. Matching is exact, ignoring leading zeros; `p/+65 963` does not match `+65 96320842`, but `p/+65 096320842` does.
+`p/PHONE` | A complete phone number using a `+`, a 1–3 digit country code, one space and at least 3 digits. Matching is exact, ignoring leading zeros in the country code; `p/+65 963` does not match `+65 96320842`, but `p/+065 96320842` does.
 `sos/EMERGENCY_PHONE` | A complete emergency contact number using the same validation and exact matching as `p/`. Only cyclists with an emergency number matching the supplied value are shown. Cyclists whose emergency number is missing or different are not shown.
 `f/MIN_FTP` | A whole number from 1 to 600, inclusive. Matches cyclists whose FTP is greater than or equal to the supplied value in watts; both `f/1` and `f/600` are valid.
 `x/EXPERIENCE` | `Beginner`, `Intermediate` or `Advanced`, ignoring case. Repeat `x/` to match any of the supplied experience levels.
@@ -362,7 +362,7 @@ Deletes a cyclist only after you check their details and confirm in the command 
 
 **Format:** `delete PHONE`, then enter a separate confirmation or cancellation reply.
 
-* Use the cyclist's own complete phone number, including country code and exactly one space, for example `+65 98765432`. The country code contains 1–3 digits; the number after the space contains at least 3 digits. Leading zeros are ignored, so `+65 098765432` identifies the same cyclist as `+65 98765432`. Do not use a card index or the `p/` prefix.
+* Use the cyclist's own complete phone number, including country code and exactly one space, for example `+65 98765432`. The country code contains 1–3 digits; the number after the space contains at least 3 digits. Leading zeros in the country code are ignored, so `+065 98765432` identifies the same cyclist as `+65 98765432`; leading zeros in the number are part of the number. Do not use a card index or the `p/` prefix.
 * A malformed target reports the specific phone-validation error; omitting the target reports the command usage.
 * The number must identify exactly one cyclist in the **displayed list**. A cyclist hidden by a filter cannot be deleted; use `list` to show all cyclists first. Multiple displayed matches are rejected.
 * The result box shows `Delete this cyclist?` followed by the target's details, including their emergency number, and warns `This also removes them from all ride rosters.` No cyclist, roster or saved data changes at this stage.
@@ -431,7 +431,7 @@ Field | Meaning and rules
 
 * Supply every field except `notes/`. Use each prefix only once, with a space before it.
 * Enter numeric values without units, signs, commas or scientific notation.
-  Leading zeroes count towards the digit limits; they are removed from stored numbers.
+  Leading zeroes count towards the digit limits; those in a country code are removed from stored numbers.
 * For an overnight ride, enter the later date in `to/` as well as the time.
   Past rides, multi-day rides and equal start and end times are allowed.
 
@@ -792,6 +792,19 @@ home folder; your cyclists, rides and rosters load together.
 Older cyclist records without an emergency number load with **SOS: Not provided**.
 Use `edit PHONE sos/EMERGENCY_PHONE` to add one. Editing another field keeps the number absent.
 Data files from before rides were supported load with no rides.
+
+Cyclique now treats a country code with leading zeros as the same country code, so `+065 91234561` and
+`+65 91234561` are the same phone number. Most older files are unaffected, but a file will not load if it contains:
+
+* a cyclist's phone or SOS number whose country code is all zeros, such as `+0 123` or `+00 98765432`; or
+* two cyclists whose phone numbers differ only by zeros at the start of the country code, such as
+  `+65 91234561` and `+065 91234561`.
+
+Cyclique shows the fatal error dialog described in [Editing the data file](#editing-the-data-file) and does not
+change the file. To fix it, back up the file, then edit a copy: replace each all-zero country code with the correct
+one, and for two cyclists with the same number, correct the wrong number or delete the duplicate record, so that each
+`phone` is unique. Leading zeros in the number itself, such as `+65 00000000` or `+39 0612345678`, still load
+unchanged. Replace the original with the corrected copy and relaunch Cyclique.
 
 ### Editing the data file
 

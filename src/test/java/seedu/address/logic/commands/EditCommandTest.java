@@ -382,7 +382,7 @@ public class EditCommandTest {
 
     @Test
     public void execute_phoneNotFoundUnfilteredList_failure() {
-        Phone unknownPhone = new Phone("+65 10000000");
+        Phone unknownPhone = new Phone("+65 00000000");
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB).build();
         EditCommand editCommand = new EditCommand(unknownPhone, descriptor);
 

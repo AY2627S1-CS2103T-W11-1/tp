@@ -24,44 +24,46 @@ public class PhoneTest {
     }
 
     @Test
-    public void isValidPhone_leadingZeros_requireNonZeroDigitsInCountryCodeAndNumber() {
-        // EP: leading zeros in the country code, the number or both are accepted when a non-zero digit follows.
+    public void isValidPhone_leadingZeros_requireNonZeroDigitInCountryCode() {
+        // EP: leading zeros in the country code are accepted when a non-zero digit follows.
         assertTrue(Phone.isValidPhone("+065 91234561"));
-        assertTrue(Phone.isValidPhone("+65 091234561"));
-        assertTrue(Phone.isValidPhone("+065 0091234561"));
-        // Boundary values: the number needs 3 digits after its leading zeros (2 is invalid, 3 is valid).
-        assertFalse(Phone.isValidPhone("+65 0012"));
-        assertTrue(Phone.isValidPhone("+65 0123"));
-        // EP: an all-zero country code or number is invalid, as in the reported "+0 000".
+        assertTrue(Phone.isValidPhone("+001 91234561"));
+        // EP: leading zeros in the number are accepted, as they can be significant.
+        assertTrue(Phone.isValidPhone("+39 0612345678"));
+        assertTrue(Phone.isValidPhone("+65 00000000"));
+        // EP: an all-zero country code is invalid, as in the reported "+0 000".
         assertFalse(Phone.isValidPhone("+0 000"));
         assertFalse(Phone.isValidPhone("+00 91234561"));
-        assertFalse(Phone.isValidPhone("+65 000"));
-        assertFalse(Phone.isValidPhone("+65 0000000"));
+        assertFalse(Phone.isValidPhone("+000 91234561"));
         // Boundary value: leading zeros still count towards the 3-digit country code limit.
         assertFalse(Phone.isValidPhone("+0065 91234561"));
     }
 
     @Test
-    public void constructor_leadingZeros_removedFromStoredValue() {
-        // EP: zeros before the first non-zero digit of the country code and of the number are removed.
+    public void constructor_leadingZeros_removedFromCountryCodeOnly() {
+        // EP: zeros before the first non-zero digit of the country code are removed.
         assertEquals("+65 91234561", new Phone("+065 91234561").value);
-        assertEquals("+65 91234561", new Phone("+65 091234561").value);
-        assertEquals("+65 91234561", new Phone("+065 0091234561").value);
-        assertEquals("+65 123", new Phone("+65 0123").value);
-        // EP: zeros after the first non-zero digit are part of the number and are kept.
-        assertEquals("+105 900100", new Phone("+105 0900100").value);
-        assertEquals("+65 91234561", new Phone("+65 91234561").value);
+        assertEquals("+1 91234561", new Phone("+001 91234561").value);
+        // EP: zeros inside or after the country code's first non-zero digit are kept.
+        assertEquals("+105 900100", new Phone("+105 900100").value);
+        // EP: leading zeros of the number are significant and are kept.
+        assertEquals("+39 0612345678", new Phone("+39 0612345678").value);
+        assertEquals("+39 0612345678", new Phone("+039 0612345678").value);
+        assertEquals("+65 00000000", new Phone("+65 00000000").value);
     }
 
     @Test
-    public void equals_differOnlyByLeadingZeros_returnsTrue() {
+    public void equals_differOnlyByCountryCodeLeadingZeros_returnsTrue() {
         Phone phone = new Phone("+65 91234561");
 
-        // Regression for #239: the same number written with leading zeros is the same phone number.
+        // Regression for #239: the same number with leading zeros in the country code is the same phone number.
         assertEquals(phone, new Phone("+065 91234561"));
-        assertEquals(phone, new Phone("+65 091234561"));
-        assertEquals(phone.hashCode(), new Phone("+065 091234561").hashCode());
+        assertEquals(new Phone("+6 91234561"), new Phone("+006 91234561"));
+        assertEquals(phone.hashCode(), new Phone("+065 91234561").hashCode());
 
+        // EP: leading zeros of the number are significant, so these are different phone numbers.
+        assertFalse(phone.equals(new Phone("+65 091234561")));
+        assertFalse(new Phone("+39 0612345678").equals(new Phone("+39 612345678")));
         // EP: a trailing zero changes the number, so it is a different phone number.
         assertFalse(phone.equals(new Phone("+65 912345610")));
         assertFalse(phone.equals(new Phone("+650 91234561")));

@@ -53,8 +53,9 @@ Integration checks preserve cyclist records, ride rosters, the active filter and
 Run **Phone target error regression** in the Developer Guide after changing target-phone parsing.
 
 `PhoneTest`, `ParserUtilTest` and `PhoneValidationIntegrationTest` also cover leading zeros: numbers that differ
-only by leading zeros are equal and are rejected as duplicates (including hidden cyclists), all-zero country
-codes or numbers are invalid, and stored numbers have their leading zeros removed.
+only by zeros at the start of the country code are equal and are rejected as duplicates (including hidden
+cyclists), all-zero country codes are invalid, and stored numbers lose the leading zeros of their country code but
+keep those of the number.
 Run **Phone leading zero regression** in the Developer Guide after changing phone validation or equality.
 
 `NameTest` and `UnicodeNameIntegrationTest` cover accented and non-Latin names, combining marks,
