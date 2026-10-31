@@ -288,7 +288,13 @@ This section describes some noteworthy details on how certain features are imple
 ### Cyclist field validation
 
 `Name` accepts Unicode letters and decimal digits, spaces, and combining marks attached to
-letters or digits; the first character must be a letter or digit. `Location` instead accepts
+letters or digits; the first character must be a letter or digit. A hyphen (`-`) or straight
+apostrophe (`'`) may join letter/digit sequences, for example `Tan Wei-Ling` or `John O'Connor`.
+Leading, trailing, consecutive or space-adjacent hyphens/apostrophes are rejected.
+`AddCommandParser` passes `n/` through `ParserUtil.parseName`, which trims surrounding
+whitespace and validates it before constructing `Name`. The spelling is preserved in the
+cyclist record and JSON storage. Edit and ride commands share the same name rules.
+`Location` instead accepts
 only English letters (A–Z, a–z), digits, spaces, hyphens and apostrophes, and must not be blank.
 Cyclist and ride commands reuse these value classes, so their names support Unicode while
 their locations use the narrower rule. See `Name#isValidName` and `Location#isValidLocation`.
@@ -1280,10 +1286,28 @@ Launch Cyclique in a disposable test folder with an empty cyclist list.
 1. Enter `rideadd n/Élan Ride from/29-10-2026 0630 to/29-10-2026 0930 l/Mandai d/40 f/150 s/5`.
    Expected: The ride is added and its name is displayed accurately. Using its assigned ID,
    enter `rideedit ID n/晨骑`. Expected: The ride name changes successfully.
-1. Try `edit +65 91234567 n/José-Tan`, `edit +65 91234567 n/`, and `rideedit ID n/Ride!`.
+1. Try `edit +65 91234567 n/José--Tan`, `edit +65 91234567 n/`, and `rideedit ID n/Ride!`.
    Expected: Each is rejected with name constraints explaining the supported Unicode characters;
    cyclist and ride details remain unchanged.
 1. Exit and relaunch. Expected: The cyclist retains `Zoë Tan` and the ride retains `晨骑`.
+
+### Hyphenated and apostrophised name regression
+
+Use an empty disposable test book and unique phone numbers and emails.
+
+1. Enter `add n/Tan Wei-Ling p/+65 91111111 sos/+65 99999999 e/weiling@example.com f/250 x/Beginner l/any`.
+1. Enter `add n/John O'Connor p/+65 92222222 sos/+65 88888888 e/johnoconnor@example.com f/250 x/Beginner l/any`.
+   Expected for both additions: The success message and cyclist card preserve the exact name.
+1. Enter `find n/Wei-Ling`, then `find n/O'Connor`.
+   Expected: Each search displays only the corresponding cyclist. Enter `list`.
+1. Enter `edit +65 91111111 n/Tan Wei-Ling O'Connor`.
+   Expected: The card and success message preserve both punctuation characters.
+1. Try editing that cyclist to `-Tan`, `Tan-`, `O''Connor`, `Tan -Wei` and `Tan- Wei`.
+   Expected: Each command reports name constraints and leaves both records unchanged.
+1. Enter `rideadd n/John's Coast-to-Coast from/29-10-2026 0630 to/29-10-2026 0930 l/Mandai d/40 f/150 s/5`.
+   Expected: The ride name is displayed exactly. Edit it with `rideedit ID n/Wei-Ling's Ride`.
+   Expected: The name changes successfully. `rideedit ID n/Ride--Name` is rejected without changes.
+1. Exit and relaunch. Expected: Both cyclist names and `Wei-Ling's Ride` retain their spelling.
 
 ### Email local-part regression
 
