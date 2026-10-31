@@ -431,7 +431,7 @@ Field | Meaning and rules
 
 * Supply every field except `notes/`. Use each prefix only once, with a space before it.
 * Enter numeric values without units, signs, commas or scientific notation.
-  Leading zeroes count towards the digit limits; those in a country code are removed from stored numbers.
+  Leading zeroes count towards the digit limits; they are removed from stored numbers.
 * For an overnight ride, enter the later date in `to/` as well as the time.
   Past rides, multi-day rides and equal start and end times are allowed.
 
