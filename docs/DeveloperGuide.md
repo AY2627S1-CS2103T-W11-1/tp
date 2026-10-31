@@ -314,7 +314,7 @@ both the stored value and the criterion, so `find n/Ling` and `find n/Wei-Ling` 
 `find n/Connor` matches `John O'Connor`, while the fragment `Lin` does not. A criterion containing no word
 (for example `-`) never matches a stored value. The commands report this differently: `find n/-` and
 `ridefind n/-` fail `Name` validation, `ridefind l/-` lists no rides, and `find l/-` lists only the cyclists whose
-preferred location is `any`, because `any` matches every location criterion except the literal `any`. For example,
+preferred location is `any`, because `any` matches every location criterion. For example,
 `find l/Punggol x/Intermediate f/250` finds intermediate cyclists who prefer Punggol and have
 an FTP of at least 250 watts. Preferred locations match case-insensitively against any
 supplied `l/` value. A cyclist whose stored preferred location is `any` matches every
