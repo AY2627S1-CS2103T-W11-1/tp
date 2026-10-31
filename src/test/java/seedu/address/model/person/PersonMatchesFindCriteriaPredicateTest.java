@@ -62,6 +62,23 @@ public class PersonMatchesFindCriteriaPredicateTest {
     }
 
     @Test
+    public void test_nameKeywords_matchPartsOfHyphenatedAndApostrophisedNames() {
+        // EP: a keyword matches the full punctuated word or any of its parts, but not a fragment of a part.
+        Person weiLing = new PersonBuilder().withName("Tan Wei-Ling").build();
+        Person oConnor = new PersonBuilder().withName("John O'Connor").build();
+        for (String keyword : new String[] {"Wei-Ling", "wei", "LING", "Tan Ling"}) {
+            assertTrue(new PersonMatchesFindCriteriaPredicate(List.of(keyword), List.of()).test(weiLing), keyword);
+        }
+        for (String keyword : new String[] {"O'Connor", "Connor", "john connor"}) {
+            assertTrue(new PersonMatchesFindCriteriaPredicate(List.of(keyword), List.of()).test(oConnor), keyword);
+        }
+        for (String keyword : new String[] {"Lin", "WeiLing", "Ling Wei"}) {
+            assertFalse(new PersonMatchesFindCriteriaPredicate(List.of(keyword), List.of()).test(weiLing), keyword);
+        }
+        assertFalse(new PersonMatchesFindCriteriaPredicate(List.of("Conn"), List.of()).test(oConnor));
+    }
+
+    @Test
     public void test_phoneNumbers_matchAnyExactNumber() {
         // EP: phone criteria use exact matching with OR semantics across repeated values.
         assertTrue(new PersonMatchesFindCriteriaPredicate(List.of(),
@@ -104,6 +121,18 @@ public class PersonMatchesFindCriteriaPredicateTest {
                 Set.of(new Location("east coast")), null).test(cyclistAtEastCoast));
         assertFalse(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(), List.of(),
                 Set.of(new Location("coas")), null).test(cyclistAtEastCoast));
+    }
+
+    @Test
+    public void test_location_matchesPartsOfHyphenatedAndApostrophisedLocations() {
+        // EP: locations follow the same separator rule as names; the "any" wildcard is unaffected.
+        Person cyclist = new PersonBuilder(alice).withLocations("Pasir-Ris Park", "St John's Island").build();
+        for (String location : new String[] {"Pasir-Ris", "Ris Park", "John's Island", "John"}) {
+            assertTrue(predicateWithLocation(location).test(cyclist), location);
+        }
+        for (String location : new String[] {"Pasir Ris Parks", "Pasir Island Ris", "Joh"}) {
+            assertFalse(predicateWithLocation(location).test(cyclist), location);
+        }
     }
 
     @Test

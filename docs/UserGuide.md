@@ -316,12 +316,12 @@ Find cyclists by name, phone number, emergency contact number or cycling profile
 
 Field | Meaning and rules
 ------|------------------
-`n/NAME_KEYWORD` | A single name word or multiple complete name words. Matching is case-insensitive and each supplied word must appear as a complete word in the same order; `n/hans` matches `Hans` but `n/Han` does not. A multi-word value such as `n/John Doe` matches names containing `John` followed by `Doe`, even when other words appear between them.
+`n/NAME_KEYWORD` | A single name word or multiple complete name words. Matching is case-insensitive and each supplied word must appear as a complete word in the same order; `n/hans` matches `Hans` but `n/Han` does not. A multi-word value such as `n/John Doe` matches names containing `John` followed by `Doe`, even when other words appear between them. Hyphens and apostrophes separate words, so `n/Ling` and `n/Wei-Ling` both match `Tan Wei-Ling`, and `n/Connor` and `n/O'Connor` both match `John O'Connor`; `n/WeiLing` does not.
 `p/PHONE` | A complete phone number using a `+`, a 1–3 digit country code, one space and at least 3 digits. Matching is exact; `p/+65 963` does not match `+65 96320842`.
 `sos/EMERGENCY_PHONE` | A complete emergency contact number using the same validation and exact matching as `p/`. Only cyclists with an emergency number matching the supplied value are shown. Cyclists whose emergency number is missing or different are not shown.
 `f/MIN_FTP` | A whole number from 1 to 600, inclusive. Matches cyclists whose FTP is greater than or equal to the supplied value in watts; both `f/1` and `f/600` are valid.
 `x/EXPERIENCE` | `Beginner`, `Intermediate` or `Advanced`, ignoring case. Repeat `x/` to match any of the supplied experience levels.
-`l/LOCATION` | A preferred location, ignoring case. Complete words within the supplied location are matched in order, so `l/Coast` and `l/East Coast` match `East Coast Park` but `l/Coas` does not. Repeat `l/` to match any supplied location. A cyclist with `l/any` matches every location criterion.
+`l/LOCATION` | A preferred location, ignoring case. Complete words within the supplied location are matched in order, so `l/Coast` and `l/East Coast` match `East Coast Park` but `l/Coas` does not. Hyphens and apostrophes separate words here too, so `l/Ris` matches `Pasir-Ris Park`. Repeat `l/` to match any supplied location. A cyclist with `l/any` matches every location criterion.
 
 At least one criterion is required. Each prefix may be repeated except `f/`, which accepts only one value. Values
 within the same field use `OR`, while different fields use `AND`; for example, `find n/Hans n/Bo f/250` matches
@@ -342,6 +342,7 @@ field; emergency contact numbers are not treated as the cyclist's own phone numb
 | --- | --- |
 | Find a cyclist by name | `find n/Alex` shows cyclists with the complete name word `Alex`, including the sample Alex Tan. `find n/Al` does not match him. |
 | Find either of two names | `find n/Alex n/Bernice` shows Alex Tan and Bernice Lee in the sample data. |
+| Find a cyclist by part of a hyphenated name | `find n/Ling` shows a cyclist named `Tan Wei-Ling`, if you have added one. |
 | Combine a name and phone number | `find n/Alex p/+65 91234561` shows only cyclists matching both fields. |
 | Find suitable cyclists for a Punggol ride | `find l/Punggol x/Intermediate f/200` shows the sample Bernice Lee. Cyclists with no location preference also match the location criterion. |
 | Look up an emergency contact | `find sos/+65 90000001` shows Alex Tan in the sample data. |
@@ -515,9 +516,12 @@ The fields are matched as follows:
 
 * `n/NAME` matches complete words in the ride name in the supplied order, ignoring case. For example,
   `ridefind n/Sunday` matches `Sunday Sunrise Ride`, but `ridefind n/Ride Sunday` does not.
+  Hyphens and apostrophes separate words, so `ridefind n/Wei-Ling` and `ridefind n/Wei` both match
+  `Wei-Ling's Ride`, and `ridefind n/Mother` matches `Mother's Day Ride`. `ridefind n/WeiLing` does not.
 * `from/` matches rides starting at or after the supplied date and time.
 * `to/` matches rides ending at or before the supplied date and time.
-* `l/LOCATION` matches complete words in the ride location in the supplied order, ignoring case.
+* `l/LOCATION` matches complete words in the ride location in the supplied order, ignoring case. Hyphens and
+  apostrophes separate words here too, so `ridefind l/Ris` matches a ride at `Pasir-Ris Park`.
 * `d/DISTANCE` and `s/MAX_GROUP_SIZE` use exact numeric matching.
 * `f/MIN_POWER` matches rides whose minimum power is greater than or equal to the supplied value.
 * `notes/NOTES` matches complete words or phrases in the ride's notes, ignoring case. For example,
@@ -538,6 +542,7 @@ The command updates only the displayed ride list; it does not change or delete s
 | Your goal | Command and result |
 | --- | --- |
 | Find a ride by its full name | `ridefind n/Sunday Sunrise Ride` shows Sunday Sunrise Ride. |
+| Find a ride by part of a hyphenated name | `ridefind n/Wei` shows a ride named `Wei-Ling's Ride`, if you have added one. |
 | Look for a reminder | `ridefind notes/lights` shows rides whose notes contain the complete word `lights`, including Sunday Sunrise Ride. |
 | Find rides within one day | `ridefind from/25-10-2026 to/25-10-2026` shows rides starting and ending on 25 October, including Sunday Sunrise Ride. |
 | Combine location and minimum power | `ridefind l/Punggol f/150` shows the sample Evening Spin. A ride must meet both criteria. |

@@ -156,6 +156,39 @@ public class StringUtilTest {
         assertFalse(StringUtil.containsWordsInOrderIgnoreCase("Sunday Sunrise Ride", "  "));
     }
 
+    @Test
+    public void containsWordsInOrderIgnoreCase_hyphensAndApostrophes_actAsWordSeparators() {
+        // EP: a hyphenated or apostrophised search term matches the same spelling in the text.
+        assertTrue(StringUtil.containsWordsInOrderIgnoreCase("Tan Wei-Ling", "wei-ling"));
+        assertTrue(StringUtil.containsWordsInOrderIgnoreCase("John O'Connor", "O'Connor"));
+        // EP: each part of a hyphenated or apostrophised word is a complete word on its own.
+        assertTrue(StringUtil.containsWordsInOrderIgnoreCase("Tan Wei-Ling", "Ling"));
+        assertTrue(StringUtil.containsWordsInOrderIgnoreCase("John O'Connor", "Connor"));
+        assertTrue(StringUtil.containsWordsInOrderIgnoreCase("Punggol-Seletar Loop", "Seletar Loop"));
+        // EP: a search term without punctuation matches the words before a possessive apostrophe.
+        assertTrue(StringUtil.containsWordsInOrderIgnoreCase("Mother's Day Ride", "Mother"));
+        // EP: a search term may stop short of the text's trailing punctuation.
+        assertTrue(StringUtil.containsWordsInOrderIgnoreCase("Wei-Ling's Ride", "Wei-Ling"));
+        // EP: several separators in the text and the search term can be skipped over in order.
+        assertTrue(StringUtil.containsWordsInOrderIgnoreCase("Coast-to-Coast", "Coast Coast"));
+        // EP: word order still matters across separators.
+        assertFalse(StringUtil.containsWordsInOrderIgnoreCase("Tan Wei-Ling", "Ling Wei"));
+        // EP: a partial word or a word with its separator removed does not match.
+        assertFalse(StringUtil.containsWordsInOrderIgnoreCase("Tan Wei-Ling", "Lin"));
+        assertFalse(StringUtil.containsWordsInOrderIgnoreCase("Tan Wei-Ling", "WeiLing"));
+    }
+
+    @Test
+    public void containsWordsInOrderIgnoreCase_separatorsOnlySearchText_returnsFalse() {
+        // Boundary values: search text with no words must not match everything.
+        for (String searchText : new String[] {"", "-", "'", " - ", "-'-"}) {
+            assertFalse(StringUtil.containsWordsInOrderIgnoreCase("Tan Wei-Ling", searchText), searchText);
+        }
+        // Boundary values: leading and trailing separators do not create empty words.
+        assertTrue(StringUtil.containsWordsInOrderIgnoreCase("-Tan Wei-", "Tan Wei"));
+        assertTrue(StringUtil.containsWordsInOrderIgnoreCase("Tan Wei-Ling", "-Ling-"));
+    }
+
     //---------------- Tests for getDetails --------------------------------------
 
     /*
