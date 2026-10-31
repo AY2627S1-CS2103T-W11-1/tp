@@ -67,10 +67,13 @@ public class RideMatchesFindCriteriaPredicateTest {
 
     @Test
     public void test_location_isCaseInsensitive() {
-        // EP: location matching ignores case and rejects a different location.
-        Ride ride = new RideBuilder().withLocation("Tampines").build();
+        // EP: location matching is case-insensitive and supports ordered whole-word searches.
+        Ride ride = new RideBuilder().withLocation("East Coast Park").build();
 
-        assertTrue(predicateWithLocation("tampines").test(ride));
+        assertTrue(predicateWithLocation("east").test(ride));
+        assertTrue(predicateWithLocation("Coast Park").test(ride));
+        assertTrue(predicateWithLocation("east coast").test(ride));
+        assertFalse(predicateWithLocation("park east").test(ride));
         assertFalse(predicateWithLocation("Punggol").test(ride));
     }
 

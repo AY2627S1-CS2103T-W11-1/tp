@@ -6,11 +6,38 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Arrays;
+import java.util.Locale;
 
 /**
  * Helper functions for handling strings.
  */
 public class StringUtil {
+
+    /**
+     * Returns whether all words in {@code searchText} occur in order in {@code text}, ignoring case.
+     *
+     * @param text the text to search.
+     * @param searchText the ordered words to find.
+     * @return true if every search word occurs in order.
+     */
+    public static boolean containsWordsInOrderIgnoreCase(String text, String searchText) {
+        requireNonNull(text);
+        requireNonNull(searchText);
+
+        String[] textWords = text.toLowerCase(Locale.ROOT).split("\\s+");
+        String[] searchWords = searchText.trim().toLowerCase(Locale.ROOT).split("\\s+");
+        int textIndex = 0;
+        for (String searchWord : searchWords) {
+            while (textIndex < textWords.length && !textWords[textIndex].equals(searchWord)) {
+                textIndex++;
+            }
+            if (textIndex == textWords.length) {
+                return false;
+            }
+            textIndex++;
+        }
+        return true;
+    }
 
     /**
      * Returns true if the {@code sentence} contains the {@code word}.

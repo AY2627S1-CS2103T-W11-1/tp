@@ -7,6 +7,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 
+import seedu.address.commons.util.StringUtil;
 import seedu.address.commons.util.ToStringBuilder;
 
 /**
@@ -68,7 +69,7 @@ public class PersonMatchesFindCriteriaPredicate implements Predicate<Person> {
      */
     private boolean matchesName(Person person) {
         return nameKeywords.isEmpty() || nameKeywords.stream()
-                .anyMatch(keyword -> containsWordsInOrder(person.getName().fullName, keyword));
+                .anyMatch(keyword -> StringUtil.containsWordsInOrderIgnoreCase(person.getName().fullName, keyword));
     }
 
     /**
@@ -96,26 +97,7 @@ public class PersonMatchesFindCriteriaPredicate implements Predicate<Person> {
             return personLocation.value.equalsIgnoreCase("any");
         }
         return personLocation.value.equalsIgnoreCase("any")
-                || containsWordsInOrder(personLocation.value, searchLocation.value);
-    }
-
-    /**
-     * Returns whether all search words occur in order, ignoring case and allowing intervening words.
-     */
-    private boolean containsWordsInOrder(String text, String searchText) {
-        String[] textWords = text.split("\\s+");
-        String[] searchWords = searchText.trim().split("\\s+");
-        int textIndex = 0;
-        for (String searchWord : searchWords) {
-            while (textIndex < textWords.length && !textWords[textIndex].equalsIgnoreCase(searchWord)) {
-                textIndex++;
-            }
-            if (textIndex == textWords.length) {
-                return false;
-            }
-            textIndex++;
-        }
-        return true;
+                || StringUtil.containsWordsInOrderIgnoreCase(personLocation.value, searchLocation.value);
     }
 
     @Override

@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
+import seedu.address.commons.util.StringUtil;
 import seedu.address.model.person.Location;
 import seedu.address.model.person.Name;
 
@@ -64,7 +65,8 @@ public class RideMatchesFindCriteriaPredicate implements Predicate<Ride> {
     }
 
     private boolean matchesLocation(Ride ride) {
-        return location.map(value -> ride.getLocation().equals(value)).orElse(true);
+        return location.map(value -> StringUtil.containsWordsInOrderIgnoreCase(ride.getLocation().value,
+                value.value)).orElse(true);
     }
 
     private boolean matchesDistance(Ride ride) {
