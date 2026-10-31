@@ -55,8 +55,11 @@ Run **Phone target error regression** in the Developer Guide after changing targ
 `NameTest` and `UnicodeNameIntegrationTest` cover accented and non-Latin names, combining marks,
 Unicode digits, cyclist/ride add and edit commands, JSON readback and invalid-name rejection without changes.
 They also cover internal hyphens/apostrophes and reject misplaced punctuation.
+`StringUtilTest`, `PersonMatchesFindCriteriaPredicateTest`, `RideMatchesFindCriteriaPredicateTest` and
+`UnicodeNameIntegrationTest` check that `find` and `ridefind` treat hyphens and apostrophes as word separators in
+names and locations, and that a criterion containing no word matches nothing.
 Run **Unicode name regression** and **Hyphenated and apostrophised name regression** in the
-Developer Guide after changing name validation.
+Developer Guide after changing name validation or name and location matching.
 
 `EmailTest` and `EmailValidationIntegrationTest` cover consecutive local-part special characters,
 add/edit acceptance and JSON readback, and rejected emails without saved-data changes.

@@ -1,5 +1,22 @@
 # Release testing results
 
+## Hyphen and apostrophe handling in find and ridefind (31 October 2026)
+
+Treat hyphens and apostrophes as word separators when `find` and `ridefind` match names and locations, so
+`find n/Ling` matches `Tan Wei-Ling` and `ridefind n/Wei-Ling` matches `Wei-Ling's Ride`. Matching remains
+case-insensitive, whole-word and in order, so `Lin` and `WeiLing` still do not match. A criterion with no
+word, such as `-`, matches nothing. The change adds **21 lines** in `src/main` (all in `StringUtil`),
+including comments; deletions are not counted. This is the contribution of this fix, not a measurement of
+cumulative dashboard attribution.
+
+Gradle could not start in the sandbox used for this fix (`Unable to establish loopback connection`), so
+`./gradlew check coverage` was **not** run. The full test suite was instead compiled with `javac` and run with the
+JUnit Platform launcher on Eclipse Temurin JDK 25.0.4.1 on Windows: **918 tests**, no failures or skips. Seven new
+tests fail against the previous `StringUtil` and pass with the fix. Checkstyle 14.1.0 was run directly with
+`config/checkstyle/checkstyle.xml` on the five changed Java files and reported no violations. The JaCoCo coverage
+report still needs a normal `./gradlew check coverage` run, and the manual **Hyphenated and apostrophised name
+regression** and **Find and ridefind regression** scenarios have not been run.
+
 ## Hyphenated and apostrophised cyclist names (31 October 2026)
 
 Accept internal hyphens (`-`) and straight apostrophes (`'`) in the shared `Name` validator,

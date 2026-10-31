@@ -81,6 +81,31 @@ public class UnicodeNameIntegrationTest {
     }
 
     @Test
+    public void execute_findAndRidefindByPartOfPunctuatedName_listsMatches() throws Exception {
+        // Regression: a search must reach words inside hyphenated/apostrophised names, not only the full spelling.
+        logic.execute("add n/Tan Wei-Ling" + CYCLIST_FIELDS);
+        logic.execute("add n/John O'Connor p/+65 92222222 sos/+65 88888888"
+                + " e/johnoconnor@example.com f/250 x/Beginner l/any");
+        for (String[] search : new String[][] {{"Ling", "Tan Wei-Ling"}, {"Wei-Ling", "Tan Wei-Ling"},
+            {"Connor", "John O'Connor"}, {"O'Connor", "John O'Connor"}}) {
+            logic.execute("find n/" + search[0]);
+            assertEquals(1, model.getFilteredPersonList().size(), search[0]);
+            assertEquals(search[1], model.getFilteredPersonList().get(0).getName().fullName, search[0]);
+        }
+
+        logic.execute("rideadd n/Wei-Ling's Ride" + RIDE_FIELDS);
+        logic.execute("rideadd n/Sunday Ride" + RIDE_FIELDS);
+        for (String name : new String[] {"Wei-Ling", "Wei", "Wei-Ling's Ride"}) {
+            logic.execute("ridefind n/" + name);
+            assertEquals(1, model.getFilteredRideList().size(), name);
+            assertEquals("Wei-Ling's Ride", model.getFilteredRideList().get(0).getName().fullName, name);
+        }
+        // A search word without its separator is not a complete word, so nothing is listed.
+        logic.execute("ridefind n/WeiLing");
+        assertEquals(0, model.getFilteredRideList().size());
+    }
+
+    @Test
     public void execute_addAndEditUnicodeRideName_preservesSpellingAfterReload() throws Exception {
         // Ride commands share Name validation and must also preserve spelling when saved and read back.
         logic.execute("rideadd n/Élan Ride" + RIDE_FIELDS);

@@ -12,19 +12,28 @@ import java.util.Arrays;
  */
 public class StringUtil {
 
+    /** Matches the characters that separate words: whitespace, hyphens and apostrophes. */
+    private static final String WORD_SEPARATORS = "[\\s'-]+";
+
     /**
      * Returns whether all words in {@code searchText} occur in order in {@code text}, ignoring case.
+     * Words are separated by whitespace, hyphens and apostrophes, so {@code "Wei-Ling"} matches
+     * {@code "Tan Wei-Ling's Ride"} and {@code "Ling"} matches {@code "Wei-Ling"}, but a partial
+     * word such as {@code "Lin"} does not match. Intervening words in {@code text} are allowed.
      *
      * @param text the text to search.
      * @param searchText the ordered words to find.
-     * @return true if every search word occurs in order.
+     * @return true if every search word occurs in order. False if {@code searchText} has no words.
      */
     public static boolean containsWordsInOrderIgnoreCase(String text, String searchText) {
         requireNonNull(text);
         requireNonNull(searchText);
 
-        String[] textWords = text.split("\\s+");
-        String[] searchWords = searchText.trim().split("\\s+");
+        String[] textWords = splitIntoWords(text);
+        String[] searchWords = splitIntoWords(searchText);
+        if (searchWords.length == 0) {
+            return false;
+        }
         int textIndex = 0;
         for (String searchWord : searchWords) {
             while (textIndex < textWords.length && !textWords[textIndex].equalsIgnoreCase(searchWord)) {
@@ -36,6 +45,15 @@ public class StringUtil {
             textIndex++;
         }
         return true;
+    }
+
+    /**
+     * Splits {@code text} into its non-empty words, using {@code WORD_SEPARATORS} as delimiters.
+     */
+    private static String[] splitIntoWords(String text) {
+        return Arrays.stream(text.split(WORD_SEPARATORS))
+                .filter(word -> !word.isEmpty())
+                .toArray(String[]::new);
     }
 
     /**
