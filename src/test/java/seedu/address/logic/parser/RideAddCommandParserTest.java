@@ -111,6 +111,22 @@ public class RideAddCommandParserTest {
     }
 
     @Test
+    public void parse_hyphenAndApostropheInName_success() {
+        for (String name : new String[] {"Punggol-Seletar Loop", "Mother's Day Ride", "Coast-to-Coast"}) {
+            assertParseSuccess(parser, ALL_REQUIRED.replace("Sunday Sunrise Ride", name),
+                    new RideAddCommand(new RideBuilder().withName(name).build()));
+        }
+    }
+
+    @Test
+    public void parse_misplacedPunctuationInName_failure() {
+        // EP: hyphen/apostrophe not between letters or digits, and "/" or "." which are never allowed.
+        for (String name : new String[] {"-Night Ride", "Night Ride-", "Tan - Ling", "Ride--Two", "Ride.2", "Ride/2"}) {
+            assertParseFailure(parser, ALL_REQUIRED.replace("Sunday Sunrise Ride", name), Name.MESSAGE_CONSTRAINTS);
+        }
+    }
+
+    @Test
     public void parse_notesMissing_success() {
         // EP: the optional notes field is absent rather than supplied with an empty value.
         assertParseSuccess(parser, ALL_REQUIRED, new RideAddCommand(new RideBuilder().build()));

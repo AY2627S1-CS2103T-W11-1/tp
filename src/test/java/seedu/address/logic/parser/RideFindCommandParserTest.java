@@ -20,6 +20,8 @@ public class RideFindCommandParserTest {
     public void parse_eachCriterionAlone_success() {
         // EP: each supported criterion is supplied individually.
         assertDoesNotThrow(() -> parser.parse("n/Sunday Sunrise Ride"));
+        assertDoesNotThrow(() -> parser.parse("n/Punggol-Seletar Loop"));
+        assertDoesNotThrow(() -> parser.parse("n/Mother's Day Ride"));
         assertDoesNotThrow(() -> parser.parse("from/18-10-2026"));
         assertDoesNotThrow(() -> parser.parse("to/18-10-2026 2359"));
         assertDoesNotThrow(() -> parser.parse("l/East Coast"));
