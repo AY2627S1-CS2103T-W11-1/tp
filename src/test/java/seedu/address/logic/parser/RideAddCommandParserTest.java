@@ -112,6 +112,7 @@ public class RideAddCommandParserTest {
 
     @Test
     public void parse_hyphenAndApostropheInName_success() {
+        // EP: hyphen and apostrophe each joining two letters, and a name with several hyphens.
         for (String name : new String[] {"Punggol-Seletar Loop", "Mother's Day Ride", "Coast-to-Coast"}) {
             assertParseSuccess(parser, ALL_REQUIRED.replace("Sunday Sunrise Ride", name),
                     new RideAddCommand(new RideBuilder().withName(name).build()));

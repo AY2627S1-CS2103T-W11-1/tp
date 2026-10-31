@@ -1307,9 +1307,13 @@ Use an empty disposable test book and unique phone numbers and emails.
 1. Enter `rideadd n/John's Coast-to-Coast from/29-10-2026 0630 to/29-10-2026 0930 l/Mandai d/40 f/150 s/5`.
    Expected: The ride name is displayed exactly. Edit it with `rideedit ID n/Wei-Ling's Ride`.
    Expected: The name changes successfully. `rideedit ID n/Ride--Name` is rejected without changes.
-   Enter `ridefind n/Wei-Ling's Ride`. Expected: The edited ride is listed. Enter `ridefind all`.
-   Try `rideadd n/-Night Ride`, `rideadd n/Ride.2` and `rideadd n/Ride/2` with valid ride fields.
-   Expected: Each is rejected with name constraints and no ride is added.
+1. Enter `ridefind n/Wei-Ling's Ride`. Expected: Only the edited ride is listed.
+   Enter `ridefind all`. Expected: The full ride list is restored.
+1. Enter each of the following commands in turn.
+   Expected: Each is rejected with name constraints, and no ride is added.
+   * `rideadd n/-Night Ride from/29-10-2026 0630 to/29-10-2026 0930 l/Mandai d/40 f/150 s/5`
+   * `rideadd n/Ride.2 from/29-10-2026 0630 to/29-10-2026 0930 l/Mandai d/40 f/150 s/5`
+   * `rideadd n/Ride/2 from/29-10-2026 0630 to/29-10-2026 0930 l/Mandai d/40 f/150 s/5`
 1. Exit and relaunch. Expected: Both cyclist names and `Wei-Ling's Ride` retain their spelling.
 
 ### Email local-part regression

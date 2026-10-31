@@ -1,11 +1,17 @@
 package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.logic.commands.RideFindCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.Name;
+import seedu.address.model.ride.RideMatchesFindCriteriaPredicate;
 
 public class RideFindCommandParserTest {
     private final RideFindCommandParser parser = new RideFindCommandParser();
@@ -20,8 +26,6 @@ public class RideFindCommandParserTest {
     public void parse_eachCriterionAlone_success() {
         // EP: each supported criterion is supplied individually.
         assertDoesNotThrow(() -> parser.parse("n/Sunday Sunrise Ride"));
-        assertDoesNotThrow(() -> parser.parse("n/Punggol-Seletar Loop"));
-        assertDoesNotThrow(() -> parser.parse("n/Mother's Day Ride"));
         assertDoesNotThrow(() -> parser.parse("from/18-10-2026"));
         assertDoesNotThrow(() -> parser.parse("to/18-10-2026 2359"));
         assertDoesNotThrow(() -> parser.parse("l/East Coast"));
@@ -29,6 +33,25 @@ public class RideFindCommandParserTest {
         assertDoesNotThrow(() -> parser.parse("f/180"));
         assertDoesNotThrow(() -> parser.parse("s/12"));
         assertDoesNotThrow(() -> parser.parse("notes/Bring lights"));
+    }
+
+    @Test
+    public void parse_hyphenAndApostropheInName_keepsNameExactly() throws Exception {
+        // EP: hyphen and apostrophe each joining two letters; the parsed criterion must keep them.
+        for (String name : new String[] {"Punggol-Seletar Loop", "Mother's Day Ride"}) {
+            RideMatchesFindCriteriaPredicate expected = new RideMatchesFindCriteriaPredicate(
+                    Optional.of(new Name(name)), Optional.empty(), Optional.empty(), Optional.empty(),
+                    Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+            assertEquals(new RideFindCommand(expected), parser.parse("n/" + name));
+        }
+    }
+
+    @Test
+    public void parse_misplacedPunctuationInName_failure() {
+        // EP: hyphen or apostrophe not between letters or digits, and "/" or "." which are never allowed.
+        for (String name : new String[] {"-Night Ride", "Night Ride-", "Tan - Ling", "Ride--Two", "Ride.2", "Ride/2"}) {
+            assertThrows(ParseException.class, () -> parser.parse("n/" + name));
+        }
     }
 
     @Test
