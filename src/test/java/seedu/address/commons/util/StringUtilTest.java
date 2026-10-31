@@ -127,6 +127,35 @@ public class StringUtilTest {
         assertTrue(StringUtil.containsWordIgnoreCase("AAA bBb ccc  bbb", "bbB"));
     }
 
+    //---------------- Tests for containsWordsInOrderIgnoreCase -----------------------------
+
+    @Test
+    public void containsWordsInOrderIgnoreCase_nullInput_throwsNullPointerException() {
+        // EP: null text and null search text are invalid inputs.
+        assertThrows(NullPointerException.class, ()
+                -> StringUtil.containsWordsInOrderIgnoreCase(null, "abc"));
+        assertThrows(NullPointerException.class, ()
+                -> StringUtil.containsWordsInOrderIgnoreCase("abc", null));
+    }
+
+    @Test
+    public void containsWordsInOrderIgnoreCase_validInputs_correctResult() {
+        // EP: one complete word matches regardless of case.
+        assertTrue(StringUtil.containsWordsInOrderIgnoreCase("Sunday Sunrise Ride", "sunday"));
+        // EP: Unicode case-insensitive matching preserves existing find behaviour.
+        assertTrue(StringUtil.containsWordsInOrderIgnoreCase("İsmail Yilmaz", "ismail"));
+        // EP: complete words may be separated by intervening words.
+        assertTrue(StringUtil.containsWordsInOrderIgnoreCase("Sunday Sunrise Ride", "Sunday Ride"));
+        // EP: location-style matching also preserves word order.
+        assertTrue(StringUtil.containsWordsInOrderIgnoreCase("East Coast Park", "east park"));
+        // EP: reversed word order does not match.
+        assertFalse(StringUtil.containsWordsInOrderIgnoreCase("Sunday Sunrise Ride", "ride sunday"));
+        // EP: a partial word fragment does not match.
+        assertFalse(StringUtil.containsWordsInOrderIgnoreCase("Sunday Sunrise Ride", "Rise"));
+        // Boundary value: whitespace-only search text does not match.
+        assertFalse(StringUtil.containsWordsInOrderIgnoreCase("Sunday Sunrise Ride", "  "));
+    }
+
     //---------------- Tests for getDetails --------------------------------------
 
     /*

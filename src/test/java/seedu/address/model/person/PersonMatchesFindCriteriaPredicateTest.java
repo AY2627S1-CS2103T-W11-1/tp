@@ -55,6 +55,13 @@ public class PersonMatchesFindCriteriaPredicateTest {
     }
 
     @Test
+    public void test_nameKeywords_preserveUnicodeCaseInsensitiveMatching() {
+        // Regression: find should match "ismail" with the name "İsmail Yilmaz".
+        Person person = new PersonBuilder().withName("İsmail Yilmaz").build();
+        assertTrue(new PersonMatchesFindCriteriaPredicate(List.of("ismail"), List.of()).test(person));
+    }
+
+    @Test
     public void test_phoneNumbers_matchAnyExactNumber() {
         // EP: phone criteria use exact matching with OR semantics across repeated values.
         assertTrue(new PersonMatchesFindCriteriaPredicate(List.of(),

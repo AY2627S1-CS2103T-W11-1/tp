@@ -13,6 +13,32 @@ import java.util.Arrays;
 public class StringUtil {
 
     /**
+     * Returns whether all words in {@code searchText} occur in order in {@code text}, ignoring case.
+     *
+     * @param text the text to search.
+     * @param searchText the ordered words to find.
+     * @return true if every search word occurs in order.
+     */
+    public static boolean containsWordsInOrderIgnoreCase(String text, String searchText) {
+        requireNonNull(text);
+        requireNonNull(searchText);
+
+        String[] textWords = text.split("\\s+");
+        String[] searchWords = searchText.trim().split("\\s+");
+        int textIndex = 0;
+        for (String searchWord : searchWords) {
+            while (textIndex < textWords.length && !textWords[textIndex].equalsIgnoreCase(searchWord)) {
+                textIndex++;
+            }
+            if (textIndex == textWords.length) {
+                return false;
+            }
+            textIndex++;
+        }
+        return true;
+    }
+
+    /**
      * Returns true if the {@code sentence} contains the {@code word}.
      *   Ignores case, but a full word match is required.
      *   <br>examples:<pre>

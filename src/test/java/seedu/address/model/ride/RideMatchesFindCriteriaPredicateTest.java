@@ -67,10 +67,19 @@ public class RideMatchesFindCriteriaPredicateTest {
 
     @Test
     public void test_location_isCaseInsensitive() {
-        // EP: location matching ignores case and rejects a different location.
-        Ride ride = new RideBuilder().withLocation("Tampines").build();
+        // EP: location matching is case-insensitive and supports ordered whole-word searches.
+        Ride ride = new RideBuilder().withLocation("East Coast Park").build();
 
-        assertTrue(predicateWithLocation("tampines").test(ride));
+        // EP: one requested word matches a location word.
+        assertTrue(predicateWithLocation("east").test(ride));
+        // EP: requested words may skip intervening complete words while preserving order.
+        assertTrue(predicateWithLocation("Coast Park").test(ride));
+        assertTrue(predicateWithLocation("East Park").test(ride));
+        // EP: all requested words occur in order.
+        assertTrue(predicateWithLocation("east coast").test(ride));
+        // EP: reversed word order does not match.
+        assertFalse(predicateWithLocation("park east").test(ride));
+        // EP: a different location does not match.
         assertFalse(predicateWithLocation("Punggol").test(ride));
     }
 
@@ -113,12 +122,22 @@ public class RideMatchesFindCriteriaPredicateTest {
     }
 
     @Test
-    public void test_name_isCaseInsensitive() {
-        // EP: name matching ignores case but rejects a different name.
+    public void test_name_isCaseInsensitiveAndSupportsOrderedWholeWordSearches() {
+        // EP: name matching is case-insensitive and supports ordered whole-word searches.
         Ride ride = new RideBuilder().withName("Sunday Sunrise Ride").build();
 
-        assertTrue(predicateWithName("sunday sunrise ride").test(ride));
-        assertFalse(predicateWithName("Sunday Sunset Ride").test(ride));
+        // EP: one requested word matches a name word.
+        assertTrue(predicateWithName("sunday").test(ride));
+        // EP: requested words may skip intervening complete words while preserving order.
+        assertTrue(predicateWithName("Sunday Ride").test(ride));
+        assertTrue(predicateWithName("Sunrise Ride").test(ride));
+        assertTrue(predicateWithName("sunday sunrise").test(ride));
+        // EP: reversed word order does not match.
+        assertFalse(predicateWithName("ride sunday").test(ride));
+        // EP: a partial word fragment does not match a complete word.
+        assertFalse(predicateWithName("Rise").test(ride));
+        // EP: a different name does not match.
+        assertFalse(predicateWithName("Sunday Sunset").test(ride));
     }
 
     @Test
