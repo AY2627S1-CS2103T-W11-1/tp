@@ -311,7 +311,7 @@ changing cyclist records, ride rosters or the current filter. Phone or email con
 
 Find cyclists by name, phone number, email address, emergency contact number or cycling profile.
 
-**Format:** `find [n/NAME_KEYWORD]… [p/PHONE]… [sos/EMERGENCY_PHONE] [e/EMAIL] [f/MIN_FTP] [x/EXPERIENCE]… [l/LOCATION]…`
+**Format:** `find [n/NAME_KEYWORD]… [p/PHONE]… [sos/EMERGENCY_PHONE]… [e/EMAIL]… [f/MIN_FTP] [x/EXPERIENCE]… [l/LOCATION]…`
 (at least one field is required)
 
 Field | Meaning and rules
@@ -319,7 +319,7 @@ Field | Meaning and rules
 `n/NAME_KEYWORD` | A single name word or multiple complete name words. Matching is case-insensitive and each supplied word must appear as a complete word in the same order; `n/hans` matches `Hans` but `n/Han` does not. A multi-word value such as `n/John Doe` matches names containing `John` followed by `Doe`, even when other words appear between them. Hyphens and apostrophes separate words, so `n/Ling` and `n/Wei-Ling` both match `Tan Wei-Ling`, and `n/Connor` and `n/O'Connor` both match `John O'Connor`; `n/WeiLing` does not.
 `p/PHONE` | A complete phone number using a `+`, a 1–3 digit country code, one space and at least 3 digits. Matching is exact, ignoring leading zeros in the country code; `p/+65 963` does not match `+65 96320842`, but `p/+065 96320842` does.
 `sos/EMERGENCY_PHONE` | A complete emergency contact number using the same validation and exact matching as `p/`. Only cyclists with an emergency number matching the supplied value are shown. Cyclists whose emergency number is missing or different are not shown.
-`e/EMAIL` | An exact email address. Matching ignores letter case, so `e/ALICE@EXAMPLE.COM` matches a stored `alice@example.com`. Invalid email addresses are rejected.
+`e/EMAIL` | An exact email address. Matching ignores letter case, so `e/ALICE@EXAMPLE.COM` matches a stored `alice@example.com`. Repeat `e/` to match any supplied email. Invalid email addresses are rejected.
 `f/MIN_FTP` | A whole number from 1 to 600, inclusive. Matches cyclists whose FTP is greater than or equal to the supplied value in watts; both `f/1` and `f/600` are valid.
 `x/EXPERIENCE` | `Beginner`, `Intermediate` or `Advanced`, ignoring case. Repeat `x/` to match any of the supplied experience levels.
 `l/LOCATION` | A preferred location, ignoring case. Complete words within the supplied location are matched in order, so `l/Coast` and `l/East Coast` match `East Coast Park` but `l/Coas` does not. Hyphens and apostrophes separate words here too, so `l/Ris` matches `Pasir-Ris Park`. Repeat `l/` to match any supplied location. A cyclist with `l/any` matches every location criterion.
@@ -881,7 +881,7 @@ Task | Format and example
 [Clear all data](#clearing-all-entries-clear) | `clear`
 [Delete cyclist](#deleting-a-cyclist-delete) | `delete PHONE`, then `y`/`yes` to confirm or `n`/`no` to cancel (case-insensitive)<br> e.g., `delete +65 98765432`, then `yes`
 [Edit cyclist](#editing-a-cyclist-edit) | `edit PHONE [n/NAME] [p/PHONE] [sos/EMERGENCY_PHONE] [e/EMAIL] [f/FTP_LEVEL] [x/EXPERIENCE_LEVEL] [l/LOCATION]…`<br> e.g., `edit +65 98765432 sos/+65 98888888 f/350 x/Intermediate l/East Coast Park l/Punggol`
-[Find cyclists](#finding-cyclists-find) | `find [n/NAME_KEYWORD]… [p/PHONE]… [sos/EMERGENCY_PHONE] [e/EMAIL] [f/MIN_FTP] [x/EXPERIENCE]… [l/LOCATION]…`<br> e.g., `find n/Alex n/Bernice`, `find e/alex@example.com`
+[Find cyclists](#finding-cyclists-find) | `find [n/NAME_KEYWORD]… [p/PHONE]… [sos/EMERGENCY_PHONE]… [e/EMAIL]… [f/MIN_FTP] [x/EXPERIENCE]… [l/LOCATION]…`<br> e.g., `find n/Alex n/Bernice`, `find e/alex@example.com e/bob@example.com`
 [List cyclists](#listing-all-cyclists-list) | `list`
 [Help](#viewing-help-help) | `help`<br> or press `F1`, or choose **Help → Full help...**
 [Exit](#exiting-the-program-exit) | `exit`

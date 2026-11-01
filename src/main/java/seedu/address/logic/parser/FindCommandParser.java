@@ -13,7 +13,6 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -45,22 +44,21 @@ public class FindCommandParser implements Parser<FindCommand> {
         List<String> nameKeywords = parseNameKeywords(argMultimap.getAllValues(PREFIX_NAME));
         List<Phone> phones = parsePhones(argMultimap.getAllValues(PREFIX_PHONE));
         List<Phone> emergencyPhones = parsePhones(argMultimap.getAllValues(PREFIX_EMERGENCY_PHONE));
-        Optional<Email> email = argMultimap.getValue(PREFIX_EMAIL).isPresent()
-                ? Optional.of(ParserUtil.parseEmail(argMultimap.getValue(PREFIX_EMAIL).get())) : Optional.empty();
+        List<Email> emails = parseEmails(argMultimap.getAllValues(PREFIX_EMAIL));
         Ftp minimumFtp = argMultimap.getValue(PREFIX_FTP).isPresent()
                 ? ParserUtil.parseFtp(argMultimap.getValue(PREFIX_FTP).get()) : null;
         List<ExperienceLevel> experienceLevels = parseExperienceLevels(
                 argMultimap.getAllValues(PREFIX_EXPERIENCE_LEVEL));
         Set<Location> locations = parseLocationCriteria(argMultimap.getAllValues(PREFIX_LOCATION));
         return new FindCommand(new PersonMatchesFindCriteriaPredicate(nameKeywords, phones, emergencyPhones,
-                experienceLevels, locations, minimumFtp, email));
+                experienceLevels, locations, minimumFtp, emails));
     }
 
     /**
      * Rejects unexpected preambles, missing criteria, empty names, and repeated minimum FTP values.
      */
     private void validateCriteria(ArgumentMultimap argMultimap) throws ParseException {
-        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_EMAIL, PREFIX_FTP);
+        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_FTP);
         List<String> nameKeywords = argMultimap.getAllValues(PREFIX_NAME);
         boolean hasCriteria = Stream.of(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMERGENCY_PHONE, PREFIX_EMAIL,
                 PREFIX_LOCATION, PREFIX_FTP, PREFIX_EXPERIENCE_LEVEL)
@@ -92,6 +90,15 @@ public class FindCommandParser implements Parser<FindCommand> {
             phones.add(ParserUtil.parsePhone(value));
         }
         return phones;
+    }
+
+    /** Parses repeated email criteria while retaining their input order. */
+    private List<Email> parseEmails(List<String> emailValues) throws ParseException {
+        List<Email> emails = new ArrayList<>();
+        for (String value : emailValues) {
+            emails.add(ParserUtil.parseEmail(value));
+        }
+        return emails;
     }
 
     /**

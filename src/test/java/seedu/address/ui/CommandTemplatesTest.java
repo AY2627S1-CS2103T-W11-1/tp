@@ -119,7 +119,7 @@ public class CommandTemplatesTest {
 
         // EP: the find template documents every supported person-search field for valid user input.
         assertTrue(display.contains("f/MIN_FTP"));
-        assertTrue(display.contains("e/EMAIL"));
+        assertTrue(display.contains("[e/EMAIL]..."));
         assertTrue(display.contains("x/EXPERIENCE"));
         assertTrue(display.contains("l/LOCATION"));
     }

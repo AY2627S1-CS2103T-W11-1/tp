@@ -70,12 +70,16 @@ public class FindCommandParserTest {
         // EP: a valid email is accepted alone or combined with another criterion.
         FindCommand emailCommand = new FindCommand(new PersonMatchesFindCriteriaPredicate(
                 List.of(), List.of(), List.of(), List.of(), java.util.Set.of(), null,
-                java.util.Optional.of(new Email("alice@example.com"))));
+                java.util.List.of(new Email("alice@example.com"))));
         assertParseSuccess(parser, "e/alice@example.com", emailCommand);
         FindCommand combined = new FindCommand(new PersonMatchesFindCriteriaPredicate(
                 List.of("Alice"), List.of(), List.of(), List.of(), java.util.Set.of(), null,
-                java.util.Optional.of(new Email("alice@example.com"))));
+                java.util.List.of(new Email("alice@example.com"))));
+        FindCommand multipleEmails = new FindCommand(new PersonMatchesFindCriteriaPredicate(
+                List.of(), List.of(), List.of(), List.of(), java.util.Set.of(), null,
+                java.util.List.of(new Email("alice@example.com"), new Email("bob@example.com"))));
         assertParseSuccess(parser, "n/Alice e/alice@example.com", combined);
+        assertParseSuccess(parser, "e/alice@example.com e/bob@example.com", multipleEmails);
     }
 
     @Test
@@ -114,8 +118,6 @@ public class FindCommandParserTest {
     public void parse_invalidCyclingCriteria_throwsParseException() {
         // EP: cycling criteria contain invalid values or duplicate prefixes.
         assertParseFailure(parser, "f/0", Ftp.MESSAGE_CONSTRAINTS);
-        assertParseFailure(parser, "e/alice@example.com e/bob@example.com",
-                Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_EMAIL));
         assertParseFailure(parser, "x/Expert", ExperienceLevel.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "l/", Location.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "f/300 x/Intermediate find l/Punggol f/300 x/Intermediate",

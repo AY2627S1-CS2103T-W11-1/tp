@@ -4,7 +4,6 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -21,7 +20,7 @@ public class PersonMatchesFindCriteriaPredicate implements Predicate<Person> {
     private final List<ExperienceLevel> experienceLevels;
     private final Set<Location> locations;
     private final Ftp minimumFtp;
-    private final Optional<Email> email;
+    private final List<Email> emails;
 
     /**
      * Creates a predicate that matches any value in each supplied field.
@@ -45,20 +44,20 @@ public class PersonMatchesFindCriteriaPredicate implements Predicate<Person> {
     public PersonMatchesFindCriteriaPredicate(List<String> nameKeywords, List<Phone> phones,
             List<Phone> emergencyPhones, List<ExperienceLevel> experienceLevels, Set<Location> locations,
             Ftp minimumFtp) {
-        this(nameKeywords, phones, emergencyPhones, experienceLevels, locations, minimumFtp, Optional.empty());
+        this(nameKeywords, phones, emergencyPhones, experienceLevels, locations, minimumFtp, List.of());
     }
 
-    /** Creates a predicate with an optional exact email criterion. */
+    /** Creates a predicate with zero or more exact email criteria. */
     public PersonMatchesFindCriteriaPredicate(List<String> nameKeywords, List<Phone> phones,
             List<Phone> emergencyPhones, List<ExperienceLevel> experienceLevels, Set<Location> locations,
-            Ftp minimumFtp, Optional<Email> email) {
+            Ftp minimumFtp, List<Email> emails) {
         this.emergencyPhones = List.copyOf(emergencyPhones);
         this.nameKeywords = List.copyOf(nameKeywords);
         this.phones = List.copyOf(phones);
         this.experienceLevels = List.copyOf(experienceLevels);
         this.locations = Set.copyOf(locations);
         this.minimumFtp = minimumFtp;
-        this.email = requireNonNull(email);
+        this.emails = List.copyOf(emails);
     }
 
     @Override
@@ -99,9 +98,10 @@ public class PersonMatchesFindCriteriaPredicate implements Predicate<Person> {
                 || Integer.parseInt(person.getFtp().value) >= Integer.parseInt(minimumFtp.value);
     }
 
-    /** Returns whether the person's email matches the optional criterion, ignoring case. */
+    /** Returns whether the person's email matches any supplied criterion, ignoring case. */
     private boolean matchesEmail(Person person) {
-        return email.isEmpty() || person.getEmail().value.equalsIgnoreCase(email.get().value);
+        return emails.isEmpty() || emails.stream()
+                .anyMatch(email -> person.getEmail().value.equalsIgnoreCase(email.value));
     }
 
     /**
@@ -128,7 +128,7 @@ public class PersonMatchesFindCriteriaPredicate implements Predicate<Person> {
                 && experienceLevels.equals(otherPredicate.experienceLevels)
                 && locations.equals(otherPredicate.locations)
                 && Objects.equals(minimumFtp, otherPredicate.minimumFtp)
-                && email.equals(otherPredicate.email);
+                && emails.equals(otherPredicate.emails);
     }
 
     @Override

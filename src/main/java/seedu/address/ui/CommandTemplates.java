@@ -67,7 +67,7 @@ public class CommandTemplates {
             new Template(
                     FindCommand.COMMAND_WORD + " [" + PREFIX_NAME + "NAME_KEYWORD]... [" + PREFIX_PHONE
                             + "PHONE]... [" + PREFIX_EMERGENCY_PHONE + "EMERGENCY_PHONE]... [" + PREFIX_EMAIL
-                            + "EMAIL] [" + PREFIX_FTP
+                            + "EMAIL]... [" + PREFIX_FTP
                             + "MIN_FTP] [" + PREFIX_EXPERIENCE_LEVEL + "EXPERIENCE]... [" + PREFIX_LOCATION
                             + "LOCATION]...",
                     FindCommand.COMMAND_WORD + " "),
