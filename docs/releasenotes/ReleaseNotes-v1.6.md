@@ -19,14 +19,15 @@ following changes are new compared with v1.5.
   is unchanged.
   ([#243](https://github.com/AY2627S1-CS2103T-W11-1/tp/pull/243),
   [#244](https://github.com/AY2627S1-CS2103T-W11-1/tp/pull/244))
-* **Phone numbers with leading zeros:** Cyclique now ignores leading zeros in
-  the country code and the number, so `+065 091234561` is stored and compared
-  as `+65 91234561`. This stops the same real number from being added for two
-  cyclists by accident, and keeps `edit`, `delete`, `find p/` and ride rosters
-  pointing at the right cyclist. Numbers made up only of zeros, such as
-  `+0 000`, are rejected, and the invalid-phone message now explains the rule.
-  Zeros after the first non-zero digit are kept, so `+65 912345610` remains a
-  different number.
+* **Phone numbers with leading zeros in the country code:** Cyclique now
+  ignores leading zeros in the country code, so `+065 91234561` is stored and
+  compared as `+65 91234561`. This stops the same number from being added for
+  two cyclists by accident, and keeps `edit`, `delete`, `find p/` and ride
+  rosters pointing at the right cyclist. The country code must still contain a
+  non-zero digit, so a country code made up only of zeros, such as `+0 000`, is
+  rejected, and the invalid-phone message now explains the rule. Leading zeros
+  in the number itself are kept as typed, because they can be significant, so
+  `+65 091234561` is a different number from `+65 91234561`.
   ([#247](https://github.com/AY2627S1-CS2103T-W11-1/tp/pull/247))
 
 ### Search improvements
@@ -47,8 +48,8 @@ following changes are new compared with v1.5.
   `ridefind` treat spaces, hyphens and apostrophes as word separators, so
   `find n/Ling` finds `Tan Wei-Ling` and `ridefind n/Wei-Ling` finds
   `Wei-Ling's Ride`. Matching is still case-insensitive and whole-word, so
-  fragments such as `Lin` do not match. A search containing no word, such as a
-  lone hyphen, now matches nothing instead of matching everything.
+  fragments such as `Lin` do not match. Name searches must still be valid
+  names, so a search such as `n/-` shows a validation error.
   ([#246](https://github.com/AY2627S1-CS2103T-W11-1/tp/pull/246))
 * **Quoted notes in `ridefind`:** Notes searches can be quoted to protect text
   that looks like a command prefix. For example, `ridefind notes/"aperture f/2"`
