@@ -320,10 +320,11 @@ error, and the User Guide's "Using older data files" section explains how to cor
 ### Cyclist and ride filtering
 
 The `find` command accepts `n/` for name, `p/` for the cyclist's own phone, `sos/` for an
-emergency phone, `f/` for a minimum FTP, `x/` for experience level and `l/` for preferred
-location. At least one criterion is required. The `n/`, `p/`, `sos/`, `x/` and `l/` prefixes
+emergency phone, `e/` for an exact email address, `f/` for a minimum FTP, `x/` for experience level and `l/` for
+preferred location. At least one criterion is required. The `n/`, `p/`, `sos/`, `x/` and `l/` prefixes
 can each be repeated: values within one field use OR matching, while different fields use
-AND. The `f/` prefix accepts only one minimum FTP value, and a cyclist matches when their
+AND. The `e/` prefix accepts multiple email criteria and matches any supplied email address exactly, ignoring case. The `f/` prefix accepts only one
+minimum FTP value, and a cyclist matches when their
 FTP is greater than or equal to that value. Names and preferred locations match complete words case-insensitively;
 a name containing spaces matches when all supplied words are present in the same order, even
 when other words appear between them. A multi-word location criterion follows the same rule.
@@ -1039,7 +1040,8 @@ The status column distinguishes current requirements from future work. Current c
 * Test a unique name with a name search. For duplicate names, use a dataset containing 50 cyclists
   with the same name and distinct phone numbers, and search using the target's known unique phone.
   Verify that only the intended cyclist and their emergency number appear without scrolling.
-  Email search is not supported and is not part of this acceptance test.
+  Add or select a cyclist with email `alex@example.com`. Search using `find e/alex@example.com`, then repeat with
+  different letter case. Verify that the matching cyclist is shown and a different or partial email returns no match.
 
 **Environment/Compatibility**
 

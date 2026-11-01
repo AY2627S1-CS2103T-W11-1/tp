@@ -88,6 +88,50 @@ public class PersonMatchesFindCriteriaPredicateTest {
     }
 
     @Test
+    public void test_email_matchesExactlyIgnoringCase() {
+        // EP: email matching is exact apart from letter case; partial and different addresses do not match.
+        PersonMatchesFindCriteriaPredicate matching = new PersonMatchesFindCriteriaPredicate(
+                List.of(), List.of(), List.of(), List.of(), Set.of(), null,
+                List.of(new Email("AMY@GMAIL.COM")));
+        assertTrue(matching.test(alice));
+        assertFalse(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(), List.of(), Set.of(), null,
+                List.of(new Email("alice@example.co"))).test(alice));
+        assertFalse(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(), List.of(), Set.of(), null,
+                List.of(new Email("bob@example.com"))).test(alice));
+
+        // EP: email combines with other criteria using AND semantics.
+        PersonMatchesFindCriteriaPredicate combined = new PersonMatchesFindCriteriaPredicate(
+                List.of("Alice"), List.of(alice.getPhone()), List.of(), List.of(), Set.of(), null,
+                List.of(new Email("amy@gmail.com")));
+        assertTrue(combined.test(alice));
+        assertFalse(new PersonMatchesFindCriteriaPredicate(
+                List.of("Alice"), List.of(alice.getPhone()), List.of(), List.of(), Set.of(), null,
+                List.of(new Email("bob@example.com"))).test(alice));
+
+        // EP: repeated email criteria use OR semantics.
+        PersonMatchesFindCriteriaPredicate multipleEmails = new PersonMatchesFindCriteriaPredicate(
+                List.of(), List.of(), List.of(), List.of(), Set.of(), null,
+                List.of(new Email("other@example.com"), new Email("AMY@GMAIL.COM")));
+        assertTrue(multipleEmails.test(alice));
+    }
+
+    @Test
+    public void equals_emailCriteria_areCompared() {
+        // EP: predicates with identical email criteria are equal, while different criteria are not.
+        PersonMatchesFindCriteriaPredicate first = new PersonMatchesFindCriteriaPredicate(
+                List.of(), List.of(), List.of(), List.of(), Set.of(), null,
+                List.of(new Email("alice@example.com")));
+        PersonMatchesFindCriteriaPredicate same = new PersonMatchesFindCriteriaPredicate(
+                List.of(), List.of(), List.of(), List.of(), Set.of(), null,
+                List.of(new Email("alice@example.com")));
+        PersonMatchesFindCriteriaPredicate different = new PersonMatchesFindCriteriaPredicate(
+                List.of(), List.of(), List.of(), List.of(), Set.of(), null,
+                List.of(new Email("bob@example.com")));
+        assertTrue(first.equals(same));
+        assertFalse(first.equals(different));
+    }
+
+    @Test
     public void test_nameAndPhone_bothMustMatch() {
         // EP: different criteria use AND semantics, so one mismatch rejects the person.
         assertTrue(new PersonMatchesFindCriteriaPredicate(List.of("bob"),
