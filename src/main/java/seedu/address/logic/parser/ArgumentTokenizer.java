@@ -38,7 +38,7 @@ public class ArgumentTokenizer {
     private static final char RIGHT_CURLY_QUOTE = '”';
 
     /**
-     * Tokenizes ride add/edit arguments, allowing an optional double-quoted notes value.
+     * Tokenizes ride add/edit/find arguments, allowing an optional double-quoted notes value.
      * Straight or paired curly double quotes after optional notes whitespace enable quoting. The first matching
      * closing quote ends the value; backslashes are literal. Inner prefixes are ignored, and delimiters are removed.
      * The other quote style is literal inside. Curly-quoted values cannot contain another left curly quote.

@@ -109,6 +109,26 @@ public class MainWindowRidePanelTest {
 
             AddressBook before = new AddressBook(model.getAddressBook());
             String saved = Files.readString(dataFile);
+            // The real command box must accept literal prefixes in search notes and recover from quote errors.
+            enterCommand(input, "ridefind notes/\"aperture f/2\"");
+            assertEquals("", input.getText());
+            assertEquals("1 ride(s) listed!", feedback.getText());
+            assertEquals(1, model.getFilteredRideList().size());
+            enterCommand(input, "rf notes/“aperture f/2” f/200");
+            assertEquals("0 ride(s) listed!", feedback.getText());
+            assertTrue(model.getFilteredRideList().isEmpty());
+            String malformedSearch = "ridefind notes/\"aperture f/2";
+            enterCommand(input, malformedSearch);
+            assertEquals(malformedSearch, input.getText());
+            assertTrue(input.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+            assertTrue(feedback.getText().startsWith("Invalid quoted ride notes."));
+            assertTrue(model.getFilteredRideList().isEmpty());
+            assertEquals(before, model.getAddressBook());
+            assertEquals(saved, Files.readString(dataFile));
+            enterCommand(input, "rf notes/“aperture f/2”");
+            assertEquals("1 ride(s) listed!", feedback.getText());
+            assertFalse(input.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+
             String malformed = "rideedit 1 notes/\"Bring camera with aperture f/2";
             enterCommand(input, malformed);
             assertEquals(malformed, input.getText());

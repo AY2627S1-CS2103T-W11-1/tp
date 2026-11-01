@@ -78,8 +78,8 @@ Command names and prefixes are **case-sensitive**: use `list`, not `LIST`.
 You can put prefixed fields in any order. For example, `n/John Doe p/+65 98765432` and
 `p/+65 98765432 n/John Doe` supply the same details.
 
-In `rideadd` and `rideedit`, you can quote notes containing text such as `f/2` so that it is stored as
-notes rather than read as another field. See [Writing ride notes](#writing-ride-notes).
+In `rideadd`, `rideedit` and `ridefind`, you can quote notes containing text such as `f/2` so that
+it is treated as notes rather than read as another field. See [Writing ride notes](#writing-ride-notes).
 
 Commands with no parameters, such as `help`, `list` and `exit`, ignore extra text.
 **`clear` is the exception:** it rejects extra text because it deletes all your data.
@@ -492,8 +492,8 @@ Inside quoted notes you can use the other kind of quote, as in `notes/“say "hi
 There is no escape syntax.
 Quotes elsewhere in unquoted notes, as in `notes/Bring a "camera"`, are stored literally.
 
-These quoting rules apply only to **`rideadd` and `rideedit`**, including their aliases.
-For `ridefind`, search with an unquoted word such as `notes/camera`.
+These quoting rules apply to **`rideadd`, `rideedit` and `ridefind`**, including their aliases.
+For example, `ridefind notes/"aperture f/2"` searches for that literal phrase in the notes.
 To clear existing notes, use `rideedit ID notes/` without quotes.
 
 **If something goes wrong**
@@ -530,9 +530,13 @@ The fields are matched as follows:
 * `notes/NOTES` matches complete words or phrases in the ride's notes, ignoring case. For example,
   `notes/lights` matches `Bring lights`, but `notes/lig` does not. Rides without notes do not match a notes criterion.
 
-`ridefind` does not support the quoted-notes syntax of `rideadd` and `rideedit`. Quotes in search values are
-ordinary characters and do not protect recognised prefixes. Use an unquoted criterion such as `notes/camera`
-to find a complete word in notes containing literal `f/2`; whole-word and phrase matching are unchanged.
+Use straight or paired curly double quotes to search notes containing recognised prefixes:
+`ridefind notes/"aperture f/2"` or `rf notes/“aperture f/2”`. The outer quotes are removed;
+the phrase matches regardless of case. Other criteria outside the quotes still apply, for example
+`ridefind notes/"aperture f/2" f/180`. Unquoted searches such as `notes/camera` still work.
+Only `notes/` supports quoting. Empty, unclosed or mismatched quoted notes and extra text after
+the closing quote are rejected without changing the displayed results. The same
+[quoting rules and 1–10 word limit](#writing-ride-notes) apply as when writing notes.
 
 The date and time format is `DD-MM-YYYY TTTT`, using the 24-hour clock. A date-only `from/` value means `0000`,
 while a date-only `to/` value means `2359`. When both bounds are supplied, `to/` cannot be earlier than `from/`.
@@ -547,6 +551,7 @@ The command updates only the displayed ride list; it does not change or delete s
 | Find a ride by its full name | `ridefind n/Sunday Sunrise Ride` shows Sunday Sunrise Ride. |
 | Find a ride by part of a hyphenated name | `ridefind n/Wei` shows a ride named `Wei-Ling's Ride`, if you have added one. |
 | Look for a reminder | `ridefind notes/lights` shows rides whose notes contain the complete word `lights`, including Sunday Sunrise Ride. |
+| Find notes containing a literal prefix | `ridefind notes/"aperture f/2"` shows rides whose notes contain that phrase, if you have added one. |
 | Find rides within one day | `ridefind from/25-10-2026 to/25-10-2026` shows rides starting and ending on 25 October, including Sunday Sunrise Ride. |
 | Combine location and minimum power | `ridefind l/Punggol f/150` shows the sample Evening Spin. A ride must meet both criteria. |
 | Show all rides again | `ridefind all` removes the ride filter. |
@@ -864,9 +869,9 @@ and remove personal information from screenshots or data files before sharing th
 ## Command summary
 
 Use a full command name **or** its alias, for example `ridefind all` or `rf all`.
-Do not type aliases in parentheses. For `rideadd` and `rideedit`, quote notes to preserve prefixes literally:
-`rideedit 1 notes/"Bring camera with aperture f/2"` (use the actual ride ID). Quotes are removed;
-this quoting syntax does not apply to `ridefind`. See [Writing ride notes](#writing-ride-notes).
+Do not type aliases in parentheses. For `rideadd`, `rideedit` and `ridefind`, quote notes to preserve
+prefixes literally: `rideedit 1 notes/"Bring camera with aperture f/2"` (use the actual ride ID),
+or `ridefind notes/"aperture f/2"`. Outer quotes are removed. See [Writing ride notes](#writing-ride-notes).
 
 Task | Format and example
 --------|------------------

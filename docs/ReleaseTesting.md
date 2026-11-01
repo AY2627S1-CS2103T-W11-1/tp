@@ -1,5 +1,53 @@
 # Release testing results
 
+## Quoted ride notes searches (1 November 2026)
+
+Use the existing quoted-notes tokenizer in `RideFindCommandParser` so that
+`ridefind notes/"aperture f/2"` and `rf notes/“aperture f/2”` search for the literal phrase.
+Retain case-insensitive whole-word/phrase matching, AND matching with outside criteria,
+the notes word limit and existing quote-validation rules. Unquoted criteria retain their meaning.
+This fix adds or edits **4 lines under `src/main`**, including the tokenizer Javadoc.
+The combined working-tree total with the earlier uncommitted ride-ID fix is **33 lines**;
+these counts include comments and blank lines and exclude deletions. They do not measure
+cumulative dashboard attribution during the feature freeze.
+
+Using Eclipse Temurin JDK 25.0.4.1 on macOS ARM64, `./gradlew check coverage shadowJar` passes
+**948 tests**, with no failures, errors or skips; both Checkstyle checks pass.
+Line coverage is **92.49%** (2,538 of 2,744 lines), above the 50% target.
+Parser and integration tests cover both quote styles, protected prefixes, alias use, combined
+criteria, case-insensitive phrase matching, word boundaries, JSON reload and malformed searches
+preserving records, both filters and saved JSON. The real JavaFX command-box regression checks
+successful feedback, zero matches, retained input/error styling and recovery after malformed quoting.
+
+The app launched in a disposable folder using the release JAR with existing ARM64 JavaFX
+libraries on its classpath. The desktop-control tool could not access its JavaFX window
+(`Invalid app: java` and `Invalid app: Cyclique`); the **Quoted ride notes search regression**
+manual visual/restart checks remain outstanding. The temporary app was stopped.
+Other operating systems were not tested locally.
+
+## Ride ID input overflow errors (1 November 2026)
+
+Report the supported ride ID range for digit-only input above `2147483647` in `ridelist`,
+`rideedit` and `ridedelete`. Reuse the same range message as both roster commands.
+Preserve usage errors for malformed or missing arguments and missing-ride errors for
+in-range unknown IDs. Do not change ride ID allocation or saved-file constraints.
+This fix adds or edits **29 lines under `src/main`**, including imports, comments and blank
+lines, relative to the clean working tree at its start. Deletions are excluded.
+This count covers this fix, not cumulative dashboard attribution during the feature freeze.
+
+Using Eclipse Temurin JDK 25.0.4.1 on macOS ARM64, `./gradlew check coverage shadowJar` passes
+**943 tests**, with no failures, errors or skips; both Checkstyle checks pass.
+Line coverage is **92.49%** (2,538 of 2,744 lines), above the 50% target.
+Parser and integration regressions cover `2147483647`, `2147483648`, `2147483649`, leading
+zeros, very long digit strings, malformed syntax and all five affected commands and aliases.
+Rejected commands preserve records, rosters, both active filters and saved JSON.
+
+The app launched in a disposable folder using the release JAR and existing ARM64 JavaFX
+libraries on its classpath. The desktop-control tool could not access the JavaFX window
+(`Invalid app: java` and `Invalid app: Cyclique`), so **Ride ID input range regression**
+manual UI and restart checks remain outstanding. The temporary app was stopped.
+Other operating systems were not tested locally.
+
 ## Phone numbers with leading zeros (31 October 2026)
 
 Treat phone numbers that differ only by leading zeros in the country code as the same number (issue #239).

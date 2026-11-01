@@ -37,6 +37,12 @@ This project has three types of tests:
 
 ## Release checks
 
+`ParserUtilTest` and ride parser tests distinguish overflowing IDs from malformed arguments.
+`RideIdValidationIntegrationTest` checks overflow range errors and in-range missing-ride errors
+for list, edit, delete and both roster commands, including their aliases. Rejections preserve
+records, rosters, active cyclist/ride filters and saved JSON.
+Run **Ride ID input range regression** in the Developer Guide after changing ride ID parsing.
+
 `CyclistFtpEditIntegrationTest` verifies registered-ride eligibility when editing FTP, including minimum-power
 boundaries, multiple/hidden rides and combined phone edits. It checks rejection without changes to cyclist
 records, rosters, both filters or saved JSON, and successful edits through JSON readback.
@@ -221,7 +227,10 @@ Run **Literal prefixes in ride notes (Issue #155)** in the Developer Guide after
 Ride Add/Edit parser tests check literal prefixes, ordering, malformed quotes, duplicate fields and the word limit.
 `RideBoundaryIntegrationTest` checks quoted notes with a roster, intentional additional edits, JSON round trips,
 unchanged records/filters/files after rejection, non-consumed IDs and legacy unquoted behaviour.
-Ride Find keeps its existing unquoted whole-word and phrase semantics.
+Ride Find uses the same quoted-notes tokenizer; whole-word and phrase matching remain unchanged.
+`RideFindCommandParserTest` and `QuotedRideFindIntegrationTest` cover both quote styles, literal prefixes,
+combined criteria, the `rf` alias, JSON readback and malformed searches preserving filters and saved data.
+Run **Quoted ride notes search regression** in the Developer Guide after changing notes search parsing.
 `MainWindowRidePanelTest` submits quoted notes through the JavaFX command box, checks displayed feedback
 and card text, and verifies error styling and unchanged data after malformed input.
 `RideOverlapConfirmationTest` also combines quoted notes with overlapping time edits: the entire edit is deferred,
