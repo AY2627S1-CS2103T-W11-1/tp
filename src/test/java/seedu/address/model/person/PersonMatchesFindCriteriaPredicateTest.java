@@ -98,6 +98,15 @@ public class PersonMatchesFindCriteriaPredicateTest {
                 java.util.Optional.of(new Email("alice@example.co"))).test(alice));
         assertFalse(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(), List.of(), Set.of(), null,
                 java.util.Optional.of(new Email("bob@example.com"))).test(alice));
+
+        // EP: email combines with other criteria using AND semantics.
+        PersonMatchesFindCriteriaPredicate combined = new PersonMatchesFindCriteriaPredicate(
+                List.of("Alice"), List.of(alice.getPhone()), List.of(), List.of(), Set.of(), null,
+                java.util.Optional.of(new Email("amy@gmail.com")));
+        assertTrue(combined.test(alice));
+        assertFalse(new PersonMatchesFindCriteriaPredicate(
+                List.of("Alice"), List.of(alice.getPhone()), List.of(), List.of(), Set.of(), null,
+                java.util.Optional.of(new Email("bob@example.com"))).test(alice));
     }
 
     @Test
