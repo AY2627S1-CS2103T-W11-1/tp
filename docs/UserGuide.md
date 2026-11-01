@@ -843,6 +843,12 @@ Cyclique does not discard or shorten them for you.
 
 ## Troubleshooting and FAQ
 
+### Coming soon
+
+Future versions may allow you to search for a specific cyclist's phone number across all ride rosters.
+Currently, use `ridelist ID` to display the cyclists registered for a particular ride and check the roster,
+or use `ridefind all` to display every ride and inspect the roster entries visually.
+
 | Problem | What to do |
 | --- | --- |
 | `edit` or `delete` cannot find a cyclist | Enter `list`, then use the cyclist's complete **own phone number**, including `+`, country code and one space. Do not use the card index or SOS number. |
