@@ -334,7 +334,7 @@ alphabetical order, ignoring case. The result message reports how many cyclists 
 leaves the cyclist panel empty. Use `list` to remove the current filter and display all cyclists again.
 
 Invalid phone numbers, email addresses, FTP values, experience levels, preferred locations, name values and duplicate
-`e/` or `f/` prefixes
+`f/` prefixes
 are rejected without changing the current displayed list. A name or phone criterion searches only the corresponding
 field; emergency contact numbers are not treated as the cyclist's own phone number.
 
