@@ -88,6 +88,19 @@ public class PersonMatchesFindCriteriaPredicateTest {
     }
 
     @Test
+    public void test_email_matchesExactlyIgnoringCase() {
+        // EP: email matching is exact apart from letter case; partial and different addresses do not match.
+        PersonMatchesFindCriteriaPredicate matching = new PersonMatchesFindCriteriaPredicate(
+                List.of(), List.of(), List.of(), List.of(), Set.of(), null,
+                java.util.Optional.of(new Email("AMY@GMAIL.COM")));
+        assertTrue(matching.test(alice));
+        assertFalse(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(), List.of(), Set.of(), null,
+                java.util.Optional.of(new Email("alice@example.co"))).test(alice));
+        assertFalse(new PersonMatchesFindCriteriaPredicate(List.of(), List.of(), List.of(), List.of(), Set.of(), null,
+                java.util.Optional.of(new Email("bob@example.com"))).test(alice));
+    }
+
+    @Test
     public void test_nameAndPhone_bothMustMatch() {
         // EP: different criteria use AND semantics, so one mismatch rejects the person.
         assertTrue(new PersonMatchesFindCriteriaPredicate(List.of("bob"),

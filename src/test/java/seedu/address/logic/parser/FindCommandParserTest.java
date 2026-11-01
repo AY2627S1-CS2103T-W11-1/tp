@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.FindCommand;
+import seedu.address.model.person.Email;
 import seedu.address.model.person.ExperienceLevel;
 import seedu.address.model.person.Ftp;
 import seedu.address.model.person.Location;
@@ -62,6 +63,26 @@ public class FindCommandParserTest {
                 List.of("alex"), List.of(new Phone("+65 96320842"))));
         assertParseSuccess(parser, "n/alex p/+65 96320842", combinedCommand);
         assertParseSuccess(parser, "p/+65 96320842 n/alex", combinedCommand);
+    }
+
+    @Test
+    public void parse_emailCriterion_returnsFindCommand() {
+        // EP: a valid email is accepted alone or combined with another criterion.
+        FindCommand emailCommand = new FindCommand(new PersonMatchesFindCriteriaPredicate(
+                List.of(), List.of(), List.of(), List.of(), java.util.Set.of(), null,
+                java.util.Optional.of(new Email("alice@example.com"))));
+        assertParseSuccess(parser, "e/alice@example.com", emailCommand);
+        FindCommand combined = new FindCommand(new PersonMatchesFindCriteriaPredicate(
+                List.of("Alice"), List.of(), List.of(), List.of(), java.util.Set.of(), null,
+                java.util.Optional.of(new Email("alice@example.com"))));
+        assertParseSuccess(parser, "n/Alice e/alice@example.com", combined);
+    }
+
+    @Test
+    public void parse_invalidEmailCriterion_throwsParseException() {
+        // EP: malformed and empty email criteria are rejected without becoming valid search fields.
+        assertParseFailure(parser, "e/not-an-email", Email.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "e/", Email.MESSAGE_CONSTRAINTS);
     }
 
     @Test
