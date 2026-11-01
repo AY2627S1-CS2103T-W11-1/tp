@@ -115,6 +115,7 @@ public class RideMatchesFindCriteriaPredicateTest {
         // EP: words may be separated by other complete words when their order is preserved.
         assertTrue(predicateWithNotes("camera aperture").test(ride));
         assertTrue(predicateWithNotes("camera f/2").test(ride));
+        assertTrue(predicateWithNotes("aperture f/2").test(ride));
         // EP: matching remains case-insensitive for ordered words.
         assertTrue(predicateWithNotes("CAMERA APERTURE").test(ride));
         assertTrue(predicateWithNotes("Bring").test(ride));
@@ -122,6 +123,11 @@ public class RideMatchesFindCriteriaPredicateTest {
         assertFalse(predicateWithNotes("aperture camera").test(ride));
         assertFalse(predicateWithNotes("camer").test(ride));
         assertFalse(predicateWithNotes("camera f/3").test(ride));
+
+        // EP: punctuation remains a valid whole-word boundary for notes.
+        Ride punctuatedRide = new RideBuilder().withNotes("Bring lights! camera, camera.aperture").build();
+        assertTrue(predicateWithNotes("lights").test(punctuatedRide));
+        assertTrue(predicateWithNotes("camera aperture").test(punctuatedRide));
     }
 
     @Test

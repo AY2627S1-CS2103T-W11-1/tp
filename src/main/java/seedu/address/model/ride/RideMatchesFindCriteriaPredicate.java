@@ -5,6 +5,8 @@ import static java.util.Objects.requireNonNull;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import seedu.address.commons.util.StringUtil;
 import seedu.address.model.person.Location;
@@ -83,7 +85,25 @@ public class RideMatchesFindCriteriaPredicate implements Predicate<Ride> {
 
     private boolean matchesNotes(Ride ride) {
         return notes.map(value -> ride.getNotes().map(rideNotes ->
-                StringUtil.containsWordsInOrderIgnoreCase(rideNotes.value, value.value)).orElse(false)).orElse(true);
+                containsOrderedWholeWordsIgnoreCase(rideNotes.value, value.value)).orElse(false)).orElse(true);
+    }
+
+    /** Returns whether all note words occur in order while preserving punctuation boundaries. */
+    private static boolean containsOrderedWholeWordsIgnoreCase(String text, String searchText) {
+        String[] searchWords = searchText.trim().split("\\s+");
+        int searchFrom = 0;
+        for (String searchWord : searchWords) {
+            String regex = "(?<![\\p{L}\\p{N}])" + Pattern.quote(searchWord)
+                    + "(?![\\p{L}\\p{N}])";
+            Matcher matcher = Pattern.compile(regex, Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE)
+                    .matcher(text);
+            matcher.region(searchFrom, text.length());
+            if (!matcher.find()) {
+                return false;
+            }
+            searchFrom = matcher.end();
+        }
+        return true;
     }
 
     @Override
