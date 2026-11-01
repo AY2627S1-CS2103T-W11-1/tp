@@ -514,7 +514,9 @@ Finds rides matching one or more supplied criteria and displays the matching rid
 
 To list every ride, use `ridefind all`.
 
-At least one criterion is required unless the special `all` argument is used. Different fields use AND matching, so a ride must satisfy every field supplied. `ridefind all` clears the current ride filter and displays every saved ride in the Rides panel.
+At least one criterion is required; you do not need to supply every field. Alternatively, use the special `all`
+argument to clear the current ride filter and display every saved ride. Different fields use AND matching, so a ride
+must satisfy every field supplied.
 The fields are matched as follows:
 
 * `n/NAME` matches complete words in the ride name in the supplied order, ignoring case. For example,
@@ -530,8 +532,8 @@ The fields are matched as follows:
 * `notes/NOTES` matches selected complete words from the stored notes, ignoring case. The words must appear in their
   original order but do not need to be consecutive, so `notes/"camera aperture"` matches
   `Bring camera with aperture f/2`. Partial words such as `notes/lig` do not match. Punctuation next to a complete
-  word does not prevent a match, so `notes/lights` matches `Bring lights!`. Rides without notes do not match a notes
-  criterion.
+  word does not prevent a match, so `notes/lights` matches `Bring lights!`. Hyphens and apostrophes also separate
+  note words, so `notes/mother` matches `Mother's ride`. Rides without notes do not match a notes criterion.
 
 Use straight or paired curly double quotes to search notes containing recognised prefixes:
 `ridefind notes/"aperture f/2"` or `rf notes/“aperture f/2”`. The outer quotes are removed;
