@@ -527,16 +527,15 @@ The fields are matched as follows:
   apostrophes separate words here too, so `ridefind l/Ris` matches a ride at `Pasir-Ris Park`.
 * `d/DISTANCE` and `s/MAX_GROUP_SIZE` use exact numeric matching.
 * `f/MIN_POWER` matches rides whose minimum power is greater than or equal to the supplied value.
-* `notes/NOTES` matches complete words in the supplied order in the ride's notes, ignoring case. You may omit words
-  from the stored notes, and other complete words may appear between the requested words, so
-  `notes/"camera aperture"` matches `Bring camera with aperture f/2`. Partial words such as `notes/lig` do not
-  match. Punctuation remains a word boundary, so `notes/lights` matches `Bring lights!`. Rides without notes do not
-  match a notes criterion.
+* `notes/NOTES` matches selected complete words from the stored notes, ignoring case. The words must appear in their
+  original order but do not need to be consecutive, so `notes/"camera aperture"` matches
+  `Bring camera with aperture f/2`. Partial words such as `notes/lig` do not match. Punctuation remains a word
+  boundary, so `notes/lights` matches `Bring lights!`. Rides without notes do not match a notes criterion.
 
 Use straight or paired curly double quotes to search notes containing recognised prefixes:
 `ridefind notes/"aperture f/2"` or `rf notes/“aperture f/2”`. The outer quotes are removed;
-the words match in order regardless of case, even when other complete words occur between them. Other criteria outside
-the quotes still apply, for example
+the selected words match in order regardless of case, even when they are not consecutive. Other criteria outside the
+quotes still apply, for example
 `ridefind notes/"aperture f/2" f/180`. Unquoted searches such as `notes/camera` still work.
 Only `notes/` supports quoting. Empty, unclosed or mismatched quoted notes and extra text after
 the closing quote are rejected without changing the displayed results. The same
