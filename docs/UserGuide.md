@@ -474,7 +474,8 @@ Whitespace between words is stored as single spaces, including when pasted text 
 When adding a ride, omit `notes/` if you have no notes; an empty value is rejected.
 
 If your notes contain a recognised prefix (`n/`, `from/`, `to/`, `l/`, `d/`, `f/`, `s/` or `notes/`),
-put double quotes immediately around the whole value:
+put straight double quotes (`"..."`) or paired curly double quotes (`“...”`) around the whole value.
+Spaces after `notes/` are allowed.
 
 ```text
 notes/"Bring camera with aperture f/2"
@@ -486,7 +487,9 @@ You can put other fields before or after quoted notes; use an ordinary space bef
 
 Close the quote before the next field or the end of the command. Empty quoted notes, a missing closing
 quote or extra text after the closing quote are rejected. For example, `notes/"Bring water"extra` is invalid.
-The first closing quote ends the value; there is no way to escape a quote inside quoted notes.
+Quoting starts when the notes begin with `"` or `“`; the first matching `"` or `”` ends the value.
+Inside quoted notes you can use the other kind of quote, as in `notes/“say "hi" there”`, but not the same kind.
+There is no escape syntax.
 Quotes elsewhere in unquoted notes, as in `notes/Bring a "camera"`, are stored literally.
 
 These quoting rules apply only to **`rideadd` and `rideedit`**, including their aliases.

@@ -2,6 +2,7 @@ package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Optional;
@@ -17,9 +18,12 @@ public class RideFindCommandParserTest {
     private final RideFindCommandParser parser = new RideFindCommandParser();
 
     @Test
-    public void parse_quotes_doNotProtectPrefixesInFind() {
+    public void parse_quotes_doNotProtectPrefixesInFind() throws Exception {
         assertThrows(ParseException.class, () -> parser.parse("notes/\"camera f/2\""));
         assertThrows(ParseException.class, () -> parser.parse("notes/\"camera notes/other\""));
+        assertThrows(ParseException.class, () -> parser.parse("notes/“camera f/2”"));
+        assertThrows(ParseException.class, () -> parser.parse("notes/“camera notes/other”"));
+        assertNotEquals(parser.parse("notes/camera"), parser.parse("notes/“camera”"));
     }
 
     @Test

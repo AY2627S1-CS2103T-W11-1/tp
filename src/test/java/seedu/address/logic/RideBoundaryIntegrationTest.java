@@ -182,6 +182,24 @@ public class RideBoundaryIntegrationTest {
     }
 
     @Test
+    public void execute_curlyQuotedNotes_preservesFieldsRosterAndStoredQuotes() throws Exception {
+        logic.execute("rideaddcyclist 1 " + PHONE);
+        Ride original = currentRide();
+        String notes = "Bring camera f/2 and n/a";
+        logic.execute("re 1 notes/“" + notes + "” s/5");
+        assertEquals(new RideBuilder(original).withNotes(notes).withMaxGroupSize("5").build(), currentRide());
+        logic.execute("ra " + DETAILS + " notes/“" + notes + "”");
+        assertEquals(new RideBuilder().withId(2).withName("Boundary").withMaxGroupSize("2")
+                .withNotes(notes).build(), model.getAddressBook().getRideList().get(1));
+        logic.execute("rideedit 1 notes/   \"plain f/2\"");
+        assertEquals("plain f/2", currentRide().getNotes().orElseThrow().value);
+        assertSavedState();
+        model.setAddressBook(storage.readAddressBook().orElseThrow());
+        assertEquals("plain f/2", currentRide().getNotes().orElseThrow().value);
+        assertEquals(original.getRoster(), currentRide().getRoster());
+    }
+
+    @Test
     public void execute_invalidQuotedCommands_preservesBookFiltersFileAndNextId() throws Exception {
         // EP: unclosed/blank quotes, trailing text, embedded quotes, duplicate notes, and invalid external fields.
         logic.execute("rideaddcyclist 1 " + PHONE);
@@ -191,9 +209,11 @@ public class RideBoundaryIntegrationTest {
                 "notes/\"camera\"tail f/2", "notes/\"camera\" extra f/2", "notes/\"camera\" q/test",
                 "notes/\"camera \"lens\"\"", "notes/\"camera\" s/bad", "notes/\"camera\" f/0",
                 "notes/\"one two three four five six seven eight nine ten eleven\"",
-                "notes/\"camera\" notes/second")) {
+                "notes/\"camera\" notes/second", "notes/“camera f/2", "notes/“camera\"",
+                "notes/“camera” notes/second", "notes/ ”lol”")) {
             assertRejected("rideedit 1 " + field, ParseException.class);
             assertRejected("rideadd " + DETAILS + " " + field, ParseException.class);
+            assertThrows(ParseException.class, () -> logic.execute("yes"));
         }
         for (String field : List.of("n/Bad&Name", "l/Coast!", "from/invalid", "to/invalid",
                 "d/0", "f/601", "s/0", "f/180 f/200")) {
