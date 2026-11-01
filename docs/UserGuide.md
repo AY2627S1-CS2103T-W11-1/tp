@@ -881,7 +881,7 @@ Task | Format and example
 [Clear all data](#clearing-all-entries-clear) | `clear`
 [Delete cyclist](#deleting-a-cyclist-delete) | `delete PHONE`, then `y`/`yes` to confirm or `n`/`no` to cancel (case-insensitive)<br> e.g., `delete +65 98765432`, then `yes`
 [Edit cyclist](#editing-a-cyclist-edit) | `edit PHONE [n/NAME] [p/PHONE] [sos/EMERGENCY_PHONE] [e/EMAIL] [f/FTP_LEVEL] [x/EXPERIENCE_LEVEL] [l/LOCATION]…`<br> e.g., `edit +65 98765432 sos/+65 98888888 f/350 x/Intermediate l/East Coast Park l/Punggol`
-[Find cyclists](#finding-cyclists-find) | `find [n/NAME_KEYWORD]… [p/PHONE]… [sos/EMERGENCY_PHONE]… [f/MIN_FTP] [x/EXPERIENCE]… [l/LOCATION]…`<br> e.g., `find n/Alex n/Bernice`, `find n/Alex p/+65 91234561`
+[Find cyclists](#finding-cyclists-find) | `find [n/NAME_KEYWORD]… [p/PHONE]… [sos/EMERGENCY_PHONE] [e/EMAIL] [f/MIN_FTP] [x/EXPERIENCE]… [l/LOCATION]…`<br> e.g., `find n/Alex n/Bernice`, `find e/alex@example.com`
 [List cyclists](#listing-all-cyclists-list) | `list`
 [Help](#viewing-help-help) | `help`<br> or press `F1`, or choose **Help → Full help...**
 [Exit](#exiting-the-program-exit) | `exit`

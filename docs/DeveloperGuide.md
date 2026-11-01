@@ -1030,7 +1030,8 @@ The status column distinguishes current requirements from future work. Current c
 * Test a unique name with a name search. For duplicate names, use a dataset containing 50 cyclists
   with the same name and distinct phone numbers, and search using the target's known unique phone.
   Verify that only the intended cyclist and their emergency number appear without scrolling.
-  Email search is not supported and is not part of this acceptance test.
+  Search by email using `find e/alex@example.com`, then repeat with different letter case. Verify that the matching
+  cyclist is shown and a different or partial email returns no match.
 
 **Environment/Compatibility**
 
