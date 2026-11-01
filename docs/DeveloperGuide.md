@@ -361,8 +361,8 @@ hyphens and apostrophes separate words, so `ridefind n/Wei-Ling` and `ridefind n
 The `d/` and `s/` values
 compare their respective numeric fields for equality, while `notes/` performs a
 case-insensitive ordered whole-word match against the ride's notes. Requested words may have
-intervening complete words, but must remain in order; punctuation, including hyphens and apostrophes, separates note
-words. For example,
+intervening complete words, but must remain in order. Punctuation next to a complete word, including hyphens and
+apostrophes, does not prevent a match. For example,
 `ridefind notes/"camera aperture"` matches `Bring camera with aperture f/2`, while
 `ridefind notes/"aperture camera"` does not.
 `ridefind l/Tampines f/200` lists rides at Tampines whose minimum
