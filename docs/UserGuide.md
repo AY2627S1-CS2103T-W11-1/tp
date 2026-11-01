@@ -529,8 +529,9 @@ The fields are matched as follows:
 * `f/MIN_POWER` matches rides whose minimum power is greater than or equal to the supplied value.
 * `notes/NOTES` matches selected complete words from the stored notes, ignoring case. The words must appear in their
   original order but do not need to be consecutive, so `notes/"camera aperture"` matches
-  `Bring camera with aperture f/2`. Partial words such as `notes/lig` do not match. Punctuation remains a word
-  boundary, so `notes/lights` matches `Bring lights!`. Rides without notes do not match a notes criterion.
+  `Bring camera with aperture f/2`. Partial words such as `notes/lig` do not match. Punctuation next to a complete
+  word does not prevent a match, so `notes/lights` matches `Bring lights!`. Rides without notes do not match a notes
+  criterion.
 
 Use straight or paired curly double quotes to search notes containing recognised prefixes:
 `ridefind notes/"aperture f/2"` or `rf notes/“aperture f/2”`. The outer quotes are removed;
