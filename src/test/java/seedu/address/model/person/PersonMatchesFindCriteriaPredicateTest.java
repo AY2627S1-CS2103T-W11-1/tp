@@ -116,6 +116,22 @@ public class PersonMatchesFindCriteriaPredicateTest {
     }
 
     @Test
+    public void equals_emailCriteria_areCompared() {
+        // EP: predicates with identical email criteria are equal, while different criteria are not.
+        PersonMatchesFindCriteriaPredicate first = new PersonMatchesFindCriteriaPredicate(
+                List.of(), List.of(), List.of(), List.of(), Set.of(), null,
+                List.of(new Email("alice@example.com")));
+        PersonMatchesFindCriteriaPredicate same = new PersonMatchesFindCriteriaPredicate(
+                List.of(), List.of(), List.of(), List.of(), Set.of(), null,
+                List.of(new Email("alice@example.com")));
+        PersonMatchesFindCriteriaPredicate different = new PersonMatchesFindCriteriaPredicate(
+                List.of(), List.of(), List.of(), List.of(), Set.of(), null,
+                List.of(new Email("bob@example.com")));
+        assertTrue(first.equals(same));
+        assertFalse(first.equals(different));
+    }
+
+    @Test
     public void test_nameAndPhone_bothMustMatch() {
         // EP: different criteria use AND semantics, so one mismatch rejects the person.
         assertTrue(new PersonMatchesFindCriteriaPredicate(List.of("bob"),
