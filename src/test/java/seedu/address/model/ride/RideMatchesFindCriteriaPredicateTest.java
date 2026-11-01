@@ -108,17 +108,20 @@ public class RideMatchesFindCriteriaPredicateTest {
     }
 
     @Test
-    public void test_notes_matchesWholeWordsIgnoringCase() {
-        // EP: complete words match regardless of case, while partial or incomplete phrases do not.
-        Ride ride = new RideBuilder().withNotes("Bring lights").build();
+    public void test_notes_matchesOrderedWholeWordsIgnoringCase() {
+        // EP: complete words match regardless of case, while partial words and reversed order do not.
+        Ride ride = new RideBuilder().withNotes("Bring camera with aperture f/2").build();
 
-        assertTrue(predicateWithNotes("Bring lights").test(ride));
+        // EP: words may be separated by other complete words when their order is preserved.
+        assertTrue(predicateWithNotes("camera aperture").test(ride));
+        assertTrue(predicateWithNotes("camera f/2").test(ride));
+        // EP: matching remains case-insensitive for ordered words.
+        assertTrue(predicateWithNotes("CAMERA APERTURE").test(ride));
         assertTrue(predicateWithNotes("Bring").test(ride));
-        assertTrue(predicateWithNotes("lights").test(ride));
-        assertTrue(predicateWithNotes("BRING").test(ride));
-        assertFalse(predicateWithNotes("lig").test(ride));
-        assertFalse(predicateWithNotes("Bring water").test(ride));
-        assertFalse(predicateWithNotes("Bring lights and a spare tube").test(ride));
+        // EP: reversed words and partial words do not match.
+        assertFalse(predicateWithNotes("aperture camera").test(ride));
+        assertFalse(predicateWithNotes("camer").test(ride));
+        assertFalse(predicateWithNotes("camera f/3").test(ride));
     }
 
     @Test
