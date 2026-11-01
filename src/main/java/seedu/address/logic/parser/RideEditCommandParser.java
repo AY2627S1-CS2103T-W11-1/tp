@@ -1,7 +1,6 @@
 
 package seedu.address.logic.parser;
 
-import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_DISTANCE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_FROM;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_FTP;
@@ -13,7 +12,6 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_TO;
 
 import java.util.Optional;
 
-import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.commands.RideEditCommand;
 import seedu.address.logic.commands.RideEditCommand.EditRideDescriptor;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -34,7 +32,7 @@ public class RideEditCommandParser implements Parser<RideEditCommand> {
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenizeWithQuotedNotes(args, PREFIX_NAME, PREFIX_FROM,
                 PREFIX_TO, PREFIX_LOCATION, PREFIX_DISTANCE, PREFIX_FTP, PREFIX_GROUP_SIZE, PREFIX_NOTES);
 
-        int targetId = parseRideId(argMultimap.getPreamble());
+        int targetId = ParserUtil.parseRideId(argMultimap.getPreamble(), RideEditCommand.MESSAGE_USAGE);
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_FROM, PREFIX_TO, PREFIX_LOCATION,
                 PREFIX_DISTANCE, PREFIX_FTP, PREFIX_GROUP_SIZE, PREFIX_NOTES);
 
@@ -88,16 +86,4 @@ public class RideEditCommandParser implements Parser<RideEditCommand> {
         return editRideDescriptor;
     }
 
-    /**
-     * Parses a positive ride ID from the command preamble.
-     *
-     * @throws ParseException if the ride ID is missing or invalid.
-     */
-    private static int parseRideId(String preamble) throws ParseException {
-        String trimmedId = preamble.trim();
-        if (!StringUtil.isNonZeroUnsignedInteger(trimmedId)) {
-            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, RideEditCommand.MESSAGE_USAGE));
-        }
-        return Integer.parseInt(trimmedId);
-    }
 }

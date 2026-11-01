@@ -24,8 +24,16 @@ public class RideDeleteCommandParserTest {
 
     @Test
     public void parse_invalidIdOrAdditionalArguments_throwsParseExceptionWithUsage() {
-        for (String invalidInput : new String[] {"", "   ", "0", "-1", "abc", "2147483648", "1 extra"}) {
+        for (String invalidInput : new String[] {"", "   ", "0", "-1", "abc", "1 extra"}) {
             assertParseFailure(parser, invalidInput, INVALID_FORMAT);
+        }
+    }
+
+    @Test
+    public void parse_overflowingId_reportsSupportedRange() {
+        // Boundary and large values must explain the limit instead of suggesting the command syntax is wrong.
+        for (String id : new String[] {"2147483648", "2147483649", "02147483648", "9".repeat(100)}) {
+            assertParseFailure(parser, id, ParserUtil.MESSAGE_INVALID_RIDE_ID);
         }
     }
 }

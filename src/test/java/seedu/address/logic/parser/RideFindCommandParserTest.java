@@ -12,18 +12,45 @@ import org.junit.jupiter.api.Test;
 import seedu.address.logic.commands.RideFindCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Name;
+import seedu.address.model.ride.Notes;
 import seedu.address.model.ride.RideMatchesFindCriteriaPredicate;
 
 public class RideFindCommandParserTest {
     private final RideFindCommandParser parser = new RideFindCommandParser();
 
     @Test
-    public void parse_quotes_doNotProtectPrefixesInFind() throws Exception {
-        assertThrows(ParseException.class, () -> parser.parse("notes/\"camera f/2\""));
-        assertThrows(ParseException.class, () -> parser.parse("notes/\"camera notes/other\""));
-        assertThrows(ParseException.class, () -> parser.parse("notes/“camera f/2”"));
-        assertThrows(ParseException.class, () -> parser.parse("notes/“camera notes/other”"));
-        assertNotEquals(parser.parse("notes/camera"), parser.parse("notes/“camera”"));
+    public void parse_quotedNotes_protectsPrefixesAndRemovesDelimiters() throws Exception {
+        // Each recognized prefix inside either quote style must remain literal notes, not a search field.
+        for (String notes : new String[] {"aperture f/2", "camera notes/other", "n/Ride from/now to/later",
+            "l/Mandai d/40 s/5", "say 'hi'", "regex [x].*"}) {
+            RideMatchesFindCriteriaPredicate expected = new RideMatchesFindCriteriaPredicate(
+                    Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
+                    Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(new Notes(notes)));
+            assertEquals(new RideFindCommand(expected), parser.parse("notes/\"" + notes + "\""));
+            assertEquals(new RideFindCommand(expected), parser.parse("notes/“" + notes + "”"));
+        }
+        assertEquals(parser.parse("notes/camera"), parser.parse("notes/“camera”"));
+    }
+
+    @Test
+    public void parse_quotedNotesWithOtherCriteria_retainsAndMatching() throws Exception {
+        // Fields outside the quotes remain independent criteria, regardless of their order.
+        assertEquals(parser.parse("f/200 notes/\"aperture f/2\""),
+                parser.parse("notes/“aperture f/2” f/200"));
+        assertNotEquals(parser.parse("notes/\"aperture f/2\""),
+                parser.parse("notes/\"aperture f/2\" f/200"));
+        assertEquals(parser.parse("notes/camera"), parser.parse("notes/ \"camera\""));
+    }
+
+    @Test
+    public void parse_malformedOrDuplicateQuotedNotes_failure() {
+        // Blank, unclosed, mismatched, nested and trailing-text quotes follow the existing add/edit rules.
+        for (String args : new String[] {"notes/\"\"", "notes/“ ”", "notes/\"camera", "notes/“camera",
+            "notes/”camera”", "notes/\"camera”", "notes/“camera\"", "notes/“say “hi””",
+            "notes/\"camera\"extra", "notes/\"camera\" extra", "notes/\"camera\" notes/lights",
+            "notes/\"camera\" f/200 f/300", "notes/\"one two three four five six seven eight nine ten eleven\""}) {
+            assertThrows(ParseException.class, () -> parser.parse(args), args);
+        }
     }
 
     @Test

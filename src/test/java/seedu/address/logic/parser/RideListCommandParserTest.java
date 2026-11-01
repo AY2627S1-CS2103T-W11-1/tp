@@ -23,8 +23,16 @@ public class RideListCommandParserTest {
     @Test
     public void parse_invalidId_throwsParseException() {
         String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, RideListCommand.MESSAGE_USAGE);
-        for (String invalidInput : List.of("", " 0", " -1", " abc", " 2147483648", " 1 extra")) {
+        for (String invalidInput : List.of("", " 0", " -1", " abc", " 1 extra")) {
             assertParseFailure(parser, invalidInput, expectedMessage);
+        }
+    }
+
+    @Test
+    public void parse_overflowingId_reportsSupportedRange() {
+        // Include surrounding whitespace and leading zeros, which do not change the numeric limit.
+        for (String id : List.of("2147483648", "2147483649", "02147483648", "9".repeat(100))) {
+            assertParseFailure(parser, " " + id + " ", ParserUtil.MESSAGE_INVALID_RIDE_ID);
         }
     }
 }

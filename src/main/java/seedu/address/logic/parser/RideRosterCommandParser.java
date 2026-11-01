@@ -40,7 +40,7 @@ public class RideRosterCommandParser implements Parser<RideRosterCommand> {
                     ParserUtil.parsePhone(arguments[1]), isJoining);
         } catch (NumberFormatException exception) {
             logger.fine(() -> "Rejected invalid ride ID for roster " + (isJoining ? "addition." : "removal."));
-            throw new ParseException("Ride ID should be a positive whole number no larger than 2147483647.");
+            throw new ParseException(ParserUtil.MESSAGE_INVALID_RIDE_ID);
         }
     }
 }

@@ -1,6 +1,7 @@
 package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 
 import java.util.HashSet;
 import java.util.List;
@@ -27,6 +28,30 @@ import seedu.address.model.ride.RideDateTime;
 public class ParserUtil {
 
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
+    public static final String MESSAGE_INVALID_RIDE_ID =
+            "Ride ID should be a positive whole number no larger than 2147483647.";
+
+    /**
+     * Parses a ride ID, reporting numeric overflow separately from invalid command syntax.
+     *
+     * @param rideId The ID text, with optional surrounding whitespace.
+     * @param usage The command usage to show for missing or malformed IDs.
+     * @throws ParseException if the ID is not an unsigned integer from 1 to Integer.MAX_VALUE.
+     */
+    public static int parseRideId(String rideId, String usage) throws ParseException {
+        String trimmedId = rideId.trim();
+        try {
+            int parsedId = Integer.parseInt(trimmedId);
+            if (parsedId > 0 && !trimmedId.startsWith("+")) {
+                return parsedId;
+            }
+        } catch (NumberFormatException exception) {
+            if (trimmedId.matches("\\p{javaDigit}+")) {
+                throw new ParseException(MESSAGE_INVALID_RIDE_ID, exception);
+            }
+        }
+        throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, usage));
+    }
 
     /**
      * Parses {@code oneBasedIndex} into an {@code Index} and returns it. Leading and trailing whitespaces will be

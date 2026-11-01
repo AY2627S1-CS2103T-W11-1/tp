@@ -173,11 +173,12 @@ How the parsing works:
 
 #### Optional quoted ride notes
 
-`RideAddCommandParser` and `RideEditCommandParser` explicitly call
+`RideAddCommandParser`, `RideEditCommandParser` and `RideFindCommandParser` explicitly call
 `ArgumentTokenizer.tokenizeWithQuotedNotes`; every other caller continues to call `tokenize`.
 The existing tokenizer detects a supplied prefix after whitespace. Consequently, unquoted
 `notes/Bring camera with aperture f/2` supplies both notes and minimum power; there is no way to infer intent.
-The optional `notes/"Bring camera with aperture f/2"` syntax resolves that ambiguity for creation and editing.
+The optional `notes/"Bring camera with aperture f/2"` syntax resolves that ambiguity for creation,
+editing and searching.
 
 The new entry point sorts the existing prefix positions and walks them in command order. A straight `"` or
 left curly `“` as the first non-whitespace character after `notes/` starts a quoted value.
@@ -201,7 +202,7 @@ Bare `notes/` still clears notes in Ride Edit, while `notes/""` is rejected rath
 The tokenizer owns quote syntax; the parsers and commands retain field, ID, period and roster validation.
 Parsing failure never reaches execution or saving. A malformed parameter outside valid quoted notes likewise
 fails its normal validation before mutation. Other fields have no new quote semantics, and the original
-`tokenize` path, including Ride Find and repeated cyclist Find criteria, is unchanged.
+`tokenize` path, including repeated cyclist Find criteria, is unchanged.
 
 Quoted notes are parsed before overlap processing. Invalid quoting creates no pending ride request. If a
 request is already pending, a new recognised command cancels it before parsing, even when that new input is malformed.
@@ -367,8 +368,12 @@ minimum power with a cyclist's FTP: its `f/` value is compared directly with the
 criterion. Case-insensitive notes matching uses `Locale.ROOT`, so the same search gives
 consistent results regardless of the computer's language settings.
 
-Ride Find keeps `ArgumentTokenizer#tokenize`: quotes remain ordinary search characters and do not protect
-prefixes. The whole-word and phrase predicate is unchanged.
+Ride Find uses `ArgumentTokenizer#tokenizeWithQuotedNotes`, sharing the quoted-notes rules of Ride Add/Edit.
+For example, `ridefind notes/"aperture f/2"` searches for the literal phrase without adding a minimum-power
+criterion. `ridefind notes/“aperture f/2” f/200` additionally requires minimum power of at least 200 W.
+Only notes support quoting; duplicate prefixes outside the quotes are still rejected.
+The whole-word and phrase predicate is unchanged, including case-insensitive matching and whitespace
+normalisation through `Notes`. Invalid quoted searches leave both active filters and saved records unchanged.
 
 `ridefind` applies `RideMatchesFindCriteriaPredicate` to the model's filtered ride list. The
 ride panel observes that list and refreshes its displayed ride cards; it does not change the
@@ -518,10 +523,20 @@ The address book's observable ride list emits a successful replacement, allowing
 refresh. Cyclist records are unchanged. `LogicManager` saves the updated address book using the existing JSON
 storage path. No separate Ride Edit storage format is required.
 
+### Ride ID input validation
+
+`ParserUtil.parseRideId` is shared by list, edit and delete parsers. It preserves usage errors
+for missing or malformed IDs and reports digit-only integer overflow using
+`ParserUtil.MESSAGE_INVALID_RIDE_ID`, also used by the roster parser. The input range is
+`1` to `2147483647`; leading zeros and surrounding whitespace do not change the numeric value.
+An in-range value proceeds to ride lookup and may report a missing ride. This input validation
+does not change ID allocation, exhaustion or saved-file validation.
+
 ### Group ride deletion (`ridedelete`)
 
-`RideDeleteCommandParser` parses the argument as one positive integer using the existing index parser; missing,
-malformed, overflowing or additional arguments produce the standard invalid-command-format error.
+`RideDeleteCommandParser` parses the argument using `ParserUtil.parseRideId`; missing,
+malformed or additional arguments produce the standard invalid-command-format error.
+Digit-only values above `2147483647` instead report the supported ride ID range.
 `RideDeleteCommand` treats that value as a persistent ride ID rather than a list position. It finds the matching
 ride before mutation and rejects an unknown ID.
 
@@ -1521,6 +1536,27 @@ Record its ID, fields, roster and JSON. Substitute the actual ID for `1` and pas
    Dismiss and relaunch: no main window or JSON changes. Correct the file explicitly, restart and run `list`;
    all unrelated records and rosters must survive. Never corrupt a real user book for these checks.
 
+### Quoted ride notes search regression
+
+Use an empty disposable book. Add these rides, then apply a cyclist filter with `find n/Missing`:
+
+* `rideadd n/Camera Ride from/01-11-2026 0600 to/01-11-2026 0800 l/Mandai d/40 f/180 s/5 notes/"Bring camera with aperture f/2"`
+* `rideadd n/Other Ride from/01-11-2026 0600 to/01-11-2026 0800 l/Mandai d/40 f/250 s/5 notes/Bring lights`
+
+1. Enter `ridefind notes/"aperture f/2"`, then `rf notes/“APERTURE f/2”`.
+   Expected: Only Camera Ride appears, with its complete notes; the cyclist display is unchanged.
+1. Enter `ridefind f/180 notes/"aperture f/2"`, then `ridefind notes/“aperture f/2” f/180`.
+   Expected: Camera Ride appears in both cases. Repeat with `f/200`: no rides match.
+1. Enter `ridefind notes/"perture f/2"`, then `ridefind notes/"aperture f/20"`.
+   Expected: Neither matches. Restore the valid quoted phrase search.
+1. Try `ridefind notes/"camera`, `ridefind notes/""`, `ridefind notes/“camera"`,
+   `ridefind notes/"camera"extra`, `ridefind notes/"camera" notes/lights` and
+   `ridefind notes/"camera" f/180 f/200`.
+   Expected: Each reports the relevant quote or duplicate-prefix error. Both displays and saved data stay unchanged.
+1. Enter `ridefind notes/camera`, then `ridefind all`.
+   Expected: The ordinary word search still finds Camera Ride; `all` restores both rides.
+1. Restart and repeat the quoted search. Expected: The stored notes and search result retain literal `f/2`.
+
 ### Literal prefixes in ride notes (Issue #155)
 
 Use a disposable book. Enter
@@ -1797,6 +1833,27 @@ Use disposable cyclist and ride data. Record the original details before applyin
 1. Restart Cyclique. Expected: filters do not alter saved cyclists or rides; all records remain available after
    using `list` and `ridefind all`.
 
+
+### Ride ID input range regression
+
+Use a disposable test book containing a cyclist and a ride. Record their phone number and ride ID.
+
+1. Run `ridelist 2147483648`, `rideedit 2147483648 n/Changed` and `ridedelete 2147483648`.
+   Also run `rideaddcyclist 2147483648 PHONE` and `ridedeletecyclist 2147483648 PHONE`, using the
+   cyclist's complete phone number. Expected: Each reports
+   `Ride ID should be a positive whole number no larger than 2147483647.`
+1. Repeat with `2147483649`, `02147483648` and a 100-digit number consisting of nines.
+   Expected: The same range error, with no command usage, crash or pending confirmation.
+1. Repeat with `2147483647` and an unused small positive ID.
+   Expected: Each reports that the ride cannot be found, rather than a range or syntax error.
+1. Check `ridelist`, `rideedit n/Changed`, `ridedelete`, `ridelist 0`, `ridelist -1`,
+   `ridelist abc` and `ridelist 2147483648 extra`.
+   Expected: The corresponding invalid-command-format message and usage.
+1. Repeat the overflow checks using `rl`, `re`, `rd`, `rac` and `rdc`.
+   Expected: The same range error as their full command names.
+1. Apply cyclist and ride filters before repeating the rejected commands, then restart.
+   Expected: Rejected commands leave both displays, records, rosters and saved JSON unchanged.
+   Restarting preserves the saved data; filters are not persisted.
 
 ### Defensive loading and ride ID boundaries
 

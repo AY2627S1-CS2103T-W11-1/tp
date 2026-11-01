@@ -1,6 +1,7 @@
 package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.ParserUtil.MESSAGE_INVALID_INDEX;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
@@ -31,6 +32,33 @@ public class ParserUtilTest {
     private static final String VALID_EXPERIENCE_LEVEL = "Beginner";
 
     private static final String WHITESPACE = " \t\r\n";
+
+    @Test
+    public void parseRideId_validBoundaries_returnsExactId() throws Exception {
+        // Leading zeros and surrounding whitespace must not change the ID or its upper boundary.
+        assertEquals(1, ParserUtil.parseRideId(" 0001 ", "usage"));
+        assertEquals(Integer.MAX_VALUE, ParserUtil.parseRideId(" 02147483647 ", "usage"));
+        assertEquals(1, ParserUtil.parseRideId("0".repeat(100) + "1", "usage"));
+        assertEquals(123, ParserUtil.parseRideId("١٢٣", "usage"));
+    }
+
+    @Test
+    public void parseRideId_overflowingDigits_reportsSupportedRange() {
+        // Distinguish numeric overflow from missing IDs, signs, fractions, and additional arguments.
+        for (String id : new String[] {"2147483648", "2147483649", "02147483648", "9".repeat(100), "٢١٤٧٤٨٣٦٤٨"}) {
+            assertThrows(ParseException.class, ParserUtil.MESSAGE_INVALID_RIDE_ID, () ->
+                    ParserUtil.parseRideId(id, "usage"));
+        }
+    }
+
+    @Test
+    public void parseRideId_malformedId_reportsCommandUsage() {
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, "usage");
+        for (String id : new String[] {"", " ", "0", "0".repeat(100), "-1", "+1", "1.0", "abc", "1 extra",
+            "+2147483648", "-2147483648", "2147483648 extra"}) {
+            assertThrows(ParseException.class, expectedMessage, () -> ParserUtil.parseRideId(id, "usage"));
+        }
+    }
 
     @Test
     public void parseIndex_invalidInput_throwsParseException() {

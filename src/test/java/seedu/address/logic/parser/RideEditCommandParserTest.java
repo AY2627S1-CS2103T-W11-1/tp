@@ -218,13 +218,19 @@ public class RideEditCommandParserTest {
 
     @Test
     public void parse_invalidId_failure() {
-        // EP: missing, zero, signed, noninteger, nonnumeric, overflowing, or additional ID text.
-        // Boundary values: 0 and 2147483648 lie just outside the valid integer ID range.
-        for (String invalidId : new String[] {"", "0", "-1", "abc", "1.0", "+1", "2147483648",
-            "999999999999999999999999"}) {
+        // EP: missing, zero, signed, noninteger, nonnumeric, or additional ID text.
+        for (String invalidId : new String[] {"", "0", "-1", "abc", "1.0", "+1"}) {
             assertParseFailure(parser, " " + invalidId + " n/NightRide", INVALID_FORMAT_MESSAGE);
         }
         assertParseFailure(parser, " [101] n/NightRide", INVALID_FORMAT_MESSAGE);
+    }
+
+    @Test
+    public void parse_overflowingId_reportsSupportedRange() {
+        // Valid edit fields must not hide an ID that exceeds the supported integer range.
+        for (String id : new String[] {"2147483648", "2147483649", "02147483648", "9".repeat(100)}) {
+            assertParseFailure(parser, " " + id + " n/NightRide", ParserUtil.MESSAGE_INVALID_RIDE_ID);
+        }
     }
 
     @Test

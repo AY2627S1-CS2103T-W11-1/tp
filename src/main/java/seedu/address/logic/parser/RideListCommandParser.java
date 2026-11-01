@@ -1,8 +1,5 @@
 package seedu.address.logic.parser;
 
-import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
-
-import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.commands.RideListCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 
@@ -18,10 +15,6 @@ public class RideListCommandParser implements Parser<RideListCommand> {
      */
     @Override
     public RideListCommand parse(String args) throws ParseException {
-        String trimmedId = args.trim();
-        if (!StringUtil.isNonZeroUnsignedInteger(trimmedId)) {
-            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, RideListCommand.MESSAGE_USAGE));
-        }
-        return new RideListCommand(Integer.parseInt(trimmedId));
+        return new RideListCommand(ParserUtil.parseRideId(args, RideListCommand.MESSAGE_USAGE));
     }
 }

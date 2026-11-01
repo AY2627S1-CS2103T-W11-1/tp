@@ -37,8 +37,9 @@ public class RideFindCommandParser implements Parser<RideFindCommand> {
             return new RideFindCommand(new RideMatchesFindCriteriaPredicate());
         }
 
-        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" " + args.trim(), PREFIX_NAME, PREFIX_FROM, PREFIX_TO,
-                PREFIX_LOCATION, PREFIX_DISTANCE, PREFIX_FTP, PREFIX_GROUP_SIZE, PREFIX_NOTES);
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenizeWithQuotedNotes(" " + args.trim(),
+                PREFIX_NAME, PREFIX_FROM, PREFIX_TO, PREFIX_LOCATION, PREFIX_DISTANCE, PREFIX_FTP,
+                PREFIX_GROUP_SIZE, PREFIX_NOTES);
         arguments.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_FROM, PREFIX_TO, PREFIX_LOCATION,
                 PREFIX_DISTANCE, PREFIX_FTP, PREFIX_GROUP_SIZE, PREFIX_NOTES);
         if (!arguments.getPreamble().isEmpty() || !hasCriteria(arguments)) {
