@@ -600,6 +600,11 @@ Cyclist phone edits use `AddressBook#setPerson(...)` to replace the old phone in
 successful initial selection through the shared lookup helper. Parsing, collection operations,
 internal filtering details and storage calls are omitted.
 
+The `loop` frame repeats while another phone number in the ride's roster remains to be checked;
+an empty roster skips the loop. `RideLookup` is marked `«class»` because `getRide` is static.
+The returned `result` is a `CommandResult` reporting the roster selection or empty roster,
+rather than a list of cyclist records.
+
 [![Initial roster selection, filtering and unchanged-data saving](images/RideListSequenceDiagram.png)](images/RideListSequenceDiagram.png)
 
 *Select the diagram to open it at full size.*

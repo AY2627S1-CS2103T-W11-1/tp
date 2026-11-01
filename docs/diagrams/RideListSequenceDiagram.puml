@@ -19,20 +19,24 @@ activate Command
 Command -> Lookup : getRide(m, targetId)
 activate Lookup
 Lookup -> Model : getAddressBook()
+activate Model
 Model --> Lookup : book
+deactivate Model
 note over Lookup : Search all saved rides by ID.\nBook collection calls omitted.
 Lookup --> Command : ride
 deactivate Lookup
-loop each roster phone
+loop more phone numbers remain to be checked in the roster
     Command -> Model : getAddressBook()
+    activate Model
     Model --> Command : book
-    note over Command : Resolve cyclist in complete person list.\nCollection and validation calls omitted.
+    deactivate Model
+    note over Command : Check the next phone number against all cyclists.\nCollection and validation calls omitted.
 end
 Command -> Model : updateFilteredPersonListForRide(targetId)
 activate Model
 Model --> Command
 deactivate Model
-Command --> Logic : result (members or empty roster)
+Command --> Logic : result
 deactivate Command
 note over Logic : Save unchanged data.\nStorage calls omitted.
 [<-- Logic : result
