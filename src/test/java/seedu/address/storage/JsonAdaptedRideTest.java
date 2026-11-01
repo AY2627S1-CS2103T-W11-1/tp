@@ -47,6 +47,12 @@ public class JsonAdaptedRideTest {
     }
 
     @Test
+    public void toModelType_curlyQuotesInStoredNotes_preservesLiteralCharacters() throws Exception {
+        Ride expected = new RideBuilder(VALID_RIDE).withNotes("Bring “camera” with aperture f/2").build();
+        assertEquals(expected, new JsonAdaptedRide(expected).toModelType());
+    }
+
+    @Test
     public void toModelType_rideWithoutNotes_returnsRideWithoutNotes() throws Exception {
         Ride rideWithoutNotes = new RideBuilder().withId(1).build();
 

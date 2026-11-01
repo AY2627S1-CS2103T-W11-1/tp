@@ -45,6 +45,28 @@ public class RideAddCommandParserTest {
     private RideAddCommandParser parser = new RideAddCommandParser();
 
     @Test
+    public void parse_otherStyleQuotes_preservesLiteralContent() {
+        // Check the parsed ride, so literal prefixes cannot silently replace its minimum power.
+        for (String[] row : new String[][] {{"“say \"hi\" there”", "say \"hi\" there"},
+            {"\"say ”hi” there\"", "say ”hi” there"},
+            {"\u00a0\"x f/2\"", "x f/2"}}) {
+            assertParseSuccess(parser, ALL_REQUIRED + " notes/" + row[0],
+                    new RideAddCommand(new RideBuilder().withNotes(row[1]).build()));
+        }
+    }
+
+    @Test
+    public void quotedNotes_specificErrors_matchExactMessages() {
+        // Representative tokenizer failures must reach callers with their specific messages intact.
+        for (String[] row : new String[][] {
+                {" ”lol”", ArgumentTokenizer.MESSAGE_NOTES_START_WITH_CLOSING_QUOTE},
+                {"“say “hi there”", ArgumentTokenizer.MESSAGE_NOTES_UNPAIRED_CURLY_QUOTE},
+                {"\"hi”", ArgumentTokenizer.MESSAGE_NOTES_MISMATCHED_QUOTES}}) {
+            assertParseFailure(parser, ALL_REQUIRED + " notes/" + row[0], row[1]);
+        }
+    }
+
+    @Test
     public void parse_numericDigitLimits_propagatesConstraintsAndAcceptsThreeDigitPower() {
         // Boundary values: 7 integer distance digits exceed maximum 6, and 4 power digits exceed maximum 3.
         // Leading zeros still count toward those digit limits.
@@ -66,11 +88,11 @@ public class RideAddCommandParserTest {
                     ArgumentTokenizer.MESSAGE_INVALID_QUOTED_NOTES);
             String ten = "one two three four five six seven eight nine ten";
             RideAddCommand expected = new RideAddCommand(new RideBuilder().withNotes(ten).build());
-            for (String quote : new String[] {"", "\""}) {
-                assertParseSuccess(parser, ALL_REQUIRED + " notes/" + quote + separator
-                        + ten.replace(" ", separator) + separator + quote, expected);
-                assertParseFailure(parser, ALL_REQUIRED + " notes/" + quote
-                        + (ten + " eleven").replace(" ", separator) + quote, Notes.MESSAGE_CONSTRAINTS);
+            for (String[] quotes : new String[][] {{"", ""}, {"\"", "\""}, {"“", "”"}}) {
+                assertParseSuccess(parser, ALL_REQUIRED + " notes/" + quotes[0] + separator
+                        + ten.replace(" ", separator) + separator + quotes[1], expected);
+                assertParseFailure(parser, ALL_REQUIRED + " notes/" + quotes[0]
+                        + (ten + " eleven").replace(" ", separator) + quotes[1], Notes.MESSAGE_CONSTRAINTS);
             }
         }
     }
@@ -85,6 +107,7 @@ public class RideAddCommandParserTest {
             assertParseSuccess(parser, " notes/\"" + notes + "\"" + ALL_REQUIRED, expected);
             assertParseSuccess(parser, NAME_DESC + " notes/\"" + notes + "\"" + FROM_DESC + TO_DESC
                     + LOCATION_DESC + DISTANCE_DESC + POWER_DESC + SIZE_DESC, expected);
+            assertParseSuccess(parser, " notes/“" + notes + "”" + ALL_REQUIRED, expected);
         }
     }
 
@@ -93,7 +116,7 @@ public class RideAddCommandParserTest {
         // EP: unclosed/blank quoted notes, extra trailing text, and embedded quotes.
         // Boundary value: the final quoted input has 11 words, one above the maximum 10.
         for (String notes : new String[] {"\"Bring camera f/2", "\"\"", "\"  \"", "\"Bring\"extra",
-            "\"Bring \"camera\"\""}) {
+            "\"Bring \"camera\"\"", "“”", "“camera”extra"}) {
             assertParseFailure(parser, ALL_REQUIRED + " notes/" + notes,
                     ArgumentTokenizer.MESSAGE_INVALID_QUOTED_NOTES);
         }

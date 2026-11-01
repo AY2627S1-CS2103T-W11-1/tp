@@ -179,19 +179,24 @@ The existing tokenizer detects a supplied prefix after whitespace. Consequently,
 `notes/Bring camera with aperture f/2` supplies both notes and minimum power; there is no way to infer intent.
 The optional `notes/"Bring camera with aperture f/2"` syntax resolves that ambiguity for creation and editing.
 
-The new entry point sorts the existing prefix positions and walks them in command order. A quote immediately
-after a recognised `notes/` starts a quoted value; the first subsequent double quote closes it.
+The new entry point sorts the existing prefix positions and walks them in command order. A straight `"` or
+left curly `“` as the first non-whitespace character after `notes/` starts a quoted value.
+Leading whitespace uses `Character.isWhitespace` or `Character.isSpaceChar`, as in `Notes`.
+The first matching closing delimiter (`"` or `”`) ends the value; the other quote style remains literal inside.
+An additional left curly `“` inside curly-quoted notes is rejected.
 Prefix positions inside that range are excluded from argument extraction. Prefixes outside it retain their
 normal meaning and ordering, including duplicates for `ArgumentMultimap#verifyNoDuplicatePrefixesFor` to reject.
 During extraction, only quoted notes have their surrounding delimiters removed, before `ParserUtil#parseNotes`
 and `Notes` apply word-count validation and whitespace normalisation.
 
-Missing closing quotes, blank quoted values and non-whitespace text between the closing quote and the next
+Unclosed straight quotes without a right curly quote, blank values and non-whitespace text before the next
 recognised prefix (or command end) throw `ParseException` with `MESSAGE_INVALID_QUOTED_NOTES`.
 Both the quoted content and trailing whitespace use `Notes.isBlank`. Prefix recognition still uses
 `Character.isWhitespace`: NBSP and NARROW NBSP are accepted after the quote but need an ordinary space
 immediately before any following prefix.
-Backslashes are literal; embedded double quotes and escape sequences are unsupported.
+Backslashes are literal; embedded same-style quotes and escape sequences are unsupported.
+Quotes elsewhere in unquoted notes remain literal.
+A leading `”`, an unpaired `“` and mismatched delimiters each report a specific message beginning `Invalid quoted ride notes.`
 Bare `notes/` still clears notes in Ride Edit, while `notes/""` is rejected rather than treated as clearing.
 The tokenizer owns quote syntax; the parsers and commands retain field, ID, period and roster validation.
 Parsing failure never reaches execution or saving. A malformed parameter outside valid quoted notes likewise
@@ -1529,6 +1534,8 @@ then `rideaddcyclist 1 +65 91234567`. Record all ride fields and the roster.
    180 W. ID, roster and every other field are unchanged.
 1. Enter `rideedit 1 notes/"Bring camera with aperture f/2" s/5`.
    Expected: only maximum group size additionally changes to 5; minimum power remains 180 W.
+1. Enter `rideedit 1 notes/“Bring camera with aperture f/2” s/5`.
+   Expected: the same notes and fields as the preceding straight-quoted command, with no outer quotes stored.
 1. Repeat the preceding quoted edit with actual U+00A0 NBSP and U+202F NARROW NBSP after the closing quote,
    first at command end, then followed by an ordinary space and `s/5`. Expected: both forms succeed;
    non-whitespace trailing text is rejected. NBSP/NARROW NBSP alone before `s/5` still does not introduce a prefix.

@@ -24,12 +24,24 @@ public class ArgumentTokenizer {
     public static final String MESSAGE_INVALID_QUOTED_NOTES =
             "Invalid quoted ride notes. Use notes/\"non-blank notes\" followed only by whitespace "
             + "and another recognised parameter, or the end of the command. "
-            + "Double quotes inside quoted notes and escape sequences are not supported.";
+            + "Embedded same-style quotes and escape sequences are not supported.";
+
+    public static final String MESSAGE_NOTES_START_WITH_CLOSING_QUOTE = "Invalid quoted ride notes. "
+            + "Notes cannot start with a closing quote ”. Use “ to open curly-quoted notes.";
+    public static final String MESSAGE_NOTES_UNPAIRED_CURLY_QUOTE = "Invalid quoted ride notes. "
+            + "Curly-quoted notes must start with one “ and end with ”, with no other “ in between.";
+    public static final String MESSAGE_NOTES_MISMATCHED_QUOTES = "Invalid quoted ride notes. "
+            + "Opening and closing quotes must match: use \"notes\" or “notes”, not a mix.";
+
+    private static final char STRAIGHT_QUOTE = '"';
+    private static final char LEFT_CURLY_QUOTE = '“';
+    private static final char RIGHT_CURLY_QUOTE = '”';
 
     /**
      * Tokenizes ride add/edit arguments, allowing an optional double-quoted notes value.
-     * Only an opening quote immediately after notes/ enables quoting. The first following quote closes
-     * the value; backslashes are literal. Prefixes inside that value are ignored, and delimiters are removed.
+     * Straight or paired curly double quotes after optional notes whitespace enable quoting. The first matching
+     * closing quote ends the value; backslashes are literal. Inner prefixes are ignored, and delimiters are removed.
+     * The other quote style is literal inside. Curly-quoted values cannot contain another left curly quote.
      * All other fields and unquoted values retain the behavior of {@link #tokenize(String, Prefix...)}.
      *
      * @throws ParseException if quoted notes are blank, unclosed, or followed by text before the next prefix.
@@ -54,11 +66,36 @@ public class ArgumentTokenizer {
     }
 
     /**
-     * Returns whether a notes prefix is immediately followed by an opening quote.
+     * Returns whether a notes value starts with a double quote after optional whitespace.
      */
     private static boolean hasOpeningNotesQuote(String argsString, PrefixPosition position) {
-        int valueStart = position.getStartPosition() + position.getPrefix().getPrefix().length();
-        return position.getPrefix().equals(PREFIX_NOTES) && argsString.startsWith("\"", valueStart);
+        int valueStart = notesValueStart(argsString, position);
+        return position.getPrefix().equals(PREFIX_NOTES) && valueStart < argsString.length()
+                && (argsString.charAt(valueStart) == STRAIGHT_QUOTE
+                || argsString.charAt(valueStart) == LEFT_CURLY_QUOTE
+                || argsString.charAt(valueStart) == RIGHT_CURLY_QUOTE);
+    }
+
+    /**
+     * Returns the first non-whitespace position using the notes Unicode separator definition.
+     */
+    private static int notesValueStart(String argsString, PrefixPosition position) {
+        int start = position.getStartPosition() + position.getPrefix().getPrefix().length();
+        while (start < argsString.length()) {
+            int codePoint = argsString.codePointAt(start);
+            if (!Character.isWhitespace(codePoint) && !Character.isSpaceChar(codePoint)) {
+                break;
+            }
+            start += Character.charCount(codePoint);
+        }
+        return start;
+    }
+
+    /**
+     * Returns the matching closing delimiter for a recognized opening quote.
+     */
+    private static char matchingClosingQuote(char openingQuote) {
+        return openingQuote == LEFT_CURLY_QUOTE ? RIGHT_CURLY_QUOTE : STRAIGHT_QUOTE;
     }
 
     /**
@@ -68,9 +105,25 @@ public class ArgumentTokenizer {
     private static int findValidatedClosingQuote(String argsString, List<PrefixPosition> positions, int notesIndex)
             throws ParseException {
         PrefixPosition position = positions.get(notesIndex);
-        int valueStart = position.getStartPosition() + position.getPrefix().getPrefix().length();
-        int quotedEnd = argsString.indexOf('"', valueStart + 1);
-        if (quotedEnd == -1 || Notes.isBlank(argsString.substring(valueStart + 1, quotedEnd))) {
+        int valueStart = notesValueStart(argsString, position);
+        char openingQuote = argsString.charAt(valueStart);
+        if (openingQuote == RIGHT_CURLY_QUOTE) {
+            throw new ParseException(MESSAGE_NOTES_START_WITH_CLOSING_QUOTE);
+        }
+        int quotedEnd = argsString.indexOf(matchingClosingQuote(openingQuote), valueStart + 1);
+        if (quotedEnd == -1) {
+            if (argsString.indexOf(openingQuote == STRAIGHT_QUOTE ? RIGHT_CURLY_QUOTE : STRAIGHT_QUOTE,
+                    valueStart + 1) != -1) {
+                throw new ParseException(MESSAGE_NOTES_MISMATCHED_QUOTES);
+            }
+            throw new ParseException(openingQuote == LEFT_CURLY_QUOTE
+                    ? MESSAGE_NOTES_UNPAIRED_CURLY_QUOTE : MESSAGE_INVALID_QUOTED_NOTES);
+        }
+        String quotedValue = argsString.substring(valueStart + 1, quotedEnd);
+        if (openingQuote == LEFT_CURLY_QUOTE && quotedValue.indexOf(LEFT_CURLY_QUOTE) != -1) {
+            throw new ParseException(MESSAGE_NOTES_UNPAIRED_CURLY_QUOTE);
+        }
+        if (Notes.isBlank(quotedValue)) {
             throw new ParseException(MESSAGE_INVALID_QUOTED_NOTES);
         }
         int nextIndex = notesIndex + 1;
@@ -202,7 +255,9 @@ public class ArgumentTokenizer {
 
         int valueStartPos = currentPrefixPosition.getStartPosition() + prefix.getPrefix().length();
         if (hasQuotedNotes && hasOpeningNotesQuote(argsString, currentPrefixPosition)) {
-            int closingQuote = argsString.indexOf('"', valueStartPos + 1);
+            valueStartPos = notesValueStart(argsString, currentPrefixPosition);
+            int closingQuote = argsString.indexOf(matchingClosingQuote(argsString.charAt(valueStartPos)),
+                    valueStartPos + 1);
             return argsString.substring(valueStartPos + 1, closingQuote);
         }
         String value = argsString.substring(valueStartPos, nextPrefixPosition.getStartPosition());

@@ -22,6 +22,70 @@ public class ArgumentTokenizerTest {
     private final Prefix hatQ = new Prefix("^Q");
 
     @Test
+    public void tokenizeWithQuotedNotes_otherStyleQuotes_areLiteral() throws Exception {
+        // Only the outer pair is removed; the other quote style remains literal.
+        for (String[] row : new String[][] {{"“say \"hi\" there”", "say \"hi\" there"},
+            {"\"say ”hi” there\"", "say ”hi” there"},
+            // Quotes occurring after ordinary note text do not start quoting.
+            {"Bring a \"camera\"", "Bring a \"camera\""},
+            {"Bring “camera”", "Bring “camera”"}}) {
+            assertArgumentPresent(ArgumentTokenizer.tokenizeWithQuotedNotes(" notes/" + row[0], PREFIX_NOTES),
+                    PREFIX_NOTES, row[1]);
+        }
+    }
+
+    @Test
+    public void quotedNotes_specificErrors_matchExactMessages() {
+        for (String[] row : new String[][] {
+                // A closing curly mark cannot open a quoted value, even after whitespace.
+                {"”lol”", ArgumentTokenizer.MESSAGE_NOTES_START_WITH_CLOSING_QUOTE},
+                {" ”lol”", ArgumentTokenizer.MESSAGE_NOTES_START_WITH_CLOSING_QUOTE},
+                {"”lol”lol””", ArgumentTokenizer.MESSAGE_NOTES_START_WITH_CLOSING_QUOTE},
+                // Missing curly closers or additional curly openers share the unpaired-quote error.
+                {"“lol“", ArgumentTokenizer.MESSAGE_NOTES_UNPAIRED_CURLY_QUOTE},
+                {"“lol“lol““", ArgumentTokenizer.MESSAGE_NOTES_UNPAIRED_CURLY_QUOTE},
+                {"“camera", ArgumentTokenizer.MESSAGE_NOTES_UNPAIRED_CURLY_QUOTE},
+                {"“say “hi there”", ArgumentTokenizer.MESSAGE_NOTES_UNPAIRED_CURLY_QUOTE},
+                {"“lol“lol””", ArgumentTokenizer.MESSAGE_NOTES_UNPAIRED_CURLY_QUOTE},
+                // The other style's closer cannot close an otherwise unclosed quoted value.
+                {"\"hi”", ArgumentTokenizer.MESSAGE_NOTES_MISMATCHED_QUOTES},
+                {"“hi\"", ArgumentTokenizer.MESSAGE_NOTES_MISMATCHED_QUOTES}}) {
+            ParseException exception = assertThrows(ParseException.class, () ->
+                    ArgumentTokenizer.tokenizeWithQuotedNotes(" notes/" + row[0], PREFIX_NOTES, PREFIX_FTP));
+            assertEquals(row[1], exception.getMessage());
+        }
+    }
+
+    @Test
+    public void tokenizeWithQuotedNotes_curlyQuotes_protectPrefixesAndRemoveDelimiters() throws Exception {
+        for (String separator : List.of(" ", "\t", "\u2003", "\u3000", "\u00a0 ", "\u202f ")) {
+            ArgumentMultimap arguments = ArgumentTokenizer.tokenizeWithQuotedNotes(
+                    " 1 notes/“Bring camera f/2 n/a”" + separator + "f/200", PREFIX_NOTES, PREFIX_FTP);
+            assertPreamblePresent(arguments, "1");
+            assertArgumentPresent(arguments, PREFIX_NOTES, "Bring camera f/2 n/a");
+            assertArgumentPresent(arguments, PREFIX_FTP, "200");
+        }
+        for (String separator : List.of("\u00a0", "\u202f")) {
+            ParseException exception = assertThrows(ParseException.class, () ->
+                    ArgumentTokenizer.tokenizeWithQuotedNotes(" notes/“lens f/2”" + separator + "f/200",
+                            PREFIX_NOTES, PREFIX_FTP));
+            assertEquals(ArgumentTokenizer.MESSAGE_INVALID_QUOTED_NOTES, exception.getMessage());
+        }
+    }
+
+    @Test
+    public void tokenizeWithQuotedNotes_leadingNotesWhitespace_acceptsBothQuoteStyles() throws Exception {
+        for (String separator : List.of(" ", "   ", "\t", "\u2003", "\u00a0", "\u202f", "\u3000")) {
+            for (String quoted : List.of("\"plain f/2\"", "“plain f/2”")) {
+                ArgumentMultimap arguments = ArgumentTokenizer.tokenizeWithQuotedNotes(
+                        " notes/" + separator + quoted + " f/180", PREFIX_NOTES, PREFIX_FTP);
+                assertArgumentPresent(arguments, PREFIX_NOTES, "plain f/2");
+                assertArgumentPresent(arguments, PREFIX_FTP, "180");
+            }
+        }
+    }
+
+    @Test
     public void tokenizeWithQuotedNotes_unicodeTrailingWhitespace_acceptsEndOrRecognisedParameter() throws Exception {
         for (String separator : List.of(" ", "\u2003", "\u00a0", "\u202f", "\u3000",
                 "\t\u2003\u00a0\u202f\u3000 ")) {
@@ -85,15 +149,21 @@ public class ArgumentTokenizerTest {
         assertArgumentPresent(arguments, PREFIX_NOTES, "f/2 notes/literal", "second");
         assertThrows(ParseException.class, () -> arguments.verifyNoDuplicatePrefixesFor(PREFIX_FTP));
         assertThrows(ParseException.class, () -> arguments.verifyNoDuplicatePrefixesFor(PREFIX_NOTES));
+        ArgumentMultimap curly = ArgumentTokenizer.tokenizeWithQuotedNotes(
+                " notes/“f/2 notes/literal” notes/second", PREFIX_NOTES, PREFIX_FTP);
+        assertArgumentPresent(curly, PREFIX_NOTES, "f/2 notes/literal", "second");
+        assertThrows(ParseException.class, () -> curly.verifyNoDuplicatePrefixesFor(PREFIX_NOTES));
     }
 
     @Test
     public void tokenizeWithQuotedNotes_malformedQuotes_rejected() {
         // EP: missing closing quote, blank content, embedded quotes, and non-whitespace trailing text.
-        for (String notes : List.of("\"camera f/2", "\"\"", "\"   \"", "\"\u2003\"", "\"\u00a0\"", "\"\u202f\"",
-                "\"\u3000\"", "\"camera\"tail",
-                "\"camera\" tail f/200", "\"camera\"f/200", "\"camera \"lens\"\"",
-                "\"camera\" \"extra\"", "\"camera\" q/test", "\"camera \\\"lens\"")) {
+        for (String notes : List.of("\"camera f/2", "\"\"", "\"   \"", "\"\u2003\"", "\"\u00a0\"",
+                "\"\u202f\"", "\"\u3000\"", "\"camera\"tail", "\"camera\" tail f/200",
+                "\"camera\"f/200", "\"camera \"lens\"\"", "\"camera\" \"extra\"",
+                "\"camera\" q/test", "\"camera \\\"lens\"", "“”", "“ \u2003\u00a0\u202f ”",
+                "“camera”extra", "“camera” tail f/200", "“camera”f/200", "“camera” ”extra”",
+                "\"say \"hi\" there\"", " \"\"")) {
             ParseException exception = assertThrows(ParseException.class, () ->
                     ArgumentTokenizer.tokenizeWithQuotedNotes(" notes/" + notes, PREFIX_NOTES, PREFIX_FTP), notes);
             assertEquals(ArgumentTokenizer.MESSAGE_INVALID_QUOTED_NOTES, exception.getMessage());
@@ -104,7 +174,8 @@ public class ArgumentTokenizerTest {
     public void tokenizeWithQuotedNotes_unquotedAndOtherFields_keepExistingSemantics() throws Exception {
         for (String input : List.of(" notes/Bring water f/200", " f/200 notes/Bring water",
                 " notes/Bring camera with aperture f/2", " notes/Bring \"camera\" f/200",
-                " notes/ \"camera\" f/200", " f/\"200 notes/Bring water")) {
+                " f/\"200 notes/Bring water", " notes/‘camera’", " notes/Bring “camera”",
+                " notes/lol”", " notes/")) {
             ArgumentMultimap expected = ArgumentTokenizer.tokenize(input, PREFIX_NOTES, PREFIX_FTP);
             ArgumentMultimap actual = ArgumentTokenizer.tokenizeWithQuotedNotes(input, PREFIX_NOTES, PREFIX_FTP);
             assertEquals(expected.getAllValues(PREFIX_NOTES), actual.getAllValues(PREFIX_NOTES));

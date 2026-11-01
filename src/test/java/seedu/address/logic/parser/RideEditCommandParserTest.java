@@ -36,6 +36,28 @@ public class RideEditCommandParserTest {
     private final RideEditCommandParser parser = new RideEditCommandParser();
 
     @Test
+    public void parse_otherStyleQuotes_preservesLiteralContent() {
+        for (String[] row : new String[][] {{"“say \"hi\" there”", "say \"hi\" there"},
+            {"\"say ”hi” there\"", "say ”hi” there"},
+            {"\u00a0\"x f/2\"", "x f/2"}}) {
+            EditRideDescriptor descriptor = new EditRideDescriptor();
+            descriptor.setNotes(Optional.of(new Notes(row[1])));
+            assertParseSuccess(parser, VALID_ID + " notes/" + row[0], new RideEditCommand(101, descriptor));
+        }
+    }
+
+    @Test
+    public void quotedNotes_specificErrors_matchExactMessages() {
+        // Reject malformed notes before creating an edit command, preserving the tokenizer's feedback.
+        for (String[] row : new String[][] {
+                {" ”lol”", ArgumentTokenizer.MESSAGE_NOTES_START_WITH_CLOSING_QUOTE},
+                {"“say “hi there”", ArgumentTokenizer.MESSAGE_NOTES_UNPAIRED_CURLY_QUOTE},
+                {"\"hi”", ArgumentTokenizer.MESSAGE_NOTES_MISMATCHED_QUOTES}}) {
+            assertParseFailure(parser, VALID_ID + " notes/" + row[0], row[1]);
+        }
+    }
+
+    @Test
     public void parse_distanceDigitLimits_reportsCompleteConstraints() {
         // Boundary value: distance exceeds the maximum 6 integer digits, including leading zeros.
         String expectedMessage = "Distance: 0.01–999999.99 km. Leading zeroes count.\n"
@@ -73,17 +95,18 @@ public class RideEditCommandParserTest {
             EditRideDescriptor cleared = new EditRideDescriptor();
             cleared.setNotes(Optional.empty());
             assertParseSuccess(parser, VALID_ID + " notes/" + separator, new RideEditCommand(101, cleared));
+            // Quoted blanks are invalid, rather than a request to clear existing notes.
             assertParseFailure(parser, VALID_ID + " notes/\"" + separator + "\"",
                     ArgumentTokenizer.MESSAGE_INVALID_QUOTED_NOTES);
             String ten = "one two three four five six seven eight nine ten";
             EditRideDescriptor descriptor = new EditRideDescriptor();
             descriptor.setNotes(Optional.of(new Notes(ten)));
             RideEditCommand expected = new RideEditCommand(101, descriptor);
-            for (String quote : new String[] {"", "\""}) {
-                assertParseSuccess(parser, VALID_ID + " notes/" + quote + separator
-                        + ten.replace(" ", separator) + separator + quote, expected);
-                assertParseFailure(parser, VALID_ID + " notes/" + quote
-                        + (ten + " eleven").replace(" ", separator) + quote, Notes.MESSAGE_CONSTRAINTS);
+            for (String[] quotes : new String[][] {{"", ""}, {"\"", "\""}, {"“", "”"}}) {
+                assertParseSuccess(parser, VALID_ID + " notes/" + quotes[0] + separator
+                        + ten.replace(" ", separator) + separator + quotes[1], expected);
+                assertParseFailure(parser, VALID_ID + " notes/" + quotes[0]
+                        + (ten + " eleven").replace(" ", separator) + quotes[1], Notes.MESSAGE_CONSTRAINTS);
             }
         }
     }
@@ -97,6 +120,9 @@ public class RideEditCommandParserTest {
         descriptor.setMaxGroupSize(new GroupSize("5"));
         assertParseSuccess(parser, VALID_ID + " notes/\"Bring camera with aperture f/2\" s/5",
                 new RideEditCommand(101, descriptor));
+        // A literal f/2 must stay in notes; only the following s/ prefix changes another field.
+        assertParseSuccess(parser, VALID_ID + " notes/“Bring camera with aperture f/2” s/5",
+                new RideEditCommand(101, descriptor));
         descriptor.setMinimumPower(new MinimumPower("200"));
         assertParseSuccess(parser, VALID_ID + " f/200 notes/\"Bring camera with aperture f/2\" s/5",
                 new RideEditCommand(101, descriptor));
@@ -105,7 +131,7 @@ public class RideEditCommandParserTest {
     @Test
     public void parse_malformedQuotedNotes_failure() {
         for (String notes : new String[] {"\"Bring camera f/2", "\"\"", "\"  \"", "\"Bring\"tail",
-            "\"Bring\" tail f/200", "\"Bring \"camera\"\""}) {
+            "\"Bring\" tail f/200", "\"Bring \"camera\"\"", "“”", "“camera”extra"}) {
             assertParseFailure(parser, VALID_ID + " notes/" + notes,
                     ArgumentTokenizer.MESSAGE_INVALID_QUOTED_NOTES);
         }
