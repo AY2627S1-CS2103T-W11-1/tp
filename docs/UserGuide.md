@@ -514,9 +514,9 @@ Finds rides matching one or more supplied criteria and displays the matching rid
 
 To list every ride, use `ridefind all`.
 
-At least one criterion is required; you do not need to supply every field. Alternatively, use the special `all`
-argument to clear the current ride filter and display every saved ride. Different fields use AND matching, so a ride
-must satisfy every field supplied.
+After `ridefind`, at least one criterion is required; you do not need to supply every field. Alternatively, enter
+`ridefind all` to clear the current ride filter and display every saved ride. Different fields use AND matching, so a
+ride must satisfy every field supplied.
 The fields are matched as follows:
 
 * `n/NAME` matches complete words in the ride name in the supplied order, ignoring case. For example,
