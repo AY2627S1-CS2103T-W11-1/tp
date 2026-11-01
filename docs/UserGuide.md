@@ -324,7 +324,7 @@ Field | Meaning and rules
 `x/EXPERIENCE` | `Beginner`, `Intermediate` or `Advanced`, ignoring case. Repeat `x/` to match any of the supplied experience levels.
 `l/LOCATION` | A preferred location, ignoring case. Complete words within the supplied location are matched in order, so `l/Coast` and `l/East Coast` match `East Coast Park` but `l/Coas` does not. Hyphens and apostrophes separate words here too, so `l/Ris` matches `Pasir-Ris Park`. Repeat `l/` to match any supplied location. A cyclist with `l/any` matches every location criterion.
 
-At least one criterion is required. Each prefix may be repeated except `e/` and `f/`, which accept only one value. Values
+At least one criterion is required. Each prefix may be repeated except `f/`, which accepts only one value. Values
 within the same field use `OR`, while different fields use `AND`; for example, `find n/Hans n/Bo f/250` matches
 cyclists named `Hans` or `Bo` whose FTP is at least 250 W. Prefix order does not matter. Text after a prefix belongs
 to that field until the next recognised prefix, so full names and locations containing spaces can be entered normally.
