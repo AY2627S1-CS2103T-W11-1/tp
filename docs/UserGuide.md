@@ -493,7 +493,8 @@ There is no escape syntax.
 Quotes elsewhere in unquoted notes, as in `notes/Bring a "camera"`, are stored literally.
 
 These quoting rules apply to **`rideadd`, `rideedit` and `ridefind`**, including their aliases.
-For example, `ridefind notes/"aperture f/2"` searches for that literal phrase in the notes.
+For example, `ridefind notes/"aperture f/2"` searches for those words in order; they do not need to be consecutive.
+Quoting protects the recognised prefix `f/2` from being parsed as a separate criterion.
 To clear existing notes, use `rideedit ID notes/` without quotes.
 
 **If something goes wrong**
@@ -558,7 +559,7 @@ The command updates only the displayed ride list; it does not change or delete s
 | Find a ride by its full name | `ridefind n/Sunday Sunrise Ride` shows Sunday Sunrise Ride. |
 | Find a ride by part of a hyphenated name | `ridefind n/Wei` shows a ride named `Wei-Ling's Ride`, if you have added one. |
 | Look for a reminder | `ridefind notes/lights` shows rides whose notes contain the complete word `lights`, including Sunday Sunrise Ride. |
-| Find notes containing a literal prefix | `ridefind notes/"aperture f/2"` shows rides whose notes contain that phrase, if you have added one. |
+| Find notes containing selected words | `ridefind notes/"aperture f/2"` shows rides whose notes contain those words in order, if you have added one. |
 | Find rides within one day | `ridefind from/25-10-2026 to/25-10-2026` shows rides starting and ending on 25 October, including Sunday Sunrise Ride. |
 | Combine location and minimum power | `ridefind l/Punggol f/150` shows the sample Evening Spin. A ride must meet both criteria. |
 | Show all rides again | `ridefind all` removes the ride filter. |
