@@ -1,5 +1,6 @@
 @startuml
 !include style.puml
+!pragma layout smetana
 skinparam arrowThickness 1.1
 skinparam arrowColor UI_COLOR_T4
 skinparam classBackgroundColor UI_COLOR
@@ -40,7 +41,7 @@ MainWindow *-down-> "1" ResultDisplay
 MainWindow *-down-> "1" PersonListPanel
 MainWindow *-down-> "1" RideListPanel
 MainWindow *-down-> "1" StatusBarFooter
-MainWindow --> "0..1" HelpWindow
+MainWindow --> "1" HelpWindow
 
 PersonListPanel -down-> "*" PersonCard
 RideListPanel -down-> "*" RideCard

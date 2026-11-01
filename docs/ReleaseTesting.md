@@ -1,5 +1,34 @@
 # Release testing results
 
+## Developer Guide release audit (2 November 2026)
+
+Review the v1.6 requirements, user stories, use cases, implementation explanations, UML sources
+and rendered diagrams against the current code. Separate implemented stories from future work;
+cover email search, ordered-word ride search, confirmation and roster review. Correct the Help
+window multiplicity, shared ride lookup interaction, filter-reset descriptions and manual fixtures.
+No application code is changed by this audit.
+
+On macOS ARM64 with Eclipse Temurin JDK 25.0.4.1, `./gradlew check coverage` passes **952 tests**
+with no failures, errors or skips; both Checkstyle checks pass. Line coverage is **92.54%**
+(2,556 of 2,762 lines), above the 50% target.
+
+A temporary command runner outside the repository verifies **52 documentation commands** through
+`LogicManager`, the real model and JSON storage. Checks include the new ride-search and Ride Edit
+fixtures, case-insensitive exact email searches, ordered-word and repeated-space matching,
+unsupported/repeated ride criteria, rejected edits, notes-clearing filter reset, deletion
+confirmation and saved-data reload. This is command and persistence verification, not a manual UI run.
+
+The two changed UML images are regenerated and visually inspected. The guide is rendered using
+Kramdown, the repository's Minima styles and its page layout, with the story tables and diagrams
+checked in headless Chrome.
+All 72 contents links and all images resolve, with no page overflow at 1,280 px or 390 px.
+The full Jekyll build is not run because the locally available Ruby/Bundler setup does not match
+the locked bundle. Native application UI scenarios and other operating systems are not rerun;
+previous outstanding release checks remain outstanding.
+Some embedded UML notation panels in the course textbook and its modelling chapter return only
+`Loading...`; their include pages are also unavailable. The accessible textbook guidance and
+indexed static-call explanation are consulted alongside the source and rendered diagrams.
+
 ## Quoted ride notes searches (1 November 2026)
 
 Use the existing quoted-notes tokenizer in `RideFindCommandParser` so that
