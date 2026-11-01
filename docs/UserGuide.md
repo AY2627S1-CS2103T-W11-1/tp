@@ -536,6 +536,8 @@ The fields are matched as follows:
   word does not prevent a match, including hyphens, apostrophes and other punctuation. For example,
   `notes/lights` matches `Bring lights!`, and `notes/cyclist` matches `Check the cyclist's helmet`. Rides without
   notes do not match a notes criterion.
+  A punctuation mark can also be searched when it appears as a standalone token, such as `notes/!` for notes
+  containing `Hi ! Bye`; punctuation attached to a word is not searched as a separate token.
 
 Use straight or paired curly double quotes to search notes containing recognised prefixes:
 `ridefind notes/"aperture f/2"` or `rf notes/“aperture f/2”`. The outer quotes are removed;

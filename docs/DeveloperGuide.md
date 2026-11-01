@@ -362,7 +362,8 @@ The `d/` and `s/` values
 compare their respective numeric fields for equality, while `notes/` performs a
 case-insensitive ordered whole-word match against the ride's notes. Requested words may have
 intervening complete words, but must remain in order. Punctuation next to a complete word, including hyphens and
-apostrophes, does not prevent a match. For example,
+apostrophes, does not prevent a match. Punctuation may also be searched when it appears as a standalone token;
+punctuation attached to a word is not treated as a separate searchable token. For example,
 `ridefind notes/"camera aperture"` matches `Bring camera with aperture f/2`, while
 `ridefind notes/"aperture camera"` does not. A search for `cyclist` also matches
 `Check the cyclist's helmet`.
