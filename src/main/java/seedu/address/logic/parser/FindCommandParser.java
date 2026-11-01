@@ -60,7 +60,7 @@ public class FindCommandParser implements Parser<FindCommand> {
      * Rejects unexpected preambles, missing criteria, empty names, and repeated minimum FTP values.
      */
     private void validateCriteria(ArgumentMultimap argMultimap) throws ParseException {
-        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_FTP);
+        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_EMAIL, PREFIX_FTP);
         List<String> nameKeywords = argMultimap.getAllValues(PREFIX_NAME);
         boolean hasCriteria = Stream.of(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMERGENCY_PHONE, PREFIX_EMAIL,
                 PREFIX_LOCATION, PREFIX_FTP, PREFIX_EXPERIENCE_LEVEL)

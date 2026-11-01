@@ -22,6 +22,7 @@ public class FindCommand extends Command {
             + "[x/EXPERIENCE]... [l/LOCATION]...\n"
             + "At least one search criterion is required. Names and text criteria match complete words "
             + "case-insensitively. Multi-word values match when all words are present in order. "
+            + "e/EMAIL matches one exact email address, ignoring case. "
             + "Use multiple values within a field for OR matching; different fields use AND matching. "
             + "f/MIN_FTP matches cyclists with FTP at least the specified value in watts.\n"
             + "Example: " + COMMAND_WORD + " l/Punggol x/Intermediate f/250";

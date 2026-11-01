@@ -320,10 +320,11 @@ error, and the User Guide's "Using older data files" section explains how to cor
 ### Cyclist and ride filtering
 
 The `find` command accepts `n/` for name, `p/` for the cyclist's own phone, `sos/` for an
-emergency phone, `f/` for a minimum FTP, `x/` for experience level and `l/` for preferred
-location. At least one criterion is required. The `n/`, `p/`, `sos/`, `x/` and `l/` prefixes
+emergency phone, `e/` for an exact email address, `f/` for a minimum FTP, `x/` for experience level and `l/` for
+preferred location. At least one criterion is required. The `n/`, `p/`, `sos/`, `x/` and `l/` prefixes
 can each be repeated: values within one field use OR matching, while different fields use
-AND. The `f/` prefix accepts only one minimum FTP value, and a cyclist matches when their
+AND. The `e/` prefix accepts one email value and matches it exactly, ignoring case. The `f/` prefix accepts only one
+minimum FTP value, and a cyclist matches when their
 FTP is greater than or equal to that value. Names and preferred locations match complete words case-insensitively;
 a name containing spaces matches when all supplied words are present in the same order, even
 when other words appear between them. A multi-word location criterion follows the same rule.

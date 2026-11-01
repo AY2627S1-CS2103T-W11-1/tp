@@ -309,9 +309,9 @@ changing cyclist records, ride rosters or the current filter. Phone or email con
 
 ### Finding cyclists: `find`
 
-Find cyclists by name, phone number, emergency contact number or cycling profile.
+Find cyclists by name, phone number, email address, emergency contact number or cycling profile.
 
-**Format:** `find [n/NAME_KEYWORD]… [p/PHONE]… [sos/EMERGENCY_PHONE]… [f/MIN_FTP] [x/EXPERIENCE]… [l/LOCATION]…`
+**Format:** `find [n/NAME_KEYWORD]… [p/PHONE]… [sos/EMERGENCY_PHONE] [e/EMAIL] [f/MIN_FTP] [x/EXPERIENCE]… [l/LOCATION]…`
 (at least one field is required)
 
 Field | Meaning and rules
@@ -319,11 +319,12 @@ Field | Meaning and rules
 `n/NAME_KEYWORD` | A single name word or multiple complete name words. Matching is case-insensitive and each supplied word must appear as a complete word in the same order; `n/hans` matches `Hans` but `n/Han` does not. A multi-word value such as `n/John Doe` matches names containing `John` followed by `Doe`, even when other words appear between them. Hyphens and apostrophes separate words, so `n/Ling` and `n/Wei-Ling` both match `Tan Wei-Ling`, and `n/Connor` and `n/O'Connor` both match `John O'Connor`; `n/WeiLing` does not.
 `p/PHONE` | A complete phone number using a `+`, a 1–3 digit country code, one space and at least 3 digits. Matching is exact, ignoring leading zeros in the country code; `p/+65 963` does not match `+65 96320842`, but `p/+065 96320842` does.
 `sos/EMERGENCY_PHONE` | A complete emergency contact number using the same validation and exact matching as `p/`. Only cyclists with an emergency number matching the supplied value are shown. Cyclists whose emergency number is missing or different are not shown.
+`e/EMAIL` | An exact email address. Matching ignores letter case, so `e/ALICE@EXAMPLE.COM` matches a stored `alice@example.com`. Invalid email addresses are rejected.
 `f/MIN_FTP` | A whole number from 1 to 600, inclusive. Matches cyclists whose FTP is greater than or equal to the supplied value in watts; both `f/1` and `f/600` are valid.
 `x/EXPERIENCE` | `Beginner`, `Intermediate` or `Advanced`, ignoring case. Repeat `x/` to match any of the supplied experience levels.
 `l/LOCATION` | A preferred location, ignoring case. Complete words within the supplied location are matched in order, so `l/Coast` and `l/East Coast` match `East Coast Park` but `l/Coas` does not. Hyphens and apostrophes separate words here too, so `l/Ris` matches `Pasir-Ris Park`. Repeat `l/` to match any supplied location. A cyclist with `l/any` matches every location criterion.
 
-At least one criterion is required. Each prefix may be repeated except `f/`, which accepts only one value. Values
+At least one criterion is required. Each prefix may be repeated except `e/` and `f/`, which accept only one value. Values
 within the same field use `OR`, while different fields use `AND`; for example, `find n/Hans n/Bo f/250` matches
 cyclists named `Hans` or `Bo` whose FTP is at least 250 W. Prefix order does not matter. Text after a prefix belongs
 to that field until the next recognised prefix, so full names and locations containing spaces can be entered normally.
@@ -332,7 +333,8 @@ The command filters only the displayed cyclist list and does not change saved re
 alphabetical order, ignoring case. The result message reports how many cyclists match; an empty result is valid and
 leaves the cyclist panel empty. Use `list` to remove the current filter and display all cyclists again.
 
-Invalid phone numbers, FTP values, experience levels, preferred locations, name values and duplicate `f/` prefixes
+Invalid phone numbers, email addresses, FTP values, experience levels, preferred locations, name values and duplicate
+`e/` or `f/` prefixes
 are rejected without changing the current displayed list. A name or phone criterion searches only the corresponding
 field; emergency contact numbers are not treated as the cyclist's own phone number.
 

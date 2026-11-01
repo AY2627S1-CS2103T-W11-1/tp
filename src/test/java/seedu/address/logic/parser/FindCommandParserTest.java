@@ -114,6 +114,8 @@ public class FindCommandParserTest {
     public void parse_invalidCyclingCriteria_throwsParseException() {
         // EP: cycling criteria contain invalid values or duplicate prefixes.
         assertParseFailure(parser, "f/0", Ftp.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "e/alice@example.com e/bob@example.com",
+                Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_EMAIL));
         assertParseFailure(parser, "x/Expert", ExperienceLevel.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "l/", Location.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "f/300 x/Intermediate find l/Punggol f/300 x/Intermediate",
