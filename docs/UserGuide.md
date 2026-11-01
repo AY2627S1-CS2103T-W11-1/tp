@@ -493,7 +493,8 @@ There is no escape syntax.
 Quotes elsewhere in unquoted notes, as in `notes/Bring a "camera"`, are stored literally.
 
 These quoting rules apply to **`rideadd`, `rideedit` and `ridefind`**, including their aliases.
-For example, `ridefind notes/"aperture f/2"` searches for that literal phrase in the notes.
+For example, `ridefind notes/"aperture f/2"` searches for those words in order; they do not need to be consecutive.
+Quoting protects the recognised prefix `f/2` from being parsed as a separate criterion.
 To clear existing notes, use `rideedit ID notes/` without quotes.
 
 **If something goes wrong**
@@ -514,7 +515,9 @@ Finds rides matching one or more supplied criteria and displays the matching rid
 
 To list every ride, use `ridefind all`.
 
-At least one criterion is required unless the special `all` argument is used. Different fields use AND matching, so a ride must satisfy every field supplied. `ridefind all` clears the current ride filter and displays every saved ride in the Rides panel.
+After `ridefind`, at least one criterion is required; you do not need to supply every field. Alternatively, enter
+`ridefind all` to clear the current ride filter and display every saved ride. Different fields use AND matching, so a
+ride must satisfy every field supplied.
 The fields are matched as follows:
 
 * `n/NAME` matches complete words in the ride name in the supplied order, ignoring case. For example,
@@ -527,12 +530,19 @@ The fields are matched as follows:
   apostrophes separate words here too, so `ridefind l/Ris` matches a ride at `Pasir-Ris Park`.
 * `d/DISTANCE` and `s/MAX_GROUP_SIZE` use exact numeric matching.
 * `f/MIN_POWER` matches rides whose minimum power is greater than or equal to the supplied value.
-* `notes/NOTES` matches complete words or phrases in the ride's notes, ignoring case. For example,
-  `notes/lights` matches `Bring lights`, but `notes/lig` does not. Rides without notes do not match a notes criterion.
+* `notes/NOTES` matches selected complete words from the stored notes, ignoring case. The words must appear in their
+  original order but do not need to be consecutive, so `notes/"camera aperture"` matches
+  `Bring camera with aperture f/2`. Partial words such as `notes/lig` do not match. Punctuation next to a complete
+  word does not prevent a match, including hyphens, apostrophes and other punctuation. For example,
+  `notes/lights` matches `Bring lights!`, and `notes/cyclist` matches `Check the cyclist's helmet`. Rides without
+  notes do not match a notes criterion.
+  A punctuation mark can also be searched when it appears as a standalone token, such as `notes/!` for notes
+  containing `Hi ! Bye`; punctuation attached to a word is not searched as a separate token.
 
 Use straight or paired curly double quotes to search notes containing recognised prefixes:
 `ridefind notes/"aperture f/2"` or `rf notes/“aperture f/2”`. The outer quotes are removed;
-the phrase matches regardless of case. Other criteria outside the quotes still apply, for example
+the selected words match in order regardless of case, even when they are not consecutive. Other criteria outside the
+quotes still apply, for example
 `ridefind notes/"aperture f/2" f/180`. Unquoted searches such as `notes/camera` still work.
 Only `notes/` supports quoting. Empty, unclosed or mismatched quoted notes and extra text after
 the closing quote are rejected without changing the displayed results. The same
@@ -551,7 +561,7 @@ The command updates only the displayed ride list; it does not change or delete s
 | Find a ride by its full name | `ridefind n/Sunday Sunrise Ride` shows Sunday Sunrise Ride. |
 | Find a ride by part of a hyphenated name | `ridefind n/Wei` shows a ride named `Wei-Ling's Ride`, if you have added one. |
 | Look for a reminder | `ridefind notes/lights` shows rides whose notes contain the complete word `lights`, including Sunday Sunrise Ride. |
-| Find notes containing a literal prefix | `ridefind notes/"aperture f/2"` shows rides whose notes contain that phrase, if you have added one. |
+| Find notes containing selected words | `ridefind notes/"aperture f/2"` shows rides whose notes contain those words in order, if you have added one. |
 | Find rides within one day | `ridefind from/25-10-2026 to/25-10-2026` shows rides starting and ending on 25 October, including Sunday Sunrise Ride. |
 | Combine location and minimum power | `ridefind l/Punggol f/150` shows the sample Evening Spin. A ride must meet both criteria. |
 | Show all rides again | `ridefind all` removes the ride filter. |

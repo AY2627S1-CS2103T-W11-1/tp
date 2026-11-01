@@ -360,20 +360,30 @@ hyphens and apostrophes separate words, so `ridefind n/Wei-Ling` and `ridefind n
 `Wei-Ling's Ride`, while `ridefind n/WeiLing` does not.
 The `d/` and `s/` values
 compare their respective numeric fields for equality, while `notes/` performs a
-case-insensitive whole-word or phrase match against the ride's notes. For example,
+case-insensitive ordered whole-word match against the ride's notes. Requested words may have
+intervening complete words, but must remain in order. Punctuation next to a complete word, including hyphens and
+apostrophes, does not prevent a match. Punctuation may also be searched when it appears as a standalone token;
+punctuation attached to a word is not treated as a separate searchable token. For example,
+`ridefind notes/"camera aperture"` matches `Bring camera with aperture f/2`, while
+`ridefind notes/"aperture camera"` does not. A search for `cyclist` also matches
+`Check the cyclist's helmet`.
 `ridefind l/Tampines f/200` lists rides at Tampines whose minimum
 power is at least 200 watts. Unlike cyclist `find`, ridefind does not compare a ride's
 minimum power with a cyclist's FTP: its `f/` value is compared directly with the ride's
 `MinimumPower`, and a ride matches when its stored value is greater than or equal to the
-criterion. Case-insensitive notes matching uses `Locale.ROOT`, so the same search gives
-consistent results regardless of the computer's language settings.
+criterion. Notes matching is case-insensitive and Unicode-aware through
+`Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE`, so the same search gives consistent results regardless of the
+computer's language settings.
 
 Ride Find uses `ArgumentTokenizer#tokenizeWithQuotedNotes`, sharing the quoted-notes rules of Ride Add/Edit.
-For example, `ridefind notes/"aperture f/2"` searches for the literal phrase without adding a minimum-power
-criterion. `ridefind notes/“aperture f/2” f/200` additionally requires minimum power of at least 200 W.
+For example, `ridefind notes/"aperture f/2"` searches for the selected words in order without adding a minimum-power
+criterion. The words need not be consecutive; quoting protects `f/2` from being parsed as a separate criterion.
+`ridefind notes/“aperture f/2” f/200` additionally requires minimum power of at least 200 W.
 Only notes support quoting; duplicate prefixes outside the quotes are still rejected.
-The whole-word and phrase predicate is unchanged, including case-insensitive matching and whitespace
-normalisation through `Notes`. Invalid quoted searches leave both active filters and saved records unchanged.
+The notes predicate uses a notes-specific ordered whole-word matcher so that punctuation boundaries from the original
+notes search are preserved. It is independent of `StringUtil#containsWordsInOrderIgnoreCase`, whose separator rules
+remain unchanged for cyclist names and locations. Invalid quoted searches leave both active filters and saved records
+unchanged.
 
 `ridefind` applies `RideMatchesFindCriteriaPredicate` to the model's filtered ride list. The
 ride panel observes that list and refreshes its displayed ride cards; it does not change the

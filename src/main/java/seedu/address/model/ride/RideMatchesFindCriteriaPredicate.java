@@ -2,10 +2,10 @@ package seedu.address.model.ride;
 
 import static java.util.Objects.requireNonNull;
 
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import seedu.address.commons.util.StringUtil;
@@ -85,16 +85,24 @@ public class RideMatchesFindCriteriaPredicate implements Predicate<Ride> {
 
     private boolean matchesNotes(Ride ride) {
         return notes.map(value -> ride.getNotes().map(rideNotes ->
-                containsWholeWordsIgnoreCase(rideNotes.value, value.value)).orElse(false)).orElse(true);
+                containsOrderedWholeWordsIgnoreCase(rideNotes.value, value.value)).orElse(false)).orElse(true);
     }
 
-    /** Returns whether the text contains the supplied value as a complete word or phrase. */
-    private static boolean containsWholeWordsIgnoreCase(String text, String value) {
-        String lowerCaseText = text.toLowerCase(Locale.ROOT);
-        String lowerCaseValue = value.toLowerCase(Locale.ROOT);
-        String pattern = "(?<![\\p{L}\\p{N}])" + Pattern.quote(lowerCaseValue)
-                + "(?![\\p{L}\\p{N}])";
-        return Pattern.compile(pattern).matcher(lowerCaseText).find();
+    /** Returns whether all note words occur in order while preserving punctuation boundaries. */
+    private static boolean containsOrderedWholeWordsIgnoreCase(String text, String searchText) {
+        String[] searchWords = searchText.trim().split("\\s+");
+        int searchFrom = 0;
+        for (String searchWord : searchWords) {
+            String regex = "(?<![\\p{L}\\p{N}])" + Pattern.quote(searchWord)
+                    + "(?![\\p{L}\\p{N}])";
+            Matcher matcher = Pattern.compile(regex, Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE)
+                    .matcher(text);
+            if (!matcher.find(searchFrom)) {
+                return false;
+            }
+            searchFrom = matcher.end();
+        }
+        return true;
     }
 
     @Override
