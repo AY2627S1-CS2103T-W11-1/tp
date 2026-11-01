@@ -46,6 +46,7 @@ public class RideAddCommandParserTest {
 
     @Test
     public void parse_otherStyleQuotes_preservesLiteralContent() {
+        // Check the parsed ride, so literal prefixes cannot silently replace its minimum power.
         for (String[] row : new String[][] {{"“say \"hi\" there”", "say \"hi\" there"},
             {"\"say ”hi” there\"", "say ”hi” there"},
             {"\u00a0\"x f/2\"", "x f/2"}}) {
@@ -56,6 +57,7 @@ public class RideAddCommandParserTest {
 
     @Test
     public void quotedNotes_specificErrors_matchExactMessages() {
+        // Representative tokenizer failures must reach callers with their specific messages intact.
         for (String[] row : new String[][] {
                 {" ”lol”", ArgumentTokenizer.MESSAGE_NOTES_START_WITH_CLOSING_QUOTE},
                 {"“say “hi there”", ArgumentTokenizer.MESSAGE_NOTES_UNPAIRED_CURLY_QUOTE},

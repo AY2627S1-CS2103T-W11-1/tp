@@ -23,8 +23,10 @@ public class ArgumentTokenizerTest {
 
     @Test
     public void tokenizeWithQuotedNotes_otherStyleQuotes_areLiteral() throws Exception {
+        // Only the outer pair is removed; the other quote style remains literal.
         for (String[] row : new String[][] {{"“say \"hi\" there”", "say \"hi\" there"},
             {"\"say ”hi” there\"", "say ”hi” there"},
+            // Quotes occurring after ordinary note text do not start quoting.
             {"Bring a \"camera\"", "Bring a \"camera\""},
             {"Bring “camera”", "Bring “camera”"}}) {
             assertArgumentPresent(ArgumentTokenizer.tokenizeWithQuotedNotes(" notes/" + row[0], PREFIX_NOTES),
@@ -35,14 +37,17 @@ public class ArgumentTokenizerTest {
     @Test
     public void quotedNotes_specificErrors_matchExactMessages() {
         for (String[] row : new String[][] {
+                // A closing curly mark cannot open a quoted value, even after whitespace.
                 {"”lol”", ArgumentTokenizer.MESSAGE_NOTES_START_WITH_CLOSING_QUOTE},
                 {" ”lol”", ArgumentTokenizer.MESSAGE_NOTES_START_WITH_CLOSING_QUOTE},
                 {"”lol”lol””", ArgumentTokenizer.MESSAGE_NOTES_START_WITH_CLOSING_QUOTE},
+                // Missing curly closers or additional curly openers share the unpaired-quote error.
                 {"“lol“", ArgumentTokenizer.MESSAGE_NOTES_UNPAIRED_CURLY_QUOTE},
                 {"“lol“lol““", ArgumentTokenizer.MESSAGE_NOTES_UNPAIRED_CURLY_QUOTE},
                 {"“camera", ArgumentTokenizer.MESSAGE_NOTES_UNPAIRED_CURLY_QUOTE},
                 {"“say “hi there”", ArgumentTokenizer.MESSAGE_NOTES_UNPAIRED_CURLY_QUOTE},
                 {"“lol“lol””", ArgumentTokenizer.MESSAGE_NOTES_UNPAIRED_CURLY_QUOTE},
+                // The other style's closer cannot close an otherwise unclosed quoted value.
                 {"\"hi”", ArgumentTokenizer.MESSAGE_NOTES_MISMATCHED_QUOTES},
                 {"“hi\"", ArgumentTokenizer.MESSAGE_NOTES_MISMATCHED_QUOTES}}) {
             ParseException exception = assertThrows(ParseException.class, () ->

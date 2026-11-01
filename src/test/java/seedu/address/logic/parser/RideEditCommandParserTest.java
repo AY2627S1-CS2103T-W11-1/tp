@@ -48,6 +48,7 @@ public class RideEditCommandParserTest {
 
     @Test
     public void quotedNotes_specificErrors_matchExactMessages() {
+        // Reject malformed notes before creating an edit command, preserving the tokenizer's feedback.
         for (String[] row : new String[][] {
                 {" ”lol”", ArgumentTokenizer.MESSAGE_NOTES_START_WITH_CLOSING_QUOTE},
                 {"“say “hi there”", ArgumentTokenizer.MESSAGE_NOTES_UNPAIRED_CURLY_QUOTE},
@@ -94,6 +95,7 @@ public class RideEditCommandParserTest {
             EditRideDescriptor cleared = new EditRideDescriptor();
             cleared.setNotes(Optional.empty());
             assertParseSuccess(parser, VALID_ID + " notes/" + separator, new RideEditCommand(101, cleared));
+            // Quoted blanks are invalid, rather than a request to clear existing notes.
             assertParseFailure(parser, VALID_ID + " notes/\"" + separator + "\"",
                     ArgumentTokenizer.MESSAGE_INVALID_QUOTED_NOTES);
             String ten = "one two three four five six seven eight nine ten";
@@ -118,6 +120,7 @@ public class RideEditCommandParserTest {
         descriptor.setMaxGroupSize(new GroupSize("5"));
         assertParseSuccess(parser, VALID_ID + " notes/\"Bring camera with aperture f/2\" s/5",
                 new RideEditCommand(101, descriptor));
+        // A literal f/2 must stay in notes; only the following s/ prefix changes another field.
         assertParseSuccess(parser, VALID_ID + " notes/“Bring camera with aperture f/2” s/5",
                 new RideEditCommand(101, descriptor));
         descriptor.setMinimumPower(new MinimumPower("200"));
