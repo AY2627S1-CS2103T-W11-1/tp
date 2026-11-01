@@ -53,6 +53,7 @@ You do not need programming experience. Start with [Quick start](#quick-start), 
 Type each command in the command box and press **Enter**.
 
 1. Enter `list`. All saved cyclists appear in alphabetical order.
+1. Enter `ridefind all`. All saved group rides appear in the Rides panel.
 1. Enter `find n/Alex`. With the sample data, only Alex Tan appears. This hides other cyclists; it does not delete them.
 1. Enter `list` again to bring everyone back.
 1. Enter `help` to open the Full help window. Close that window to return to the main window.
@@ -99,6 +100,8 @@ they have passed; Cyclique allows past rides.
 
 A **filter** hides records that do not match your search. It does not remove them from Cyclique.
 The two panels have separate filters: `list` does not reset a ride search.
+To list **all group rides**, use `ridefind all` (or `rf all`). `ridelist ID` shows the **cyclists on one ride**
+instead; it does not list group rides.
 
 Cyclists are sorted alphabetically by full name, ignoring case. Names that are identical ignoring case
 keep their stored order. Card indexes change with the displayed list; use the cyclist's **own phone number**
@@ -111,6 +114,23 @@ even after deleting rides, clearing data or restarting Cyclique.
 A **roster** is a ride's list of registered cyclists. It shows their own phone numbers.
 **SOS** on a cyclist card means their emergency contact number. **FTP** (Functional Threshold Power)
 is the cyclist's power level in watts; Cyclique compares it with a ride's minimum power before registration.
+
+### Choose names and locations
+
+**Cyclist names do not have to be legal names.** Use the name the cyclist wants your group to use.
+Names can contain Unicode letters (including accented letters), digits and spaces. A straight hyphen
+(`-`) or apostrophe (`'`) is allowed between letters or digits, as in `Tan Wei-Ling` or `John O'Connor`.
+Do not put either character at the start or end, beside a space, or next to another hyphen or apostrophe.
+Use a straight apostrophe (`'`), rather than a curly one (`’`).
+
+Cyclist names and ride names follow the **same rules**. Slashes (`/`), full stops (`.`) and other
+punctuation are not accepted. For example, you cannot enter `s/o` as part of a cyclist's name;
+choose a name they are comfortable using without the slash. For a ride, use `Punggol-Seletar Loop`
+instead of `Punggol/Seletar Loop`.
+
+**Locations** accept English letters (`A–Z`, `a–z`), digits, spaces, straight hyphens and straight apostrophes.
+The `@` character is not accepted: use `Hub at Punggol`, rather than `Hub @ Punggol`.
+These rules apply when adding, editing and searching.
 
 ## Plan a ride and register a cyclist
 
@@ -191,16 +211,17 @@ Enter `help`, press **F1**, or choose **Help → Full help...**. The Full help w
 command's format, fields and an example. The result box shows `Opened help window.`
 If the window is already open, Cyclique brings it into focus.
 
-<a href="images/helpMessage.png"><img src="images/helpMessage.png" alt="Full help window showing command formats, ride command aliases and the Cyclique guide URL with a Copy URL button" /></a>
+<a href="images/helpMessage.png"><img src="images/helpMessage.png" alt="Full help window with a scrollable command list, including email search, and the guide URL and Copy URL button below it" /></a>
 
-*Use **Copy URL** at the bottom of the window to copy the link to this guide.
-Select the screenshot to view it at full resolution.*
+*Scroll through the command list for more help. Use **Copy URL** below the list to copy the link to this guide.
+Select the screenshot to open it at full size.*
 
 You can also choose a command from the **Help** menu to start filling it in.
 
-![Help menu showing command formats, ride command aliases and Full help](images/helpDropdown.png)
+<a href="images/helpDropdown.png"><img src="images/helpDropdown.png" alt="Help menu showing command formats, including the email-search field, ride command aliases and Full help" /></a>
 
-*Selecting a menu entry puts the command in the command box; it does not run it.*
+*Selecting a menu entry puts the command in the command box; it does not run it.
+Select the screenshot to open it at full size.*
 
 For `add` and `rideadd`, the required prefixes are filled in too. Type your values after them,
 add any optional fields you need, then press **Enter**. For roster commands, type the ride ID
@@ -214,13 +235,13 @@ Adds a cyclist to Cyclique.
 
 Field | Meaning and rules
 ------|------------------
-`n/NAME` | The cyclist's name. It may contain Unicode letters (including accented letters), digits and spaces, with combining marks attached to letters or digits. It must start with a letter or digit; blank names and punctuation are rejected. For example, `José Tan` is accepted.
-`p/PHONE` | A unique phone number using a `+`, a 1–3 digit country code, one space and at least 3 digits, such as `+65 98765432`. Parentheses, hyphens and blank values are rejected. Leading zeros in the country code are ignored and removed when the number is saved, so `+065 98765432` is the same number as `+65 98765432`. The country code must contain a non-zero digit, so `+0 000` and `+00 98765432` are rejected. Leading zeros in the number are kept, because they can be significant: `+39 0612345678` is saved as typed and is a different number from `+39 612345678`. The number must not belong to another cyclist, including cyclists hidden by a filter.
+`n/NAME` | The name the cyclist wants your group to use; a legal name is not required. Start with a letter or digit. Letters (including accented letters), digits and spaces are allowed, with straight hyphens and apostrophes joining letters or digits. For example, `José Tan`, `Tan Wei-Ling` and `John O'Connor` are accepted. See [Choose names and locations](#choose-names-and-locations) for restrictions, including `/`.
+`p/PHONE` | A unique phone number using `+`, a 1–3 digit country code, exactly one space and at least 3 digits, such as `+65 98765432`. The country code must contain a non-zero digit. Parentheses, hyphens and blank values are rejected. See [Phone numbers and leading zeroes](#phone-numbers-and-leading-zeroes) below.
 `sos/EMERGENCY_PHONE` | The cyclist's emergency contact phone number, displayed as **SOS** on their card. Required for new cyclists. It follows the same format as `p/` but may be shared by multiple cyclists and does not determine duplicate cyclists.
 `e/EMAIL` | A valid email address, such as `johnd@example.com`. It must be unique across all cyclists, including those hidden by a filter; comparisons ignore letter case.
 `f/FTP_LEVEL` | Functional Threshold Power (FTP): a whole number from 1 to 600, in watts.
 `x/EXPERIENCE_LEVEL` | `Beginner`, `Intermediate` or `Advanced`, ignoring case.
-`l/LOCATION` | A non-blank preferred cycling location containing only English letters (`A–Z`, `a–z`), digits, spaces, hyphens or apostrophes. At least one is required. Repeat `l/` for multiple locations, or use `l/any` alone to indicate no location preference. `any` ignores case and cannot be combined with another location.
+`l/LOCATION` | A non-blank preferred cycling location containing only English letters (`A–Z`, `a–z`), digits, spaces, straight hyphens or straight apostrophes. `@` and `/` are not accepted. At least one is required. Repeat `l/` for multiple locations, or use `l/any` alone to indicate no location preference. `any` ignores case and cannot be combined with another location.
 
 All fields are required. Only `l/` may be repeated; repeating any other prefix is rejected.
 Prefixes can be entered in any order. Cyclists may share a name or emergency contact number,
@@ -242,6 +263,22 @@ list, places the new card in alphabetical order and saves the data automatically
 Missing required fields, blank values, invalid values and repeated single-valued prefixes are rejected.
 A phone or email conflict reports `Another cyclist already has this phone number or email.`
 These rejected commands leave existing records unchanged and do not add a cyclist.
+
+#### Phone numbers and leading zeroes
+
+Enter the cyclist's own number accurately: it identifies them in `edit`, `delete` and roster commands.
+Cyclique checks its format, but does not check whether the number is assigned or in use.
+
+| What you enter | How Cyclique treats it |
+| --- | --- |
+| `+065 91234561` | Saved as `+65 91234561`. Zeroes at the start of the country code are removed. If Alex already has that number, adding another cyclist with it is rejected. |
+| `+65 091234561` | The zero after the space is kept. This is a different number from `+65 91234561`; do not add or remove digits when identifying a cyclist. |
+| `+39 0612345678` | Saved as typed. A leading zero in the number itself can be significant. |
+| `+0 000` or `+00 98765432` | Rejected because the country code contains only zeroes. |
+
+The same rules apply to SOS numbers and phone numbers used in searches or roster commands.
+A cyclist's own phone must be unique across all saved cyclists, including those hidden by a filter.
+SOS numbers may be shared.
 
 ### Listing all cyclists: `list`
 
@@ -317,7 +354,7 @@ Find cyclists by name, phone number, email address, emergency contact number or 
 Field | Meaning and rules
 ------|------------------
 `n/NAME_KEYWORD` | A single name word or multiple complete name words. Matching is case-insensitive and each supplied word must appear as a complete word in the same order; `n/hans` matches `Hans` but `n/Han` does not. A multi-word value such as `n/John Doe` matches names containing `John` followed by `Doe`, even when other words appear between them. Hyphens and apostrophes separate words, so `n/Ling` and `n/Wei-Ling` both match `Tan Wei-Ling`, and `n/Connor` and `n/O'Connor` both match `John O'Connor`; `n/WeiLing` does not.
-`p/PHONE` | A complete phone number using a `+`, a 1–3 digit country code, one space and at least 3 digits. Matching is exact, ignoring leading zeros in the country code; `p/+65 963` does not match `+65 96320842`, but `p/+065 96320842` does.
+`p/PHONE` | A complete phone number using a `+`, a 1–3 digit country code, one space and at least 3 digits. Matching is exact, ignoring leading zeroes in the country code; `p/+65 963` does not match `+65 96320842`, but `p/+065 96320842` does.
 `sos/EMERGENCY_PHONE` | A complete emergency contact number using the same validation and exact matching as `p/`. Only cyclists with an emergency number matching the supplied value are shown. Cyclists whose emergency number is missing or different are not shown.
 `e/EMAIL` | An exact email address. Matching ignores letter case, so `e/ALICE@EXAMPLE.COM` matches a stored `alice@example.com`. Repeat `e/` to search for multiple email addresses; a cyclist matches if their email matches any supplied address. Invalid email addresses are rejected.
 `f/MIN_FTP` | A whole number from 1 to 600, inclusive. Matches cyclists whose FTP is greater than or equal to the supplied value in watts; both `f/1` and `f/600` are valid.
@@ -328,6 +365,9 @@ At least one criterion is required. Each prefix may be repeated except `f/`, whi
 within the same field use `OR`, while different fields use `AND`; for example, `find n/Hans n/Bo f/250` matches
 cyclists named `Hans` or `Bo` whose FTP is at least 250 W. Prefix order does not matter. Text after a prefix belongs
 to that field until the next recognised prefix, so full names and locations containing spaces can be entered normally.
+
+Name and location searches ignore repeated spaces between words. They do not require the words to be
+consecutive: `find n/John Doe` also matches `John Wei Doe`. The original name is kept when saved.
 
 The command filters only the displayed cyclist list and does not change saved records. Matching cyclists remain in
 alphabetical order, ignoring case. The result message reports how many cyclists match; an empty result is valid and
@@ -365,7 +405,7 @@ Deletes a cyclist only after you check their details and confirm in the command 
 
 **Format:** `delete PHONE`, then enter a separate confirmation or cancellation reply.
 
-* Use the cyclist's own complete phone number, including country code and exactly one space, for example `+65 98765432`. The country code contains 1–3 digits; the number after the space contains at least 3 digits. Leading zeros in the country code are ignored, so `+065 98765432` identifies the same cyclist as `+65 98765432`; leading zeros in the number are part of the number. Do not use a card index or the `p/` prefix.
+* Use the cyclist's own complete phone number, including country code and exactly one space, for example `+65 98765432`. The country code contains 1–3 digits; the number after the space contains at least 3 digits. Leading zeroes in the country code are ignored, so `+065 98765432` identifies the same cyclist as `+65 98765432`; leading zeroes in the number are part of the number. Do not use a card index or the `p/` prefix.
 * A malformed target reports the specific phone-validation error; omitting the target reports the command usage.
 * The number must identify exactly one cyclist in the **displayed list**. A cyclist hidden by a filter cannot be deleted; use `list` to show all cyclists first. Multiple displayed matches are rejected.
 * The result box shows `Delete this cyclist?` followed by the target's details, including their emergency number, and warns `This also removes them from all ride rosters.` No cyclist, roster or saved data changes at this stage.
@@ -421,10 +461,10 @@ Adds a group ride that an organiser plans to lead.
 
 Field | Meaning and rules
 ------|------------------
-`n/NAME` | The name of the ride. Unicode letters (including accented letters), digits and spaces, with combining marks attached to letters or digits. It must start with a letter or digit; blank names and punctuation are rejected.
+`n/NAME` | A ride name following the [same rules as cyclist names](#choose-names-and-locations). `Punggol-Seletar Loop` and `Mother's Day Ride` are accepted. Slashes (`/`) and full stops (`.`) are not accepted; do not use a leading, trailing or repeated hyphen or apostrophe.
 `from/FROM` | When the ride starts, written as `DD-MM-YYYY TTTT` (day-month-year, followed by exactly one space and the time). `TTTT` uses the 24-hour clock from `0000` to `2359`, for example `25-10-2026 0630`. Both the date and time are required. The date must be a real calendar date, including the correct leap-year rules.
 `to/TO` | When the ride ends, in the same format as `from/`. It must not be earlier than `from/` (the same time is allowed).
-`l/LOCATION` | One non-blank location. English letters (`A–Z`, `a–z`), digits (`0–9`), spaces, hyphens and apostrophes only.
+`l/LOCATION` | One non-blank location. English letters (`A–Z`, `a–z`), digits (`0–9`), spaces, straight hyphens and straight apostrophes only. Use `Hub at Punggol`, not `Hub @ Punggol`; `@` and `/` are not accepted.
 `d/DISTANCE` | The distance in kilometres, from `0.01` to `999999.99`. Use 1–6 digits before the decimal point and, optionally, 1–2 digits after it, such as `45` or `45.5`.
 `f/MIN_POWER` | The minimum power a cyclist needs to join, in watts. Use 1–3 digits representing a whole number from 1 to 600, the same range as a cyclist's FTP.
 `s/MAX_GROUP_SIZE` | The most cyclists that can join. Use 1–9 digits representing a whole number from 1 to 999999999.
@@ -509,27 +549,44 @@ To clear existing notes, use `rideedit ID notes/` without quotes.
 
 These rejected commands add no ride and consume no ID. In unquoted values, unsupported prefix-like text is not checked separately and becomes part of the preceding value (or the text before the first prefix). For example, `notes/Bring lights q/test` can be accepted as notes containing `q/test`; it is not a separate parameter. Unquoted text after a recognised prefix belongs to that value until the next recognised prefix.
 
+### Listing all group rides: `ridefind all`
+
+Show every saved ride in the right-hand Rides panel, including rides hidden by an earlier search.
+
+**Format:** `ridefind all` (or `rf all`)
+
+Enter the command and press **Enter**. The result box reports the number of rides listed, for example
+`2 ride(s) listed!` with the fresh sample data. The cyclist panel and all saved records stay unchanged.
+
+Use [`ridelist ID`](#listing-cyclists-registered-for-a-ride-ridelist) when you want the cyclists registered
+for one ride, rather than the list of rides.
+
 ### Finding group rides: `ridefind`
 
 Finds rides matching one or more supplied criteria and displays the matching rides in the Rides panel.
 
 **Format:** `ridefind [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`
 
-To list every ride, use `ridefind all`.
+To list every ride without search criteria, use [`ridefind all`](#listing-all-group-rides-ridefind-all).
 
 After `ridefind`, at least one criterion is required; you do not need to supply every field. Alternatively, enter
 `ridefind all` to clear the current ride filter and display every saved ride. Different fields use AND matching, so a
-ride must satisfy every field supplied.
+ride must satisfy every field supplied. For example, `ridefind n/Sunday l/East` requires a matching
+name **and** location. Use each prefix only once; `ridefind n/Sunday n/Saturday` is rejected.
+[Searching several values for one ride field is planned](#coming-soon).
+
 The fields are matched as follows:
 
 * `n/NAME` matches complete words in the ride name in the supplied order, ignoring case. For example,
   `ridefind n/Sunday` matches `Sunday Sunrise Ride`, but `ridefind n/Ride Sunday` does not.
   Hyphens and apostrophes separate words, so `ridefind n/Wei-Ling` and `ridefind n/Wei` both match
-  `Wei-Ling's Ride`, and `ridefind n/Mother` matches `Mother's Day Ride`. `ridefind n/WeiLing` does not.
+  `Wei-Ling's Ride`, and `ridefind n/Mother` matches `Mother's Day Ride`.
+  Fragments such as `n/Lin` and joined spellings such as `n/WeiLing` do not match `Wei-Ling's Ride`.
 * `from/` matches rides starting at or after the supplied date and time.
 * `to/` matches rides ending at or before the supplied date and time.
 * `l/LOCATION` matches complete words in the ride location in the supplied order, ignoring case. Hyphens and
-  apostrophes separate words here too, so `ridefind l/Ris` matches a ride at `Pasir-Ris Park`.
+  apostrophes separate words here too: `ridefind l/East` matches `East Coast Park`, and
+  `ridefind l/Ris` matches `Pasir-Ris Park`. `l/Eas` does not match `East Coast Park`.
 * `d/DISTANCE` and `s/MAX_GROUP_SIZE` use exact numeric matching.
 * `f/MIN_POWER` matches rides whose minimum power is greater than or equal to the supplied value.
 * `notes/NOTES` matches selected complete words from the stored notes, ignoring case. The words must appear in their
@@ -538,8 +595,11 @@ The fields are matched as follows:
   word does not prevent a match, including hyphens, apostrophes and other punctuation. For example,
   `notes/lights` matches `Bring lights!`, and `notes/cyclist` matches `Check the cyclist's helmet`. Rides without
   notes do not match a notes criterion.
-  A punctuation mark can also be searched when it appears as a standalone token, such as `notes/!` for notes
-  containing `Hi ! Bye`; punctuation attached to a word is not searched as a separate token.
+
+You do not need to reproduce repeated spaces in names or locations. For example,
+`ridefind n/morning loop` matches a saved name `Morning  Loop` (with two spaces).
+Words can have other words between them, so `ridefind n/Sunday Ride` matches `Sunday Sunrise Ride`.
+The original name and its spacing are kept when saved.
 
 Use straight or paired curly double quotes to search notes containing recognised prefixes:
 `ridefind notes/"aperture f/2"` or `rf notes/“aperture f/2”`. The outer quotes are removed;
@@ -556,11 +616,16 @@ Both bounds are inclusive. Each prefix can be used only once. Distances are posi
 
 The command updates only the displayed ride list; it does not change or delete saved rides. If no ride matches, the Rides panel is empty and the result message reports `0 ride(s) listed!`. Invalid criteria are rejected without changing the current ride filter.
 
-**Examples** (using the sample rides)
+**Examples**
+
+The sample-data examples work after a fresh launch. Examples needing extra rides say what to add first.
 
 | Your goal | Command and result |
 | --- | --- |
-| Find a ride by its full name | `ridefind n/Sunday Sunrise Ride` shows Sunday Sunrise Ride. |
+| Find a ride by one complete name word | `ridefind n/Sunday` shows the sample Sunday Sunrise Ride. `ridefind n/Sunday Sunrise Ride` still works. |
+| Find a ride by one location word | `ridefind l/East` shows the sample Sunday Sunrise Ride at East Coast Park. |
+| Combine a name and location | `ridefind n/Sunday l/East` requires both fields to match. |
+| Ignore repeated spaces | `ridefind n/morning loop` finds `Morning  Loop`, if you have added a ride with that name. |
 | Find a ride by part of a hyphenated name | `ridefind n/Wei` shows a ride named `Wei-Ling's Ride`, if you have added one. |
 | Look for a reminder | `ridefind notes/lights` shows rides whose notes contain the complete word `lights`, including Sunday Sunrise Ride. |
 | Find notes containing selected words | `ridefind notes/"aperture f/2"` shows rides whose notes contain those words in order, if you have added one. |
@@ -626,7 +691,9 @@ Continuing the separate Ride 3 screenshot walkthrough from [`rideadd`](#adding-a
 
 **If something goes wrong**
 
-* A missing, zero, negative, malformed, overflowing or extra ID argument: `Invalid command format.` followed by the command usage.
+* If you leave out the ride ID, enter `0`, a negative value or extra text, Cyclique shows the command usage.
+* An ID above `2147483647`, such as `rideedit 2147483648 n/Changed`, reports
+  `Ride ID should be a positive whole number no larger than 2147483647.` Use the ID shown on the ride card.
 * An unknown ID, for example `rideedit 999999 n/Morning Ride` when that ID is absent: `Ride with ID 999999 cannot be found.`
 * No editable field after the ID: `At least one field to edit must be provided.`
 * An invalid field value, which reports the same constraint as `rideadd`.
@@ -666,7 +733,15 @@ remain unchanged. Remaining ride IDs are not renumbered, and deleted IDs are nev
 
 The current `ridefind` filter is retained. If a [`ridelist`](#listing-cyclists-registered-for-a-ride-ridelist) selection is showing the deleted ride's cyclists, the left-hand panel becomes empty and does not switch to another ride. Enter `list` to display all saved cyclists again. Other cyclist filters are retained.
 
-A missing, malformed, non-positive, overflowing or additional argument produces `Invalid command format.` followed by the command usage. For example, `ridedelete 1 extra` is invalid. An unknown ID of 1 reports `Ride with ID 1 cannot be found.` Input or missing-ride errors do not change ride or cyclist data, filters or the next ride ID.
+**If something goes wrong**
+
+* If you leave out the ID or enter extra text, such as `ridedelete 1 extra`, Cyclique shows the command usage.
+  Zero, negative values, signs and decimal points are not accepted.
+* An ID above `2147483647`, such as `ridedelete 2147483648`, reports
+  `Ride ID should be a positive whole number no larger than 2147483647.`
+* A valid ID with no saved ride, such as `2147483647` when it has not been assigned, reports that the ride cannot be found.
+
+These errors do not delete anything or change the current filters or next ride ID.
 
 ### Adding a cyclist to a ride: `rideaddcyclist`
 
@@ -728,7 +803,9 @@ To try registration step by step, follow [Plan a ride and register a cyclist](#p
 
 ### Listing cyclists registered for a ride: `ridelist`
 
-Shows the cyclists registered for one ride in the left-hand cyclist panel, so that you can see who is on that ride. No ride or cyclist records are changed.
+Shows the cyclists registered for one ride in the left-hand cyclist panel.
+To display all **group rides** instead, enter [`ridefind all`](#listing-all-group-rides-ridefind-all).
+Neither command changes your saved records.
 
 **Format:** `ridelist ID`
 
@@ -749,7 +826,9 @@ Example: `ridelist 1` (use your ride's actual ID)
 **If something goes wrong**
 
 * An unknown ride ID, such as `999999`, reports `Ride with ID 999999 cannot be found.`
-* A missing, malformed, zero, negative, overflowing or extra argument produces the invalid-command-format message with the command usage.
+* If you leave out the ID or enter zero, a negative value or extra text, Cyclique shows the command usage.
+* An ID above `2147483647`, such as `ridelist 2147483648`, reports
+  `Ride ID should be a positive whole number no larger than 2147483647.`
 * If a phone number on the roster no longer matches any cyclist, Cyclique reports `Cannot list ride: a registered cyclist cannot be found.`
 
 After any of these errors, the previous filter and all ride and cyclist data stay unchanged.
@@ -818,17 +897,17 @@ Older cyclist records without an emergency number load with **SOS: Not provided*
 Use `edit PHONE sos/EMERGENCY_PHONE` to add one. Editing another field keeps the number absent.
 Data files from before rides were supported load with no rides.
 
-Cyclique now treats a country code with leading zeros as the same country code, so `+065 91234561` and
+Cyclique now treats a country code with leading zeroes as the same country code, so `+065 91234561` and
 `+65 91234561` are the same phone number. Most older files are unaffected, but a file will not load if it contains:
 
-* a cyclist's phone or SOS number whose country code is all zeros, such as `+0 123` or `+00 98765432`; or
-* two cyclists whose phone numbers differ only by zeros at the start of the country code, such as
+* a cyclist's phone or SOS number whose country code is all zeroes, such as `+0 123` or `+00 98765432`; or
+* two cyclists whose phone numbers differ only by zeroes at the start of the country code, such as
   `+65 91234561` and `+065 91234561`.
 
 Cyclique shows the fatal error dialog described in [Editing the data file](#editing-the-data-file) and does not
 change the file. To fix it, back up the file, then edit a copy: replace each all-zero country code with the correct
 one, and for two cyclists with the same number, correct the wrong number or delete the duplicate record, so that each
-`phone` is unique. Leading zeros in the number itself, such as `+65 00000000` or `+39 0612345678`, still load
+`phone` is unique. Leading zeroes in the number itself, such as `+65 00000000` or `+39 0612345678`, still load
 unchanged. Replace the original with the corrected copy and relaunch Cyclique.
 
 ### Editing the data file
@@ -852,12 +931,6 @@ Blank notes or notes exceeding ten words also prevent loading, including notes w
 Cyclique does not discard or shorten them for you.
 
 ## Troubleshooting and FAQ
-
-### Coming soon
-
-Future versions may allow you to search for a specific cyclist's phone number across all ride rosters.
-Currently, use `ridelist ID` to display the cyclists registered for a particular ride and check the roster,
-or use `ridefind all` to display every ride and inspect the roster entries visually.
 
 | Problem | What to do |
 | --- | --- |
@@ -884,6 +957,15 @@ restore a backup made before the deletion.
 Include the command you entered, what you expected and what happened. Use fictional contact details
 and remove personal information from screenshots or data files before sharing them.
 
+## Coming soon
+
+The following improvements are planned for future versions and **are not available in this release**.
+
+| Planned improvement | What you can do now |
+| --- | --- |
+| **Search several values for one ride field.** For example, find Sunday or Saturday rides in one search. | Each `ridefind` prefix can be used only once, so `ridefind n/Sunday n/Saturday` is rejected. Run `ridefind n/Sunday` and `ridefind n/Saturday` separately; each search replaces the previous results. Cyclist `find` already supports repeated name fields. |
+| **Find rides by a cyclist's phone number.** Show all rides that include that cyclist. | Enter `ridefind all` and check the phone numbers under **Roster** on each ride card. Use `ridelist ID` to see the cyclist details for one ride. Phone-number searches are not supported by `ridefind` yet. |
+
 ## Command summary
 
 Use a full command name **or** its alias, for example `ridefind all` or `rf all`.
@@ -902,7 +984,8 @@ Task | Format and example
 [Help](#viewing-help-help) | `help`<br> or press `F1`, or choose **Help → Full help...**
 [Exit](#exiting-the-program-exit) | `exit`
 [Add ride](#adding-a-group-ride-rideadd) | `rideadd n/NAME from/FROM to/TO l/LOCATION d/DISTANCE f/MIN_POWER s/MAX_GROUP_SIZE [notes/NOTES]`<br> e.g., `rideadd n/Sunday Sunrise Ride from/25-10-2026 0630 to/25-10-2026 0930 l/East Coast Park d/45 f/180 s/3 notes/Bring lights and a spare tube`
-[Find rides](#finding-group-rides-ridefind) | `ridefind all`<br>`ridefind [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`<br> e.g., `ridefind all`, `ridefind from/25-10-2026 to/25-10-2026 f/180`
+[List all rides](#listing-all-group-rides-ridefind-all) | `ridefind all` or `rf all`
+[Find rides](#finding-group-rides-ridefind) | `ridefind [n/NAME] [from/DATE [TIME]] [to/DATE [TIME]] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`<br> e.g., `ridefind n/Sunday l/East`, `ridefind notes/"aperture f/2"`
 [Edit ride](#editing-a-group-ride-rideedit) | `rideedit ID [n/NAME] [from/START] [to/END] [l/LOCATION] [d/DISTANCE] [f/MIN_POWER] [s/MAX_GROUP_SIZE] [notes/NOTES]`<br> e.g., `rideedit 1 l/Marina Bay notes/Meet at the waterfront`, `rideedit 1 notes/` (use the actual ride ID)
 [Delete ride](#deleting-a-group-ride-ridedelete) | `ridedelete ID`<br> e.g., `ridedelete 1` (use the actual ride ID; no confirmation)
 [Register cyclist](#adding-a-cyclist-to-a-ride-rideaddcyclist) | `rideaddcyclist ID PHONE`<br> e.g., `rideaddcyclist 1 +65 91234561`
