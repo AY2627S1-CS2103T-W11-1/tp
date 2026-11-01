@@ -533,8 +533,8 @@ The fields are matched as follows:
   original order but do not need to be consecutive, so `notes/"camera aperture"` matches
   `Bring camera with aperture f/2`. Partial words such as `notes/lig` do not match. Punctuation next to a complete
   word does not prevent a match, including hyphens, apostrophes and other punctuation. For example,
-  `notes/lights` matches `Bring lights!`, and `notes/mother` matches `Mother's ride`. Rides without notes do not
-  match a notes criterion.
+  `notes/lights` matches `Bring lights!`, and `notes/cyclist` matches `Check the cyclist's helmet`. Rides without
+  notes do not match a notes criterion.
 
 Use straight or paired curly double quotes to search notes containing recognised prefixes:
 `ridefind notes/"aperture f/2"` or `rf notes/“aperture f/2”`. The outer quotes are removed;
