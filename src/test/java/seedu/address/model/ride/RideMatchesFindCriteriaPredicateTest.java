@@ -125,7 +125,7 @@ public class RideMatchesFindCriteriaPredicateTest {
         assertFalse(predicateWithNotes("camera f/3").test(ride));
 
         // EP: punctuation remains a valid whole-word boundary for notes.
-        Ride punctuatedRide = new RideBuilder().withNotes("Bring lights! camera, camera.aperture").build();
+        Ride punctuatedRide = new RideBuilder().withNotes("Bring lights! camera.aperture").build();
         assertTrue(predicateWithNotes("lights").test(punctuatedRide));
         assertTrue(predicateWithNotes("camera aperture").test(punctuatedRide));
         // Boundary regression: punctuation before a later search word must not be treated as a word boundary reset.
