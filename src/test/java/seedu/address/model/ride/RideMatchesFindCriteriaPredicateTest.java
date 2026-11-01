@@ -128,6 +128,9 @@ public class RideMatchesFindCriteriaPredicateTest {
         Ride punctuatedRide = new RideBuilder().withNotes("Bring lights! camera, camera.aperture").build();
         assertTrue(predicateWithNotes("lights").test(punctuatedRide));
         assertTrue(predicateWithNotes("camera aperture").test(punctuatedRide));
+        // Boundary regression: punctuation before a later search word must not be treated as a word boundary reset.
+        assertFalse(predicateWithNotes("camera .aperture").test(punctuatedRide));
+        assertFalse(predicateWithNotes(".aperture").test(punctuatedRide));
     }
 
     @Test

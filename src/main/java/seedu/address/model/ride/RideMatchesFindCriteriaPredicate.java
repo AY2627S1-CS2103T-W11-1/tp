@@ -97,8 +97,7 @@ public class RideMatchesFindCriteriaPredicate implements Predicate<Ride> {
                     + "(?![\\p{L}\\p{N}])";
             Matcher matcher = Pattern.compile(regex, Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE)
                     .matcher(text);
-            matcher.region(searchFrom, text.length());
-            if (!matcher.find()) {
+            if (!matcher.find(searchFrom)) {
                 return false;
             }
             searchFrom = matcher.end();
