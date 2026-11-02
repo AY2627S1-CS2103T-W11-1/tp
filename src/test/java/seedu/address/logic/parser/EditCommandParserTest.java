@@ -41,6 +41,10 @@ import seedu.address.model.person.Phone;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 
 public class EditCommandParserTest {
+    private static final String FIND_PHONE_MESSAGE = "Invalid phone number. Example of an accepted format: +65 "
+            + "91234567.\n• Phone number must contain at least 3 digits and cannot contain non-digit characters.\n"
+            + "• The country code must contain a non-zero digit.\n"
+            + "• Only a single space is allowed between the country code and phone number.";
 
     private static final Phone TARGET_PHONE = new Phone("+65 91234567");
 
@@ -86,7 +90,7 @@ public class EditCommandParserTest {
             Phone.MESSAGE_CONSTRAINTS, Phone.MESSAGE_CONSTRAINTS, Phone.MESSAGE_CONSTRAINTS};
         for (int i = 0; i < values.length; i++) {
             assertParseFailure(parser, TARGET_PHONE + " sos/" + values[i], messages[i]);
-            assertParseFailure(new FindCommandParser(), "sos/" + values[i], messages[i]);
+            assertParseFailure(new FindCommandParser(), "sos/" + values[i], i >= 2 ? FIND_PHONE_MESSAGE : messages[i]);
             assertParseFailure(new AddCommandParser(),
                     " n/Bob p/+65 91234567 e/bob@example.com f/300 x/Beginner l/any sos/" + values[i],
                     messages[i]);

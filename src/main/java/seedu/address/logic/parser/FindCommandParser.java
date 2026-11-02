@@ -119,7 +119,14 @@ public class FindCommandParser implements Parser<FindCommand> {
                 throw new ParseException(MESSAGE_PHONE_INVALID);
             }
         }
-        return ParserUtil.parsePhone(trimmedPhone);
+        try {
+            return ParserUtil.parsePhone(trimmedPhone);
+        } catch (ParseException exception) {
+            if (trimmedPhone.startsWith("+")) {
+                throw new ParseException(MESSAGE_PHONE_INVALID, exception);
+            }
+            throw exception;
+        }
     }
 
     /** Parses an FTP criterion using messages specific to the find command. */

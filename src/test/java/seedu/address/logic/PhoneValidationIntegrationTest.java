@@ -29,6 +29,10 @@ import seedu.address.storage.StorageManager;
  * Tests consistent phone errors through command parsing, filtering and JSON storage.
  */
 public class PhoneValidationIntegrationTest {
+    private static final String FIND_PHONE_MESSAGE = "Invalid phone number. Example of an accepted format: +65 "
+            + "91234567.\n• Phone number must contain at least 3 digits and cannot contain non-digit characters.\n"
+            + "• The country code must contain a non-zero digit.\n"
+            + "• Only a single space is allowed between the country code and phone number.";
     @TempDir
     public Path temporaryFolder;
 
@@ -69,7 +73,8 @@ public class PhoneValidationIntegrationTest {
                 "find p/" + phones[i], "add n/Phone Test p/" + phones[i]
                     + " sos/+65 89999999 e/phone.test@example.com f/200 x/Beginner l/any"};
             for (String command : commands) {
-                assertThrows(ParseException.class, messages[i], () -> logic.execute(command));
+                String expectedMessage = command.startsWith("find p/") && i >= 1 ? FIND_PHONE_MESSAGE : messages[i];
+                assertThrows(ParseException.class, expectedMessage, () -> logic.execute(command));
                 assertUnchanged();
             }
         }
@@ -102,7 +107,9 @@ public class PhoneValidationIntegrationTest {
                     + " sos/+65 89999999 e/phone.test@example.com f/200 x/Beginner l/any",
                 "edit +65 87438807 p/" + phone, "edit " + phone + " f/130", "find p/" + phone};
             for (String command : commands) {
-                assertThrows(ParseException.class, Phone.MESSAGE_CONSTRAINTS, () -> logic.execute(command));
+                String expectedMessage = command.startsWith("find p/") ? FIND_PHONE_MESSAGE
+                        : Phone.MESSAGE_CONSTRAINTS;
+                assertThrows(ParseException.class, expectedMessage, () -> logic.execute(command));
                 assertUnchanged();
             }
         }
