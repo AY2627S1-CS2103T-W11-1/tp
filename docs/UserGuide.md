@@ -595,6 +595,9 @@ The fields are matched as follows:
   word does not prevent a match, including hyphens, apostrophes and other punctuation. For example,
   `notes/lights` matches `Bring lights!`, and `notes/cyclist` matches `Check the cyclist's helmet`. Rides without
   notes do not match a notes criterion.
+  A punctuation mark can also be searched when it appears as a standalone token. For example,
+  `notes/!` matches `Bring ! lights`, but does not match the exclamation mark attached to `lights` in
+  `Bring lights!`.
 
 You do not need to reproduce repeated spaces in names or locations. For example,
 `ridefind n/morning loop` matches a saved name `Morning  Loop` (with two spaces).
@@ -625,7 +628,8 @@ The sample-data examples work after a fresh launch. Examples needing extra rides
 | Find a ride by one complete name word | `ridefind n/Sunday` shows the sample Sunday Sunrise Ride. `ridefind n/Sunday Sunrise Ride` still works. |
 | Find a ride by one location word | `ridefind l/East` shows the sample Sunday Sunrise Ride at East Coast Park. |
 | Combine a name and location | `ridefind n/Sunday l/East` requires both fields to match. |
-| Ignore repeated spaces | `ridefind n/morning loop` finds `Morning  Loop`, if you have added a ride with that name. |
+| Ignore repeated spaces in a search | <code style="white-space: pre-wrap;">ridefind n/Sunday    Sunrise</code> (four spaces between the words) behaves the same as `ridefind n/Sunday Sunrise` and finds the sample Sunday Sunrise Ride. |
+| Ignore repeated spaces in a stored name | `ridefind n/morning loop` finds <code style="white-space: pre-wrap;">Morning  Loop</code>, if you have added a ride with that name. |
 | Find a ride by part of a hyphenated name | `ridefind n/Wei` shows a ride named `Wei-Ling's Ride`, if you have added one. |
 | Look for a reminder | `ridefind notes/lights` shows rides whose notes contain the complete word `lights`, including Sunday Sunrise Ride. |
 | Find notes containing selected words | `ridefind notes/"aperture f/2"` shows rides whose notes contain those words in order, if you have added one. |

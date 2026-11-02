@@ -349,9 +349,18 @@ location criterion; searching for `l/any` alone matches only cyclists with that 
 preference. Emergency-phone matching checks the optional emergency contact, not the
 cyclist's own phone.
 
+For `find` name and location criteria, leading and trailing spaces are ignored, and repeated spaces
+between words act as a single separator. Values must still satisfy the name and location validators;
+tabs and non-breaking spaces between words are not accepted by those validators.
+
 `find` applies its predicate to the model's person filter. The filtered person view is then
 sorted alphabetically by full name before `getFilteredPersonList()` supplies the observable
 list displayed by the cyclist panel.
+
+For `ridefind`, leading and trailing spaces around every criterion value are ignored. Repeated
+spaces between words act as one separator for valid name and location criteria. Notes also
+normalise repeated Unicode whitespace into single spaces before matching. Numeric and date values
+must retain their specified formats: for example, `f/1 80` and `from/25-10-2026  0630` are rejected.
 
 The `ridefind` command accepts one value for each of `n/` (name), `from/`, `to/`, `l/`
 (location), `d/` (distance), `f/` (minimum power), `s/` (maximum group size) and `notes/`.
