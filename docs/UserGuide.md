@@ -631,8 +631,8 @@ The sample-data examples work after a fresh launch. Examples needing extra rides
 | Find a ride by one complete name word | `ridefind n/Sunday` shows the sample Sunday Sunrise Ride. `ridefind n/Sunday Sunrise Ride` still works. |
 | Find a ride by one location word | `ridefind l/East` shows the sample Sunday Sunrise Ride at East Coast Park. |
 | Combine a name and location | `ridefind n/Sunday l/East` requires both fields to match. |
-| Ignore repeated spaces in a search | `ridefind n/Sunday    Sunrise` (four spaces between the words) works the same as `ridefind n/Sunday Sunrise` and finds the sample Sunday Sunrise Ride. |
-| Ignore repeated spaces in a stored name | `ridefind n/morning loop` finds `Morning  Loop` if you have added a ride with that name. |
+| Ignore repeated spaces in a search | <code style="white-space: pre-wrap;">ridefind n/Sunday    Sunrise</code> (extra spaces between the words) works the same as `ridefind n/Sunday Sunrise` and finds the sample Sunday Sunrise Ride. |
+| Ignore repeated spaces in a stored name | `ridefind n/morning loop` finds <code style="white-space: pre-wrap;">Morning  Loop</code> (extra spaces between the words) if you have added a ride with that name. |
 | Find a ride by part of a hyphenated name | `ridefind n/Wei` shows a ride named `Wei-Ling's Ride`, if you have added one. |
 | Look for a reminder | `ridefind notes/lights` shows rides whose notes contain the complete word `lights`, including Sunday Sunrise Ride. |
 | Find notes containing selected words | `ridefind notes/"aperture f/2"` shows rides whose notes contain those words in order, if you have added one. |
