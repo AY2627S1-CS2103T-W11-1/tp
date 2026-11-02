@@ -153,6 +153,12 @@ public class RideFindCommandParserTest {
     }
 
     @Test
+    public void parse_numericValuesWithNonDigits_failure() {
+        assertThrows(ParseException.class, () -> parser.parse("f/20a"));
+        assertThrows(ParseException.class, () -> parser.parse("s/2a"));
+    }
+
+    @Test
     public void parse_invalidDateOrTime_failure() {
         // EP: date or time input is syntactically invalid or represents an impossible value.
         assertThrows(ParseException.class, () -> parser.parse("from/31-02-2026"));

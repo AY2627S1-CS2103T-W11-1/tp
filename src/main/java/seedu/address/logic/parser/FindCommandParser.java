@@ -30,6 +30,16 @@ import seedu.address.model.person.Phone;
  */
 public class FindCommandParser implements Parser<FindCommand> {
 
+    private static final String MESSAGE_PHONE_INVALID =
+            "Invalid phone number. Example of an accepted format: +65 91234567.\n"
+                    + "• Phone number must contain at least 3 digits and cannot contain non-digit characters.\n"
+                    + "• The country code must contain a non-zero digit.\n"
+                    + "• Only a single space is allowed between the country code and phone number.";
+    private static final String MESSAGE_FTP_NON_DIGIT =
+            "FTP must be a whole number between 1 and 600 W and contain digits only.";
+    private static final String MESSAGE_FTP_OUT_OF_RANGE =
+            "FTP must be a whole number between 1 and 600 W.";
+
     /**
      * Parses the given {@code String} of arguments in the context of the FindCommand
      * and returns a FindCommand object for execution.
@@ -46,7 +56,7 @@ public class FindCommandParser implements Parser<FindCommand> {
         List<Phone> emergencyPhones = parsePhones(argMultimap.getAllValues(PREFIX_EMERGENCY_PHONE));
         List<Email> emails = parseEmails(argMultimap.getAllValues(PREFIX_EMAIL));
         Ftp minimumFtp = argMultimap.getValue(PREFIX_FTP).isPresent()
-                ? ParserUtil.parseFtp(argMultimap.getValue(PREFIX_FTP).get()) : null;
+                ? parseFindFtp(argMultimap.getValue(PREFIX_FTP).get()) : null;
         List<ExperienceLevel> experienceLevels = parseExperienceLevels(
                 argMultimap.getAllValues(PREFIX_EXPERIENCE_LEVEL));
         Set<Location> locations = parseLocationCriteria(argMultimap.getAllValues(PREFIX_LOCATION));
@@ -87,9 +97,41 @@ public class FindCommandParser implements Parser<FindCommand> {
     private List<Phone> parsePhones(List<String> phoneValues) throws ParseException {
         List<Phone> phones = new ArrayList<>();
         for (String value : phoneValues) {
-            phones.add(ParserUtil.parsePhone(value));
+            phones.add(parseFindPhone(value));
         }
         return phones;
+    }
+
+    /** Parses a phone criterion using messages specific to the find command. */
+    private Phone parseFindPhone(String phone) throws ParseException {
+        String trimmedPhone = phone.trim();
+        int separatorIndex = trimmedPhone.indexOf(' ');
+        if (trimmedPhone.startsWith("+")) {
+            int countryCodeEnd = separatorIndex < 0 ? trimmedPhone.length() : separatorIndex;
+            String countryCode = trimmedPhone.substring(1, countryCodeEnd);
+            if (!countryCode.matches("[0-9]+")) {
+                throw new ParseException(MESSAGE_PHONE_INVALID);
+            }
+        }
+        if (separatorIndex > 0) {
+            String number = trimmedPhone.substring(separatorIndex + 1);
+            if (!number.matches("[0-9]{3,}")) {
+                throw new ParseException(MESSAGE_PHONE_INVALID);
+            }
+        }
+        return ParserUtil.parsePhone(trimmedPhone);
+    }
+
+    /** Parses an FTP criterion using messages specific to the find command. */
+    private Ftp parseFindFtp(String ftp) throws ParseException {
+        String trimmedFtp = ftp.trim();
+        if (!trimmedFtp.matches("[0-9]+")) {
+            throw new ParseException(MESSAGE_FTP_NON_DIGIT);
+        }
+        if (!Ftp.isValidFtp(trimmedFtp)) {
+            throw new ParseException(MESSAGE_FTP_OUT_OF_RANGE);
+        }
+        return new Ftp(trimmedFtp);
     }
 
     /** Parses repeated email criteria while retaining their input order. */

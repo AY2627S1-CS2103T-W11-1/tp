@@ -50,7 +50,11 @@ public class RideFindCommandParser implements Parser<RideFindCommand> {
         Optional<RideDateTime> from = parseBoundary(arguments.getValue(PREFIX_FROM), false);
         Optional<RideDateTime> to = parseBoundary(arguments.getValue(PREFIX_TO), true);
         Optional<Location> location = parseLocation(arguments.getValue(PREFIX_LOCATION));
+        validatePattern(arguments.getValue(PREFIX_DISTANCE), "\\d{1,6}(\\.\\d{1,2})?",
+                "Distance must contain only digits and up to 2 decimal places.");
         Optional<Distance> distance = parseDistance(arguments.getValue(PREFIX_DISTANCE));
+        validatePattern(arguments.getValue(PREFIX_FTP), "\\d+", "Minimum power must contain digits only.");
+        validatePattern(arguments.getValue(PREFIX_GROUP_SIZE), "\\d+", "Group size must contain digits only.");
         Optional<MinimumPower> minimumPower = parseMinimumPower(arguments.getValue(PREFIX_FTP));
         Optional<GroupSize> groupSize = parseGroupSize(arguments.getValue(PREFIX_GROUP_SIZE));
         Optional<Notes> notes = parseNotes(arguments.getValue(PREFIX_NOTES));
@@ -94,6 +98,12 @@ public class RideFindCommandParser implements Parser<RideFindCommand> {
 
     private Optional<MinimumPower> parseMinimumPower(Optional<String> value) throws ParseException {
         return value.isEmpty() ? Optional.empty() : Optional.of(ParserUtil.parseMinimumPower(value.get()));
+    }
+
+    private void validatePattern(Optional<String> value, String pattern, String message) throws ParseException {
+        if (value.isPresent() && !value.get().trim().matches(pattern)) {
+            throw new ParseException(message);
+        }
     }
 
     private Optional<GroupSize> parseGroupSize(Optional<String> value) throws ParseException {

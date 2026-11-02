@@ -91,8 +91,27 @@ public class FindCommandParserTest {
 
     @Test
     public void parse_invalidPhone_throwsParseException() {
-        // EP: phone input is either malformed or missing its country code.
-        assertParseFailure(parser, "p/+65 abc", Phone.MESSAGE_CONSTRAINTS);
+        // EP: find-specific phone validation reports the invalid part of the criterion.
+        assertParseFailure(parser, "p/+65 abc",
+                "Invalid phone number. Example of an accepted format: +65 91234567.\n"
+                        + "• Phone number must contain at least 3 digits and cannot contain non-digit characters.\n"
+                        + "• The country code must contain a non-zero digit.\n"
+                        + "• Only a single space is allowed between the country code and phone number.");
+        assertParseFailure(parser, "p/+a5 91234567",
+                "Invalid phone number. Example of an accepted format: +65 91234567.\n"
+                        + "• Phone number must contain at least 3 digits and cannot contain non-digit characters.\n"
+                        + "• The country code must contain a non-zero digit.\n"
+                        + "• Only a single space is allowed between the country code and phone number.");
+        assertParseFailure(parser, "p/+65 ! 912",
+                "Invalid phone number. Example of an accepted format: +65 91234567.\n"
+                        + "• Phone number must contain at least 3 digits and cannot contain non-digit characters.\n"
+                        + "• The country code must contain a non-zero digit.\n"
+                        + "• Only a single space is allowed between the country code and phone number.");
+        assertParseFailure(parser, "p/+65 12",
+                "Invalid phone number. Example of an accepted format: +65 91234567.\n"
+                        + "• Phone number must contain at least 3 digits and cannot contain non-digit characters.\n"
+                        + "• The country code must contain a non-zero digit.\n"
+                        + "• Only a single space is allowed between the country code and phone number.");
         assertParseFailure(parser, "p/", Phone.MESSAGE_MISSING_COUNTRY_CODE);
     }
 
@@ -117,7 +136,10 @@ public class FindCommandParserTest {
     @Test
     public void parse_invalidCyclingCriteria_throwsParseException() {
         // EP: cycling criteria contain invalid values or duplicate prefixes.
-        assertParseFailure(parser, "f/0", Ftp.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "f/0", "FTP must be a whole number between 1 and 600 W.");
+        assertParseFailure(parser, "f/25a",
+                "FTP must be a whole number between 1 and 600 W and contain digits only.");
+        assertParseFailure(parser, "f/601", "FTP must be a whole number between 1 and 600 W.");
         assertParseFailure(parser, "x/Expert", ExperienceLevel.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "l/", Location.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "f/300 x/Intermediate find l/Punggol f/300 x/Intermediate",
