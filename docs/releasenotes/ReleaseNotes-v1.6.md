@@ -1,12 +1,12 @@
 # Cyclique v1.6 Release Notes
 
 Cyclique helps organisers of recreational cycling groups in Singapore manage
-cyclists and plan group rides. Version 1.6 is mainly a bug-fix release based on
-beta testing of v1.5. It accepts more real-world names, makes `find` and
+cyclists and plan group rides. Version 1.6 is mainly a bug-fix release based
+on beta testing of v1.5. It accepts more real-world names, makes `find` and
 `ridefind` behave consistently, adds searching cyclists by email address,
 prevents duplicate phone numbers from slipping in through leading zeroes, and
-improves error feedback for search and ride commands. The
-following changes are new compared with v1.5.
+improves error feedback for search and ride commands. The following changes
+are new compared with v1.5.
 
 ## What's New
 
@@ -70,16 +70,20 @@ following changes are new compared with v1.5.
 
 ### Error messages
 
-* **Clearer `find` validation messages:** An invalid `p/` or `sos/` search
-  value now shows an example of an accepted phone number and lists the rules it
-  breaks, instead of a generic message. An invalid `f/` value now says whether
-  it contains non-digits or is outside the range of 1 to 600 W.
+* **Clearer `find` validation messages:** When a `p/` or `sos/` search value
+  starts with `+` but is invalid, for example `find p/+65 9123abc`, the error
+  now lists the phone number rules: at least 3 digits with no other
+  characters, a country code with a non-zero digit, and exactly one space
+  between them. An invalid `f/` value now says whether it contains non-digits
+  or is outside the range of 1 to 600 W.
   ([#262](https://github.com/AY2627S1-CS2103T-W11-1/tp/pull/262))
 * **Clearer `ridefind` validation messages:** `ridefind` now reports
   `Distance must contain only digits and up to 2 decimal places.`,
   `Minimum power must contain digits only.` or
-  `Group size must contain digits only.` when `d/`, `f/` or `s/` contains other
-  characters, for example `ridefind f/20a`.
+  `Group size must contain digits only.` when `d/`, `f/` or `s/` is not in the
+  expected form, for example `ridefind f/20a` or `ridefind f/-5`. The distance
+  message also appears for a distance with more than 6 digits before the
+  decimal point or more than 2 after it.
   ([#262](https://github.com/AY2627S1-CS2103T-W11-1/tp/pull/262))
 
 ### Ride commands
@@ -109,12 +113,12 @@ following changes are new compared with v1.5.
 * **Developer Guide corrections:** The Help menu description and its
   manual-testing expectations were corrected, and the guide was audited against
   the v1.6 behaviour. The requirements, user stories and use cases now cover
-  email search and ordered-word ride search, the `ridelist` sequence and UI class
-  diagrams were redrawn to follow textbook UML notation, and the team's use of
-  AI tools is declared.
+  email search and ordered-word ride search, the `ridelist` sequence diagram
+  follows textbook UML notation, the UI class diagram shows its dependency
+  arrows more clearly, and the team's use of AI tools is declared.
   ([#250](https://github.com/AY2627S1-CS2103T-W11-1/tp/pull/250),
   [#260](https://github.com/AY2627S1-CS2103T-W11-1/tp/pull/260))
 * **Wider regression coverage:** Each fix above ships with regression tests, and
   the User Guide, Developer Guide and manual test scenarios were updated to
   match the new behaviour.
-  ([#244](https://github.com/AY2627S1-CS2103T-W11-1/tp/pull/244))
+  (see the pull requests linked in each entry above)
