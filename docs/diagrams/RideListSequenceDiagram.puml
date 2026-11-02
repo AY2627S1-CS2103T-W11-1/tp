@@ -9,20 +9,34 @@ skinparam maxMessageSize 140
 hide footbox
 participant ":LogicManager" as Logic LOGIC_COLOR
 participant "c:RideListCommand" as Command LOGIC_COLOR
+participant "<<class>>\nRideLookup" as Lookup LOGIC_COLOR
 participant "m:ModelManager" as Model MODEL_COLOR
 
 [-> Logic : execute(input)
 activate Logic
 Logic -> Command : execute(m)
 activate Command
-Command -> Model : getAddressBook()
-Model --> Command : book
-note over Command : Resolve ride and roster phones.\nValidation calls omitted.
+Command -> Lookup : getRide(m, targetId)
+activate Lookup
+Lookup -> Model : getAddressBook()
+activate Model
+Model --> Lookup : book
+deactivate Model
+note over Lookup : Search all saved rides by ID.\nBook collection calls omitted.
+Lookup --> Command : ride
+deactivate Lookup
+loop more phone numbers remain to be checked in the roster
+    Command -> Model : getAddressBook()
+    activate Model
+    Model --> Command : book
+    deactivate Model
+    note over Command : Check the next phone number against all cyclists.\nCollection and validation calls omitted.
+end
 Command -> Model : updateFilteredPersonListForRide(targetId)
 activate Model
 Model --> Command
 deactivate Model
-Command --> Logic : result (members or empty roster)
+Command --> Logic : result
 deactivate Command
 note over Logic : Save unchanged data.\nStorage calls omitted.
 [<-- Logic : result

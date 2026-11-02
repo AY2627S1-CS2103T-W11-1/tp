@@ -14,6 +14,20 @@ title: Developer Guide
 * Development tools: [JUnit 5](https://junit.org/junit5/) supports automated tests; [Gradle](https://gradle.org/) and [Shadow](https://github.com/GradleUp/shadow) build and package the application; [Checkstyle](https://checkstyle.org/) checks Java style; [JaCoCo](https://www.jacoco.org/jacoco/) measures test coverage.
 * Documentation tools: [PlantUML](https://plantuml.com/) produces the UML diagrams; [Jekyll](https://jekyllrb.com/), the [Minima theme](https://github.com/jekyll/minima) and [Jemoji](https://github.com/jekyll/jemoji) support the documentation website. The JavaFX control styling retains adaptations from [JMetro](https://pixelduke.com/2012/10/23/jmetro-windows-8-controls-on-java/), as credited in `DarkTheme.css`.
 
+**Notable uses of AI**
+
+The team used ChatGPT (Codex) and Claude Code to support implementation discussions, preliminary code and pull request reviews, and consideration of potential edge cases. Individual uses included:
+
+* **Evan ([@elsxyss](https://github.com/elsxyss))** used Codex to assist with implementing cyclist deletion confirmation and the emergency contact (`sos/`) field, and with investigating and fixing bugs identified during alpha and beta testing. Codex also helped refine the User Guide's structure, instructions and examples, with reference to CS2101 principles of effective user guide writing.
+
+* **Sia ([@Sia-Pathania](https://github.com/Sia-Pathania))** used ChatGPT (Codex) to review the `find` and `ridefind` implementations, explore search and validation edge cases, and suggest test cases. It also helped clarify explanations of the commands' matching rules and input-handling differences in the User Guide and Developer Guide.
+
+* **Ji Xiang ([@jixiang-t](https://github.com/jixiang-t))** used Codex to explore implementation approaches for ride management, refactor code for readability and adherence to coding conventions, and assist with writing automated tests and debugging. Claude Code was used for additional implementation reviews to identify potential regressions.
+
+* **Jayden ([@jaydenleungky](https://github.com/jaydenleungky))** used Claude Code during feature development and UI refinement, including the experience level field, ride creation, dark theme, ride cards and Help menu. It also assisted with selected command documentation, UI and Storage diagrams, and testing work such as drafting bug reports and ride-name regression tests.
+
+* **Juin Ron ([@juinron](https://github.com/juinron))** used Codex to proofread and refine ride roster documentation in the User Guide and Developer Guide. Codex also assisted with troubleshooting cross-platform JAR packaging and macOS continuous integration failures.
+
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Setting up, getting started**
@@ -23,6 +37,10 @@ Refer to the guide [_Setting up and getting started_](SettingUp.md).
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Design**
+
+This guide describes the implemented design and requirements for **Cyclique v1.6**.
+Proposed features are labelled separately; they are not available in this release.
+For command formats and user-facing constraints, refer to the [User Guide](UserGuide.md).
 
 <div markdown="span" class="alert alert-primary">
 
@@ -81,6 +99,8 @@ The **API** of this component is specified in [`Ui.java`](https://github.com/AY2
 ![Structure of the UI Component](images/UiClassDiagram.png)
 
 The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, `RideListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behaviour among classes that represent visible GUI parts.
+
+The Help window is created with `MainWindow` and reused when opened; closing it hides the window rather than removing that object.
 
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/AY2627S1-CS2103T-W11-1/tp/blob/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/AY2627S1-CS2103T-W11-1/tp/blob/master/src/main/java/seedu/address/ui/MainWindow.java). The exception is `ArtworkScreen`, which is not a `UiPart` and has no `.fxml` file (see [Opening and closing artwork](#opening-and-closing-artwork)).
 
@@ -299,14 +319,16 @@ apostrophe (`'`) may join letter/digit sequences, for example `Tan Wei-Ling` or 
 Leading, trailing, consecutive or space-adjacent hyphens/apostrophes are rejected.
 `AddCommandParser` passes `n/` through `ParserUtil.parseName`, which trims surrounding
 whitespace and validates it before constructing `Name`. The spelling is preserved in the
-cyclist record and JSON storage. Edit and ride commands share the same name rules.
+cyclist record and JSON storage. Edit and ride commands share the same name rules. Names are display
+names rather than verified legal names: `/` is not accepted, including in forms such as `s/o`. Ride names also reject `/`.
 `Location` instead accepts
 only English letters (A–Z, a–z), digits, spaces, hyphens and apostrophes, and must not be blank.
 Cyclist and ride commands reuse these value classes, so their names support Unicode while
-their locations use the narrower rule. See `Name#isValidName` and `Location#isValidLocation`.
+their locations use the narrower rule, which excludes `@` and `/`. See `Name#isValidName` and
+`Location#isValidLocation`.
 
-`Phone` accepts a `+`, a country code of 1–3 digits as typed, one space and a number. Leading zeros are
-accepted in the country code, which must contain a non-zero digit. The constructor stores the country code
+`Phone` accepts a `+`, a country code of 1–3 digits as typed, one space and a number of at least
+three ASCII digits. Leading zeros are accepted in the country code, which must contain a non-zero digit. The constructor stores the country code
 without them, so `+065 91234561` is saved as `+65 91234561`. The number is stored exactly as typed, because its
 leading zeros can be significant (for example `+39 0612345678`). Because `Phone#equals` compares the stored value,
 `Person#isSamePerson`, `edit` and `delete` targets, `find p/` and ride rosters all treat numbers that differ only
@@ -341,9 +363,19 @@ location criterion; searching for `l/any` alone matches only cyclists with that 
 preference. Emergency-phone matching checks the optional emergency contact, not the
 cyclist's own phone.
 
+For `find`, extra spaces immediately after a field prefix or at the end of a value are ignored.
+Repeated spaces between words act as a single separator in name and location searches. Other fields
+retain their specific validation and matching rules. Internal tabs and non-breaking spaces are
+rejected by the field validators; leading and trailing tabs are trimmed like ordinary spaces.
+
 `find` applies its predicate to the model's person filter. The filtered person view is then
 sorted alphabetically by full name before `getFilteredPersonList()` supplies the observable
 list displayed by the cyclist panel.
+
+For `ridefind`, extra spaces immediately after a field prefix or at the end of a value are ignored.
+In name, location and notes searches, repeated spaces between words act as a single separator.
+Repeated Unicode whitespace in notes is also normalised before matching. Numeric and date values
+must retain their specified formats; for example, `f/1 80` and `from/25-10-2026  0630` are rejected.
 
 The `ridefind` command accepts one value for each of `n/` (name), `from/`, `to/`, `l/`
 (location), `d/` (distance), `f/` (minimum power), `s/` (maximum group size) and `notes/`.
@@ -507,9 +539,11 @@ states: an omitted `notes/` preserves the existing value, a non-blank value repl
 whitespace-only unquoted `notes/` clears it. Tokenisation uses the explicit quoted-notes entry point described in
 [Optional quoted ride notes](#optional-quoted-ride-notes); quoted empty values are rejected.
 
-**Replacement and validation.** `RideEditCommand` finds the target by its unique ID and combines the descriptor
-with the existing ride. It validates the complete resulting period, so changing only `from/` or `to/` cannot
-produce an end time earlier than the start time; equal start and end times are accepted. After the period check,
+**Replacement and validation.** `RideEditCommand` delegates target resolution to `RideLookup#getRide`,
+which searches all saved rides by persistent ID, including rides hidden by `ridefind`. Ride List and
+Ride Delete reuse this package-private helper; roster commands retain their own lookup and error message.
+Ride Edit then combines the descriptor with the existing ride. It validates the complete resulting
+period, so changing only `from/` or `to/` cannot produce an end time earlier than the start time; equal start and end times are accepted. After the period check,
 `createEditedRide` constructs the proposed immutable `Ride`, retaining the same ID and roster. Next,
 `validateRosterEligibility` checks an edited maximum group size against the roster count before checking an edited
 minimum FTP. Only when minimum FTP is supplied does it resolve each roster phone against all cyclists, rejecting
@@ -549,7 +583,7 @@ does not change ID allocation, exhaustion or saved-file validation.
 malformed or additional arguments produce the standard invalid-command-format error.
 Digit-only values above `2147483647` instead report the supported ride ID range.
 `RideDeleteCommand` treats that value as a persistent ride ID rather than a list position. It finds the matching
-ride before mutation and rejects an unknown ID.
+ride through `RideLookup#getRide` before mutation and rejects an unknown ID, including when a search hides it.
 
 On success, `RideDeleteCommand` calls `Model#deleteRide`, which delegates to `AddressBook#removeRide`. Removing the
 immutable ride also removes its contained roster associations. It does not alter cyclist records, other rides or
@@ -587,14 +621,21 @@ Cyclist phone edits use `AddressBook#setPerson(...)` to replace the old phone in
 ### Ride roster display (`ridelist`)
 
 `ridelist ID` displays registered cyclists in the left-hand cyclist panel. The first diagram shows a
-successful initial selection, with parsing, local validation and filtering calls, and storage calls omitted.
+successful initial selection through the shared lookup helper. Parsing, collection operations,
+internal filtering details and storage calls are omitted.
+
+The `loop` frame repeats while another phone number in the ride's roster remains to be checked;
+an empty roster skips the loop. `RideLookup` is marked `«class»` because `getRide` is static.
+The returned `result` is a `CommandResult` reporting the roster selection or empty roster,
+rather than a list of cyclist records.
 
 [![Initial roster selection, filtering and unchanged-data saving](images/RideListSequenceDiagram.png)](images/RideListSequenceDiagram.png)
 
 *Select the diagram to open it at full size.*
 
-`RideListCommandParser` accepts exactly one positive integer ID. `RideListCommand` finds the ride using
-`Ride#getId()`, so the ID is persistent and is not a displayed position. Its roster contains `Phone` objects;
+`RideListCommandParser` accepts exactly one positive integer ID. `RideListCommand` delegates to
+`RideLookup#getRide`, which compares `Ride#getId()` across the complete saved ride list, so a hidden ride
+can still be selected. The ID is persistent and is not a displayed position. Its roster contains `Phone` objects;
 before filtering, the command resolves every phone against the complete person list rather than the currently
 filtered view. An unknown ride or unresolved phone throws before the existing filter changes.
 
@@ -623,8 +664,13 @@ The selected ID, rather than a `Ride` object, remains active across immutable ri
 deleted, refreshing with an absent ID produces an empty cyclist list without selecting another ride. A generic
 `Model#updateFilteredPersonList()` call clears the selected ID before applying its predicate, so `find`, `list`
 and a successful cyclist addition replace Ride List filtering; later ride events cannot reactivate it.
-Another successful `ridelist` selects its own persistent ID. `ModelManager#setAddressBook()` cancels the active selection before resetting the data, while
-retaining the existing observable lists and listener.
+Another successful `ridelist` selects its own persistent ID.
+
+`ModelManager#setAddressBook()` retains the observable lists and their listener. Replacing the book
+with unequal data resets the displayed person and ride predicates to show all; reloading equal data
+preserves the previous predicates. This method does not clear `activeRideListId`, so a later ride-list
+notification can reapply that roster filter. Call `updateFilteredPersonList(...)` when a caller must
+explicitly end roster selection. `clear` removes all records while preserving the next ride ID.
 
 The command does not mutate cyclist or ride data. `LogicManager` still saves the unchanged address book after a
 successful command through its existing execution path. Validation finishes before the filter update, preserving
@@ -699,7 +745,7 @@ or rollback. History and its pointer would be held only for the running session.
 Cyclique is designed for organisers of recreational cycling groups in Singapore who:
 * have a need to manage a significant number of cyclists
 * have a need to quickly access cyclists’ contact and emergency information
-* organise group rides and needs to identify suitable cyclists based on factors such as preferred cycling location, FTP and experience level
+* organise group rides and need to identify suitable cyclists based on factors such as preferred cycling location, FTP and experience level
 * are comfortable with typing and using CLI apps
 
 **Value proposition**:
@@ -710,39 +756,77 @@ Organisers of cycling groups often have rider contact and information scattered 
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
-The status column distinguishes current requirements from future work. Current cyclist search uses a minimum FTP; configurable sorting and structured-file import are future requirements.
+The first table records implemented requirements for v1.6. Priorities describe the importance of
+user goals, rather than the order in which features were developed. Configurable sorting is distinct
+from the automatic alphabetical display already provided.
 
-| Priority | As a/an …                                    | I want to …                                                                                                  | So that I can …                                                                       | Status |
-| -------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- | ------ |
-| `* * *`  | proactive cycling organiser                  | add a new cyclist record with their name, phone number, and email                                            | keep basic contact details in one centralised directory                               | Implemented |
-| `* * *`  | community-focused cycling organiser          | view a complete list of all registered cyclists                                                              | see an overview of my entire cycling community at a glance                            | Implemented |
-| `* * *`  | attentive cycling organiser                  | edit an existing cyclist's contact details                                                                   | keep contact information up to date without recreating cyclist records                | Implemented |
-| `* * *`  | meticulous cycling organiser                 | delete a cyclist's record                                                                                    | keep my directory free of members who have permanently left the group                 | Implemented |
-| `* * *`  | safety-conscious cycling organiser           | store an emergency contact for each cyclist                                                                  | reach the appropriate person quickly when an emergency occurs                         | Implemented |
-| `* * *`  | logistics-minded cycling organiser           | record a cyclist's preferred cycling location                                                                | identify cyclists who prefer rides in different parts of Singapore                    | Implemented |
-| `* * *`  | attentive cycling organiser                  | record a cyclist's experience level                                                                          | identify riding groups that are appropriate for the cyclist                           | Implemented |
-| `* * *`  | pace-conscious cycling organiser             | record a cyclist's FTP                                                                                       | identify cyclists with a suitable fitness level for a planned ride                    | Implemented |
-| `* *`    | organised cycling organiser                  | create a record for a planned group ride                                                                     | keep track of the important details of an upcoming ride                               | Implemented |
-| `* *`    | selective cycling organiser                  | filter cyclists by multiple selected criteria, such as preferred location, experience level, and minimum FTP   | quickly shortlist suitable participants for a planned ride                            | Implemented |
-| `*`      | methodical cycling organiser                 | sort cyclist records by name or experience level in ascending or descending order                            | locate cyclists by name or compare their experience levels when forming riding groups | Future |
-| `*`      | busy cycling organiser with existing records | import cyclist records from a structured file                                                                | avoid entering every existing cyclist record manually                                 | Future |
-| `* *` | organised cycling organiser | edit a planned ride's details while retaining its registrations | keep plans up to date without rebuilding its roster | Implemented |
-| `* *` | organised cycling organiser | delete a cancelled ride without deleting cyclist records | keep the ride schedule relevant while retaining my contacts | Implemented |
-| `* *` | busy cycling organiser | find rides by their details, dates and notes | locate the plans I need to manage | Implemented |
-| `* *` | responsible cycling organiser | register an eligible cyclist for a ride | plan participation within the ride's capacity and fitness requirements | Implemented |
-| `* *` | organised cycling organiser | remove a cyclist from one ride without deleting their contact record | keep that ride's roster up to date when plans change | Implemented |
-| `* *` | attentive cycling organiser | view a ride's registered cyclists | review the current participants and their contact details | Implemented |
-| `* * *` | safety-conscious cycling organiser | find cyclists by name, own phone or emergency contact number | retrieve the correct contact information quickly | Implemented |
-| `* *` | cycling organiser new to Cyclique | view command formats and examples from within Cyclique | learn how to carry out my tasks | Implemented |
-| `*` | cycling organiser starting a new directory | clear all cyclist and ride records | remove test or obsolete data before starting again | Implemented |
+| Priority | As a/an … | I want to … | So that I can … |
+| -------- | --------- | ----------- | -------------- |
+| `* * *` | proactive cycling organiser | add a cyclist's contact details and cycling profile | keep the information needed to organise rides in one directory |
+| `* * *` | community-focused cycling organiser | view every cyclist in my directory | see my entire cycling community at a glance |
+| `* * *` | attentive cycling organiser | edit a cyclist's details | keep records current without recreating them |
+| `* * *` | meticulous cycling organiser | delete a cyclist who has left the group | keep my directory and ride rosters up to date |
+| `* * *` | safety-conscious cycling organiser | store an emergency contact for each cyclist | reach the appropriate person during an emergency |
+| `* * *` | logistics-minded cycling organiser | record cyclists' preferred locations | identify cyclists who prefer rides in different parts of Singapore |
+| `* * *` | attentive cycling organiser | record cyclists' experience levels | form suitable riding groups |
+| `* * *` | pace-conscious cycling organiser | record cyclists' FTP values | identify cyclists with suitable fitness for a planned ride |
+| `* * *` | safety-conscious cycling organiser | find cyclists by name, own phone, emergency phone or email | retrieve the correct contact quickly |
+| `* *` | selective cycling organiser | combine cyclist search criteria | shortlist participants by location, experience and minimum FTP |
+| `* *` | methodical cycling organiser | view cyclists in alphabetical order | locate names consistently after additions, edits and searches |
+| `* *` | cycling organiser | record familiar names containing internal hyphens or apostrophes | recognise cyclists and rides using their usual names |
+| `* *` | cautious cycling organiser | review and confirm a cyclist deletion | avoid accidentally removing a contact and their ride memberships |
+| `* *` | organised cycling organiser | create a planned group ride | keep its schedule, location, requirements and notes together |
+| `* *` | organised cycling organiser | edit a ride while retaining its registrations | update plans without rebuilding the roster |
+| `* *` | organised cycling organiser | delete a cancelled ride without deleting contacts | keep the schedule relevant while retaining cyclist records |
+| `* *` | busy cycling organiser | find rides by words in their names, locations and notes, or by other ride details | locate plans without remembering every field in full |
+| `* *` | organised cycling organiser | return to the complete ride list after searching | review every planned ride |
+| `* *` | responsible cycling organiser | register an eligible cyclist for a ride | plan participation within its capacity and fitness requirements |
+| `* *` | organised cycling organiser | remove a cyclist from one ride without deleting their contact | update that roster when plans change |
+| `* *` | attentive cycling organiser | view a ride's registered cyclists and their contact details | review the current participants |
+| `* *` | responsible cycling organiser | review conflicting commitments before confirming a registration or time change | make an informed decision about overlapping rides |
+| `* *` | returning cycling organiser | retain my cyclists, rides and memberships between sessions | continue planning without entering them again |
+| `* *` | cycling organiser new to Cyclique | view command formats and examples within the app | learn how to carry out my tasks |
+| `*` | cycling organiser starting a new directory | clear all cyclists and rides | remove test or obsolete data before starting again |
 
-**Conditions of satisfaction for roster review:** After selecting a ride's roster, successfully adding or removing a member of that ride updates the displayed cyclists without another roster-view request.
+**Conditions of satisfaction for this release**
+
+* **Contact search:** Email matching is exact and ignores case. Repeated values within a supported
+  cyclist search field use OR; different fields use AND. A phone identifies the same cyclist after
+  country-code leading zeros are removed; zeros in the rest of the number remain significant.
+* **Text search:** Names and locations match complete words in order, ignoring case and repeated
+  spaces. Hyphens and straight apostrophes separate words. Notes also support ordered-word matching;
+  quoted notes preserve literal prefixes such as `f/2`.
+* **Ride discovery:** `ridefind all` restores every ride in the ride panel. `ridelist ID` instead
+  shows that ride's cyclists in the cyclist panel and leaves the ride panel unchanged.
+* **Roster review:** Successful membership changes to the selected ride update its displayed
+  cyclists without another roster-view request. Contact edits preserve the selection and update
+  roster phone references when necessary.
+* **Confirmation:** A cyclist deletion, overlapping registration or conflicting time edit changes
+  no records before confirmation. Cancellation preserves the records; invalid details are rejected
+  without partially applying changes. Ride deletion and `clear` take effect immediately.
+
+The implementation sections and manual scenarios below specify the detailed constraints and checks.
+
+**Future requirements — not implemented in v1.6**
+
+| Priority | As a/an … | I want to … | So that I can … |
+| -------- | --------- | ----------- | -------------- |
+| `*` | methodical cycling organiser | choose the sort field and direction for cyclist records | compare names or experience levels in my preferred order |
+| `*` | busy cycling organiser with existing records | import cyclists from a structured file | avoid entering every record manually |
+| `*` | busy cycling organiser | search rides using alternative values for the same field | find Sunday or Saturday rides in one search |
+| `*` | attentive cycling organiser | find rides using a cyclist's phone number | review that cyclist's commitments |
+
+The latter two requirements correspond to the User Guide's [Coming soon](UserGuide.md#coming-soon) section. Currently,
+`ridefind` rejects repeated prefixes and provides no phone criterion. These stories describe intended
+capabilities, not supported command syntax. The proposed undo/redo design above is also future work.
 
 ### Use cases
 
 (For all use cases below, the **System** is `Cyclique` and the **Actor** is the `user`, unless specified otherwise)
 
-**Shared precondition for UC01 – UC04**: Cyclique is running and ready to accept user requests.
+**Shared precondition**: Cyclique is running and ready to accept user requests.
+Success guarantees assume that saving succeeds. The shared saving-failure outcome below applies
+when storage is unavailable.
 
 **UC01 – Add Cyclist**
 
@@ -805,12 +889,13 @@ The status column distinguishes current requirements from future work. Current c
 
 * On successful completion, only the specified fields of the selected cyclist are updated.
 * The current cyclist filter remains active and is re-evaluated. The updated record is displayed only if it still matches that filter.
-* Unspecified fields and other cyclist records remain unchanged.
+* Unspecified fields and other cyclist records remain unchanged. A changed own phone number is also
+  replaced in every ride roster that contains it.
 * Requests referring to a nonexistent cyclist, containing invalid details, or creating a phone match or case-insensitive email match with another cyclist do not change the directory. An identical name alone is allowed.
 
 **MSS**
 
-1.  User <u>views the cyclist list (UC02).</u>
+1.  User identifies a cyclist in the currently displayed list, optionally listing all cyclists (UC02).
 2.  User requests to edit a specified cyclist and provides the revised details.
 3.  Cyclique updates the specified details of the cyclist.
 4.  Cyclique reports success and refreshes the displayed cyclist list while retaining the current filter.
@@ -819,7 +904,7 @@ The status column distinguishes current requirements from future work. Current c
 
 **Extensions**
 
-* 1a. UC02 displays an empty cyclist list.
+* 1a. The currently displayed cyclist list is empty.
 
     Use case ends.
 
@@ -853,27 +938,27 @@ The status column distinguishes current requirements from future work. Current c
 **Guarantees**
 
 * A cyclist record is permanently removed only after the user confirms its deletion.
-* On successful completion, the specified cyclist and their ride memberships are removed. Other cyclists and ride details remain unchanged, and the updated directory is displayed.
-* If the specified cyclist does not exist or the user declines confirmation, the directory remains unchanged.
+* On successful completion, the specified cyclist and their ride memberships are removed. Other cyclists and ride details remain unchanged. The displayed cyclists refresh under the existing filter.
+* If the specified cyclist is absent from the displayed list or the user declines confirmation, the directory remains unchanged.
 
 **MSS**
 
-1.  User <u>views the cyclist list (UC02).</u>
+1.  User identifies a cyclist in the currently displayed list, optionally listing all cyclists (UC02).
 2.  User requests deletion of a specified cyclist from the displayed list.
 3.  Cyclique identifies the target cyclist, explains the effect on ride memberships and requests confirmation.
 4.  User reviews the target and confirms deletion.
 5.  Cyclique permanently removes the cyclist from the directory.
-6.  Cyclique displays the updated cyclist directory.
+6.  Cyclique refreshes the displayed cyclists while retaining the current filter.
 
     Use case ends.
 
 **Extensions**
 
-* 1a. UC02 displays an empty cyclist list.
+* 1a. The currently displayed cyclist list is empty.
 
     Use case ends.
 
-* 2a. The specified cyclist does not exist.
+* 2a. The specified cyclist is absent from the displayed list, even if stored in the directory.
     * 2a1. Cyclique informs the user that the cyclist cannot be found.
 
       Use case ends.
@@ -893,8 +978,6 @@ The status column distinguishes current requirements from future work. Current c
     * 4c2. Cyclique reports the cancellation and the outcome of the new request.
 
       Use case ends. A new delete request starts this use case again.
-
-**Shared precondition for UC05 – UC07**: Cyclique is running and ready to accept user requests.
 
 **UC05 – Register Cyclist for Ride**
 
@@ -1005,9 +1088,123 @@ The status column distinguishes current requirements from future work. Current c
 
       Use case ends.
 
-**Saving failures for UC05 – UC07**: If saving fails, Cyclique reports a saving error. A registration, removal or edit already applied remains in the running application; it is not rolled back, and persistence of the change is not guaranteed. A roster-review request changes no cyclist or ride records, but its updated display selection can remain active after a saving error. These outcomes are distinct from parsing or validation rejections.
+**UC08 – Create Group Ride**
 
-**Subsequent interactions**: Registering or removing a cyclist from the selected ride (UC05 and its related removal interaction) refreshes the displayed members. Deleting that ride leaves the selection empty. A new cyclist search, listing all cyclists, successfully adding a cyclist, clearing the directory, or selecting another roster replaces the selection. Successful cyclist edits preserve the active selection, including when roster phone references change.
+**Guarantees**
+
+* On success, one ride is created with a new persistent ID and an empty roster. Existing records are unchanged.
+* The new ride is visible even if an earlier ride search would hide it. Identical ride details are allowed.
+
+**MSS**
+
+1. User supplies the planned ride's name, period, location, distance, minimum power and capacity, with optional notes.
+2. Cyclique creates the ride and reports its assigned ID.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. Required details are missing, invalid or repeated, or the period ends before it starts.
+    * 1a1. Cyclique explains the error without creating a ride or consuming an ID.
+
+      Use case ends.
+
+* 2a. No further ride IDs are available.
+    * 2a1. Cyclique reports that the ID space is exhausted without changing records.
+
+      Use case ends.
+
+**UC09 – Find Cyclists**
+
+**Guarantees**
+
+* Matching cyclists are displayed alphabetically, replacing any previous cyclist search or roster selection.
+* No records or ride-panel filters are changed. Rejected criteria preserve the previous display.
+
+**MSS**
+
+1. User supplies one or more supported cyclist search criteria.
+2. Cyclique displays cyclists matching those criteria and reports the number found.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. Criteria are missing or invalid, or a non-repeatable field is repeated.
+    * 1a1. Cyclique explains the input error.
+
+      Use case ends.
+
+* 2a. No cyclist matches.
+    * 2a1. Cyclique displays an empty cyclist list and reports zero matches.
+
+      Use case ends.
+
+**UC10 – Find or List Group Rides**
+
+**Guarantees**
+
+* Matching rides are displayed in stored order; cyclist search and roster selection are unchanged.
+* No records are changed. Rejected criteria preserve the previous ride filter.
+
+**MSS**
+
+1. User requests rides matching supported criteria.
+2. Cyclique displays matching rides and reports the number found.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. User requests all rides instead of specifying criteria.
+    * 1a1. Cyclique removes the ride search filter and displays every ride.
+
+      Use case ends. This lists rides, rather than the cyclists registered for one ride (UC07).
+
+* 1b. Criteria are missing, invalid or repeated.
+    * 1b1. Cyclique explains the input error.
+
+      Use case ends.
+
+* 2a. No ride matches.
+    * 2a1. Cyclique reports zero matches. The ride panel distinguishes an empty book from a search with no results.
+
+      Use case ends.
+
+**UC11 – Delete Group Ride**
+
+**Guarantees**
+
+* The selected ride and its memberships are removed immediately, without confirmation.
+* Cyclist records, other rides and the next-ID counter are unchanged. The deleted ID is not reused.
+* If that ride's roster was selected, the cyclist panel becomes empty until another selection is made.
+
+**MSS**
+
+1. User requests deletion of a ride using its persistent ID, whether or not a search currently displays it.
+2. Cyclique deletes the ride and reports success.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. The identifier is missing or malformed, or exceeds the supported input range.
+    * 1a1. Cyclique explains the input error.
+
+      Use case ends without changes.
+
+* 2a. The ride does not exist.
+    * 2a1. Cyclique reports that the ride cannot be found.
+
+      Use case ends without changes.
+
+**Saving failures (all use cases)**: If saving fails, Cyclique reports a saving error. An addition,
+deletion, registration, removal or edit already applied remains in memory; it is not rolled back,
+and persistence is not guaranteed. Searches, listing and roster review change no records, but their
+updated display selections can remain active after a saving error because successful commands also
+save the unchanged book. These outcomes are distinct from parsing or validation rejections.
+
+**Subsequent interactions**: Registering or removing a cyclist from the selected ride (UC05 and its related removal interaction) refreshes the displayed members. Deleting that ride leaves the selection empty. A new cyclist search, listing all cyclists, successfully adding a cyclist or selecting another roster replaces the selection. Clearing the directory empties both panels. Successful cyclist edits preserve the active selection, including when roster phone references change.
 
 ### Non-Functional Requirements
 
@@ -1040,12 +1237,12 @@ The status column distinguishes current requirements from future work. Current c
 * Test a unique name with a name search. For duplicate names, use a dataset containing 50 cyclists
   with the same name and distinct phone numbers, and search using the target's known unique phone.
   Verify that only the intended cyclist and their emergency number appear without scrolling.
-  Add or select a cyclist with email `alex@example.com`. Search using `find e/alex@example.com`, then repeat with
-  different letter case. Verify that the matching cyclist is shown and a different or partial email returns no match.
 
 **Environment/Compatibility**
 
-* The same release JAR must work on Windows (including WSL), Linux and macOS (Intel and ARM), with JDK 25. Representative test configurations are Windows 11, Ubuntu 24.04 LTS and macOS 14 or later, including both Mac architectures. These are compatibility requirements, not a claim that every configuration has passed testing. Record the operating system version, architecture and results for each release compatibility test. Only a keyboard and display should be required as input/output peripherals.
+* The same release JAR must work on Windows (including WSL), Linux and macOS (Intel and ARM), with JDK 25 and a graphical desktop (including a GUI-capable WSL setup). On macOS, packaged-JAR
+  testing uses the prescribed Azul Zulu JDK 25 with JavaFX included; see [Testing](Testing.md#release-checks)
+  for the platform setup and Intel VM rendering limitation. Representative test configurations are Windows 11, Ubuntu 24.04 LTS and macOS 14 or later, including both Mac architectures. These are compatibility requirements, not a claim that every configuration has passed testing. Record the operating system version, architecture and results for each release compatibility test. Only a keyboard and display should be required as input/output peripherals.
 
 **Security/Privacy**
 
@@ -1063,13 +1260,13 @@ The status column distinguishes current requirements from future work. Current c
 * **Cyclist**: A person whose contact and cycling-related information is stored and managed in Cyclique. The terms *rider* and *member* refer to the same concept; this documentation uses *cyclist* consistently.
 * **Cyclist directory**: The collection of cyclist records stored in Cyclique.
 * **Cycling organiser**: The primary user of Cyclique who manages cyclist records and organises recreational group rides.
-* **Duplicate cyclist**: A cyclist entry with the same phone number or email address as an existing cyclist. Email comparison ignores letter case. Identical names alone do not make cyclists duplicates.
+* **Duplicate cyclist**: A cyclist entry with the same phone number or email address as an existing cyclist. Phone comparison removes country-code leading zeros but preserves the rest of the number. Email comparison ignores letter case. Identical names alone do not make cyclists duplicates.
 * **Experience level**: A categorical indication of a cyclist's riding experience. Cyclique uses three experience levels: **Beginner**, **Intermediate**, and **Advanced**.
 * **Functional Threshold Power (FTP)**: A cyclist's cycling performance metric, measured in watts (W), representing the highest power they can approximately sustain for an extended period. In Cyclique, FTP is recorded as a whole number from 1 to 600 W.
-* **Group ride**: An organised cycling session involving one or more cyclists. The term *ride meetup* refers to the same concept; this documentation uses *group ride* unless a feature specifically uses the term *ride meetup*.
+* **Group ride**: A planned cycling session whose roster may initially be empty. The term *ride meetup* refers to the same concept; this documentation uses *group ride* unless a feature specifically uses the term *ride meetup*.
 * **GUI**: *Graphical User Interface*. The visual interface through which Cyclique displays cyclist information and command results.
 * **JAR file**: A Java Archive file used to package and distribute the Cyclique application.
-* **Java 25**: The minimum Java platform version required to run Cyclique, based on the project constraints.
+* **Java 25**: The Java platform version targeted and tested for this release; see the platform setup in the testing guide.
 * **Local storage**: Data stored on the user's own computer rather than on a remote server.
 * **Compatibility target**: An operating system version and processor architecture explicitly listed in the environment requirements above.
 * **Parameter prefix**: A command prefix that identifies the type of value being supplied, such as `n/` for name, `p/` for phone number, `sos/` for emergency contact number, or `f/` for FTP.
@@ -1086,7 +1283,13 @@ The status column distinguishes current requirements from future work. Current c
 Use JDK 25 and a disposable folder containing the release JAR. Run
 `java -version` to confirm the selected JDK, then `java -jar cyclique.jar`
 from that folder. All commands below operate on test contacts; do not use real contact data.
-Repeat the checks on each operating system supported by the release.
+On macOS, select the prescribed Zulu JDK 25 with JavaFX included; follow the platform notes in
+[Testing](Testing.md#release-checks). Repeat checks on each release compatibility target and record
+results and outstanding checks in [Release testing](ReleaseTesting.md).
+
+Scenarios are independent unless they explicitly reuse another section's fixtures. Prepare the stated
+starting data for each scenario; do not assume contacts, IDs or filters left by an earlier scenario.
+Use the complete phone number wherever a command below uses `PHONE`.
 
 ### Preparing an empty test book
 
@@ -1165,6 +1368,11 @@ Use John and Alice from the previous section.
    words `East Coast` in order appear; a location such as `East Coast Park` matches.
 1. Try `find`, `find john alice`, and `find p/`. Expected: Each shows an error without changing the current
    displayed list.
+1. Enter `find e/johndoe@example.com`, then `find e/JOHNDOE@EXAMPLE.COM`.
+   Expected: Only John appears in both cases. `find e/johndoe@example.com e/alice@example.com` shows both
+   cyclists, while `find e/johndoe@example.co` and `find e/nobody@example.com` show none.
+   Enter `find e/johndoe`. Expected: Email validation error; the previous display remains unchanged.
+   Enter `find e/JOHNDOE@EXAMPLE.COM n/alice`. Expected: None, because fields combine with AND.
 1. Enter `find n/john`, then `edit +65 91234567 n/Alice Updated`.
    Expected: The edit is rejected because Alice is outside the displayed list.
 1. Enter `edit +65 96742165 n/John Updated`. Expected: John's name changes and only John remains displayed;
@@ -1430,7 +1638,12 @@ Launch Cyclique in a disposable test folder. Use an empty cyclist list and uniqu
 
 ### Error message consistency
 
-Use the contacts from the alphabetical display scenario before deleting Zara.
+Prepare an [empty test book](#preparing-an-empty-test-book), then add independent fixtures:
+
+```text
+add n/Bernice p/+65 93333333 sos/+65 99999999 e/bernice.errors@example.com f/300 x/Beginner l/any
+add n/Zara p/+65 94444444 sos/+65 99999999 e/zara.errors@example.com f/300 x/Beginner l/any
+```
 
 1. Enter `find n/bernice`, then `delete +65 94444444` and `edit +65 94444444 n/Ben`.
    Expected: Both show exactly
@@ -1471,7 +1684,10 @@ Check the panel after each step, and check the saved file `data/addressbook.json
    Expected: The ride is added, because the end time may equal the start time.
 1. Enter `rideadd n/The Extraordinarily Long Weekend Charity Fundraiser Century Ride For Everyone from/31-12-2026 2300 to/01-01-2027 0100 l/Marina Bay Sands Waterfront Promenade and Gardens d/160.75 f/250 s/150 notes/Bring plenty of water and snacks for the whole day`.
    Expected: The ride appears as a card whose long name, location and notes wrap onto further lines inside the card. Make the window as narrow as it allows (it cannot go below 720 pixels wide). Expected: The Rides panel shows no horizontal scrollbar and every card stays inside the column. Each date and time, the distance and the minimum power stay on one line instead of breaking in the middle, and the location wraps only between words.
-1. Add two cyclists to the same ride with `rideaddcyclist ID PHONE`. Expected: The ride card lists each phone number on its own line, one below the other, even when the window is wide. Make the window as narrow as it allows. Expected: A phone number is still never broken in the middle.
+1. Add two known eligible cyclists:
+   `add n/Alice Rider p/+65 91111111 sos/+65 99999999 e/alice.layout@example.com f/300 x/Beginner l/any`
+   and `add n/Bob Rider p/+65 92222222 sos/+65 99999999 e/bob.layout@example.com f/300 x/Beginner l/any`.
+   Enter `rideaddcyclist 1 +65 91111111` and `rideaddcyclist 1 +65 92222222`. Expected: The ride card lists each phone number on its own line, one below the other, even when the window is wide. Make the window as narrow as it allows. Expected: A phone number is still never broken in the middle.
 1. Enter `rideadd n/Any Place Ride from/21-10-2026 0600 to/21-10-2026 0800 l/any d/20 f/100 s/5`.
    Expected: The card's Location line shows `Any`, and the card has no Notes line.
 1. Click a ride card. Expected: The card is highlighted with a yellow border.
@@ -1499,8 +1715,14 @@ Prepare an [empty test book](#preparing-an-empty-test-book). Enter the following
 
 Record the assigned ride ID. The steps below assume it is `1`. If a different ID is assigned, substitute that ID in every command.
 
-Add two cyclists with FTP values of 200 W and 250 W, then add both to ride 1 with `rideaddcyclist`. The following
-steps use this roster to exercise Ride Edit validation.
+Enter these commands to create the roster used for Ride Edit validation:
+
+```text
+add n/Alice Rider p/+65 91111111 sos/+65 99999999 e/alice.edit@example.com f/200 x/Beginner l/any
+add n/Bob Rider p/+65 92222222 sos/+65 99999999 e/bob.edit@example.com f/250 x/Beginner l/any
+rideaddcyclist 1 +65 91111111
+rideaddcyclist 1 +65 92222222
+```
 
 1. Enter `rideedit 1 n/NightRide`. Expected: The result starts with `Edited ride: Ride 1: NightRide`; every other
    field, the roster and the ride's position in the Rides panel remain unchanged.
@@ -1538,7 +1760,8 @@ Record its ID, fields, roster and JSON. Substitute the actual ID for `1` and pas
    Expected: accepted, quoted and unquoted. Append `<SEP>eleven` and repeat with Ride Edit and Ride Add.
    Expected: the notes constraint; unchanged records, filters and JSON; rejected additions consume no ID.
 1. Apply `ridefind notes/lights` and `ridelist 1`, restore `Bring lights`, then enter `rideedit 1 notes/<SEP>`.
-   Expected: absent notes, `Notes: None`, hidden Notes row, ride removed from notes search, roster filter retained.
+   Expected: absent notes, `Notes: None` and a hidden Notes row. Because the edited ride no longer
+   matches the notes search, Ride Edit resets the ride filter to show all rides; the roster filter is retained.
    Repeat bare `notes/` and mixed separators. Blank Ride Add and quoted blanks must be rejected without changes.
 1. Repeat Issue #155 below and **Ride overlap confirmation regression** with Unicode-spaced notes.
    Valid notes and time changes wait for confirmation together; invalid notes create no pending request.
@@ -1608,7 +1831,7 @@ then `rideaddcyclist 1 +65 91234567`. Record all ride fields and the roster.
 
 ### Deleting a group ride
 
-Use disposable test data and note the number of cyclist records before starting.
+Prepare an [empty test book](#preparing-an-empty-test-book) and note the cyclist-record count before starting.
 
 1. Enter `rideadd n/Delete Me from/18-10-2026 0630 to/18-10-2026 0730 l/East Coast d/20 f/150 s/8`.
 1. Enter `rideadd n/Keep Me from/19-10-2026 0630 to/19-10-2026 0730 l/Punggol d/25 f/160 s/10`.
@@ -1635,10 +1858,14 @@ Use disposable test data and note the number of cyclist records before starting.
 
 ### Saving data and recovering from invalid files
 
-1. Add John again, edit a field, and exit. Launch again.
-   Expected: All saved fields and locations match the last successful command.
-1. Request John’s deletion, confirm with `yes`, exit, and relaunch. Expected: John stays deleted.
-1. Add John, enter `clear`, exit, and relaunch. Expected: The book stays empty.
+Prepare an [empty test book](#preparing-an-empty-test-book). Use this cyclist throughout the scenario:
+
+`add n/John Doe p/+65 98765432 sos/+65 99999999 e/john.save@example.com f/300 x/Beginner l/any`
+
+1. Add John, enter `edit +65 98765432 l/Punggol`, and exit. Launch again.
+   Expected: All fields and locations match the last successful command.
+1. Enter `delete +65 98765432`, confirm with `yes`, exit, and relaunch. Expected: John stays deleted.
+1. Add John using the command above, enter `clear`, exit, and relaunch. Expected: The book stays empty.
 1. With the application closed, back up the disposable `data/addressbook.json`, then remove it.
    Launch again. Expected: Sample contacts are loaded.
 1. Close the application and replace the disposable data file contents with `{invalid json`.
@@ -1814,7 +2041,18 @@ Note their original details. The ride receives ID 1.
 The ride panel resets its active `ridefind` filter when an added or edited ride would otherwise be hidden, and when the address
 book is cleared.
 
-Use disposable cyclist and ride data. Record the original details before applying filters.
+Prepare an [empty test book](#preparing-an-empty-test-book) and enter these independent fixtures.
+The double space in `Morning  Loop` is intentional.
+
+```text
+add n/John Doe p/+65 91234567 sos/+65 99999999 e/john.find@example.com f/250 x/Beginner l/any
+add n/Alice Tan p/+65 92222222 sos/+65 99999999 e/alice.find@example.com f/250 x/Intermediate l/Tampines
+rideadd n/Sunday Sunrise Ride from/18-10-2026 0630 to/18-10-2026 0930 l/East Coast Park d/45 f/180 s/5 notes/"Bring camera with aperture f/2"
+rideadd n/Morning  Loop from/19-10-2026 0700 to/19-10-2026 0900 l/Tampines d/20 f/220 s/5 notes/Bring lights
+rideadd n/Saturday Loop from/24-10-2026 0700 to/24-10-2026 0900 l/Punggol d/30 f/150 s/5
+```
+
+Record their details before applying filters.
 
 1. Enter `list`. Expected: all cyclists appear in alphabetical order.
 1. Enter `find n/john`, then `find n/john p/+65 91234567`. Expected: the first command matches the name keyword,
@@ -1824,7 +2062,10 @@ Use disposable cyclist and ride data. Record the original details before applyin
 1. Try `find`, `find john`, `find p/invalid` and an FTP value outside `1` to `600`.
    Expected: each invalid command shows an error without changing the previous valid cyclist filter.
 1. Enter `list`. Expected: the full cyclist list is restored.
-1. Add at least three rides with different names, dates, locations, distances and minimum powers.
+1. Enter `ridefind n/morning loop`, then `ridefind n/Morning  Loop`.
+   Expected: Both find Morning Loop despite the stored double space; `ridefind n/Morn` finds none.
+1. Enter `ridefind notes/"camera aperture"`. Expected: Sunday Sunrise Ride appears even though `with`
+   separates the searched words. `ridefind notes/"aperture camera"` finds none because order matters.
 1. Enter `ridefind n/Sunday`. Expected: rides whose names contain `Sunday` as a complete word appear, ignoring case.
 1. Enter `ridefind n/Sunday Ride`. Expected: `Sunday Sunrise Ride` appears because intervening complete words are allowed.
 1. Enter `ridefind n/Sunrise Ride`. Expected: `Sunday Sunrise Ride` appears because the complete words occur in order.
@@ -1839,6 +2080,9 @@ Use disposable cyclist and ride data. Record the original details before applyin
    appear; a ride with a lower minimum power is excluded.
 1. Enter `ridefind n/No Such Ride`. Expected: The result box shows `0 ride(s) listed!` and the Rides panel shows `No rides match the current filter. Use ridefind all to show all rides.`, not the `No rides yet` message.
 1. Enter `ridefind all`. Expected: every saved ride appears again, including rides hidden by the earlier filters.
+1. Enter `ridefind n/Sunday n/Saturday`, then `ridefind p/+65 91234567`.
+   Expected: Both are rejected without changing either display; repeated ride criteria and search by
+   cyclist phone are future requirements, not supported searches.
 1. Try `ridefind`, `ridefind from/invalid`, `ridefind from/19-10-2026 to/18-10-2026`, duplicate prefixes,
    and a distance, minimum power or group size outside its constraints. Expected: each invalid command shows an
    error and leaves the previous ride filter unchanged.

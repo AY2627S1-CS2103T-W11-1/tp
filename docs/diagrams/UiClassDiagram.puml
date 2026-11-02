@@ -1,5 +1,6 @@
 @startuml
 !include style.puml
+!pragma layout smetana
 skinparam arrowThickness 1.1
 skinparam arrowColor UI_COLOR_T4
 skinparam classBackgroundColor UI_COLOR
@@ -30,9 +31,6 @@ package Logic <<Rectangle>> {
 Class HiddenLogic #FFFFFF
 }
 
-Class HiddenOutside #FFFFFF
-HiddenOutside ..> Ui
-
 UiManager .left.|> Ui
 UiManager -down-> "1" MainWindow
 MainWindow *-down->  "1" CommandBox
@@ -40,7 +38,7 @@ MainWindow *-down-> "1" ResultDisplay
 MainWindow *-down-> "1" PersonListPanel
 MainWindow *-down-> "1" RideListPanel
 MainWindow *-down-> "1" StatusBarFooter
-MainWindow --> "0..1" HelpWindow
+MainWindow --> "1" HelpWindow
 
 PersonListPanel -down-> "*" PersonCard
 RideListPanel -down-> "*" RideCard
@@ -59,7 +57,7 @@ HelpWindow --|> UiPart
 MainWindow .down.> CommandTemplates
 CommandTemplates *-down-> "*" Template
 
-UiManager .left.> ArtworkScreen
+UiManager .up.> ArtworkScreen
 MainWindow .up.> ArtworkScreen
 
 PersonCard ..> Model
