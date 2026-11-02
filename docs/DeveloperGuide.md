@@ -14,6 +14,20 @@ title: Developer Guide
 * Development tools: [JUnit 5](https://junit.org/junit5/) supports automated tests; [Gradle](https://gradle.org/) and [Shadow](https://github.com/GradleUp/shadow) build and package the application; [Checkstyle](https://checkstyle.org/) checks Java style; [JaCoCo](https://www.jacoco.org/jacoco/) measures test coverage.
 * Documentation tools: [PlantUML](https://plantuml.com/) produces the UML diagrams; [Jekyll](https://jekyllrb.com/), the [Minima theme](https://github.com/jekyll/minima) and [Jemoji](https://github.com/jekyll/jemoji) support the documentation website. The JavaFX control styling retains adaptations from [JMetro](https://pixelduke.com/2012/10/23/jmetro-windows-8-controls-on-java/), as credited in `DarkTheme.css`.
 
+**Notable uses of AI**
+
+The team used ChatGPT (Codex) and Claude Code to support implementation discussions, preliminary code and pull request reviews, and consideration of potential edge cases. Individual uses included:
+
+* **Evan ([@elsxyss](https://github.com/elsxyss))** used Codex to assist with implementing cyclist deletion confirmation and the emergency contact (`sos/`) field, and with investigating and fixing bugs identified during alpha and beta testing. Codex also helped refine the User Guide's structure, instructions and examples, with reference to CS2101 principles of effective user guide writing.
+
+* **Sia ([@Sia-Pathania](https://github.com/Sia-Pathania))** used ChatGPT (Codex) to review the `find` and `ridefind` implementations, explore search and validation edge cases, and suggest test cases. It also helped clarify explanations of the commands' matching rules and input-handling differences in the User Guide and Developer Guide.
+
+* **Ji Xiang ([@jixiang-t](https://github.com/jixiang-t))** used Codex to explore implementation approaches for ride management, refactor code for readability and adherence to coding conventions, and assist with writing automated tests and debugging. Claude Code was used for additional implementation reviews to identify potential regressions.
+
+* **Jayden ([@jaydenleungky](https://github.com/jaydenleungky))** used Claude Code during feature development and UI refinement, including the experience level field, ride creation, dark theme, ride cards and Help menu. It also assisted with selected command documentation, UI and Storage diagrams, and testing work such as drafting bug reports and ride-name regression tests.
+
+* **Juin Ron ([@juinron](https://github.com/juinron))** used Codex to proofread and refine ride roster documentation in the User Guide and Developer Guide. Codex also assisted with troubleshooting cross-platform JAR packaging and macOS continuous integration failures.
+
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Setting up, getting started**
